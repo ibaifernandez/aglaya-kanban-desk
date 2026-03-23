@@ -3,6 +3,11 @@
   command = "npm run build"
   publish = "dist"
 
+# VITE_SUPABASE_* son claves públicas por diseño (anon key de Supabase).
+# Vite las incrusta en el bundle — el escáner las detecta como falsos positivos.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_ANON_KEY,VITE_SUPABASE_URL"
+
 # Proxy /api/* → Railway backend (evita CORS y no requiere cambios en el frontend)
 [[redirects]]
   from   = "/api/*"
