@@ -197,13 +197,28 @@ Esta subconsulta crea una recursión infinita: para leer `public.users` hay que 
 2. Eliminar la policy completamente (ya que `service_role` debería tener acceso total de todos modos)
 3. Añadir una tabla auxiliar de roles para evitar la autorreferencia
 
-**Decisión:** Eliminar la policy. En Phase 1 con un único tenant y un superadmin, la seguridad la gestiona el middleware JWT del servidor Express; no necesitamos granularidad RLS en `public.users`.
+**Decisión:** Eliminar la policy recursiva y reemplazarla por una función `SECURITY DEFINER` que resuelve el rol del usuario actual sin releer la tabla bajo RLS.
 
 ```sql
+-- 1. Eliminar la policy recursiva
 DROP POLICY IF EXISTS "Admins ven todos los usuarios de su org" ON public.users;
+
+-- 2. Función auxiliar que obtiene el rol sin disparar RLS (SECURITY DEFINER)
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS text LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT role FROM public.users WHERE id = auth.uid();
+$$;
+
+-- 3. Policy correcta: admins ven todo, cualquier usuario ve su propia fila
+CREATE POLICY "Admins ven usuarios de su org"
+ON public.users FOR SELECT
+USING (
+  public.get_my_role() IN ('admin', 'superadmin')
+  OR id = auth.uid()
+);
 ```
 
-**Consecuencias:** Las queries a `public.users` desde el servidor funcionan correctamente. Si en el futuro se necesita RLS granular en `public.users`, implementar con función `SECURITY DEFINER` para evitar recursión.
+**Consecuencias:** Las queries a `public.users` funcionan correctamente sin recursión. La tabla tiene RLS activo, lo que protege el acceso directo vía anon key desde el navegador. La anon key de Supabase (`VITE_SUPABASE_ANON_KEY`) puede incluirse en el bundle del cliente con seguridad — solo permite Auth operations y lectura de la propia fila.
 
 ---
 
