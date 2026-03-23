@@ -39,7 +39,7 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 ```
 
 ### Seguridad — limpieza de secretos en repositorio
-- `docs/DECISIONS.md`: clave API real de Resend (`re_Cs...`) que estaba hardcodeada en el ADR-007 → redactada y sustituida por placeholder. **Clave revocada y nueva generada por Ibai; guardada a buen recaudo hasta poder configurar Resend.**
+- `docs/DECISIONS.md`: clave API real de Resend que estaba hardcodeada en el ADR-007 → redactada y sustituida por placeholder. **Clave revocada y nueva generada por Ibai; guardada a buen recaudo hasta poder configurar Resend.**
 - `.env.example`: placeholders de SMTP neutralizados para no activar detectores de secretos (GitGuardian)
 - `docs/README-deploy.md`: URL real de Supabase sustituida por placeholder
 - GitGuardian: 3 incidentes resueltos (2 falsos positivos de `.env.example`, 1 clave Resend real ya revocada)
