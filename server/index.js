@@ -31,7 +31,15 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-app.use(cors({ origin: ['http://localhost:5175', 'http://localhost:5173', 'http://localhost:5174'] }));
+app.use(cors({
+  origin: [
+    'http://localhost:5175',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://myboardlfi.netlify.app',
+    'https://myboardlfi.ibaifernandez.com',
+  ],
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
