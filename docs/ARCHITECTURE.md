@@ -1,44 +1,70 @@
 # ARCHITECTURE.md — Arquitectura técnica de MyBoardLFi
 
-**Última actualización:** 2026-03-18
+**Última actualización:** 2026-03-23
 
 ---
 
-## Arquitectura Phase 0 (actual)
+## Arquitectura actual (Phase 1 — en producción)
 
-MyBoardLFi es una SPA (Single-Page Application) con arquitectura cliente-servidor desacoplada. En Phase 0 el servidor persiste datos en un archivo JSON local (dummy data de demostración). En Phase 1 este archivo es reemplazado por Supabase (PostgreSQL hosted).
+MyBoardLFi es una SPA con arquitectura cliente-servidor desacoplada. El frontend está desplegado en Netlify y el backend en Railway. Los datos persisten en Supabase (PostgreSQL hosted). En desarrollo local, el frontend usa el proxy de Vite; en producción, Netlify redirige `/api/*` a Railway.
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     NAVEGADOR                           │
-│                                                         │
-│   React SPA (Vite · puerto 5175)                        │
-│   ├── Componentes UI                                    │
-│   ├── React Contexts (CategoriesContext)                │
-│   ├── Hooks de estado                                   │
-│   └── Capa API (fetch → /api/*)                         │
-│                          │                              │
-│                    proxy /api                           │
-└──────────────────────────┼──────────────────────────────┘
-                           │ HTTP / JSON
-┌──────────────────────────▼──────────────────────────────┐
-│              SERVIDOR (Express · puerto 3003)           │
-│                                                         │
-│   Rutas REST                                            │
-│   ├── /api/boards                                       │
-│   ├── /api/columns                                      │
-│   ├── /api/cards                                        │
-│   └── /api/categories                                   │
-│                          │                              │
-│              utils/db.js (readData / writeData)         │
-│                          │                              │
-│              server/data/tasks.json  ← DEMO DATA        │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         NAVEGADOR                               │
+│                                                                 │
+│   React SPA                                                     │
+│   Producción:  https://myboardlfi.ibaifernandez.com (Netlify)   │
+│   Desarrollo:  http://localhost:5175 (Vite)                     │
+│                                                                 │
+│   ├── AuthContext (Supabase Auth SDK)                           │
+│   ├── CategoriesContext                                         │
+│   ├── Hooks de estado                                           │
+│   └── Capa API (fetch → /api/* con JWT en header)              │
+│                          │                                      │
+│   Producción: Netlify proxy /api/* → Railway                    │
+│   Desarrollo: Vite proxy /api/* → localhost:3003                │
+└──────────────────────────┼──────────────────────────────────────┘
+                           │ HTTP / JSON + Authorization: Bearer <JWT>
+┌──────────────────────────▼──────────────────────────────────────┐
+│   SERVIDOR Express                                              │
+│   Producción:  https://web-production-aa41d.up.railway.app      │
+│   Desarrollo:  http://localhost:3003                            │
+│                                                                 │
+│   Middleware                                                    │
+│   ├── requireAuth (verifica JWT)                                │
+│   └── requireRole (superadmin / admin / colaborador / ...)      │
+│                                                                 │
+│   Rutas REST                                                    │
+│   ├── /api/auth/login, /api/auth/register, /api/auth/me         │
+│   ├── /api/boards, /api/columns, /api/cards, /api/categories    │
+│   └── /api/digest/send-me (admin only)                         │
+│                          │                                      │
+│   Datos aún en tasks.json (migración a Supabase → Phase 1 core) │
+└──────────────────────────┼──────────────────────────────────────┘
+                           │ Supabase JS SDK
+┌──────────────────────────▼──────────────────────────────────────┐
+│   SUPABASE  (proyecto myboardlfi · región São Paulo)            │
+│                                                                 │
+│   Auth (JWT, gestión de usuarios)                               │
+│   PostgreSQL                                                    │
+│   ├── organizations  (tenant LFi Agency insertado)              │
+│   ├── users          (ibai@lfi.la · superadmin)                 │
+│   ├── boards                                                    │
+│   ├── columns                                                   │
+│   ├── cards                                                     │
+│   └── categories                                                │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Arquitectura objetivo (Phase 1)
+## Arquitectura Phase 0 (histórico)
+
+En Phase 0 el servidor persistía datos en `server/data/tasks.json`. Sin autenticación. Frontend servido localmente en `localhost:5175`. Ver CHANGELOG v0.1.0.
+
+---
+
+## Arquitectura objetivo (Phase 1 core — próxima iteración)
 
 En Phase 1, `tasks.json` es reemplazado por Supabase. Se añade capa de autenticación y multi-tenancy.
 
@@ -254,7 +280,7 @@ Acción usuario → hook → api/client.js (fetch POST/PUT/DELETE) → Express �
 
 ## Decisiones de arquitectura
 
-Ver `docs/DECISIONS.md` para el registro completo (ADR-001 a ADR-006).
+Ver `docs/DECISIONS.md` para el registro completo (ADR-001 a ADR-010).
 
 | Decisión | Motivo clave |
 |---|---|

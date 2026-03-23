@@ -207,6 +207,31 @@ DROP POLICY IF EXISTS "Admins ven todos los usuarios de su org" ON public.users;
 
 ---
 
+## ADR-010 — Deploy provisional: Railway (backend) + Netlify (frontend)
+
+**Fecha:** 2026-03-23
+**Estado:** Aceptada (provisional — ver ADR-003)
+
+**Contexto:** ADR-003 establecía PRONODO como destino de deploy. Sin embargo, PRONODO requiere coordinación con Fernando Murillo (configuración Docker, dominio, servidor), que no está disponible en el momento de la primera demo. Se necesita un deploy funcional inmediato.
+
+**Decisión:** Deploy provisional en Railway (backend) + Netlify (frontend).
+
+**Razones:**
+- Railway: deploy en minutos desde GitHub, sin configuración de servidor, variables de entorno via UI, logs integrados
+- Netlify: deploy automático en cada push a `main`, dominio personalizado gratuito, proxy inverso via `netlify.toml` (evita CORS y no requiere cambios en el cliente)
+- Ambos tienen plan gratuito suficiente para demo y fase inicial
+- No requieren coordinación externa
+
+**Configuración de producción:**
+- Backend: `https://web-production-aa41d.up.railway.app`
+- Frontend: `https://myboardlfi.ibaifernandez.com` (dominio primario) / `https://myboardlfi.netlify.app`
+- `netlify.toml` redirige `/api/*` y `/uploads/*` → Railway (proxy transparente)
+- SMTP: Migadu vía `info@ibaifernandez.com` (provisional — ver ADR-007)
+
+**Consecuencias:** Cuando PRONODO esté listo, migrar backend a PRONODO y actualizar `netlify.toml` con la nueva URL. El frontend puede mantenerse en Netlify indefinidamente o migrarse también a PRONODO según acuerdo con LFi.
+
+---
+
 ## ADR-006 — Fork de MyBoard como base de MyBoardLFi
 
 **Fecha:** 2026-03-18

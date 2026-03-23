@@ -4,7 +4,7 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
-## [0.4.0] — 2026-03-23 — Sesión 3: Fix login + seguridad de secretos
+## [0.4.0] — 2026-03-23 — Sesión 3: Fix login + deploy Netlify + migración schema
 
 ### Bug crítico resuelto: login bloqueado por RLS recursiva
 - **Causa raíz:** La policy RLS `"Admins ven todos los usuarios de su org"` en `public.users` hacía una subconsulta a `public.users` para comprobar el rol del usuario autenticado, creando una recursión infinita que bloqueaba *todas* las consultas a la tabla, incluso las realizadas con la `service_role` key desde el servidor.
@@ -16,14 +16,33 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 - Insertada la fila correspondiente en `public.users` con rol `superadmin` y `organization_id` de LFi Agency
 - Confirmado que el login funciona correctamente tras eliminar la policy RLS
 
-### Seguridad — limpieza de secretos en repositorio
-- `docs/DECISIONS.md`: clave API real de Resend (`re_Cs...`) que estaba hardcodeada en el ADR-007 → redactada y sustituida por placeholder. **La clave debe ser revocada en resend.com y regenerada.**
-- `.env.example`: placeholders de SMTP neutralizados para no activar detectores de secretos (GitGuardian)
-- `docs/README-deploy.md`: URL real de Supabase (`jowtasxhnluqqcgkeoll.supabase.co`) sustituida por placeholder
+### Deploy frontend — Netlify
+- Frontend desplegado en Netlify: `https://myboardlfi.ibaifernandez.com` (dominio primario) y `https://myboardlfi.netlify.app`
+- `netlify.toml` configurado: build desde `client/`, proxy `/api/*` y `/uploads/*` → Railway, SPA fallback
+- CORS del servidor Express ya incluía ambos dominios Netlify
+- Supabase → Authentication → URL Configuration: Site URL actualizado a `https://myboardlfi.ibaifernandez.com`; Redirect URLs añadida
+- Variables de entorno Netlify: `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` configuradas
+- Ver ADR-010
 
-### Pendiente tras esta sesión
-- Revocar la clave Resend expuesta: resend.com → API Keys → revocar `re_Cs...` → crear nueva → actualizar en Railway
-- GitGuardian: marcar los 3 incidentes como resueltos (los 3 son falsos positivos de `.env.example`; el verdadero secreto era el del ADR-007)
+### Migración de schema — alineación camelCase frontend/backend
+Ejecutado en Supabase SQL Editor para alinear nombres de columna con la API del frontend:
+```sql
+ALTER TABLE public.boards   RENAME COLUMN name     TO title;
+ALTER TABLE public.boards   RENAME COLUMN position TO "order";
+ALTER TABLE public.columns  RENAME COLUMN name     TO title;
+ALTER TABLE public.columns  RENAME COLUMN position TO "order";
+ALTER TABLE public.cards    RENAME COLUMN position TO "order";
+ALTER TABLE public.cards    RENAME COLUMN category_id TO category;
+ALTER TABLE public.cards    ADD COLUMN IF NOT EXISTS tags           JSONB DEFAULT '[]';
+ALTER TABLE public.cards    ADD COLUMN IF NOT EXISTS checklist_title TEXT DEFAULT '';
+ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT NULL;
+```
+
+### Seguridad — limpieza de secretos en repositorio
+- `docs/DECISIONS.md`: clave API real de Resend (`re_Cs...`) que estaba hardcodeada en el ADR-007 → redactada y sustituida por placeholder. **Clave revocada y nueva generada por Ibai; guardada a buen recaudo hasta poder configurar Resend.**
+- `.env.example`: placeholders de SMTP neutralizados para no activar detectores de secretos (GitGuardian)
+- `docs/README-deploy.md`: URL real de Supabase sustituida por placeholder
+- GitGuardian: 3 incidentes resueltos (2 falsos positivos de `.env.example`, 1 clave Resend real ya revocada)
 
 ---
 
