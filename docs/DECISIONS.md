@@ -123,7 +123,7 @@ Formato ADR (Architecture Decision Records). Cada entrada documenta una decisió
 ## ADR-007 — Email transaccional: Migadu (provisional) → Resend (producción)
 
 **Fecha:** 2026-03-19
-**Estado:** Provisional — pendiente migración
+**Estado:** ✅ Activa (2026-03-24)
 
 **Contexto:** MyBoardLFi necesita enviar emails transaccionales: digest de tareas bajo demanda y restablecimiento de contraseña vía Supabase Auth.
 
@@ -133,24 +133,23 @@ Formato ADR (Architecture Decision Records). Cada entrada documenta una decisió
 - Resend con cuenta LFi (`ibai.fernandez@lafabricaimaginaria.com`, dominio `lafabricaimaginaria.com`)
 - Supabase built-in email — descartado por rate limits y falta de personalización
 
-**Decisión provisional:** Migadu (`smtp.migadu.com`, cuenta `info@ibaifernandez.com`) para desarrollo y demo. Resend con cuenta LFi para producción.
+**Decisión:** Resend con cuenta LFi (`ibai.fernandez@lafabricaimaginaria.com`, dominio `lafabricaimaginaria.com`).
 
-**Estado actual (2026-03-23):** Railway usa Migadu. Resend está bloqueado porque la verificación del dominio `lafabricaimaginaria.com` depende del equipo de TI de LFi/PRONODO (Fernando Murillo), que aún no ha añadido los registros DNS necesarios.
+**Historial:**
+- 2026-03-19: Cuenta Resend creada. Bloqueado por verificación DNS pendiente de Fernando Murillo (PRONODO/TI LFi). Se usó Migadu como provisional.
+- 2026-03-24: Fernando Murillo verificó el dominio. Migrado a Resend en Railway y Supabase. Probado y confirmado en producción.
 
-**Razones:**
-- Migadu ya funciona y permite validar el flujo completo sin bloqueos externos
-- Resend es la solución correcta para producción: reputación de entrega, SDK moderno, logs, webhooks
-- La cuenta Resend LFi (`ibai.fernandez@lafabricaimaginaria.com`) ya está creada con API key generada; solo falta la verificación DNS
-
-**Consecuencias:** ⚠️ Antes de salir a producción, Fernando Murillo debe añadir los registros DNS de Resend para `lafabricaimaginaria.com`. Tras verificación, actualizar en Railway:
+**Configuración activa en Railway:**
 ```
 SMTP_HOST=smtp.resend.com
 SMTP_USER=resend
-SMTP_PASS=<nueva_api_key_resend>   # guardada por Ibai; obtener desde resend.com → API Keys
+SMTP_PASS=<api_key_resend — en poder de Ibai>
 SMTP_FROM="MyBoardLFi <myboard@lafabricaimaginaria.com>"
 DIGEST_TO=ibai@lfi.la
 ```
 Y en Supabase → Authentication → Email → SMTP Settings: mismas credenciales.
+
+**Consecuencias:** Email transaccional corporativo operativo. Si la API key de Resend se rota, actualizar en Railway → Variables → `SMTP_PASS`.
 
 ---
 

@@ -4,6 +4,38 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [0.5.0] — 2026-03-24 — Sesión 4: Producción completa + Resend + seguridad RLS
+
+### Email transaccional — migración a Resend completada
+- Fernando Murillo (PRONODO/TI de LFi) verificó el dominio `lafabricaimaginaria.com` en Resend
+- Railway actualizado: `SMTP_HOST=smtp.resend.com`, `SMTP_USER=resend`, `SMTP_FROM=myboard@lafabricaimaginaria.com`
+- Supabase → Authentication → Email → SMTP Settings: mismas credenciales configuradas
+- Probado y confirmado: email de recuperación de contraseña llega correctamente desde `myboard@lafabricaimaginaria.com`
+- Ver ADR-007 (estado actualizado a Activa)
+
+### Seguridad — RLS restaurada correctamente en public.users
+- Restaurada la protección RLS eliminada en v0.4.0, ahora sin recursión
+- Creada función `public.get_my_role()` con `SECURITY DEFINER` para obtener el rol del usuario sin releer `public.users` bajo RLS
+- Policy `"Admins ven usuarios de su org"` recreada usando dicha función: admins ven todos, cualquier usuario ve su propia fila
+- La `anon` key de Supabase puede estar en el bundle del cliente con seguridad (solo permite Auth + leer propia fila)
+- `SECRETS_SCAN_OMIT_KEYS` eliminado de `netlify.toml` — ya no hace falta suprimir el escáner de Netlify
+
+### Deploy Netlify — resolución de bloqueo por escáner de secretos
+- `VITE_SUPABASE_ANON_KEY` y `VITE_SUPABASE_URL` reconfiguradas como **Plain text** (no Secret) en Netlify UI
+- Netlify solo escanea en el bundle las variables marcadas como Secret; la anon key es una variable pública por diseño de Supabase
+- Deploy limpio confirmado: `main@1f9cb48` publicado en `https://myboardlfi.ibaifernandez.com`
+
+### UI — mejoras menores
+- Añadido toggle de visibilidad de contraseña (ojito) en `LoginPage.jsx` y `ResetPasswordPage.jsx`
+- Enlace "¿Olvidaste tu contraseña?" centrado correctamente en `LoginPage.jsx`
+
+### Verificado en producción
+- Login con `ibai@lfi.la` funciona en `https://myboardlfi.ibaifernandez.com`
+- 5 tableros corporativos cargando desde Supabase (datos filtrados por `organization_id`)
+- Email de recuperación de contraseña entregado vía Resend en menos de 1 minuto
+
+---
+
 ## [0.4.0] — 2026-03-23 — Sesión 3: Fix login + deploy Netlify + migración schema
 
 ### Bug crítico resuelto: login bloqueado por RLS recursiva
