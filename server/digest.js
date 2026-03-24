@@ -7,9 +7,9 @@
 
 'use strict';
 
-const cron       = require('node-cron');
-const nodemailer = require('nodemailer');
-const { readData } = require('./utils/db');
+const cron              = require('node-cron');
+const nodemailer        = require('nodemailer');
+const { supabaseAdmin } = require('./utils/supabase');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -39,8 +39,18 @@ function todayStr() {
 // ── Stats builder ─────────────────────────────────────────────────────────────
 
 async function buildStats() {
-  const data = readData();
-  const { boards = [], columns = [], cards = [], categories = [] } = data;
+  // Fetch all data from Supabase (service_role bypasses RLS — full org view)
+  const [boardsRes, columnsRes, cardsRes, categoriesRes] = await Promise.all([
+    supabaseAdmin.from('boards').select('id, title'),
+    supabaseAdmin.from('columns').select('id, title'),
+    supabaseAdmin.from('cards').select('id, column_id, board_id, priority, due_date'),
+    supabaseAdmin.from('categories').select('id'),
+  ]);
+
+  const boards     = boardsRes.data     ?? [];
+  const columns    = columnsRes.data    ?? [];
+  const cards      = cardsRes.data      ?? [];
+  const categories = categoriesRes.data ?? [];
 
   // Column IDs marked as "done"
   const doneColumnIds = new Set(
@@ -50,11 +60,11 @@ async function buildStats() {
   const totalBoards   = boards.length;
   const totalColumns  = columns.length;
   const totalCards    = cards.length;
-  const doneCards     = cards.filter(c => doneColumnIds.has(c.columnId)).length;
+  const doneCards     = cards.filter(c => doneColumnIds.has(c.column_id)).length;
   const pendingCards  = totalCards - doneCards;
 
   // Priority breakdown (pending only)
-  const pending = cards.filter(c => !doneColumnIds.has(c.columnId));
+  const pending = cards.filter(c => !doneColumnIds.has(c.column_id));
   const byPriority = { urgent: 0, high: 0, medium: 0, low: 0, none: 0 };
   for (const c of pending) {
     const p = c.priority ?? 'none';
@@ -63,16 +73,16 @@ async function buildStats() {
 
   // Overdue pending cards
   const today = todayStr();
-  const overdue = pending.filter(c => c.dueDate && c.dueDate.slice(0,10) < today).length;
+  const overdue = pending.filter(c => c.due_date && c.due_date.slice(0,10) < today).length;
 
   // Cards with no column assigned (data integrity)
   const columnIds = new Set(columns.map(c => c.id));
-  const orphanCards = cards.filter(c => !columnIds.has(c.columnId)).length;
+  const orphanCards = cards.filter(c => !columnIds.has(c.column_id)).length;
 
   // Boards breakdown (top 10 by card count)
   const boardCardCount = {};
   for (const c of cards) {
-    boardCardCount[c.boardId] = (boardCardCount[c.boardId] ?? 0) + 1;
+    boardCardCount[c.board_id] = (boardCardCount[c.board_id] ?? 0) + 1;
   }
   const boardRows = boards
     .map(b => ({ title: b.title, count: boardCardCount[b.id] ?? 0 }))
@@ -82,7 +92,6 @@ async function buildStats() {
   // Supabase user stats (best-effort)
   let userStats = null;
   try {
-    const { supabaseAdmin } = require('./utils/supabase');
     const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
     if (!error && users) {
       const now = Date.now();

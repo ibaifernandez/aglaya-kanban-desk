@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings, Search, X, ArrowRight, LogOut, Mail } from 'lucide-react';
+import { Settings, Search, X, ArrowRight, LogOut, Mail, Users } from 'lucide-react';
 import { PRIORITY_LIST } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { CategorySettings } from './CategorySettings.jsx';
 import { api } from '../../api/client.js';
 
-export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], onSelectBoard, user, onLogout }) {
+export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], onSelectBoard, user, onLogout, onOpenAdmin }) {
   const { category, priority, tag, search = '' } = filters;
   const { categories } = useCategoriesCtx();
   const [showSettings,  setShowSettings]  = useState(false);
@@ -207,6 +207,17 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
             className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
           >
             Limpiar filtros
+          </button>
+        )}
+
+        {/* Admin panel button — only for admins */}
+        {(user?.role === 'admin' || user?.role === 'superadmin') && (
+          <button
+            onClick={onOpenAdmin}
+            title="Gestión de usuarios"
+            className="p-1.5 rounded text-[#555b70] hover:text-[#e8eaf0] hover:bg-[#2e3140] transition-colors"
+          >
+            <Users size={15} />
           </button>
         )}
 

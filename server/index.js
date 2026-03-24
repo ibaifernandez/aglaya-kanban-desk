@@ -19,6 +19,7 @@ const { getCategories, createCategory, updateCategory, deleteCategory } = requir
 const { uploadImage, deleteImage } = require('./routes/uploads');
 const authRouter              = require('./routes/auth');
 const digestRouter            = require('./routes/digestRoute');
+const adminRouter             = require('./routes/admin');
 const { requireAuth }         = require('./middleware/auth');
 
 const app = express();
@@ -48,6 +49,9 @@ app.use('/api/auth', authRouter);
 
 // ── Digest ────────────────────────────────────────────────
 app.use('/api/digest', digestRouter);
+
+// ── Admin ─────────────────────────────────────────────────
+app.use('/api/admin', adminRouter);
 
 // ── Boards ────────────────────────────────────────────────
 app.get('/api/boards',          requireAuth, getBoards);

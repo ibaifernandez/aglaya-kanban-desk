@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
+import AdminPage from './pages/AdminPage.jsx';
 import {
   DndContext,
   DragOverlay,
@@ -40,6 +41,8 @@ export default function App() {
 }
 
 function AuthenticatedApp({ user, logout }) {
+  const [view, setView] = useState('board'); // 'board' | 'admin'
+
   const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = useBoards();
   const {
     categories, loading: loadingCategories,
@@ -182,6 +185,10 @@ function AuthenticatedApp({ user, logout }) {
     );
   }
 
+  if (view === 'admin') {
+    return <AdminPage user={user} onBack={() => setView('board')} />;
+  }
+
   return (
     <CategoriesContext.Provider value={{ categories, createCategory, updateCategory, deleteCategory }}>
       <DndContext
@@ -210,6 +217,7 @@ function AuthenticatedApp({ user, logout }) {
               onSelectBoard={handleSelectBoard}
               user={user}
               onLogout={logout}
+              onOpenAdmin={() => setView('admin')}
             />
 
             {boardId ? (

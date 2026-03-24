@@ -69,4 +69,20 @@ export const api = {
   createCategory: (body)     => request('/categories', { method: 'POST', body: JSON.stringify(body) }),
   updateCategory: (id, body) => request(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteCategory: (id)       => request(`/categories/${id}`, { method: 'DELETE' }),
+
+  // Admin — user management
+  getAdminUsers:   ()               => request('/admin/users').then((data) => ({ data })),
+  updateUserRole:  (id, role)       => request(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }).then((data) => ({ data })),
+  deleteUser:      (id)             => request(`/admin/users/${id}`, { method: 'DELETE' }),
+  inviteUser:      (body)           => {
+    const token = getToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return fetch('/api/admin/users/invite', { method: 'POST', headers, body: JSON.stringify(body) })
+      .then(async (r) => {
+        const json = await r.json();
+        if (!r.ok) throw new Error(json.error || `HTTP ${r.status}`);
+        return { data: json.data, message: json.message };
+      });
+  },
 };
