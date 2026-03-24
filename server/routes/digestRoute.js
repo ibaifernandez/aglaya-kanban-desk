@@ -12,16 +12,12 @@ router.post('/send-me', requireAuth, requireRole('admin', 'superadmin'), async (
     return res.status(500).json({ error: 'DIGEST_TO no configurado en el servidor.' });
   }
 
-  try {
-    await sendDigest(recipient);
-    return res.json({
-      ok: true,
-      message: `Digest de administración enviado a ${recipient}.`,
-    });
-  } catch (err) {
+  // Respond immediately — digest builds + sends async to avoid gateway timeout
+  res.json({ ok: true, message: `Digest en camino a ${recipient}. Revisa tu correo en unos segundos.` });
+
+  sendDigest(recipient).catch(err => {
     console.error('[digest/send-me]', err.message);
-    return res.status(500).json({ error: err.message || 'Error al enviar el digest.' });
-  }
+  });
 });
 
 module.exports = router;

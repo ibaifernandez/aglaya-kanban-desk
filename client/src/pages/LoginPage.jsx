@@ -123,7 +123,7 @@ export default function LoginPage() {
         {view === 'login' && (
           <button
             onClick={() => { setView('forgot'); setError(''); }}
-            className="block text-center text-xs text-[#555b70] hover:text-indigo-400 mt-4 transition-colors w-full"
+            className="block text-center text-xs text-[#555b70] hover:text-indigo-400 mt-4 transition-colors w-full self-center"
           >
             ¿Olvidaste tu contraseña?
           </button>
