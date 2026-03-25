@@ -174,7 +174,7 @@ export function WorkspaceMembers({ workspace, currentUser, onClose }) {
   }
 
   async function handleRemove(userId, userName) {
-    if (!confirm(`¿Eliminar a ${userName} del workspace?`)) return;
+    if (!confirm(`¿Eliminar a ${userName} del espacio de trabajo?`)) return;
     try {
       await api.removeWorkspaceMember(workspace.id, userId);
       setMembers((prev) => prev.filter((m) => m.user?.id !== userId));
@@ -195,7 +195,7 @@ export function WorkspaceMembers({ workspace, currentUser, onClose }) {
           <div>
             <h2 className="text-sm font-semibold text-[#e8eaf0] flex items-center gap-2">
               <Users size={15} className="text-indigo-400" />
-              Miembros del workspace
+              Miembros del espacio de trabajo
             </h2>
             <p className="text-xs text-[#555b70] mt-0.5">{workspace.emoji} {workspace.name}</p>
           </div>
@@ -261,7 +261,7 @@ export function WorkspaceMembers({ workspace, currentUser, onClose }) {
                     <button
                       onClick={() => handleRemove(user.id, user.name)}
                       className="p-1.5 text-[#555b70] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                      title="Eliminar del workspace"
+                      title="Eliminar del espacio de trabajo"
                     >
                       <Trash2 size={13} />
                     </button>

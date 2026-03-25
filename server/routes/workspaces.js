@@ -27,10 +27,24 @@ router.get('/', requireAuth, async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
-  const workspaces = (data || []).map((row) => ({
-    ...toWorkspace(row.workspace),
-    myRole: row.role,
-  }));
+  const rows = data || [];
+
+  // Enrich each workspace with member + board counts in parallel
+  const workspaces = await Promise.all(
+    rows.map(async (row) => {
+      const wsId = row.workspace.id;
+      const [{ count: memberCount }, { count: boardCount }] = await Promise.all([
+        supabaseAdmin.from('workspace_members').select('*', { count: 'exact', head: true }).eq('workspace_id', wsId),
+        supabaseAdmin.from('boards').select('*', { count: 'exact', head: true }).eq('workspace_id', wsId),
+      ]);
+      return {
+        ...toWorkspace(row.workspace),
+        myRole:      row.role,
+        memberCount: memberCount ?? 0,
+        boardCount:  boardCount  ?? 0,
+      };
+    })
+  );
 
   res.json({ data: workspaces });
 });

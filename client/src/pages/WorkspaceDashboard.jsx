@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Users, LayoutGrid, LogOut, Shield, ChevronRight, Settings } from 'lucide-react';
+import { Plus, Users, LayoutGrid, LogOut, ChevronRight } from 'lucide-react';
 import { useWorkspaces } from '../hooks/useWorkspaces.js';
 import { Spinner } from '../components/UI/Spinner.jsx';
 
@@ -89,7 +89,7 @@ function NewWorkspaceModal({ onClose, onCreate }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-[#1a1d26] border border-[#2a2d3a] rounded-xl w-full max-w-md shadow-2xl">
         <div className="px-6 py-5 border-b border-[#2a2d3a]">
-          <h2 className="text-base font-semibold text-[#e8eaf0]">Nuevo workspace</h2>
+          <h2 className="text-base font-semibold text-[#e8eaf0]">Nuevo espacio de trabajo</h2>
           <p className="text-xs text-[#555b70] mt-0.5">Un espacio aislado para un cliente o departamento.</p>
         </div>
 
@@ -132,7 +132,7 @@ function NewWorkspaceModal({ onClose, onCreate }) {
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
               rows={2}
-              placeholder="¿Qué gestiona este workspace?"
+              placeholder="¿Qué gestiona este espacio de trabajo?"
               className="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2.5 text-sm text-[#e8eaf0] placeholder-[#3a3f50] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors resize-none"
             />
           </div>
@@ -148,7 +148,7 @@ function NewWorkspaceModal({ onClose, onCreate }) {
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
             >
               {saving ? <Spinner size={3} /> : <Plus size={14} />}
-              Crear workspace
+              Crear espacio de trabajo
             </button>
           </div>
         </form>
@@ -176,15 +176,6 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
           </div>
 
           <div className="flex items-center gap-2">
-            {(user?.role === 'admin' || user?.role === 'superadmin') && (
-              <button
-                onClick={onOpenAdmin}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#8b92a5] hover:text-[#e8eaf0] hover:bg-[#1a1d26] rounded-lg transition-colors"
-              >
-                <Shield size={13} />
-                Admin
-              </button>
-            )}
             <div className="flex items-center gap-2 pl-2 border-l border-[#2a2d3a]">
               <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-semibold">
                 {user?.name?.charAt(0)?.toUpperCase() ?? '?'}
@@ -208,11 +199,11 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
           {/* Title row */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-xl font-bold text-[#e8eaf0]">Mis workspaces</h1>
+              <h1 className="text-xl font-bold text-[#e8eaf0]">Mis espacios de trabajo</h1>
               <p className="text-sm text-[#555b70] mt-1">
                 {workspaces.length === 0
-                  ? 'Aún no tienes workspaces asignados.'
-                  : `${workspaces.length} workspace${workspaces.length !== 1 ? 's' : ''} disponible${workspaces.length !== 1 ? 's' : ''}`}
+                  ? 'Aún no tienes espacios de trabajo asignados.'
+                  : `${workspaces.length} espacio${workspaces.length !== 1 ? 's' : ''} de trabajo disponible${workspaces.length !== 1 ? 's' : ''}`}
               </p>
             </div>
             {canCreate && (
@@ -221,7 +212,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 <Plus size={15} />
-                Nuevo workspace
+                Nuevo espacio de trabajo
               </button>
             )}
           </div>
@@ -234,7 +225,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
           ) : workspaces.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="text-5xl mb-4">📋</div>
-              <p className="text-[#8b92a5] text-sm">No tienes workspaces todavía.</p>
+              <p className="text-[#8b92a5] text-sm">No tienes espacios de trabajo todavía.</p>
               {canCreate && (
                 <button
                   onClick={() => setShowNew(true)}

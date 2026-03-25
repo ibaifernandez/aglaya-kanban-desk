@@ -233,7 +233,7 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
         {workspace && onOpenMembers && (
           <button
             onClick={onOpenMembers}
-            title="Miembros del workspace"
+            title="Miembros del espacio de trabajo"
             className="p-1.5 rounded text-[#555b70] hover:text-[#e8eaf0] hover:bg-[#2e3140] transition-colors"
           >
             <UserCog size={15} />
