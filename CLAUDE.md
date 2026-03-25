@@ -6,7 +6,7 @@
 
 ## Identidad del proyecto
 
-**MyBoardLFi** es la versión corporativa multi-tenant de MyBoard, orientada a equipos y clientes de LFi (agencia de marketing, Chile). Desarrollado por Ibai Fernández como ejercicio de emprendimiento interno.
+**MyBoardLFi** (nombre técnico/repositorio) — **display name: LFi Kanban Desk** — es la versión corporativa multi-tenant de MyBoard, orientada a equipos y clientes de LFi (agencia de marketing, Chile). Desarrollado por Ibai Fernández como ejercicio de emprendimiento interno.
 
 ---
 
