@@ -246,6 +246,56 @@ USING (
 
 ---
 
+## ADR-011 — Display name: «LFi Kanban Desk»
+
+**Fecha:** 2026-03-25
+**Estado:** Aceptada
+
+**Contexto:** El nombre técnico «MyBoardLFi» es descriptivo pero genérico y poco atractivo como producto. Se buscaba un nombre que transmitiera más identidad de marca.
+
+**Opciones consideradas:**
+- MyBoardLFi (nombre técnico, sin cambio)
+- LFiBoard
+- Tablón
+- LFiDesk
+- LFi Kanban Desk
+
+**Decisión:** «LFi Kanban Desk» — aplicado en toda la UI visible (title tag, LoginPage, ResetPasswordPage, Sidebar, WorkspaceDashboard, footer copyright). El nombre técnico del repositorio y código permanece «MyBoardLFi».
+
+**Razones:**
+- Incluye la marca LFi (reconocimiento inmediato)
+- «Kanban» describe exactamente la metodología de la herramienta
+- «Desk» connota espacio de trabajo personal/corporativo
+- Separado en tres palabras, se lee de forma natural
+
+**Consecuencias:** El copyright en footer dice «LFi Kanban Desk · © 2026 Ibai Fernández». El repo, CLAUDE.md y nombres de archivo técnicos permanecen como MyBoardLFi. Si LFi adquiere el producto, puede rebrandear libremente.
+
+---
+
+## ADR-012 — Arquitectura de workspaces: tabla dedicada + RLS con SECURITY DEFINER
+
+**Fecha:** 2026-03-24
+**Estado:** Aceptada
+
+**Contexto:** Phase 2 requería un nivel de agrupación entre Organization y Board: los workspaces. Necesitaban RLS que permitiera aislar datos por workspace sin exponer información entre workspaces del mismo tenant.
+
+**Problema:** Las policies RLS en `workspace_members` que consultaban la misma tabla para verificar permisos causaban recursión infinita (mismo patrón que ADR-009 con `public.users`).
+
+**Decisión:** Funciones auxiliares con `SECURITY DEFINER` para resolver roles sin disparar RLS:
+```sql
+CREATE FUNCTION get_workspace_role(workspace_id uuid) RETURNS text SECURITY DEFINER ...
+CREATE FUNCTION is_workspace_member(workspace_id uuid) RETURNS boolean SECURITY DEFINER ...
+```
+
+**Razones:**
+- Rompe la recursión limpiamente sin eliminar RLS
+- Las funciones SECURITY DEFINER ejecutan con privilegios del owner (superusuario de Supabase), no del usuario autenticado
+- Patrón ya establecido en ADR-009 para `public.users`
+
+**Consecuencias:** Toda policy RLS de workspaces debe usar estas funciones. Si se añaden nuevas tablas relacionadas con workspaces, crear funciones equivalentes. FK disambiguation obligatoria en PostgREST cuando hay múltiples FKs a la misma tabla.
+
+---
+
 ## ADR-006 — Fork de MyBoard como base de MyBoardLFi
 
 **Fecha:** 2026-03-18

@@ -1,4 +1,4 @@
-# BACKLOG — MyBoardLFi
+# BACKLOG — LFi Kanban Desk (MyBoardLFi)
 
 Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 
@@ -56,7 +56,8 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 
 ### Branding ✅
 - [x] Logo LFi en login, sidebar y reset de contraseña
-- [x] Email digest rebrandeado a MyBoardLFi
+- [x] Email digest rebrandeado a LFi Kanban Desk
+- [x] Display name «LFi Kanban Desk» en toda la UI (sesión 6)
 
 ### Email ✅ (parcial)
 - [x] Endpoint `POST /api/digest/send-me` (requiere auth)
@@ -86,30 +87,65 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [ ] UI de aviso cuando se alcanza el límite
 
 ### QA y documentación
-- [ ] `docs/QA-DESKTOP.md` — checklist funcional, accesibilidad, seguridad, rendimiento
-- [ ] `docs/QA-MOBILE.md` — checklist mobile + estado de responsividad
-- [ ] `docs/README-deploy.md` — instrucciones para Fernando Murillo / PRONODO
+- [x] `docs/QA-DESKTOP.md` — checklist funcional desktop
+- [x] `docs/QA-MOBILE.md` — checklist mobile
+- [x] `docs/README-deploy.md` — instrucciones de deploy
 
 ---
 
-## Phase 2 — Deploy en PRONODO *(Planificado)*
+## Phase 2 — Workspaces *(Completada — 2026-03-24/25)*
 
-- [ ] `Dockerfile` para el server Express
-- [ ] `Dockerfile` para el client (build Vite + nginx)
-- [ ] `docker-compose.yml` (server + client + proxy)
-- [ ] Configurar variables de entorno de producción
-- [ ] Acordar dominio con Fernando Murillo (PRONODO)
-- [ ] Configurar HTTPS / SSL
-- [ ] Primer deploy en PRONODO
-- [ ] `docs/README-deploy.md` para el equipo técnico
-- [ ] CI/CD básico (GitHub Actions: build + test en push a main)
+### Backend ✅
+- [x] `server/routes/workspaces.js` — CRUD workspaces + gestión de miembros (9 endpoints)
+- [x] `server/middleware/workspace.js` — requireWorkspaceMember + requireWorkspaceRole
+- [x] RLS en Supabase con funciones SECURITY DEFINER (`get_workspace_role`, `is_workspace_member`)
+- [x] Fix 504 en Railway: digest fire-and-forget
+- [x] `GET /api/workspaces` enriquece con memberCount + boardCount reales
+
+### Frontend ✅
+- [x] WorkspaceDashboard con grid de tarjetas, mini-kanban abstracto, counts reales
+- [x] WorkspaceMembers — panel lateral gestión de miembros + roles
+- [x] Breadcrumb espacio de trabajo → tablero en Toolbar
+- [x] Hooks useWorkspaces, useBoards (con workspaceId)
+- [x] 10 métodos nuevos en api/client.js
+
+### UX/Branding ✅
+- [x] Renombrado workspace → espacio de trabajo en toda la UI
+- [x] Logo LFi en header del WorkspaceDashboard
+- [x] Botón Admin eliminado del WorkspaceDashboard
+- [x] Mini-kanban abstracto decorativo en tarjetas (seed desde ws.id)
+
+### Pendiente de Phase 2
+- [ ] ⚠️ KNOWN-02: Email de invitación — configurar template en Supabase Auth (ver `memory/project_email_invite_pending.md`)
 
 ---
 
-## Phase 3 — Pitch interno a LFi *(Pendiente de Phase 1)*
+## Backlog — Features futuras (sin fase asignada)
 
-- [ ] Demo funcional en dominio de PRONODO
+- [ ] **Foto de perfil**: Supabase Storage (bucket `avatars`) + `POST /api/users/me/avatar` + UI de upload. Mostrar en Toolbar, WorkspaceDashboard y WorkspaceMembers.
+- [ ] **Permisos por tablero**: owner / editor / viewer
+- [ ] **Notificaciones in-app**: alertas de cambios en tarjetas asignadas
+- [ ] **Migración multi-tenant completa**: boards/columns/cards desde tasks.json → Supabase, filtrar por organizationId
+- [ ] **Security headers**: helmet en Express
+- [ ] **Límites freemium**: middleware (máx. 3 tableros / 50 tarjetas en plan free)
+
+---
+
+## Phase 3 — Pitch interno a LFi *(Por definir)*
+
+- [ ] Demo funcional verificada en producción (myboardlfi.ibaifernandez.com)
 - [ ] Deck de presentación (5–6 slides)
 - [ ] Propuesta comercial redactada
 - [ ] Reunión con Héctor Vera e Iván Colodro
 - [ ] Reunión con Daniel y Marco
+
+---
+
+## Phase 4 — Deploy en PRONODO *(Pendiente de Phase 3)*
+
+- [ ] `Dockerfile` para el server Express
+- [ ] `Dockerfile` para el client (build Vite + nginx)
+- [ ] `docker-compose.yml` (server + client + proxy)
+- [ ] Acordar dominio con Fernando Murillo (PRONODO)
+- [ ] Configurar HTTPS / SSL
+- [ ] CI/CD básico (GitHub Actions)

@@ -1,6 +1,62 @@
-# CHANGELOG — MyBoardLFi
+# CHANGELOG — LFi Kanban Desk (MyBoardLFi)
 
 Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/)
+
+---
+
+## [0.7.0] — 2026-03-25 — Sesión 6: UI Polish — display name, logo, mini-kanban, espacios de trabajo
+
+### Identidad visual
+- Display name oficial: **LFi Kanban Desk** (nombre técnico/repo permanece MyBoardLFi)
+- Actualizado en: título de pestaña (`index.html`), LoginPage, ResetPasswordPage, Sidebar, WorkspaceDashboard, footer copyright
+- Logo LFi (`lfi.png`) en header del WorkspaceDashboard (reemplaza la «M» genérica en azul)
+
+### WorkspaceDashboard
+- Tarjetas de espacios de trabajo muestran ahora **counts reales** de tableros y miembros (cierra KNOWN-01)
+  - `GET /api/workspaces` enriquece cada workspace con `memberCount` y `boardCount` vía `Promise.all` de queries `count:exact`
+- Añadido **mini-kanban abstracto** en cada tarjeta: 4 columnas con barras de color de altura variable, generadas deterministamente desde `ws.id` (visual decorativo, no refleja datos reales)
+- Botón Admin eliminado del header del WorkspaceDashboard (acceso admin sigue disponible en la Toolbar dentro de un tablero)
+
+### Lenguaje
+- Renombrado «workspace/workspaces» → «espacio de trabajo / espacios de trabajo» en toda la UI (WorkspaceDashboard, WorkspaceMembers, Toolbar)
+
+---
+
+## [0.6.0] — 2026-03-24 — Sesión 5: Phase 2 — Workspaces completa en producción
+
+### Backend — Workspaces
+- `server/routes/workspaces.js`: CRUD completo de workspaces + gestión de miembros
+  - `GET /api/workspaces` — lista de workspaces del usuario autenticado
+  - `POST /api/workspaces` — crear workspace (creator → owner)
+  - `GET /api/workspaces/:id` — detalle + memberCount + boardCount
+  - `PATCH /api/workspaces/:id` — editar (requiere admin/owner)
+  - `DELETE /api/workspaces/:id` — eliminar (requiere owner)
+  - `GET /api/workspaces/:id/members` — lista de miembros
+  - `POST /api/workspaces/:id/members` — añadir miembro
+  - `PATCH /api/workspaces/:id/members/:userId` — cambiar rol
+  - `DELETE /api/workspaces/:id/members/:userId` — eliminar miembro
+- `server/middleware/workspace.js`: `requireWorkspaceMember` + `requireWorkspaceRole`
+- `GET /api/boards` ahora acepta `?workspaceId=` para filtrar por workspace
+- Fix 504 en Railway: digest con fire-and-forget (responde 200 inmediatamente, procesa en background)
+
+### Base de datos (Supabase)
+- Tablas: `workspaces`, `workspace_members` (roles: owner/admin/member/guest)
+- RLS activa con funciones `SECURITY DEFINER` para evitar recursión:
+  - `get_workspace_role(workspace_id uuid)` → role del usuario actual
+  - `is_workspace_member(workspace_id uuid)` → boolean
+- FK disambiguation: `workspace_members` tiene dos FKs a `users` — siempre usar `.select('user:users!user_id(...)')`
+
+### Frontend — Workspaces
+- `WorkspaceDashboard.jsx`: grid de tarjetas de workspaces, modal de creación, estado vacío
+- `WorkspaceMembers.jsx`: panel lateral de miembros con gestión de roles (solo admin/owner)
+- `useWorkspaces.js`: hook de estado para lista de workspaces
+- `useBoards.js` modificado: acepta `workspaceId`, usa `getWorkspaceBoards`
+- `App.jsx`: estado `view` con valores `'workspaces' | 'board' | 'admin'`; punto de entrada siempre `'workspaces'`
+- `Toolbar.jsx`: breadcrumb espacio de trabajo → tablero; botón UserCog para panel de miembros
+- `api/client.js`: 10 métodos nuevos para workspaces
+
+### Conocido
+- ⚠️ KNOWN-02: Email de invitación de nuevos usuarios no funciona — requiere configurar template en Supabase Auth (pendiente)
 
 ---
 

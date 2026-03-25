@@ -1,12 +1,12 @@
-# MyBoardLFi — Roadmap de desarrollo
+# LFi Kanban Desk — Roadmap de desarrollo
 
-**Última actualización:** 2026-03-18
+**Última actualización:** 2026-03-25
 
 ---
 
 ## Phase 0 — Limpieza y preparación
 
-**Estado:** 🔄 En curso
+**Estado:** ✅ Completada
 **Semana:** 18/03/2026
 
 ### Objetivos
@@ -28,8 +28,7 @@
 
 ## Phase 1 — Multi-tenant y autenticación
 
-**Estado:** 📋 Planificado
-**Estimado:** 1–2 semanas tras Phase 0
+**Estado:** ✅ Completada (2026-03-19 → 2026-03-24)
 
 ### Objetivos
 - Convertir la aplicación de single-user a multi-tenant
@@ -59,10 +58,10 @@
 
 ---
 
-## Phase 2 — Deploy en PRONODO
+## Phase 2 — Workspaces (multi-tenant avanzado)
 
-**Estado:** 📋 Planificado
-**Estimado:** 1 semana (en paralelo con Phase 1)
+**Estado:** ✅ Completada (2026-03-24/25)
+**Producción:** https://myboardlfi.ibaifernandez.com
 
 ### Objetivos
 - Dockerizar la aplicación completa
@@ -70,20 +69,19 @@
 - Configurar dominio y HTTPS
 - Documentar el proceso de deploy para el equipo técnico
 
-### Entregables
-- `Dockerfile` para el server Express
-- `docker-compose.yml` (server + client + proxy nginx)
-- Dominio: `myboard.pronodo.com` (o subdominio acordado)
-- HTTPS con certificado SSL
-- Variables de entorno de producción documentadas
-- `docs/README-deploy.md` para el equipo de PRONODO
-- CI/CD básico (GitHub Actions: build + test en push a main)
+### Entregables completados
+- [x] Jerarquía Organization → Workspace → Board → Column → Card
+- [x] Roles por workspace: owner / admin / member / guest
+- [x] RLS en Supabase con funciones SECURITY DEFINER
+- [x] WorkspaceDashboard, WorkspaceMembers, breadcrumb, mini-kanban
+- [x] Display name «LFi Kanban Desk» en toda la UI
+- [ ] ⚠️ Email de invitación (KNOWN-02 — pendiente)
 
 ---
 
 ## Phase 3 — Pitch interno a LFi
 
-**Estado:** 📋 Pendiente de Phase 1
+**Estado:** 📋 Por definir
 **Audiencia:** Héctor Vera, Iván Colodro, Daniel, Marco
 
 ### Objetivos
@@ -98,9 +96,9 @@
 
 ---
 
-## Phase 4 — Protección de IP y escalado
+## Phase 4 — Deploy en PRONODO + Protección de IP
 
-**Estado:** 📋 Ongoing (desde el inicio del proyecto)
+**Estado:** 📋 Pendiente de Phase 3
 
 ### Acciones permanentes
 - Código fuente en repositorio privado de Ibai (GitHub personal)
