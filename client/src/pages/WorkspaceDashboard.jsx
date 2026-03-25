@@ -218,6 +218,16 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
           </div>
 
           <div className="flex items-center gap-2">
+            {(user?.role === 'admin' || user?.role === 'superadmin') && (
+              <button
+                onClick={onOpenAdmin}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#8b92a5] hover:text-[#e8eaf0] hover:bg-[#1a1d26] rounded-lg transition-colors border border-[#2a2d3a] hover:border-[#3a3d4a]"
+                title="Gestión de usuarios"
+              >
+                <Users size={13} />
+                Admin
+              </button>
+            )}
             <div className="flex items-center gap-2 pl-2 border-l border-[#2a2d3a]">
               <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-semibold">
                 {user?.name?.charAt(0)?.toUpperCase() ?? '?'}
