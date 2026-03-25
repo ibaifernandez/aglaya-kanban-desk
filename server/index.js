@@ -21,6 +21,7 @@ const authRouter              = require('./routes/auth');
 const digestRouter            = require('./routes/digestRoute');
 const adminRouter             = require('./routes/admin');
 const workspacesRouter        = require('./routes/workspaces');
+const mediaRouter             = require('./routes/media');
 const { requireAuth }         = require('./middleware/auth');
 
 const app = express();
@@ -56,6 +57,9 @@ app.use('/api/admin', adminRouter);
 
 // ── Workspaces ────────────────────────────────────────────
 app.use('/api/workspaces', workspacesRouter);
+
+// ── Media (Supabase Storage) ───────────────────────────────
+app.use('/api/media', mediaRouter);
 
 // ── Boards ────────────────────────────────────────────────
 app.get('/api/boards',          requireAuth, getBoards);

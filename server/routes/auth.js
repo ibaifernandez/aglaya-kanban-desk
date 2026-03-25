@@ -123,8 +123,25 @@ router.post('/login', async (req, res) => {
 });
 
 // ── GET /api/auth/me ──────────────────────────────────────────────────────────
-router.get('/me', requireAuth, (req, res) => {
-  return res.json({ user: req.user });
+router.get('/me', requireAuth, async (req, res) => {
+  const { data: profile } = await supabaseAdmin
+    .from('users')
+    .select('id, email, name, role, organization_id, avatar_url')
+    .eq('id', req.user.id)
+    .single();
+
+  if (!profile) return res.json({ user: req.user });
+
+  return res.json({
+    user: {
+      id:             profile.id,
+      email:          profile.email,
+      name:           profile.name,
+      role:           profile.role,
+      organizationId: profile.organization_id,
+      avatarUrl:      profile.avatar_url ?? null,
+    },
+  });
 });
 
 module.exports = router;

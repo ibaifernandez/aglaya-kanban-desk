@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Plus, Users, LayoutGrid, LogOut, ChevronRight } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, Users, LayoutGrid, LogOut, ChevronRight, Camera } from 'lucide-react';
 import { useWorkspaces } from '../hooks/useWorkspaces.js';
 import { Spinner } from '../components/UI/Spinner.jsx';
+import { api } from '../api/client.js';
 import lfiLogo from '../assets/lfi.png';
 
 const ROLE_LABELS = {
@@ -11,8 +12,23 @@ const ROLE_LABELS = {
   guest:  { label: 'Invitado',    color: 'text-zinc-400   bg-zinc-500/10   border-zinc-500/20'   },
 };
 
+const TYPE_LABELS = {
+  cliente:      { label: 'Cliente',      color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  departamento: { label: 'Departamento', color: 'text-sky-400     bg-sky-500/10     border-sky-500/20'     },
+  general:      { label: 'General',      color: 'text-zinc-400    bg-zinc-500/10    border-zinc-500/20'     },
+};
+
 function RoleBadge({ role }) {
   const { label, color } = ROLE_LABELS[role] ?? ROLE_LABELS.member;
+  return (
+    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${color}`}>
+      {label}
+    </span>
+  );
+}
+
+function TypeBadge({ type }) {
+  const { label, color } = TYPE_LABELS[type] ?? TYPE_LABELS.general;
   return (
     <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${color}`}>
       {label}
@@ -39,12 +55,12 @@ function MiniKanban({ id }) {
   return (
     <div className="flex items-end gap-1.5 h-10 mb-4 px-0.5">
       {Array.from({ length: cols }, (_, col) => {
-        const cards = 1 + Math.floor(seededRand(id, col) * 4); // 1–4 cards
+        const cards = 1 + Math.floor(seededRand(id, col) * 4);
         const color = COLUMN_COLORS[Math.floor(seededRand(id, col + 10) * COLUMN_COLORS.length)];
         return (
           <div key={col} className="flex-1 flex flex-col justify-end gap-1">
             {Array.from({ length: cards }, (_, card) => {
-              const w = 60 + Math.floor(seededRand(id, col * 10 + card) * 40); // 60–100%
+              const w = 60 + Math.floor(seededRand(id, col * 10 + card) * 40);
               return (
                 <div
                   key={card}
@@ -60,49 +76,97 @@ function MiniKanban({ id }) {
   );
 }
 
-function WorkspaceCard({ ws, onEnter }) {
+function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit }) {
+  const fileRef   = useRef(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleCoverUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const coverUrl = await api.uploadWorkspaceCover(ws.id, file);
+      onCoverChange?.(ws.id, coverUrl);
+    } catch (err) {
+      console.error('Error al subir portada:', err.message);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  }
+
   return (
-    <button
-      onClick={() => onEnter(ws)}
-      className="group relative text-left bg-[#1a1d26] border border-[#2a2d3a] rounded-xl p-5 hover:border-indigo-500/50 hover:bg-[#1e2230] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-    >
-      {/* Mini-kanban visual */}
-      <MiniKanban id={ws.id} />
-
-      {/* Emoji + name */}
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="text-3xl leading-none shrink-0">{ws.emoji}</span>
-          <div className="min-w-0">
-            <h3 className="font-semibold text-[#e8eaf0] text-sm leading-snug truncate group-hover:text-white transition-colors">
-              {ws.name}
-            </h3>
-            {ws.description && (
-              <p className="text-[11px] text-[#555b70] mt-0.5 line-clamp-1">{ws.description}</p>
-            )}
+    <div className="group relative">
+      <button
+        onClick={() => onEnter(ws)}
+        className="w-full text-left bg-[#1a1d26] border border-[#2a2d3a] rounded-xl p-5 hover:border-indigo-500/50 hover:bg-[#1e2230] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+      >
+        {/* Cover image or mini-kanban */}
+        {ws.coverUrl ? (
+          <div className="h-10 mb-4 rounded-lg overflow-hidden">
+            <img src={ws.coverUrl} alt="" className="w-full h-full object-cover" />
           </div>
+        ) : (
+          <MiniKanban id={ws.id} />
+        )}
+
+        {/* Emoji + name */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-3xl leading-none shrink-0">{ws.emoji}</span>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-[#e8eaf0] text-sm leading-snug truncate group-hover:text-white transition-colors">
+                {ws.name}
+              </h3>
+              {ws.description && (
+                <p className="text-[11px] text-[#555b70] mt-0.5 line-clamp-1">{ws.description}</p>
+              )}
+            </div>
+          </div>
+          <ChevronRight size={14} className="text-[#3a3f50] group-hover:text-indigo-400 shrink-0 mt-0.5 transition-colors" />
         </div>
-        <ChevronRight size={14} className="text-[#3a3f50] group-hover:text-indigo-400 shrink-0 mt-0.5 transition-colors" />
-      </div>
 
-      {/* Stats */}
-      <div className="flex items-center gap-4 mb-3">
-        <span className="flex items-center gap-1.5 text-[11px] text-[#555b70]">
-          <LayoutGrid size={11} />
-          {ws.boardCount ?? 0} tablero{ws.boardCount !== 1 ? 's' : ''}
-        </span>
-        <span className="flex items-center gap-1.5 text-[11px] text-[#555b70]">
-          <Users size={11} />
-          {ws.memberCount ?? 0} miembro{ws.memberCount !== 1 ? 's' : ''}
-        </span>
-      </div>
+        {/* Stats */}
+        <div className="flex items-center gap-4 mb-3">
+          <span className="flex items-center gap-1.5 text-[11px] text-[#555b70]">
+            <LayoutGrid size={11} />
+            {ws.boardCount ?? 0} tablero{ws.boardCount !== 1 ? 's' : ''}
+          </span>
+          <span className="flex items-center gap-1.5 text-[11px] text-[#555b70]">
+            <Users size={11} />
+            {ws.memberCount ?? 0} miembro{ws.memberCount !== 1 ? 's' : ''}
+          </span>
+        </div>
 
-      {/* Role */}
-      <RoleBadge role={ws.myRole} />
+        {/* Badges row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <RoleBadge role={ws.myRole} />
+          <TypeBadge type={ws.type} />
+        </div>
 
-      {/* Hover gradient */}
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-    </button>
+        {/* Hover gradient */}
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+      </button>
+
+      {/* Cover upload button — hover, only for admins/owners */}
+      {canEdit && (
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          title="Cambiar imagen de portada"
+          className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 disabled:opacity-50"
+        >
+          {uploading ? <Spinner size={3} /> : <Camera size={13} />}
+        </button>
+      )}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleCoverUpload}
+      />
+    </div>
   );
 }
 
@@ -110,6 +174,7 @@ function NewWorkspaceModal({ onClose, onCreate }) {
   const [name, setName]     = useState('');
   const [emoji, setEmoji]   = useState('📋');
   const [desc, setDesc]     = useState('');
+  const [type, setType]     = useState('general');
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
 
@@ -120,7 +185,7 @@ function NewWorkspaceModal({ onClose, onCreate }) {
     if (!name.trim()) { setError('El nombre es obligatorio'); return; }
     setSaving(true);
     try {
-      await onCreate({ name: name.trim(), emoji, description: desc.trim() });
+      await onCreate({ name: name.trim(), emoji, description: desc.trim(), type });
       onClose();
     } catch (err) {
       setError(err.message);
@@ -181,6 +246,31 @@ function NewWorkspaceModal({ onClose, onCreate }) {
             />
           </div>
 
+          {/* Type */}
+          <div>
+            <label className="block text-xs font-medium text-[#8b92a5] mb-2">Tipo</label>
+            <div className="flex gap-2">
+              {[
+                { value: 'cliente',      label: 'Cliente' },
+                { value: 'departamento', label: 'Departamento' },
+                { value: 'general',      label: 'General' },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setType(opt.value)}
+                  className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors ${
+                    type === opt.value
+                      ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300'
+                      : 'bg-[#0f1117] border-[#2a2d3a] text-[#8b92a5] hover:border-[#3a3f50]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {error && <p className="text-xs text-red-400">{error}</p>}
 
           <div className="flex justify-end gap-2 pt-1">
@@ -201,11 +291,30 @@ function NewWorkspaceModal({ onClose, onCreate }) {
   );
 }
 
+const TYPE_FILTERS = [
+  { value: '',             label: 'Todos' },
+  { value: 'cliente',      label: 'Clientes' },
+  { value: 'departamento', label: 'Departamentos' },
+  { value: 'general',      label: 'General' },
+];
+
 export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, onOpenAdmin }) {
   const { workspaces, loading, createWorkspace } = useWorkspaces();
-  const [showNew, setShowNew] = useState(false);
+  const [showNew,    setShowNew]    = useState(false);
+  const [typeFilter, setTypeFilter] = useState('');
+  // Local cover URL overrides (after upload, no full reload needed)
+  const [coverOverrides, setCoverOverrides] = useState({});
 
   const canCreate = ['superadmin', 'admin'].includes(user?.role);
+  const canEdit   = ['superadmin', 'admin'].includes(user?.role);
+
+  const filtered = typeFilter
+    ? workspaces.filter((ws) => (ws.type ?? 'general') === typeFilter)
+    : workspaces;
+
+  function handleCoverChange(wsId, coverUrl) {
+    setCoverOverrides((prev) => ({ ...prev, [wsId]: coverUrl }));
+  }
 
   return (
     <div className="min-h-screen bg-[#0f1117] flex flex-col">
@@ -249,7 +358,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
       <main className="flex-1 px-6 py-10">
         <div className="max-w-5xl mx-auto">
           {/* Title row */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-xl font-bold text-[#e8eaf0]">Mis espacios de trabajo</h1>
               <p className="text-sm text-[#555b70] mt-1">
@@ -269,16 +378,37 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
             )}
           </div>
 
+          {/* Type filter tabs */}
+          {workspaces.length > 0 && (
+            <div className="flex gap-1.5 mb-6">
+              {TYPE_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setTypeFilter(f.value)}
+                  className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                    typeFilter === f.value
+                      ? 'bg-indigo-500/20 border-indigo-500/60 text-indigo-300'
+                      : 'bg-[#1a1d26] border-[#2a2d3a] text-[#8b92a5] hover:border-[#3a3d4a] hover:text-[#e8eaf0]'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Content */}
           {loading ? (
             <div className="flex justify-center py-24">
               <Spinner size={8} />
             </div>
-          ) : workspaces.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="text-5xl mb-4">📋</div>
-              <p className="text-[#8b92a5] text-sm">No tienes espacios de trabajo todavía.</p>
-              {canCreate && (
+              <p className="text-[#8b92a5] text-sm">
+                {typeFilter ? 'No hay espacios de trabajo de este tipo.' : 'No tienes espacios de trabajo todavía.'}
+              </p>
+              {canCreate && !typeFilter && (
                 <button
                   onClick={() => setShowNew(true)}
                   className="mt-4 flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
@@ -290,8 +420,14 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {workspaces.map((ws) => (
-                <WorkspaceCard key={ws.id} ws={ws} onEnter={onEnterWorkspace} />
+              {filtered.map((ws) => (
+                <WorkspaceCard
+                  key={ws.id}
+                  ws={{ ...ws, coverUrl: coverOverrides[ws.id] ?? ws.coverUrl }}
+                  onEnter={onEnterWorkspace}
+                  onCoverChange={handleCoverChange}
+                  canEdit={canEdit}
+                />
               ))}
             </div>
           )}

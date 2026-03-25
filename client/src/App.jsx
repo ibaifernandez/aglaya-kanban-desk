@@ -251,6 +251,7 @@ function AuthenticatedApp({ user, logout }) {
               workspace={activeWorkspace}
               onBackToWorkspaces={() => setView('workspaces')}
               onOpenMembers={() => setShowMembers(true)}
+              onAvatarChange={(avatarUrl) => setUser((u) => ({ ...u, avatarUrl }))}
             />
 
             {boardId ? (

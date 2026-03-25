@@ -82,6 +82,37 @@ export const api = {
   removeWorkspaceMember:  (id, uid)        => request(`/workspaces/${id}/members/${uid}`, { method: 'DELETE' }),
   getWorkspaceBoards:     (id)             => request(`/workspaces/${id}/boards`),
 
+  // Media uploads (Supabase Storage)
+  uploadAvatar: (file) => {
+    const token = getToken();
+    const form  = new FormData();
+    form.append('file', file);
+    return fetch('/api/media/users/me/avatar', {
+      method:  'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body:    form,
+    }).then(async (r) => {
+      const json = await r.json();
+      if (!r.ok) throw new Error(json.error || `HTTP ${r.status}`);
+      return json.data?.avatarUrl;
+    });
+  },
+
+  uploadWorkspaceCover: (workspaceId, file) => {
+    const token = getToken();
+    const form  = new FormData();
+    form.append('file', file);
+    return fetch(`/api/media/workspaces/${workspaceId}/cover`, {
+      method:  'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body:    form,
+    }).then(async (r) => {
+      const json = await r.json();
+      if (!r.ok) throw new Error(json.error || `HTTP ${r.status}`);
+      return json.data?.coverUrl;
+    });
+  },
+
   // Admin — user management
   getAdminUsers:   ()               => request('/admin/users').then((data) => ({ data })),
   updateUserRole:  (id, role)       => request(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }).then((data) => ({ data })),

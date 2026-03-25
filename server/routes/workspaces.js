@@ -12,6 +12,8 @@ const toWorkspace = (row) => ({
   name:        row.name,
   emoji:       row.emoji,
   description: row.description,
+  type:        row.type ?? 'general',
+  coverUrl:    row.cover_url ?? null,
   createdAt:   row.created_at,
   createdBy:   row.created_by,
 });
@@ -22,7 +24,7 @@ const toWorkspace = (row) => ({
 router.get('/', requireAuth, async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from('workspace_members')
-    .select('role, workspace:workspaces(id, name, emoji, description, created_at, created_by)')
+    .select('role, workspace:workspaces(id, name, emoji, description, type, cover_url, created_at, created_by)')
     .eq('user_id', req.user.id);
 
   if (error) return res.status(500).json({ error: error.message });
@@ -56,8 +58,11 @@ router.get('/', requireAuth, async (req, res) => {
 // Creates a new workspace. Creator becomes 'owner'.
 
 router.post('/', requireAuth, async (req, res) => {
-  const { name, emoji = '📋', description = '' } = req.body;
+  const { name, emoji = '📋', description = '', type = 'general' } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
+
+  const validTypes = ['cliente', 'departamento', 'general'];
+  const wsType = validTypes.includes(type) ? type : 'general';
 
   const { data: ws, error: wsErr } = await supabaseAdmin
     .from('workspaces')
@@ -65,6 +70,7 @@ router.post('/', requireAuth, async (req, res) => {
       name:            name.trim(),
       emoji,
       description,
+      type:            wsType,
       organization_id: req.user.organizationId,
       created_by:      req.user.id,
     })
@@ -112,11 +118,13 @@ router.get('/:workspaceId', requireAuth, requireWorkspaceMember, async (req, res
 // Edits name / emoji / description. Requires admin or owner.
 
 router.patch('/:workspaceId', requireAuth, requireWorkspaceMember, requireWorkspaceRole('owner', 'admin'), async (req, res) => {
-  const { name, emoji, description } = req.body;
+  const { name, emoji, description, type } = req.body;
   const update = {};
   if (name?.trim())        update.name        = name.trim();
   if (emoji)               update.emoji       = emoji;
   if (description != null) update.description = description;
+  const validTypes = ['cliente', 'departamento', 'general'];
+  if (type && validTypes.includes(type)) update.type = type;
 
   const { data, error } = await supabaseAdmin
     .from('workspaces')

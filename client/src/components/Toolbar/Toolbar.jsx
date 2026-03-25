@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings, Search, X, ArrowRight, LogOut, Mail, Users, ChevronLeft, UserCog } from 'lucide-react';
+import { Settings, Search, X, ArrowRight, LogOut, Mail, ChevronLeft, UserCog, Camera } from 'lucide-react';
+import { api } from '../../api/client.js';
 import { PRIORITY_LIST } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { CategorySettings } from './CategorySettings.jsx';
-import { api } from '../../api/client.js';
 
-export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], workspaceMembers = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces, onOpenMembers }) {
+export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], workspaceMembers = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces, onOpenMembers, onAvatarChange }) {
   const { category, priority, tag, search = '', assignee = '', overdue = false } = filters;
   const { categories } = useCategoriesCtx();
   const [showSettings,  setShowSettings]  = useState(false);
   const [digestState,   setDigestState]   = useState('idle'); // 'idle' | 'sending' | 'ok' | 'error'
   const [digestMsg,     setDigestMsg]     = useState('');
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarFileRef = useRef(null);
 
   // Global search state
   const [globalQ,       setGlobalQ]       = useState('');
@@ -69,6 +71,21 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
       setDigestMsg(err.message);
     } finally {
       setTimeout(() => setDigestState('idle'), 4000);
+    }
+  }
+
+  async function handleAvatarUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try {
+      const avatarUrl = await api.uploadAvatar(file);
+      onAvatarChange?.(avatarUrl);
+    } catch (err) {
+      console.error('Error al subir avatar:', err.message);
+    } finally {
+      setAvatarUploading(false);
+      e.target.value = '';
     }
   }
 
@@ -306,9 +323,28 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
         {user && (
           <div className="flex items-center gap-2 pl-2 border-l border-[#2e3140]">
             <div className="flex items-center gap-1.5">
-              <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-[10px] font-bold uppercase">
-                {user.name?.[0] ?? user.email?.[0] ?? '?'}
+              {/* Avatar with upload on hover */}
+              <div
+                className="relative group/avatar w-6 h-6 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+                onClick={() => avatarFileRef.current?.click()}
+                title="Cambiar foto de perfil"
+              >
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-indigo-600 flex items-center justify-center text-white text-[10px] font-bold uppercase">
+                    {user.name?.[0] ?? user.email?.[0] ?? '?'}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                  {avatarUploading ? (
+                    <div className="w-2 h-2 border border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Camera size={9} className="text-white" />
+                  )}
+                </div>
               </div>
+              <input ref={avatarFileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               <span className="text-xs text-[#8b92a5] hidden lg:block max-w-[120px] truncate">
                 {user.name ?? user.email}
               </span>
