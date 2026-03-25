@@ -12,6 +12,8 @@ const toCard = (row) => ({
   tags:           row.tags           || [],
   checklist:      row.checklist      || [],
   checklistTitle: row.checklist_title || '',
+  assigneeId:     row.assignee_id    || null,
+  assignee:       row.assignee       || null,
   order:          row.order,
   createdAt:      row.created_at,
   updatedAt:      row.updated_at,
@@ -20,7 +22,7 @@ const toCard = (row) => ({
 const getCardsByBoard = async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from('cards')
-    .select('*')
+    .select('*, assignee:users!assignee_id(id, name, email)')
     .eq('board_id', req.params.boardId)
     .order('order', { ascending: true });
 
@@ -40,7 +42,7 @@ const getCardsByColumn = async (req, res) => {
 };
 
 const createCard = async (req, res) => {
-  const { columnId, boardId, title, description, category, priority, dueDate, tags, checklist, checklistTitle } = req.body;
+  const { columnId, boardId, title, description, category, priority, dueDate, tags, checklist, checklistTitle, assigneeId } = req.body;
   if (!columnId || !boardId || !title?.trim()) {
     return res.status(400).json({ error: 'columnId, boardId and title are required' });
   }
@@ -68,6 +70,7 @@ const createCard = async (req, res) => {
       tags:            Array.isArray(tags)      ? tags      : [],
       checklist:       Array.isArray(checklist) ? checklist : [],
       checklist_title: checklistTitle  || '',
+      assignee_id:     assigneeId      || null,
       order:           maxOrder + 1,
     })
     .select()
@@ -87,6 +90,7 @@ const updateCard = async (req, res) => {
     tags:           'tags',
     checklist:      'checklist',
     checklistTitle: 'checklist_title',
+    assigneeId:     'assignee_id',
   };
 
   const update = { updated_at: new Date().toISOString() };

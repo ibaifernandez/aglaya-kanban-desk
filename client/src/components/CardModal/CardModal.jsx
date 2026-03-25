@@ -22,7 +22,7 @@ import { api } from '../../api/client.js';
 
 const EMPTY = {
   title: '', description: '', category: 'personal',
-  priority: 'none', dueDate: '', tags: [], checklist: [], checklistTitle: '', attachments: [],
+  priority: 'none', dueDate: '', tags: [], checklist: [], checklistTitle: '', attachments: [], assigneeId: null,
 };
 
 // Normaliza el formato antiguo (array de strings) al nuevo ({ url, name, type })
@@ -151,7 +151,7 @@ function SortableCheckItem({ item, onToggle, onRemove, isEditing, editText, onEd
 }
 
 // ── Main modal ────────────────────────────────────────────
-export function CardModal({ card, columnId, boardId, boards = [], columns, onSave, onDelete, onClose }) {
+export function CardModal({ card, columnId, boardId, boards = [], columns, workspaceMembers = [], onSave, onDelete, onClose }) {
   const isNew = !card?.id;
   const { categories } = useCategoriesCtx();
   const [form, setForm]                 = useState(EMPTY);
@@ -189,6 +189,7 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, onSav
         checklistTitle: card.checklistTitle || '',
         attachments:    normalizeAttachments(card),
         columnId:       card.columnId       || columnId,
+        assigneeId:     card.assigneeId     || null,
       });
     } else {
       setForm({ ...EMPTY, columnId });
@@ -495,6 +496,23 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, onSav
               </button>
             </div>
           </div>
+
+          {/* Responsable */}
+          {workspaceMembers.length > 0 && (
+            <div>
+              <label className="block text-xs text-[#8b90a0] mb-1">Responsable</label>
+              <select
+                value={form.assigneeId ?? ''}
+                onChange={(e) => set('assigneeId', e.target.value || null)}
+                className="w-full bg-[#252830] border border-[#2e3140] rounded-lg px-2.5 py-2 text-sm text-[#e8eaf0] outline-none focus:border-indigo-500"
+              >
+                <option value="">Sin responsable</option>
+                {workspaceMembers.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name || m.email}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Row: category + priority */}
           <div className="grid grid-cols-2 gap-3">

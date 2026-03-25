@@ -54,7 +54,15 @@ function AuthenticatedApp({ user, logout }) {
   } = useCategories();
 
   const [activeBoardId, setActiveBoardId] = useState(null);
-  const [filters, setFilters] = useState({ category: '', priority: '', tag: '', search: '' });
+  const [filters, setFilters] = useState({ category: '', priority: '', tag: '', search: '', assignee: '', overdue: false });
+  const [workspaceMembers, setWorkspaceMembers] = useState([]);
+
+  useEffect(() => {
+    if (!activeWorkspace?.id) return;
+    api.getWorkspaceMembers(activeWorkspace.id)
+      .then((members) => setWorkspaceMembers(members.map((m) => m.user).filter(Boolean)))
+      .catch(() => setWorkspaceMembers([]));
+  }, [activeWorkspace?.id]);
 
   // Drag state
   const [activeCard,       setActiveCard]       = useState(null);
@@ -94,7 +102,7 @@ function AuthenticatedApp({ user, logout }) {
   // Clear filters when switching boards
   function handleSelectBoard(id) {
     setActiveBoardId(id);
-    setFilters({ category: '', priority: '', tag: '', search: '' });
+    setFilters({ category: '', priority: '', tag: '', search: '', assignee: '', overdue: false });
   }
 
   // ⌘1–9 / Ctrl+1–9 — navigate to board by position (like Slack channels)
@@ -107,7 +115,7 @@ function AuthenticatedApp({ user, logout }) {
       if (board) {
         e.preventDefault();
         setActiveBoardId(board.id);
-        setFilters({ category: '', priority: '', tag: '', search: '' });
+        setFilters({ category: '', priority: '', tag: '', search: '', assignee: '', overdue: false });
       }
     }
     window.addEventListener('keydown', handleKeyDown);
@@ -235,6 +243,7 @@ function AuthenticatedApp({ user, logout }) {
               filters={filters}
               onFilterChange={handleFilterChange}
               availableTags={availableTags}
+              workspaceMembers={workspaceMembers}
               onSelectBoard={handleSelectBoard}
               user={user}
               onLogout={logout}
@@ -252,6 +261,7 @@ function AuthenticatedApp({ user, logout }) {
                 cards={cards}
                 loading={loadingBoard}
                 filters={filters}
+                workspaceMembers={workspaceMembers}
                 onCreateColumn={createColumn}
                 onRenameColumn={(id, title) => updateColumn(id, { title })}
             onUpdateColumn={updateColumn}

@@ -5,8 +5,8 @@ import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { CategorySettings } from './CategorySettings.jsx';
 import { api } from '../../api/client.js';
 
-export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces, onOpenMembers }) {
-  const { category, priority, tag, search = '' } = filters;
+export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], workspaceMembers = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces, onOpenMembers }) {
+  const { category, priority, tag, search = '', assignee = '', overdue = false } = filters;
   const { categories } = useCategoriesCtx();
   const [showSettings,  setShowSettings]  = useState(false);
   const [digestState,   setDigestState]   = useState('idle'); // 'idle' | 'sending' | 'ok' | 'error'
@@ -77,9 +77,11 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
     onFilterChange('priority', '');
     onFilterChange('tag', '');
     onFilterChange('search', '');
+    onFilterChange('assignee', '');
+    onFilterChange('overdue', false);
   }
 
-  const hasActiveFilters = category || priority || tag || search;
+  const hasActiveFilters = category || priority || tag || search || assignee || overdue;
 
   return (
     <>
@@ -218,6 +220,33 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
             ))}
           </select>
         )}
+
+        {/* Assignee filter — only when workspace has members */}
+        {workspaceMembers.length > 0 && (
+          <select
+            value={assignee}
+            onChange={(e) => onFilterChange('assignee', e.target.value)}
+            className="bg-[#1e2028] border border-[#2e3140] text-[#8b90a0] text-xs rounded-md px-2 py-1.5 outline-none focus:border-indigo-500 cursor-pointer hover:border-[#3d4155] transition-colors"
+          >
+            <option value="">Todos los responsables</option>
+            {workspaceMembers.map((m) => (
+              <option key={m.id} value={m.id}>{m.name || m.email}</option>
+            ))}
+          </select>
+        )}
+
+        {/* Overdue toggle */}
+        <button
+          onClick={() => onFilterChange('overdue', !overdue)}
+          title="Solo tarjetas vencidas"
+          className={`text-xs px-2.5 py-1.5 rounded-md border transition-colors ${
+            overdue
+              ? 'bg-red-500/15 border-red-500/40 text-red-400'
+              : 'bg-[#1e2028] border-[#2e3140] text-[#8b90a0] hover:border-[#3d4155]'
+          }`}
+        >
+          Vencidas
+        </button>
 
         {/* Clear filters */}
         {hasActiveFilters && (

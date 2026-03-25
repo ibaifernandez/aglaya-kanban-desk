@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { isOverdue } from '../../utils/dates.js';
 import {
   SortableContext,
   horizontalListSortingStrategy,
@@ -14,7 +15,7 @@ import { api } from '../../api/client.js';
 const PRIORITY_SORT_ORDER = { urgent: 0, high: 1, medium: 2, low: 3, none: 4 };
 
 export function Board({
-  columns, cards, loading, filters, boardId, boards = [],
+  columns, cards, loading, filters, boardId, boards = [], workspaceMembers = [],
   onCreateColumn, onRenameColumn, onUpdateColumn, onDeleteColumn, onReorderColumns,
   onCreateCard, onUpdateCard, onMoveCard, onDeleteCard,
 }) {
@@ -33,6 +34,8 @@ export function Board({
     if (filters.category && c.category !== filters.category) return false;
     if (filters.priority && c.priority !== filters.priority) return false;
     if (filters.tag && !c.tags?.includes(filters.tag)) return false;
+    if (filters.assignee && c.assigneeId !== filters.assignee) return false;
+    if (filters.overdue && !isOverdue(c.dueDate)) return false;
     if (filters.search) {
       const q = filters.search.toLowerCase();
       if (!c.title.toLowerCase().includes(q) && !c.description?.toLowerCase().includes(q)) return false;
@@ -293,6 +296,7 @@ export function Board({
           boardId={boardId}
           boards={boards}
           columns={columns}
+          workspaceMembers={workspaceMembers}
           onSave={handleSave}
           onDelete={onDeleteCard}
           onClose={closeModal}
