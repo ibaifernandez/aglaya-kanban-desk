@@ -214,7 +214,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src={lfiLogo} alt="LFi" className="w-8 h-8 rounded-lg object-cover" />
-            <span className="text-sm font-semibold text-[#e8eaf0]">MyBoardLFi</span>
+            <span className="text-sm font-semibold text-[#e8eaf0]">LFi Kanban Desk</span>
           </div>
 
           <div className="flex items-center gap-2">

@@ -48,7 +48,7 @@ export default function LoginPage() {
         {/* Logo / título */}
         <div className="text-center mb-8">
           <img src={lfiLogo} alt="LFi" className="w-16 h-16 rounded-2xl mx-auto mb-4 object-contain" />
-          <h1 className="text-2xl font-bold text-[#e8eaf0] tracking-tight">MyBoardLFi</h1>
+          <h1 className="text-2xl font-bold text-[#e8eaf0] tracking-tight">LFi Kanban Desk</h1>
           <p className="text-sm text-[#555b70] mt-1">Plataforma de gestión para LFi</p>
         </div>
 
@@ -143,7 +143,7 @@ export default function LoginPage() {
         )}
 
         <p className="text-center text-xs text-[#3a3f50] mt-6">
-          MyBoardLFi · © 2026 Ibai Fernández
+          LFi Kanban Desk · © 2026 Ibai Fernández
         </p>
       </div>
     </div>

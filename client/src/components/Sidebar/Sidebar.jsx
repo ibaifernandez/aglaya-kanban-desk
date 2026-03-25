@@ -140,7 +140,7 @@ export function Sidebar({ boards, activeBoardId, onSelect, onCreate, onRename, o
       {/* Logo */}
       <div className="h-14 flex items-center gap-2.5 px-4 border-b border-[#2e3140] shrink-0">
         <img src={lfiLogo} alt="LFi" className="w-7 h-7 rounded-lg object-contain" />
-        <span className="font-bold text-[#e8eaf0] tracking-tight">MyBoardLFi</span>
+        <span className="font-bold text-[#e8eaf0] tracking-tight">LFi Kanban Desk</span>
       </div>
 
       {/* Board list */}
