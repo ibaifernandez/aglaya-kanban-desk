@@ -120,9 +120,68 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 
 ---
 
+## Backlog — Sub-fase 2.1: Supabase Storage + Identidad visual de espacios de trabajo
+
+Agrupa las features que comparten la misma base de infraestructura (Supabase Storage).
+
+### SQL previo necesario
+```sql
+-- Columna avatar en usuarios
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+-- Columna cover_url y type en workspaces
+ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS cover_url TEXT;
+ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'departamento' CHECK (type IN ('cliente', 'departamento', 'general'));
+```
+
+### Supabase Storage (infraestructura compartida)
+- [ ] Crear bucket `media` (público) con carpetas `avatars/` y `workspace-covers/`
+- [ ] RLS: solo el propio usuario puede subir/modificar su avatar; owner/admin del workspace puede subir cover
+- [ ] Endpoint `POST /api/users/me/avatar` — upload + actualiza `users.avatar_url`
+- [ ] Endpoint `POST /api/workspaces/:id/cover` — upload + actualiza `workspaces.cover_url`
+
+### Foto de perfil (usuarios)
+- [ ] UI: input de tipo file en perfil/ajustes + preview circular
+- [ ] Mostrar `avatar_url` (o inicial como fallback) en: Toolbar, WorkspaceDashboard header, WorkspaceMembers, Card (assignee)
+- [ ] `GET /api/auth/me` devuelve `avatarUrl`
+
+### Portada visual de espacios de trabajo
+- [ ] WorkspaceDashboard: si el workspace tiene `cover_url`, mostrar imagen en lugar del mini-kanban abstracto
+- [ ] UI de upload en la tarjeta (icono de cámara en hover sobre el mini-kanban / cover)
+
+### Tipo de espacio de trabajo (Clientes / Departamentos)
+- [ ] Campo `type` en workspaces: `'cliente'` | `'departamento'` | `'general'`
+- [ ] Selector en modal de creación de workspace
+- [ ] Selector en modal de edición
+- [ ] Badge visible en la tarjeta del WorkspaceDashboard
+- [ ] Filtro por tipo en el WorkspaceDashboard (tabs o dropdown)
+
+---
+
+## Backlog — Sub-fase 2.2: Alertas automáticas (sugerencia Bani #4)
+
+Cron job que envía email de alerta dos veces al día con tarjetas prioritarias / con vencimiento próximo.
+
+### Decisiones de diseño pendientes
+- ¿Destinatario? → El responsable de cada tarjeta (`assignee_id`), no el admin
+- ¿Ventana de alerta? → Configurable, default 72h
+- ¿Frecuencia? → 2 veces/día, horas configurables (ej. 09:00 y 17:00)
+- ¿Scope? → Por workspace (cada workspace puede tener destinatarios distintos)
+
+### Componentes necesarios
+- [ ] Tabla `alert_subscriptions` (o configuración en `workspaces`): `alert_hours`, `alert_window_hours`, `alert_enabled`
+- [ ] Endpoint `POST /api/alerts/send` (protegido, solo admin/superadmin o cron key)
+- [ ] `server/digest-alerts.js` — construye y envía el email de alerta: filtra tarjetas con `due_date <= NOW() + alert_window_hours` y `assignee_id IS NOT NULL`
+- [ ] Cron en Railway (o cron en Node con `node-cron`) que llama al endpoint dos veces al día
+- [ ] Template de email: lista de tarjetas con responsable, fecha y prioridad
+
+### Bloqueantes
+- Requiere que `assignee_id` esté en uso (Sub-fase 2.1 completada)
+- Requiere acordar scope exacto con Bani/Ibai antes de implementar
+
+---
+
 ## Backlog — Features futuras (sin fase asignada)
 
-- [ ] **Foto de perfil**: Supabase Storage (bucket `avatars`) + `POST /api/users/me/avatar` + UI de upload. Mostrar en Toolbar, WorkspaceDashboard y WorkspaceMembers.
 - [ ] **Permisos por tablero**: owner / editor / viewer
 - [ ] **Notificaciones in-app**: alertas de cambios en tarjetas asignadas
 - [ ] **Migración multi-tenant completa**: boards/columns/cards desde tasks.json → Supabase, filtrar por organizationId

@@ -10,6 +10,14 @@ export function isOverdue(dueDate) {
   return due < today;
 }
 
+// Returns days remaining until dueDate (negative = overdue, 0 = today)
+export function daysUntil(dueDate) {
+  if (!dueDate) return null;
+  const due   = parseLocalDate(dueDate);
+  const today = new Date(new Date().toDateString());
+  return Math.round((due - today) / (1000 * 60 * 60 * 24));
+}
+
 export function formatDate(dueDate) {
   if (!dueDate) return null;
   return parseLocalDate(dueDate).toLocaleDateString('es-ES', {

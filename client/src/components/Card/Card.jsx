@@ -1,16 +1,8 @@
-import { Calendar, CheckSquare, Zap, ArrowUp, Minus, ArrowDown, Paperclip } from 'lucide-react';
+import { Calendar, CheckSquare, Paperclip } from 'lucide-react';
 import { PRIORITIES, colorById } from '../../utils/constants.js';
-import { isOverdue, formatDate } from '../../utils/dates.js';
+import { isOverdue, formatDate, daysUntil } from '../../utils/dates.js';
 import { Badge } from '../UI/Badge.jsx';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
-
-const PRIORITY_ICONS = {
-  urgent: Zap,
-  high:   ArrowUp,
-  medium: Minus,
-  low:    ArrowDown,
-  // none → undefined (no icon rendered)
-};
 
 export function Card({ card, onClick, dragHandleProps = {}, style = {}, isDragging = false }) {
   const { categories } = useCategoriesCtx();
@@ -20,6 +12,15 @@ export function Card({ card, onClick, dragHandleProps = {}, style = {}, isDraggi
   const priority  = PRIORITIES[card.priority] ?? PRIORITIES.none;
   const overdue  = isOverdue(card.dueDate);
   const dateStr  = formatDate(card.dueDate);
+  const days     = daysUntil(card.dueDate);
+  const daysLabel = days === null ? null
+    : days < 0  ? `${Math.abs(days)}d`
+    : days === 0 ? 'hoy'
+    : `${days}d`;
+  const daysColor = days === null ? ''
+    : days <= 0  ? 'text-red-400'
+    : days <= 3  ? 'text-amber-400'
+    : 'text-[#555b70]';
 
   const checklist  = card.checklist ?? [];
   const checkTotal = checklist.length;
@@ -31,8 +32,6 @@ export function Card({ card, onClick, dragHandleProps = {}, style = {}, isDraggi
   const descPlain = card.description
     ? card.description.replace(/[#*`_~>[\]!]/g, '').replace(/\(https?[^)]+\)/g, '').trim()
     : '';
-
-  const PriorityIcon = PRIORITY_ICONS[card.priority];
 
   return (
     <div
@@ -54,13 +53,13 @@ export function Card({ card, onClick, dragHandleProps = {}, style = {}, isDraggi
         <span className="absolute inset-0 rounded-lg ring-1 ring-purple-500/50 pointer-events-none" />
       )}
 
-      {/* Priority icon — top right (hidden when priority = none) */}
-      {PriorityIcon && (
+      {/* Days counter — top right (only when dueDate exists) */}
+      {daysLabel && (
         <span
-          className={`absolute top-2.5 right-2.5 ${priority.color} ${card.priority === 'urgent' ? 'opacity-90 animate-pulse' : 'opacity-60'}`}
-          title={priority.label}
+          className={`absolute top-2 right-2.5 text-[10px] font-semibold tabular-nums ${daysColor}`}
+          title={days <= 0 ? `Vencida hace ${Math.abs(days)} día(s)` : `${days} día(s) restante(s)`}
         >
-          <PriorityIcon size={card.priority === 'urgent' ? 13 : 11} />
+          {days < 0 ? `-${daysLabel}` : daysLabel}
         </span>
       )}
 
