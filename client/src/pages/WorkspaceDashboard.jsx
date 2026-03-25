@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Plus, Users, LayoutGrid, LogOut, ChevronRight, Camera } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Plus, Users, LayoutGrid, LogOut, ChevronRight, Camera, Pencil, Trash2 } from 'lucide-react';
 import { useWorkspaces } from '../hooks/useWorkspaces.js';
 import { Spinner } from '../components/UI/Spinner.jsx';
 import { api } from '../api/client.js';
@@ -15,8 +15,13 @@ const ROLE_LABELS = {
 const TYPE_LABELS = {
   cliente:      { label: 'Cliente',      color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
   departamento: { label: 'Departamento', color: 'text-sky-400     bg-sky-500/10     border-sky-500/20'     },
-  general:      { label: 'General',      color: 'text-zinc-400    bg-zinc-500/10    border-zinc-500/20'     },
 };
+
+const EMOJIS = ['📋', '🚀', '⭐', '🎯', '💡', '🏢', '📊', '🛠', '🎨', '📣', '🤝', '💼'];
+const TYPE_OPTS = [
+  { value: 'cliente',      label: 'Cliente' },
+  { value: 'departamento', label: 'Departamento' },
+];
 
 function RoleBadge({ role }) {
   const { label, color } = ROLE_LABELS[role] ?? ROLE_LABELS.member;
@@ -28,10 +33,11 @@ function RoleBadge({ role }) {
 }
 
 function TypeBadge({ type }) {
-  const { label, color } = TYPE_LABELS[type] ?? TYPE_LABELS.general;
+  const def = TYPE_LABELS[type];
+  if (!def) return null;
   return (
-    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${color}`}>
-      {label}
+    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${def.color}`}>
+      {def.label}
     </span>
   );
 }
@@ -76,8 +82,60 @@ function MiniKanban({ id }) {
   );
 }
 
-function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit }) {
-  const fileRef   = useRef(null);
+// ── Context menu ──────────────────────────────────────────────────────────────
+function ContextMenu({ x, y, ws, canEdit, onEdit, onDelete, onClose }) {
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) onClose();
+    }
+    function handleEsc(e) { if (e.key === 'Escape') onClose(); }
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [onClose]);
+
+  // Keep menu within viewport
+  const style = { position: 'fixed', top: y, left: x, zIndex: 9999 };
+
+  return (
+    <div
+      ref={menuRef}
+      style={style}
+      className="bg-[#1e2028] border border-[#2e3140] rounded-xl shadow-2xl overflow-hidden w-44 py-1"
+    >
+      {canEdit && (
+        <button
+          onClick={() => { onEdit(ws); onClose(); }}
+          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-[#c8ccd8] hover:bg-[#252830] hover:text-[#e8eaf0] transition-colors"
+        >
+          <Pencil size={13} className="text-[#555b70]" />
+          Editar
+        </button>
+      )}
+      {canEdit && (
+        <button
+          onClick={() => { onDelete(ws); onClose(); }}
+          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+        >
+          <Trash2 size={13} />
+          Eliminar
+        </button>
+      )}
+      {!canEdit && (
+        <p className="px-3 py-2 text-xs text-[#555b70]">Sin acciones disponibles</p>
+      )}
+    </div>
+  );
+}
+
+// ── Workspace card ────────────────────────────────────────────────────────────
+function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit, onContextMenu }) {
+  const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
 
   async function handleCoverUpload(e) {
@@ -95,8 +153,13 @@ function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit }) {
     }
   }
 
+  function handleContextMenu(e) {
+    e.preventDefault();
+    onContextMenu(e, ws);
+  }
+
   return (
-    <div className="group relative">
+    <div className="group relative" onContextMenu={handleContextMenu}>
       <button
         onClick={() => onEnter(ws)}
         className="w-full text-left bg-[#1a1d26] border border-[#2a2d3a] rounded-xl p-5 hover:border-indigo-500/50 hover:bg-[#1e2230] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
@@ -148,7 +211,7 @@ function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit }) {
         <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
       </button>
 
-      {/* Cover upload button — hover, only for admins/owners */}
+      {/* Cover upload button */}
       {canEdit && (
         <button
           onClick={() => fileRef.current?.click()}
@@ -159,33 +222,26 @@ function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit }) {
           {uploading ? <Spinner size={3} /> : <Camera size={13} />}
         </button>
       )}
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleCoverUpload}
-      />
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
     </div>
   );
 }
 
-function NewWorkspaceModal({ onClose, onCreate }) {
-  const [name, setName]     = useState('');
-  const [emoji, setEmoji]   = useState('📋');
-  const [desc, setDesc]     = useState('');
-  const [type, setType]     = useState('general');
+// ── Workspace form (shared by New + Edit modals) ──────────────────────────────
+function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel }) {
+  const [name,   setName]   = useState(initial?.name   ?? '');
+  const [emoji,  setEmoji]  = useState(initial?.emoji  ?? '📋');
+  const [desc,   setDesc]   = useState(initial?.description ?? '');
+  const [type,   setType]   = useState(initial?.type && initial.type !== 'general' ? initial.type : '');
   const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState('');
-
-  const EMOJIS = ['📋', '🚀', '⭐', '🎯', '💡', '🏢', '📊', '🛠', '🎨', '📣', '🤝', '💼'];
+  const [error,  setError]  = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!name.trim()) { setError('El nombre es obligatorio'); return; }
     setSaving(true);
     try {
-      await onCreate({ name: name.trim(), emoji, description: desc.trim(), type });
+      await onSubmit({ name: name.trim(), emoji, description: desc.trim(), type: type || 'general' });
       onClose();
     } catch (err) {
       setError(err.message);
@@ -198,8 +254,7 @@ function NewWorkspaceModal({ onClose, onCreate }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-[#1a1d26] border border-[#2a2d3a] rounded-xl w-full max-w-md shadow-2xl">
         <div className="px-6 py-5 border-b border-[#2a2d3a]">
-          <h2 className="text-base font-semibold text-[#e8eaf0]">Nuevo espacio de trabajo</h2>
-          <p className="text-xs text-[#555b70] mt-0.5">Un espacio aislado para un cliente o departamento.</p>
+          <h2 className="text-base font-semibold text-[#e8eaf0]">{title}</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
@@ -248,17 +303,13 @@ function NewWorkspaceModal({ onClose, onCreate }) {
 
           {/* Type */}
           <div>
-            <label className="block text-xs font-medium text-[#8b92a5] mb-2">Tipo</label>
+            <label className="block text-xs font-medium text-[#8b92a5] mb-2">Tipo <span className="text-[#3a3f50]">(opcional)</span></label>
             <div className="flex gap-2">
-              {[
-                { value: 'cliente',      label: 'Cliente' },
-                { value: 'departamento', label: 'Departamento' },
-                { value: 'general',      label: 'General' },
-              ].map((opt) => (
+              {TYPE_OPTS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => setType(opt.value)}
+                  onClick={() => setType(type === opt.value ? '' : opt.value)}
                   className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors ${
                     type === opt.value
                       ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300'
@@ -281,8 +332,8 @@ function NewWorkspaceModal({ onClose, onCreate }) {
               type="submit" disabled={saving}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              {saving ? <Spinner size={3} /> : <Plus size={14} />}
-              Crear espacio de trabajo
+              {saving ? <Spinner size={3} /> : null}
+              {submitLabel}
             </button>
           </div>
         </form>
@@ -291,19 +342,57 @@ function NewWorkspaceModal({ onClose, onCreate }) {
   );
 }
 
+// ── Delete confirm modal ──────────────────────────────────────────────────────
+function DeleteConfirmModal({ ws, onConfirm, onClose }) {
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    setDeleting(true);
+    try { await onConfirm(ws.id); onClose(); }
+    catch { setDeleting(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-[#1a1d26] border border-[#2a2d3a] rounded-xl w-full max-w-sm shadow-2xl p-6">
+        <h2 className="text-base font-semibold text-[#e8eaf0] mb-2">¿Eliminar espacio de trabajo?</h2>
+        <p className="text-sm text-[#555b70] mb-6">
+          Se eliminará <span className="text-[#e8eaf0] font-medium">{ws.emoji} {ws.name}</span> junto con todos sus tableros y tarjetas. Esta acción no se puede deshacer.
+        </p>
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-[#8b92a5] hover:text-[#e8eaf0] transition-colors">
+            Cancelar
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            {deleting ? <Spinner size={3} /> : <Trash2 size={13} />}
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Type filter tabs ──────────────────────────────────────────────────────────
 const TYPE_FILTERS = [
   { value: '',             label: 'Todos' },
   { value: 'cliente',      label: 'Clientes' },
   { value: 'departamento', label: 'Departamentos' },
-  { value: 'general',      label: 'General' },
 ];
 
+// ── Main component ────────────────────────────────────────────────────────────
 export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, onOpenAdmin }) {
-  const { workspaces, loading, createWorkspace } = useWorkspaces();
-  const [showNew,    setShowNew]    = useState(false);
-  const [typeFilter, setTypeFilter] = useState('');
-  // Local cover URL overrides (after upload, no full reload needed)
+  const { workspaces, loading, createWorkspace, updateWorkspace, deleteWorkspace } = useWorkspaces();
+  const [showNew,       setShowNew]       = useState(false);
+  const [editTarget,    setEditTarget]    = useState(null);
+  const [deleteTarget,  setDeleteTarget]  = useState(null);
+  const [typeFilter,    setTypeFilter]    = useState('');
   const [coverOverrides, setCoverOverrides] = useState({});
+  const [ctxMenu, setCtxMenu] = useState(null); // { x, y, ws }
 
   const canCreate = ['superadmin', 'admin'].includes(user?.role);
   const canEdit   = ['superadmin', 'admin'].includes(user?.role);
@@ -315,6 +404,11 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
   function handleCoverChange(wsId, coverUrl) {
     setCoverOverrides((prev) => ({ ...prev, [wsId]: coverUrl }));
   }
+
+  const handleContextMenu = useCallback((e, ws) => {
+    e.preventDefault();
+    setCtxMenu({ x: e.clientX, y: e.clientY, ws });
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0f1117] flex flex-col">
@@ -427,6 +521,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                   onEnter={onEnterWorkspace}
                   onCoverChange={handleCoverChange}
                   canEdit={canEdit}
+                  onContextMenu={handleContextMenu}
                 />
               ))}
             </div>
@@ -434,10 +529,46 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
         </div>
       </main>
 
+      {/* Context menu */}
+      {ctxMenu && (
+        <ContextMenu
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          ws={ctxMenu.ws}
+          canEdit={canEdit}
+          onEdit={setEditTarget}
+          onDelete={setDeleteTarget}
+          onClose={() => setCtxMenu(null)}
+        />
+      )}
+
+      {/* New workspace modal */}
       {showNew && (
-        <NewWorkspaceModal
+        <WorkspaceForm
+          title="Nuevo espacio de trabajo"
+          submitLabel="Crear espacio de trabajo"
           onClose={() => setShowNew(false)}
-          onCreate={createWorkspace}
+          onSubmit={createWorkspace}
+        />
+      )}
+
+      {/* Edit workspace modal */}
+      {editTarget && (
+        <WorkspaceForm
+          title="Editar espacio de trabajo"
+          submitLabel="Guardar cambios"
+          initial={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSubmit={(body) => updateWorkspace(editTarget.id, body)}
+        />
+      )}
+
+      {/* Delete confirm */}
+      {deleteTarget && (
+        <DeleteConfirmModal
+          ws={deleteTarget}
+          onConfirm={deleteWorkspace}
+          onClose={() => setDeleteTarget(null)}
         />
       )}
     </div>
