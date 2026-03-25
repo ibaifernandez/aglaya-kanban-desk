@@ -27,13 +27,14 @@ const getBoards = async (req, res) => {
 };
 
 const createBoard = async (req, res) => {
-  const { title } = req.body;
+  const { title, workspaceId } = req.body;
   if (!title?.trim()) return res.status(400).json({ error: 'title is required' });
+  if (!workspaceId)   return res.status(400).json({ error: 'workspaceId is required' });
 
   const { data: existing } = await supabaseAdmin
     .from('boards')
     .select('order')
-    .eq('organization_id', req.user.organizationId)
+    .eq('workspace_id', workspaceId)
     .order('order', { ascending: false })
     .limit(1);
 
@@ -41,7 +42,7 @@ const createBoard = async (req, res) => {
 
   const { data: board, error } = await supabaseAdmin
     .from('boards')
-    .insert({ title: title.trim(), organization_id: req.user.organizationId, order: maxOrder + 1 })
+    .insert({ title: title.trim(), organization_id: req.user.organizationId, workspace_id: workspaceId, order: maxOrder + 1 })
     .select()
     .single();
 
