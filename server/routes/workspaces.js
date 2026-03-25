@@ -74,7 +74,7 @@ router.get('/:workspaceId', requireAuth, requireWorkspaceMember, async (req, res
 
   const [wsRes, membersRes, boardsRes] = await Promise.all([
     supabaseAdmin.from('workspaces').select('*').eq('id', workspaceId).single(),
-    supabaseAdmin.from('workspace_members').select('user_id, role, invited_at, user:users(id, name, email, avatar_url)').eq('workspace_id', workspaceId),
+    supabaseAdmin.from('workspace_members').select('user_id, role, invited_at, user:users!user_id(id, name, email)').eq('workspace_id', workspaceId),
     supabaseAdmin.from('boards').select('id').eq('workspace_id', workspaceId),
   ]);
 
@@ -130,7 +130,7 @@ router.delete('/:workspaceId', requireAuth, requireWorkspaceMember, requireWorks
 router.get('/:workspaceId/members', requireAuth, requireWorkspaceMember, async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from('workspace_members')
-    .select('role, invited_at, invited_by, user:users(id, name, email, avatar_url)')
+    .select('role, invited_at, invited_by, user:users!user_id(id, name, email)')
     .eq('workspace_id', req.params.workspaceId);
 
   if (error) return res.status(500).json({ error: error.message });

@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings, Search, X, ArrowRight, LogOut, Mail, Users, ChevronLeft } from 'lucide-react';
+import { Settings, Search, X, ArrowRight, LogOut, Mail, Users, ChevronLeft, UserCog } from 'lucide-react';
 import { PRIORITY_LIST } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { CategorySettings } from './CategorySettings.jsx';
 import { api } from '../../api/client.js';
 
-export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces }) {
+export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces, onOpenMembers }) {
   const { category, priority, tag, search = '' } = filters;
   const { categories } = useCategoriesCtx();
   const [showSettings,  setShowSettings]  = useState(false);
@@ -226,6 +226,17 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
             className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
           >
             Limpiar filtros
+          </button>
+        )}
+
+        {/* Workspace members button — when inside a workspace */}
+        {workspace && onOpenMembers && (
+          <button
+            onClick={onOpenMembers}
+            title="Miembros del workspace"
+            className="p-1.5 rounded text-[#555b70] hover:text-[#e8eaf0] hover:bg-[#2e3140] transition-colors"
+          >
+            <UserCog size={15} />
           </button>
         )}
 

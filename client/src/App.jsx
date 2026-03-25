@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import WorkspaceDashboard from './pages/WorkspaceDashboard.jsx';
+import { WorkspaceMembers } from './components/Workspace/WorkspaceMembers.jsx';
 import {
   DndContext,
   DragOverlay,
@@ -42,8 +43,9 @@ export default function App() {
 }
 
 function AuthenticatedApp({ user, logout }) {
-  const [view, setView]                     = useState('workspaces'); // 'workspaces' | 'board' | 'admin'
+  const [view, setView]                       = useState('workspaces'); // 'workspaces' | 'board' | 'admin'
   const [activeWorkspace, setActiveWorkspace] = useState(null);
+  const [showMembers,     setShowMembers]     = useState(false);
 
   const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = useBoards(activeWorkspace?.id);
   const {
@@ -239,6 +241,7 @@ function AuthenticatedApp({ user, logout }) {
               onOpenAdmin={() => setView('admin')}
               workspace={activeWorkspace}
               onBackToWorkspaces={() => setView('workspaces')}
+              onOpenMembers={() => setShowMembers(true)}
             />
 
             {boardId ? (
@@ -280,6 +283,15 @@ function AuthenticatedApp({ user, logout }) {
             </div>
           )}
         </DragOverlay>
+
+        {/* Workspace members panel */}
+        {showMembers && activeWorkspace && (
+          <WorkspaceMembers
+            workspace={activeWorkspace}
+            currentUser={user}
+            onClose={() => setShowMembers(false)}
+          />
+        )}
 
         {/* Cross-board column picker */}
         {pendingCrossBoard && (
