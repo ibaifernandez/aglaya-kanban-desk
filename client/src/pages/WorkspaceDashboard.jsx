@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Users, LayoutGrid, LogOut, ChevronRight } from 'lucide-react';
 import { useWorkspaces } from '../hooks/useWorkspaces.js';
 import { Spinner } from '../components/UI/Spinner.jsx';
+import lfiLogo from '../assets/lfi.png';
 
 const ROLE_LABELS = {
   owner:  { label: 'Propietario', color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
@@ -19,12 +20,55 @@ function RoleBadge({ role }) {
   );
 }
 
+// Deterministic pseudo-random from a string seed
+function seededRand(seed, index) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(31, h) + seed.charCodeAt(i) | 0;
+  h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+  h = Math.imul(h ^ index, 0x45d9f3b);
+  return ((h ^ (h >>> 16)) >>> 0) / 0xffffffff;
+}
+
+const COLUMN_COLORS = [
+  'bg-indigo-500/40', 'bg-sky-500/40', 'bg-amber-500/40',
+  'bg-emerald-500/40', 'bg-violet-500/40', 'bg-rose-500/40',
+];
+
+function MiniKanban({ id }) {
+  const cols = 4;
+  return (
+    <div className="flex items-end gap-1.5 h-10 mb-4 px-0.5">
+      {Array.from({ length: cols }, (_, col) => {
+        const cards = 1 + Math.floor(seededRand(id, col) * 4); // 1–4 cards
+        const color = COLUMN_COLORS[Math.floor(seededRand(id, col + 10) * COLUMN_COLORS.length)];
+        return (
+          <div key={col} className="flex-1 flex flex-col justify-end gap-1">
+            {Array.from({ length: cards }, (_, card) => {
+              const w = 60 + Math.floor(seededRand(id, col * 10 + card) * 40); // 60–100%
+              return (
+                <div
+                  key={card}
+                  style={{ width: `${w}%` }}
+                  className={`h-1.5 rounded-full ${color} opacity-70`}
+                />
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function WorkspaceCard({ ws, onEnter }) {
   return (
     <button
       onClick={() => onEnter(ws)}
       className="group relative text-left bg-[#1a1d26] border border-[#2a2d3a] rounded-xl p-5 hover:border-indigo-500/50 hover:bg-[#1e2230] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
     >
+      {/* Mini-kanban visual */}
+      <MiniKanban id={ws.id} />
+
       {/* Emoji + name */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -169,9 +213,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
       <header className="border-b border-[#2a2d3a] px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-              M
-            </div>
+            <img src={lfiLogo} alt="LFi" className="w-8 h-8 rounded-lg object-cover" />
             <span className="text-sm font-semibold text-[#e8eaf0]">MyBoardLFi</span>
           </div>
 
