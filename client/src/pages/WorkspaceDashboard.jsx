@@ -166,7 +166,7 @@ function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit, onContextMenu }) {
       >
         {/* Cover image or mini-kanban */}
         {ws.coverUrl ? (
-          <div className="h-10 mb-4 rounded-lg overflow-hidden">
+          <div className="-mx-5 -mt-5 mb-4 h-28 rounded-t-xl overflow-hidden">
             <img src={ws.coverUrl} alt="" className="w-full h-full object-cover" />
           </div>
         ) : (
