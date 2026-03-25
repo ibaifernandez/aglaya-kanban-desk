@@ -1,0 +1,178 @@
+ID,Área,Categoría,Descripción del check,Check robótico (Claude),Resultado robot,Check humano (Ibai),Notas
+,,,,,,,
+--- SEGURIDAD ---,,,,,,,
+SEC-01,Seguridad,Autenticación,Rutas de API protegidas devuelven 401 sin token,✅ Automatizado,PASS,,
+SEC-02,Seguridad,Autenticación,Ruta /api/admin protegida sin token devuelve 401,✅ Automatizado,PASS,,
+SEC-03,Seguridad,Autenticación,Token JWT contiene id + email + role + organizationId,✅ Automatizado,PASS,,
+SEC-04,Seguridad,Autenticación,Token JWT no está expirado en sesión activa,✅ Automatizado,PASS,,
+SEC-05,Seguridad,Autenticación,El role en el token es correcto (superadmin para Ibai),✅ Automatizado,PASS,,
+SEC-06,Seguridad,Autorización,Un usuario sin rol workspace no puede acceder a GET /api/workspaces/:id,⬜ Manual,PENDIENTE,☐,Crear usuario de prueba sin membership y verificar 403
+SEC-07,Seguridad,Autorización,Un miembro con rol 'guest' no puede modificar ni borrar workspace,⬜ Manual,PENDIENTE,☐,Asignar rol guest e intentar PATCH /api/workspaces/:id
+SEC-08,Seguridad,Autorización,Un miembro con rol 'member' no puede invitar a otros,⬜ Manual,PENDIENTE,☐,Intentar POST /api/workspaces/:id/members con token de member
+SEC-09,Seguridad,Autorización,Solo el owner puede borrar el workspace,⬜ Manual,PENDIENTE,☐,Intentar DELETE /api/workspaces/:id con token de admin (debe fallar)
+SEC-10,Seguridad,Autorización,Un miembro no puede cambiarse su propio rol,✅ Automatizado,PASS (validación server),☐,Intentar PATCH /api/workspaces/:id/members/:myUserId
+SEC-11,Seguridad,Autorización,Un miembro no puede eliminarse a sí mismo del workspace,✅ Automatizado,PASS (validación server),☐,Intentar DELETE /api/workspaces/:id/members/:myUserId
+SEC-12,Seguridad,RLS Supabase,Las políticas RLS en workspaces previenen acceso cruzado entre organizaciones,⬜ Manual,PENDIENTE,☐,Verificar en Supabase que la policy "Ver solo org propia" funciona
+SEC-13,Seguridad,RLS Supabase,Las políticas RLS en workspace_members usan SECURITY DEFINER para evitar recursión,✅ Automatizado,PASS (API responde sin error 500),,,
+SEC-14,Seguridad,RLS Supabase,Las políticas RLS en boards/columns/cards están activas,⬜ Manual,PENDIENTE,☐,Revisar en Supabase Dashboard > Authentication > Policies
+SEC-15,Seguridad,Tokens,El token se elimina correctamente del localStorage al hacer logout,⬜ Manual,PENDIENTE,☐,Abrir DevTools > Application > localStorage antes y después de logout
+SEC-16,Seguridad,CORS,Las peticiones desde dominios no autorizados son rechazadas,⬜ Manual,PENDIENTE,☐,Intentar fetch desde consola de otro dominio
+SEC-17,Seguridad,Headers,El servidor no expone información sensible en headers de respuesta (X-Powered-By etc.),⬜ Manual,PENDIENTE,☐,Revisar Network tab en DevTools
+SEC-18,Seguridad,Inputs,El campo "nombre de workspace" no permite HTML/scripts (XSS),⬜ Manual,PENDIENTE,☐,Intentar: <script>alert(1)</script> en nombre
+SEC-19,Seguridad,Inputs,El campo de descripción de workspace escapa caracteres especiales,⬜ Manual,PENDIENTE,☐,Probar con: '; DROP TABLE workspaces; --
+SEC-20,Seguridad,Password Reset,El enlace de restablecimiento de contraseña funciona desde el email,⬜ Manual,PENDIENTE,☐,Solicitar reset → hacer clic en link del email → cambiar contraseña
+,,,,,,,
+--- AUTENTICACIÓN Y SESIÓN ---,,,,,,,
+AUTH-01,Auth,Login,El formulario de login acepta email + contraseña correctos,⬜ Manual,PENDIENTE,☐,Login con ibai@lfi.la
+AUTH-02,Auth,Login,El formulario muestra error con credenciales incorrectas,⬜ Manual,PENDIENTE,☐,Intentar login con contraseña errónea
+AUTH-03,Auth,Login,"El botón ""¿Olvidaste tu contraseña?"" lanza el flujo de reset",⬜ Manual,PENDIENTE,☐,
+AUTH-04,Auth,Sesión,La sesión persiste al recargar la página (F5),⬜ Manual,PENDIENTE,☐,Login → F5 → comprobar que no pide login de nuevo
+AUTH-05,Auth,Sesión,Al expirar el token el usuario es redirigido al login,⬜ Manual,PENDIENTE,☐,Manipular token en localStorage para hacerlo expirar
+AUTH-06,Auth,Logout,El logout cierra la sesión y redirige al login,⬜ Manual,PENDIENTE,☐,Hacer click en botón de logout
+,,,,,,,
+--- WORKSPACES — NUEVO EN PHASE 2 ---,,,,,,,
+WS-01,Workspaces,Dashboard,La pantalla de workspaces se muestra al iniciar sesión,✅ Automatizado,PASS (200 /api/workspaces),☐,Verificar visualmente que se ve el dashboard
+WS-02,Workspaces,Dashboard,Los workspaces existentes aparecen en el grid,✅ Automatizado,PASS (1 workspace retornado),☐,Verificar que aparece "General" o el workspace creado
+WS-03,Workspaces,Dashboard,Cada tarjeta de workspace muestra: emoji + nombre + descripción + rol,⬜ Manual,PENDIENTE,☐,Revisar visualmente cada card
+WS-04,Workspaces,Dashboard,Las tarjetas muestran conteo de tableros y miembros,⬜ Manual,PENDIENTE,☐,NOTA: endpoint /api/workspaces no retorna counts — ver WS-KNOWN-01
+WS-05,Workspaces,Dashboard,El estado vacío muestra CTA para crear primer workspace,⬜ Manual,PENDIENTE,☐,Solo verificable si se borran todos los workspaces
+WS-06,Workspaces,Crear,El modal de nuevo workspace abre al hacer clic en el botón,⬜ Manual,PENDIENTE,☐,
+WS-07,Workspaces,Crear,El selector de emoji muestra las 12 opciones disponibles,⬜ Manual,PENDIENTE,☐,Verificar que los emojis se pueden seleccionar
+WS-08,Workspaces,Crear,El campo nombre es obligatorio (bloquea submit si vacío),⬜ Manual,PENDIENTE,☐,Intentar crear workspace sin nombre
+WS-09,Workspaces,Crear,Al crear workspace el creador queda automáticamente como 'owner',✅ Automatizado,PASS (lógica server),☐,Crear workspace y verificar que aparece con rol Propietario
+WS-10,Workspaces,Crear,El nuevo workspace aparece inmediatamente en el grid,⬜ Manual,PENDIENTE,☐,
+WS-11,Workspaces,Navegar,Al hacer clic en un workspace se accede al board view,⬜ Manual,PENDIENTE,☐,Verificar que navega a la vista de tableros con breadcrumb correcto
+WS-12,Workspaces,Navegar,El breadcrumb muestra: ← emoji + nombre del workspace / nombre del tablero,⬜ Manual,PENDIENTE,☐,Verificar formato del breadcrumb en la toolbar
+WS-13,Workspaces,Navegar,El botón de volver en el breadcrumb regresa al dashboard,⬜ Manual,PENDIENTE,☐,Hacer clic en el botón de breadcrumb
+WS-14,Workspaces,Boards,Los tableros mostrados corresponden solo al workspace activo,✅ Automatizado,PASS (5 boards en workspace),☐,Verificar que al cambiar de workspace cambian los tableros
+WS-15,Workspaces,Boards,Crear un tablero desde la barra lateral lo asocia al workspace correcto,⬜ Manual,PENDIENTE,☐,Crear tablero → verificar en Supabase que workspace_id es correcto
+,,,,,,,
+--- MIEMBROS DE WORKSPACE — NUEVO EN PHASE 2 ---,,,,,,,
+MBR-01,Miembros,Panel,El botón UserCog en la toolbar abre el panel de miembros,⬜ Manual,PENDIENTE,☐,Verificar que el icono aparece y abre el panel lateral
+MBR-02,Miembros,Panel,El panel lateral se desliza desde la derecha,⬜ Manual,PENDIENTE,☐,Verificar animación/posición del panel
+MBR-03,Miembros,Panel,El panel muestra el emoji y nombre del workspace en el header,⬜ Manual,PENDIENTE,☐,
+MBR-04,Miembros,Panel,Cada miembro muestra: avatar inicial + nombre + badge de rol + email,✅ Automatizado,PASS (1 miembro con estructura correcta),☐,Verificar visualmente
+MBR-05,Miembros,Panel,El miembro actual aparece con etiqueta "(tú)",⬜ Manual,PENDIENTE,☐,
+MBR-06,Miembros,Panel,El botón de cerrar (X) cierra el panel,⬜ Manual,PENDIENTE,☐,
+MBR-07,Miembros,Panel,Hacer clic en el backdrop cierra el panel,⬜ Manual,PENDIENTE,☐,Hacer clic fuera del panel
+MBR-08,Miembros,Roles,Los badges de rol usan colores diferenciados: owner=indigo / admin=amber / member=sky / guest=zinc,⬜ Manual,PENDIENTE,☐,Verificar colores visualmente
+MBR-09,Miembros,Gestión,El botón "Añadir miembro" solo aparece para owner/admin,⬜ Manual,PENDIENTE,☐,Verificar con rol member que el botón no aparece
+MBR-10,Miembros,Gestión,El modal de añadir muestra solo usuarios de la org no miembros aún,⬜ Manual,PENDIENTE,☐,Verificar que no aparecen usuarios ya en el workspace
+MBR-11,Miembros,Gestión,Se puede asignar rol al nuevo miembro: admin / member / guest,⬜ Manual,PENDIENTE,☐,Probar cada rol al añadir
+MBR-12,Miembros,Gestión,El selector de rol en la fila del miembro cambia el rol inmediatamente,⬜ Manual,PENDIENTE,☐,Cambiar rol y verificar toast + que se guarda
+MBR-13,Miembros,Gestión,El botón de eliminar muestra diálogo de confirmación,⬜ Manual,PENDIENTE,☐,
+MBR-14,Miembros,Gestión,Eliminar miembro lo quita de la lista sin recargar,⬜ Manual,PENDIENTE,☐,
+MBR-15,Miembros,Gestión,No aparece selector de rol ni botón de eliminar para el owner,⬜ Manual,PENDIENTE,☐,Verificar que la fila del owner no tiene controles de edición
+MBR-16,Miembros,Gestión,No aparece selector de rol ni botón de eliminar para el propio usuario,⬜ Manual,PENDIENTE,☐,Verificar que mi propia fila no tiene controles de edición
+MBR-17,Miembros,Toast,Los toasts de éxito/error aparecen en la parte inferior y desaparecen a los 3s,⬜ Manual,PENDIENTE,☐,Verificar tras cualquier acción
+,,,,,,,
+--- TABLEROS ---,,,,,,,
+BRD-01,Tableros,Lista,Los tableros cargan correctamente al entrar a un workspace,✅ Automatizado,PASS (5 boards),☐,
+BRD-02,Tableros,Crear,Crear tablero desde sidebar funciona y navega al nuevo tablero,⬜ Manual,PENDIENTE,☐,
+BRD-03,Tableros,Renombrar,Se puede renombrar un tablero haciendo doble clic en la sidebar,⬜ Manual,PENDIENTE,☐,
+BRD-04,Tableros,Borrar,Borrar tablero muestra confirmación y lo elimina,⬜ Manual,PENDIENTE,☐,
+BRD-05,Tableros,Drag,Se pueden reordenar tableros arrastrando en la sidebar,⬜ Manual,PENDIENTE,☐,
+BRD-06,Tableros,Atajos,⌘1–⌘9 navega a tableros por posición,⬜ Manual,PENDIENTE,☐,Probar ⌘1 para primer tablero
+,,,,,,,
+--- COLUMNAS ---,,,,,,,
+COL-01,Columnas,Crear,Se puede añadir una columna nueva al tablero,⬜ Manual,PENDIENTE,☐,
+COL-02,Columnas,Renombrar,Se puede renombrar una columna,⬜ Manual,PENDIENTE,☐,
+COL-03,Columnas,Borrar,Borrar columna elimina también sus tarjetas,⬜ Manual,PENDIENTE,☐,
+COL-04,Columnas,Drag,Se pueden reordenar columnas arrastrando,⬜ Manual,PENDIENTE,☐,
+,,,,,,,
+--- TARJETAS ---,,,,,,,
+CRD-01,Tarjetas,Crear,Se puede crear una tarjeta en cualquier columna,⬜ Manual,PENDIENTE,☐,
+CRD-02,Tarjetas,Editar,El modal de edición muestra todos los campos: título + desc + prioridad + categoría + tags + checklist + fecha,⬜ Manual,PENDIENTE,☐,
+CRD-03,Tarjetas,Prioridad,Al mover tarjeta a columna "done/completado/entregado" la prioridad se pone en 'none',⬜ Manual,PENDIENTE,☐,Crear columna "Completado" y mover tarjeta
+CRD-04,Tarjetas,Drag intra,Drag & drop dentro de la misma columna reordena correctamente,⬜ Manual,PENDIENTE,☐,
+CRD-05,Tarjetas,Drag inter,Drag & drop entre columnas del mismo tablero funciona,⬜ Manual,PENDIENTE,☐,
+CRD-06,Tarjetas,Drag cross,Arrastrar tarjeta a tablero en sidebar abre el selector de columna,⬜ Manual,PENDIENTE,☐,
+CRD-07,Tarjetas,Borrar,Borrar tarjeta funciona con confirmación,⬜ Manual,PENDIENTE,☐,
+,,,,,,,
+--- FILTROS Y BÚSQUEDA ---,,,,,,,
+FLT-01,Filtros,Búsqueda global,La búsqueda global en toolbar encuentra tarjetas en todos los tableros,⬜ Manual,PENDIENTE,☐,Buscar texto que aparezca en tarjeta de otro tablero
+FLT-02,Filtros,Búsqueda local,El filtro de tablero filtra tarjetas por título en tiempo real,⬜ Manual,PENDIENTE,☐,
+FLT-03,Filtros,Categoría,El filtro de categoría muestra solo tarjetas de esa categoría,⬜ Manual,PENDIENTE,☐,
+FLT-04,Filtros,Prioridad,El filtro de prioridad funciona correctamente,⬜ Manual,PENDIENTE,☐,
+FLT-05,Filtros,Etiqueta,El filtro de etiquetas aparece solo cuando hay etiquetas en el tablero,⬜ Manual,PENDIENTE,☐,
+FLT-06,Filtros,Limpiar,"El botón ""Limpiar filtros"" restablece todos los filtros",⬜ Manual,PENDIENTE,☐,
+FLT-07,Filtros,Persistencia,Los filtros se limpian al cambiar de tablero,⬜ Manual,PENDIENTE,☐,
+,,,,,,,
+--- CATEGORÍAS ---,,,,,,,
+CAT-01,Categorías,Gestión,El modal de categorías abre desde el icono de Settings en toolbar,⬜ Manual,PENDIENTE,☐,
+CAT-02,Categorías,Gestión,Se puede crear/renombrar/borrar categorías,⬜ Manual,PENDIENTE,☐,
+CAT-03,Categorías,API,El endpoint /api/categories responde 200,✅ Automatizado,PASS,,
+,,,,,,,
+--- PANEL DE ADMINISTRACIÓN ---,,,,,,,
+ADM-01,Admin,Acceso,El botón de admin solo aparece para roles admin/superadmin,⬜ Manual,PENDIENTE,☐,Verificar que un 'member' no ve el botón
+ADM-02,Admin,Acceso,El endpoint /api/admin/users bloquea usuarios sin rol admin,✅ Automatizado,PASS (401 sin token),☐,Probar con token de usuario 'member'
+ADM-03,Admin,Usuarios,La lista de usuarios muestra todos los de la organización,⬜ Manual,PENDIENTE,☐,
+ADM-04,Admin,Usuarios,Se puede cambiar el rol de un usuario,⬜ Manual,PENDIENTE,☐,
+ADM-05,Admin,Usuarios,Se puede invitar a un nuevo usuario,⬜ Manual,PENDIENTE,☐,⚠️ PENDIENTE CRÍTICO: email invite fix — ver PHASE2-WORKSPACES.md
+ADM-06,Admin,Navegación,"El botón ""Volver"" desde AdminPage regresa al WorkspaceDashboard",✅ Automatizado,PASS (lógica correcta),☐,Verificar visualmente
+,,,,,,,
+--- EMAIL / DIGEST ---,,,,,,,
+EML-01,Email,Digest,El botón de digest (Mail) solo aparece para admin/superadmin,⬜ Manual,PENDIENTE,☐,
+EML-02,Email,Digest,Al hacer clic en digest aparece estado 'enviando',⬜ Manual,PENDIENTE,☐,
+EML-03,Email,Digest,El digest llega al correo del admin en menos de 30 segundos,⬜ Manual,PENDIENTE,☐,Revisar inbox ibai@lfi.la
+EML-04,Email,Digest,El mensaje de éxito aparece brevemente en la toolbar y desaparece,⬜ Manual,PENDIENTE,☐,
+EML-05,Email,Password Reset,El email de restablecimiento llega correctamente (remitente LFi),⬜ Manual,PENDIENTE,☐,
+EML-06,Email,Invite,⚠️ PENDIENTE CRÍTICO: El email de invitación llega cuando se crea un nuevo usuario,⬜ Manual,PENDIENTE — BLOQUEANTE,☐,Requiere configurar SITE_URL en Supabase + template personalizado
+,,,,,,,
+--- ACCESIBILIDAD ---,,,,,,,
+ACC-01,Accesibilidad,Teclado,Se puede navegar por todos los elementos interactivos con Tab,⬜ Manual,PENDIENTE,☐,Navegar sin ratón por: login → dashboard → workspace → tablero
+ACC-02,Accesibilidad,Teclado,Los modales (nuevo workspace / añadir miembro) se pueden cerrar con Escape,⬜ Manual,PENDIENTE,☐,
+ACC-03,Accesibilidad,Teclado,Los campos de búsqueda se limpian con Escape,⬜ Manual,PENDIENTE,☐,
+ACC-04,Accesibilidad,Teclado,El atajo ⌘1–⌘9 funciona para cambiar de tablero,⬜ Manual,PENDIENTE,☐,
+ACC-05,Accesibilidad,Contraste,"Los textos secundarios (#555b70) tienen contraste suficiente sobre fondo oscuro (#0f1117)",⬜ Manual,PENDIENTE,☐,Usar DevTools > Accessibility o extensión de contraste
+ACC-06,Accesibilidad,Contraste,Los badges de rol son legibles sobre sus fondos de color,⬜ Manual,PENDIENTE,☐,Verificar indigo/amber/sky/zinc badges
+ACC-07,Accesibilidad,ARIA,Los botones de icono tienen title attribute para screen readers,⬜ Manual,PENDIENTE,☐,Revisar: UserCog / Users / Mail / Settings / LogOut
+ACC-08,Accesibilidad,ARIA,Los selectores de rol tienen labels asociados,⬜ Manual,PENDIENTE,☐,
+ACC-09,Accesibilidad,Responsive,La toolbar no se desborda en pantallas < 768px (iPad),⬜ Manual,PENDIENTE,☐,Reducir ventana a 768px y verificar
+ACC-10,Accesibilidad,Responsive,El panel de miembros se adapta correctamente en mobile (max-w-md),⬜ Manual,PENDIENTE,☐,
+,,,,,,,
+--- USABILIDAD ---,,,,,,,
+UX-01,Usabilidad,Onboarding,Un usuario nuevo entiende que debe entrar a un workspace antes de ver tableros,⬜ Manual,PENDIENTE,☐,Test con persona no técnica si es posible
+UX-02,Usabilidad,Feedback,Las acciones destructivas (borrar workspace/miembro) requieren confirmación,⬜ Manual,PENDIENTE,☐,
+UX-03,Usabilidad,Feedback,Los estados de carga (Spinner) aparecen en: login / carga de workspace / carga de members,⬜ Manual,PENDIENTE,☐,
+UX-04,Usabilidad,Feedback,Los errores de API se muestran al usuario (no solo en consola),⬜ Manual,PENDIENTE,☐,Desconectar red y probar acción
+UX-05,Usabilidad,Feedback,Los toasts de confirmación son visibles y no bloquean contenido,⬜ Manual,PENDIENTE,☐,
+UX-06,Usabilidad,Navegación,El breadcrumb indica claramente dónde está el usuario,⬜ Manual,PENDIENTE,☐,Verificar: ← emoji workspace / nombre tablero
+UX-07,Usabilidad,Navegación,El flujo de vuelta al dashboard es evidente,⬜ Manual,PENDIENTE,☐,
+UX-08,Usabilidad,Formularios,Los campos obligatorios bloquean el submit hasta ser completados,⬜ Manual,PENDIENTE,☐,
+UX-09,Usabilidad,Formularios,Los estados de carga en botones (disabled + spinner) son claros,⬜ Manual,PENDIENTE,☐,
+UX-10,Usabilidad,Drag & Drop,El arrastre de tarjetas tiene overlay visual y rotación,⬜ Manual,PENDIENTE,☐,
+UX-11,Usabilidad,Drag & Drop,El arrastre de columnas tiene overlay visual,⬜ Manual,PENDIENTE,☐,
+UX-12,Usabilidad,Workspace,El selector de emoji en el modal de workspace funciona con clic,⬜ Manual,PENDIENTE,☐,
+,,,,,,,
+--- GUI / DISEÑO VISUAL ---,,,,,,,
+GUI-01,GUI,Consistencia,Los bordes y colores de fondo siguen la paleta (#0f1117 / #16181f / #1e2028 / #2e3140),⬜ Manual,PENDIENTE,☐,Revisión visual general
+GUI-02,GUI,Consistencia,Los botones primarios son indigo-600 con hover indigo-500,⬜ Manual,PENDIENTE,☐,
+GUI-03,GUI,Consistencia,Los iconos de la toolbar tienen tamaño uniforme (15px) y color consistente,⬜ Manual,PENDIENTE,☐,
+GUI-04,GUI,Panel Miembros,El panel lateral tiene shadow-2xl y borde izquierdo visible,⬜ Manual,PENDIENTE,☐,
+GUI-05,GUI,Panel Miembros,El backdrop semi-transparente oscurece el contenido detrás del panel,⬜ Manual,PENDIENTE,☐,
+GUI-06,GUI,Dashboard,Las tarjetas de workspace tienen hover con efecto de gradiente/borde,⬜ Manual,PENDIENTE,☐,
+GUI-07,GUI,Dashboard,El badge de rol en las tarjetas del dashboard es visible y correcto,⬜ Manual,PENDIENTE,☐,
+GUI-08,GUI,Sidebar,La sidebar muestra los tableros del workspace activo con scroll si hay muchos,⬜ Manual,PENDIENTE,☐,
+GUI-09,GUI,Tipografía,El nombre truncado del workspace en la toolbar cabe correctamente (shrink-0 / truncate),⬜ Manual,PENDIENTE,☐,Probar con nombre de workspace muy largo
+GUI-10,GUI,Dark Mode,No hay elementos blancos inesperados o fondos claros en modo oscuro,⬜ Manual,PENDIENTE,☐,Revisión visual de todos los modales y paneles
+,,,,,,,
+--- RENDIMIENTO ---,,,,,,,
+PERF-01,Rendimiento,Carga inicial,El dashboard de workspaces carga en < 2 segundos en conexión normal,⬜ Manual,PENDIENTE,☐,Medir con DevTools > Network
+PERF-02,Rendimiento,API,Las llamadas a /api/workspaces responden en < 500ms,⬜ Manual,PENDIENTE,☐,
+PERF-03,Rendimiento,Digest,El digest responde inmediatamente (fire-and-forget) sin timeout 504,✅ Automatizado,PASS (lógica fire-and-forget),☐,Verificar en producción Railway
+PERF-04,Rendimiento,Búsqueda,La búsqueda global tiene debounce de 250ms (no sobrecarga el servidor),✅ Automatizado,PASS (código verificado),,,
+,,,,,,,
+--- PRODUCCIÓN (Railway + Netlify) ---,,,,,,,
+PRD-01,Producción,Deploy,La app en myboardlfi.ibaifernandez.com carga sin errores,⬜ Manual,PENDIENTE,☐,Abrir en navegador en incógnito
+PRD-02,Producción,Deploy,El login funciona en producción,⬜ Manual,PENDIENTE,☐,
+PRD-03,Producción,Deploy,Los workspaces cargan en producción,⬜ Manual,PENDIENTE,☐,
+PRD-04,Producción,Deploy,El panel de admin funciona en producción con superadmin,⬜ Manual,PENDIENTE,☐,
+PRD-05,Producción,Variables,SUPABASE_URL y SUPABASE_SERVICE_KEY están configuradas en Railway,⬜ Manual,PENDIENTE,☐,Verificar Railway > Variables
+PRD-06,Producción,Variables,RESEND_API_KEY está configurada y el digest llega en producción,⬜ Manual,PENDIENTE,☐,
+PRD-07,Producción,Variables,SITE_URL está configurada en Railway (para Supabase Auth emails),⬜ Manual,PENDIENTE,☐,Variable: SITE_URL=https://myboardlfi.ibaifernandez.com
+PRD-08,Producción,HTTPS,La app sirve solo sobre HTTPS (no HTTP),⬜ Manual,PENDIENTE,☐,
+,,,,,,,
+--- ISSUES CONOCIDOS (NO SON BLOQUEOS) ---,,,,,,,
+KNOWN-01,Known Issue,Dashboard,Las tarjetas de workspace muestran "0 tableros / 0 miembros" — GET /api/workspaces no retorna counts,⬜ Pendiente fix,BUG MENOR,☐,Fix: enriquecer el endpoint de lista con subcounts de workspace_members y boards
+KNOWN-02,Known Issue,Email,El email de invitación de nuevos usuarios no llega correctamente,⬜ Pendiente fix,PENDIENTE CRÍTICO,☐,Fix: configurar SITE_URL en Supabase Auth + template personalizado "Invite user"
