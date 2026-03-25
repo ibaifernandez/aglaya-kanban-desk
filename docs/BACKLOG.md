@@ -120,40 +120,28 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 
 ---
 
-## Backlog — Sub-fase 2.1: Supabase Storage + Identidad visual de espacios de trabajo
+## Sub-fase 2.1: Supabase Storage + Identidad visual *(Completada — 2026-03-25)*
 
-Agrupa las features que comparten la misma base de infraestructura (Supabase Storage).
+### Supabase Storage ✅
+- [x] SQL migrations: `users.avatar_url`, `workspaces.cover_url`, `workspaces.type`
+- [x] Bucket `media` (público, 5 MB), RLS policies para INSERT/UPDATE/SELECT
+- [x] Endpoint `POST /api/media/users/me/avatar` — upload + actualiza `users.avatar_url`
+- [x] Endpoint `POST /api/media/workspaces/:id/cover` — upload + actualiza `workspaces.cover_url`
 
-### SQL previo necesario
-```sql
--- Columna avatar en usuarios
-ALTER TABLE public.users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
--- Columna cover_url y type en workspaces
-ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS cover_url TEXT;
-ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'departamento' CHECK (type IN ('cliente', 'departamento', 'general'));
-```
+### Foto de perfil ✅
+- [x] Avatar con foto real en Toolbar (fallback a inicial)
+- [x] Click en avatar → file picker → upload inmediato
+- [x] `GET /api/auth/me` devuelve `avatarUrl` fresco desde DB
 
-### Supabase Storage (infraestructura compartida)
-- [ ] Crear bucket `media` (público) con carpetas `avatars/` y `workspace-covers/`
-- [ ] RLS: solo el propio usuario puede subir/modificar su avatar; owner/admin del workspace puede subir cover
-- [ ] Endpoint `POST /api/users/me/avatar` — upload + actualiza `users.avatar_url`
-- [ ] Endpoint `POST /api/workspaces/:id/cover` — upload + actualiza `workspaces.cover_url`
+### Portada visual de espacios de trabajo ✅
+- [x] WorkspaceDashboard: cover image si existe, mini-kanban si no
+- [x] Botón cámara al hover sobre tarjeta (solo admins/owners)
 
-### Foto de perfil (usuarios)
-- [ ] UI: input de tipo file en perfil/ajustes + preview circular
-- [ ] Mostrar `avatar_url` (o inicial como fallback) en: Toolbar, WorkspaceDashboard header, WorkspaceMembers, Card (assignee)
-- [ ] `GET /api/auth/me` devuelve `avatarUrl`
-
-### Portada visual de espacios de trabajo
-- [ ] WorkspaceDashboard: si el workspace tiene `cover_url`, mostrar imagen en lugar del mini-kanban abstracto
-- [ ] UI de upload en la tarjeta (icono de cámara en hover sobre el mini-kanban / cover)
-
-### Tipo de espacio de trabajo (Clientes / Departamentos)
-- [ ] Campo `type` en workspaces: `'cliente'` | `'departamento'` | `'general'`
-- [ ] Selector en modal de creación de workspace
-- [ ] Selector en modal de edición
-- [ ] Badge visible en la tarjeta del WorkspaceDashboard
-- [ ] Filtro por tipo en el WorkspaceDashboard (tabs o dropdown)
+### Tipo de espacio de trabajo ✅
+- [x] Campo `type`: `'cliente'` | `'departamento'` | `'general'`
+- [x] Selector en modal de creación (botones)
+- [x] Badge TypeBadge en cada tarjeta de workspace
+- [x] Filtro por tipo — tabs en WorkspaceDashboard
 
 ---
 
