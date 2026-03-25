@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
+import WorkspaceDashboard from './pages/WorkspaceDashboard.jsx';
 import {
   DndContext,
   DragOverlay,
@@ -41,9 +42,10 @@ export default function App() {
 }
 
 function AuthenticatedApp({ user, logout }) {
-  const [view, setView] = useState('board'); // 'board' | 'admin'
+  const [view, setView]                     = useState('workspaces'); // 'workspaces' | 'board' | 'admin'
+  const [activeWorkspace, setActiveWorkspace] = useState(null);
 
-  const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = useBoards();
+  const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = useBoards(activeWorkspace?.id);
   const {
     categories, loading: loadingCategories,
     createCategory, updateCategory, deleteCategory,
@@ -72,6 +74,12 @@ function AuthenticatedApp({ user, logout }) {
 
   function handleFilterChange(key, value) {
     setFilters((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function handleEnterWorkspace(ws) {
+    setActiveWorkspace(ws);
+    setActiveBoardId(null);
+    setView('board');
   }
 
   // Auto-navigate to newly created board
@@ -177,16 +185,27 @@ function AuthenticatedApp({ user, logout }) {
     moveCard(draggedCard.id, destColId, newOrder);
   }
 
+  if (view === 'workspaces') {
+    return (
+      <WorkspaceDashboard
+        user={user}
+        onEnterWorkspace={handleEnterWorkspace}
+        onLogout={logout}
+        onOpenAdmin={() => setView('admin')}
+      />
+    );
+  }
+
+  if (view === 'admin') {
+    return <AdminPage user={user} onBack={() => setView('workspaces')} />;
+  }
+
   if (loadingBoards || loadingCategories) {
     return (
       <div className="h-screen flex items-center justify-center bg-[#0f1117]">
         <Spinner size={8} />
       </div>
     );
-  }
-
-  if (view === 'admin') {
-    return <AdminPage user={user} onBack={() => setView('board')} />;
   }
 
   return (
@@ -218,6 +237,8 @@ function AuthenticatedApp({ user, logout }) {
               user={user}
               onLogout={logout}
               onOpenAdmin={() => setView('admin')}
+              workspace={activeWorkspace}
+              onBackToWorkspaces={() => setView('workspaces')}
             />
 
             {boardId ? (

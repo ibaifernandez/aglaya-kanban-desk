@@ -70,6 +70,18 @@ export const api = {
   updateCategory: (id, body) => request(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteCategory: (id)       => request(`/categories/${id}`, { method: 'DELETE' }),
 
+  // Workspaces
+  getWorkspaces:          ()               => request('/workspaces'),
+  createWorkspace:        (body)           => request('/workspaces', { method: 'POST', body: JSON.stringify(body) }),
+  getWorkspace:           (id)             => request(`/workspaces/${id}`),
+  updateWorkspace:        (id, body)       => request(`/workspaces/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  deleteWorkspace:        (id)             => request(`/workspaces/${id}`, { method: 'DELETE' }),
+  getWorkspaceMembers:    (id)             => request(`/workspaces/${id}/members`),
+  addWorkspaceMember:     (id, body)       => request(`/workspaces/${id}/members`, { method: 'POST', body: JSON.stringify(body) }),
+  updateWorkspaceMember:  (id, uid, body)  => request(`/workspaces/${id}/members/${uid}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  removeWorkspaceMember:  (id, uid)        => request(`/workspaces/${id}/members/${uid}`, { method: 'DELETE' }),
+  getWorkspaceBoards:     (id)             => request(`/workspaces/${id}/boards`),
+
   // Admin — user management
   getAdminUsers:   ()               => request('/admin/users').then((data) => ({ data })),
   updateUserRole:  (id, role)       => request(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }).then((data) => ({ data })),

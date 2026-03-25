@@ -1,29 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client.js';
 
-export function useBoards() {
+export function useBoards(workspaceId) {
   const [boards, setBoards]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
   const load = useCallback(async () => {
+    if (!workspaceId) { setBoards([]); setLoading(false); return; }
     try {
       setLoading(true);
-      setBoards(await api.getBoards());
+      setBoards(await api.getWorkspaceBoards(workspaceId));
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [workspaceId]);
 
   useEffect(() => { load(); }, [load]);
 
   const createBoard = useCallback(async (title) => {
-    const board = await api.createBoard({ title });
+    const board = await api.createBoard({ title, workspaceId });
     setBoards((prev) => [...prev, board]);
     return board;
-  }, []);
+  }, [workspaceId]);
 
   const updateBoard = useCallback(async (id, title) => {
     const board = await api.updateBoard(id, { title });
@@ -37,7 +38,6 @@ export function useBoards() {
   }, []);
 
   const reorderBoards = useCallback(async (ids) => {
-    // Optimistic: reorder locally right away
     setBoards((prev) => {
       const idxMap = Object.fromEntries(ids.map((id, i) => [id, i]));
       return [...prev].sort((a, b) => (idxMap[a.id] ?? 999) - (idxMap[b.id] ?? 999));
@@ -46,7 +46,7 @@ export function useBoards() {
       const updated = await api.reorderBoards(ids);
       setBoards(updated);
     } catch {
-      load(); // revert on server error
+      load();
     }
   }, [load]);
 

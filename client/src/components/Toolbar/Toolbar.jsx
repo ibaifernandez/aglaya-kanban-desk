@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings, Search, X, ArrowRight, LogOut, Mail, Users } from 'lucide-react';
+import { Settings, Search, X, ArrowRight, LogOut, Mail, Users, ChevronLeft } from 'lucide-react';
 import { PRIORITY_LIST } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { CategorySettings } from './CategorySettings.jsx';
 import { api } from '../../api/client.js';
 
-export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], onSelectBoard, user, onLogout, onOpenAdmin }) {
+export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces }) {
   const { category, priority, tag, search = '' } = filters;
   const { categories } = useCategoriesCtx();
   const [showSettings,  setShowSettings]  = useState(false);
@@ -84,7 +84,26 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
   return (
     <>
       <header className="h-14 shrink-0 flex items-center gap-3 px-6 border-b border-[#2e3140] bg-[#16181f]">
-        <h1 className="font-semibold text-[#e8eaf0] text-base mr-auto">{boardTitle}</h1>
+        {/* Breadcrumb: workspace → board */}
+        <div className="flex items-center gap-1.5 mr-auto min-w-0">
+          {onBackToWorkspaces && (
+            <>
+              <button
+                onClick={onBackToWorkspaces}
+                className="flex items-center gap-1 text-sm text-[#555b70] hover:text-[#e8eaf0] transition-colors shrink-0"
+              >
+                <ChevronLeft size={14} />
+                {workspace ? (
+                  <span className="hidden sm:inline">{workspace.emoji} {workspace.name}</span>
+                ) : (
+                  <span className="hidden sm:inline">Workspaces</span>
+                )}
+              </button>
+              <span className="text-[#2a2d3a] shrink-0">/</span>
+            </>
+          )}
+          <h1 className="font-semibold text-[#e8eaf0] text-sm truncate">{boardTitle}</h1>
+        </div>
 
         {/* Global search (all boards) */}
         <div ref={wrapRef} className="relative flex items-center">
