@@ -5,6 +5,7 @@
       "name": "MyBoardLFi Client",
       "runtimeExecutable": "/usr/local/bin/node",
       "runtimeArgs": ["/Users/AGLAYA/Local Sites/MyBoardLFi/client/node_modules/.bin/vite"],
+      "cwd": "/Users/AGLAYA/Local Sites/MyBoardLFi/client",
       "port": 5175
     },
     {
