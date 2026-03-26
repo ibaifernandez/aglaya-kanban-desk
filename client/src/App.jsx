@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext.jsx';
+import { api } from './api/client.js';
 import LoginPage from './pages/LoginPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
@@ -37,14 +38,25 @@ export default function App() {
     return <ResetPasswordPage onDone={() => { logout(); window.location.replace('/'); }} />;
   }
 
-  if (!isAuthenticated) return <LoginPage />;
+  if (!isAuthenticated) {
+    sessionStorage.removeItem('lfi_session');
+    return <LoginPage />;
+  }
 
   return <AuthenticatedApp user={user} logout={logout} />;
 }
 
+function restoreSession() {
+  try {
+    const raw = sessionStorage.getItem('lfi_session');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
 function AuthenticatedApp({ user, logout }) {
-  const [view, setView]                       = useState('workspaces'); // 'workspaces' | 'board' | 'admin'
-  const [activeWorkspace, setActiveWorkspace] = useState(null);
+  const saved = restoreSession();
+  const [view, setView]                       = useState(saved?.view ?? 'workspaces');
+  const [activeWorkspace, setActiveWorkspace] = useState(saved?.workspace ?? null);
   const [showMembers,     setShowMembers]     = useState(false);
 
   const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = useBoards(activeWorkspace?.id);
@@ -53,9 +65,20 @@ function AuthenticatedApp({ user, logout }) {
     createCategory, updateCategory, deleteCategory,
   } = useCategories();
 
-  const [activeBoardId, setActiveBoardId] = useState(null);
+  const [activeBoardId, setActiveBoardId] = useState(saved?.boardId ?? null);
   const [filters, setFilters] = useState({ category: '', priority: '', tag: '', search: '', assignee: '', overdue: false });
   const [workspaceMembers, setWorkspaceMembers] = useState([]);
+
+  // Persist session so page refresh restores the current view
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('lfi_session', JSON.stringify({
+        view,
+        workspace: activeWorkspace,
+        boardId:   activeBoardId,
+      }));
+    } catch { /* ignore */ }
+  }, [view, activeWorkspace, activeBoardId]);
 
   useEffect(() => {
     if (!activeWorkspace?.id) return;
@@ -251,7 +274,7 @@ function AuthenticatedApp({ user, logout }) {
               workspace={activeWorkspace}
               onBackToWorkspaces={() => setView('workspaces')}
               onOpenMembers={() => setShowMembers(true)}
-              onAvatarChange={(avatarUrl) => setUser((u) => ({ ...u, avatarUrl }))}
+              onAvatarChange={null}
             />
 
             {boardId ? (
