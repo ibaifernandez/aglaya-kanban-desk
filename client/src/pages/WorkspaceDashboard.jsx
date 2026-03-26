@@ -513,20 +513,23 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCover
 // ── Delete confirm modal ──────────────────────────────────────────────────────
 function DeleteConfirmModal({ ws, onConfirm, onClose }) {
   const [deleting, setDeleting] = useState(false);
+  const [error,    setError]    = useState('');
 
   async function handleDelete() {
     setDeleting(true);
+    setError('');
     try { await onConfirm(ws.id); onClose(); }
-    catch { setDeleting(false); }
+    catch (err) { setError(err.message); setDeleting(false); }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-[#1a1d26] border border-[#2a2d3a] rounded-xl w-full max-w-sm shadow-2xl p-6">
         <h2 className="text-base font-semibold text-[#e8eaf0] mb-2">¿Eliminar espacio de trabajo?</h2>
-        <p className="text-sm text-[#555b70] mb-6">
+        <p className="text-sm text-[#555b70] mb-4">
           Se eliminará <span className="text-[#e8eaf0] font-medium">{ws.emoji} {ws.name}</span> junto con todos sus tableros y tarjetas. Esta acción no se puede deshacer.
         </p>
+        {error && <p className="text-xs text-red-400 mb-4 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-4 py-2 text-sm text-[#8b92a5] hover:text-[#e8eaf0] transition-colors">
             Cancelar

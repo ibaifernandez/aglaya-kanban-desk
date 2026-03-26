@@ -141,13 +141,43 @@ router.patch('/:workspaceId', requireAuth, requireWorkspaceMember, requireWorksp
 // Deletes workspace. Only owner can do this.
 
 router.delete('/:workspaceId', requireAuth, requireWorkspaceMember, requireWorkspaceRole('owner'), async (req, res) => {
-  const { error } = await supabaseAdmin
-    .from('workspaces')
-    .delete()
-    .eq('id', req.params.workspaceId);
+  const wsId = req.params.workspaceId;
 
-  if (error) return res.status(500).json({ error: error.message });
-  res.json({ success: true });
+  try {
+    // 1. Get all boards in this workspace
+    const { data: boards } = await supabaseAdmin
+      .from('boards').select('id').eq('workspace_id', wsId);
+
+    if (boards?.length) {
+      const boardIds = boards.map((b) => b.id);
+
+      // 2. Get all columns in those boards
+      const { data: columns } = await supabaseAdmin
+        .from('columns').select('id').in('board_id', boardIds);
+
+      if (columns?.length) {
+        const colIds = columns.map((c) => c.id);
+        // 3. Delete all cards
+        await supabaseAdmin.from('cards').delete().in('column_id', colIds);
+        // 4. Delete all columns
+        await supabaseAdmin.from('columns').delete().in('id', colIds);
+      }
+
+      // 5. Delete all boards
+      await supabaseAdmin.from('boards').delete().in('id', boardIds);
+    }
+
+    // 6. Delete workspace members
+    await supabaseAdmin.from('workspace_members').delete().eq('workspace_id', wsId);
+
+    // 7. Delete workspace
+    const { error } = await supabaseAdmin.from('workspaces').delete().eq('id', wsId);
+    if (error) return res.status(500).json({ error: error.message });
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ── GET /api/workspaces/:workspaceId/members ──────────────────────────────────
