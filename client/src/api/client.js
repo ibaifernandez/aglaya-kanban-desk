@@ -65,7 +65,7 @@ export const api = {
   deleteFile: (filename) => request(`/uploads/${filename}`, { method: 'DELETE' }),
 
   // Categories
-  getCategories:  ()         => request('/categories'),
+  getCategories:  (boardId)  => request(`/categories${boardId ? `?boardId=${boardId}` : ''}`),
   createCategory: (body)     => request('/categories', { method: 'POST', body: JSON.stringify(body) }),
   updateCategory: (id, body) => request(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteCategory: (id)       => request(`/categories/${id}`, { method: 'DELETE' }),

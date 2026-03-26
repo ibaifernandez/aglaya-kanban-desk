@@ -7,22 +7,38 @@ const toCat = (row) => ({
 });
 
 const getCategories = async (req, res) => {
-  const { data, error } = await supabaseAdmin
+  const { boardId } = req.query;
+
+  let query = supabaseAdmin
     .from('categories')
     .select('*')
     .eq('organization_id', req.user.organizationId);
 
+  if (boardId) {
+    query = query.eq('board_id', boardId);
+  } else {
+    query = query.is('board_id', null);
+  }
+
+  const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
   res.json({ data: (data || []).map(toCat) });
 };
 
 const createCategory = async (req, res) => {
-  const { label, colorId } = req.body;
+  const { label, colorId, boardId } = req.body;
   if (!label?.trim()) return res.status(400).json({ error: 'label is required' });
+
+  const insert = {
+    label:           label.trim(),
+    color_id:        colorId || 'blue',
+    organization_id: req.user.organizationId,
+  };
+  if (boardId) insert.board_id = boardId;
 
   const { data, error } = await supabaseAdmin
     .from('categories')
-    .insert({ label: label.trim(), color_id: colorId || 'blue', organization_id: req.user.organizationId })
+    .insert(insert)
     .select()
     .single();
 

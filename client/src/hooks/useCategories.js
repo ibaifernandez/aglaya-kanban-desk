@@ -1,19 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/client.js';
 
-export function useCategories() {
+export function useCategories(boardId) {
   const [categories, setCategories] = useState([]);
   const [loading,    setLoading]    = useState(true);
 
-  useEffect(() => {
-    api.getCategories()
+  const load = useCallback(() => {
+    setLoading(true);
+    api.getCategories(boardId)
       .then(setCategories)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [boardId]);
+
+  useEffect(() => { load(); }, [load]);
 
   async function createCategory(body) {
-    const cat = await api.createCategory(body);
+    const cat = await api.createCategory({ ...body, boardId });
     setCategories((prev) => [...prev, cat]);
     return cat;
   }

@@ -60,10 +60,14 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   const [showMembers,     setShowMembers]     = useState(false);
 
   const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = useBoards(activeWorkspace?.id);
+
+  // boardId must be derived before useCategories so the hook gets the right value
+  const _activeBoardId = activeBoardId ?? boards[0]?.id ?? null;
+
   const {
     categories, loading: loadingCategories,
     createCategory, updateCategory, deleteCategory,
-  } = useCategories();
+  } = useCategories(_activeBoardId);
 
   const [activeBoardId, setActiveBoardId] = useState(saved?.boardId ?? null);
   const [filters, setFilters] = useState({ category: '', priority: '', tag: '', search: '', assignee: '', overdue: false });
@@ -122,7 +126,7 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   );
 
   // Pick first board once loaded; explicit selection overrides
-  const boardId = activeBoardId ?? boards[0]?.id ?? null;
+  const boardId = _activeBoardId;
 
   const {
     columns, cards, loading: loadingBoard,
