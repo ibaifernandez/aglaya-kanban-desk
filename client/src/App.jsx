@@ -69,6 +69,31 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   const [filters, setFilters] = useState({ category: '', priority: '', tag: '', search: '', assignee: '', overdue: false });
   const [workspaceMembers, setWorkspaceMembers] = useState([]);
 
+  // ── History API navigation ────────────────────────────────────────────────
+  // Central navigate: updates React state + writes browser history entry
+  function navigate(nextView, workspace = null) {
+    const state = { view: nextView, workspace };
+    window.history.pushState(state, '');
+    setView(nextView);
+    setActiveWorkspace(workspace);
+  }
+
+  // Handle browser back/forward
+  useEffect(() => {
+    function onPopState(e) {
+      const state = e.state;
+      if (!state) { setView('workspaces'); setActiveWorkspace(null); return; }
+      setView(state.view ?? 'workspaces');
+      setActiveWorkspace(state.workspace ?? null);
+      if (state.view !== 'board') setActiveBoardId(null);
+    }
+    window.addEventListener('popstate', onPopState);
+    // Write initial history entry so back from first view stays in-app
+    window.history.replaceState({ view, workspace: activeWorkspace }, '');
+    return () => window.removeEventListener('popstate', onPopState);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Persist session so page refresh restores the current view
   useEffect(() => {
     try {
@@ -110,9 +135,8 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   }
 
   function handleEnterWorkspace(ws) {
-    setActiveWorkspace(ws);
     setActiveBoardId(null);
-    setView('board');
+    navigate('board', ws);
   }
 
   // Auto-navigate to newly created board
@@ -224,14 +248,14 @@ function AuthenticatedApp({ user, logout, updateUser }) {
         user={user}
         onEnterWorkspace={handleEnterWorkspace}
         onLogout={logout}
-        onOpenAdmin={() => setView('admin')}
+        onOpenAdmin={() => navigate('admin')}
         onAvatarChange={(url) => updateUser({ avatarUrl: url })}
       />
     );
   }
 
   if (view === 'admin') {
-    return <AdminPage user={user} onBack={() => setView('workspaces')} />;
+    return <AdminPage user={user} onBack={() => navigate('workspaces')} />;
   }
 
   if (loadingBoards || loadingCategories) {
@@ -271,9 +295,9 @@ function AuthenticatedApp({ user, logout, updateUser }) {
               onSelectBoard={handleSelectBoard}
               user={user}
               onLogout={logout}
-              onOpenAdmin={() => setView('admin')}
+              onOpenAdmin={() => navigate('admin')}
               workspace={activeWorkspace}
-              onBackToWorkspaces={() => setView('workspaces')}
+              onBackToWorkspaces={() => navigate('workspaces')}
               onOpenMembers={() => setShowMembers(true)}
               onAvatarChange={(url) => updateUser({ avatarUrl: url })}
             />
