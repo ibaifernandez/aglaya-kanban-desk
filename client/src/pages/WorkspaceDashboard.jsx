@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, Users, LayoutGrid, LogOut, ChevronRight, Camera, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Users, LayoutGrid, LogOut, ChevronRight, Camera, Pencil, Trash2, UserCircle } from 'lucide-react';
 import { useWorkspaces } from '../hooks/useWorkspaces.js';
 import { Spinner } from '../components/UI/Spinner.jsx';
 import { api } from '../api/client.js';
@@ -78,6 +78,103 @@ function MiniKanban({ id }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// ── Profile dropdown ──────────────────────────────────────────────────────────
+function ProfileDropdown({ user, onAvatarChange, onLogout, onClose }) {
+  const menuRef    = useRef(null);
+  const fileRef    = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [error,     setError]     = useState('');
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) onClose();
+    }
+    function handleEsc(e) { if (e.key === 'Escape') onClose(); }
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [onClose]);
+
+  async function handleUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError('');
+    try {
+      const url = await api.uploadAvatar(file);
+      onAvatarChange?.(url);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  }
+
+  return (
+    <div
+      ref={menuRef}
+      className="absolute right-0 top-full mt-2 w-60 bg-[#1e2028] border border-[#2e3140] rounded-xl shadow-2xl z-50 overflow-hidden"
+    >
+      {/* User info */}
+      <div className="px-4 py-3 border-b border-[#2e3140]">
+        <div className="flex items-center gap-3">
+          {/* Avatar */}
+          <div
+            className="relative group/av w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+            onClick={() => fileRef.current?.click()}
+            title="Cambiar foto de perfil"
+          >
+            {user.avatarUrl ? (
+              <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold uppercase">
+                {user.name?.[0] ?? user.email?.[0] ?? '?'}
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover/av:opacity-100 transition-opacity rounded-full">
+              {uploading ? (
+                <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Camera size={12} className="text-white" />
+              )}
+            </div>
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-[#e8eaf0] truncate">{user.name ?? '—'}</p>
+            <p className="text-[11px] text-[#555b70] truncate">{user.email}</p>
+          </div>
+        </div>
+        {error && <p className="text-[10px] text-red-400 mt-2">{error}</p>}
+      </div>
+
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+
+      {/* Change photo */}
+      <button
+        onClick={() => fileRef.current?.click()}
+        disabled={uploading}
+        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#c8ccd8] hover:bg-[#252830] hover:text-[#e8eaf0] transition-colors disabled:opacity-50"
+      >
+        <UserCircle size={13} className="text-[#555b70]" />
+        {uploading ? 'Subiendo…' : 'Cambiar foto de perfil'}
+      </button>
+
+      {/* Logout */}
+      <button
+        onClick={() => { onClose(); onLogout(); }}
+        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors border-t border-[#2e3140]"
+      >
+        <LogOut size={13} />
+        Cerrar sesión
+      </button>
     </div>
   );
 }
@@ -429,14 +526,16 @@ const TYPE_FILTERS = [
 ];
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, onOpenAdmin }) {
+export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, onOpenAdmin, onAvatarChange }) {
   const { workspaces, loading, createWorkspace, updateWorkspace, deleteWorkspace } = useWorkspaces();
   const [showNew,       setShowNew]       = useState(false);
   const [editTarget,    setEditTarget]    = useState(null);
   const [deleteTarget,  setDeleteTarget]  = useState(null);
   const [typeFilter,    setTypeFilter]    = useState('');
   const [coverOverrides, setCoverOverrides] = useState({});
-  const [ctxMenu, setCtxMenu] = useState(null); // { x, y, ws }
+  const [ctxMenu,       setCtxMenu]       = useState(null); // { x, y, ws }
+  const [showProfile,   setShowProfile]   = useState(false);
+  const profileBtnRef = useRef(null);
 
   const canCreate = ['superadmin', 'admin'].includes(user?.role);
   const canEdit   = ['superadmin', 'admin'].includes(user?.role);
@@ -475,18 +574,33 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                 Admin
               </button>
             )}
-            <div className="flex items-center gap-2 pl-2 border-l border-[#2a2d3a]">
-              <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-semibold">
-                {user?.name?.charAt(0)?.toUpperCase() ?? '?'}
-              </div>
-              <span className="text-xs text-[#8b92a5] hidden sm:block">{user?.name}</span>
+            <div className="relative flex items-center gap-2 pl-2 border-l border-[#2a2d3a]">
               <button
-                onClick={onLogout}
-                className="p-1.5 text-[#555b70] hover:text-[#e8eaf0] hover:bg-[#1a1d26] rounded-lg transition-colors"
-                title="Cerrar sesión"
+                ref={profileBtnRef}
+                onClick={() => setShowProfile((v) => !v)}
+                className="flex items-center gap-2 rounded-lg hover:bg-[#252830] px-2 py-1 transition-colors"
+                title="Perfil"
               >
-                <LogOut size={13} />
+                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0">
+                  {user?.avatarUrl ? (
+                    <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-indigo-600 flex items-center justify-center text-white text-xs font-semibold">
+                      {user?.name?.charAt(0)?.toUpperCase() ?? '?'}
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs text-[#8b92a5] hidden sm:block">{user?.name}</span>
               </button>
+
+              {showProfile && (
+                <ProfileDropdown
+                  user={user}
+                  onAvatarChange={onAvatarChange}
+                  onLogout={onLogout}
+                  onClose={() => setShowProfile(false)}
+                />
+              )}
             </div>
           </div>
         </div>

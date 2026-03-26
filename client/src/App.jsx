@@ -58,6 +58,8 @@ function AuthenticatedApp({ user, logout }) {
   const [view, setView]                       = useState(saved?.view ?? 'workspaces');
   const [activeWorkspace, setActiveWorkspace] = useState(saved?.workspace ?? null);
   const [showMembers,     setShowMembers]     = useState(false);
+  const [avatarUrl,       setAvatarUrl]       = useState(user.avatarUrl ?? null);
+  const effectiveUser = { ...user, avatarUrl };
 
   const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = useBoards(activeWorkspace?.id);
   const {
@@ -221,16 +223,17 @@ function AuthenticatedApp({ user, logout }) {
   if (view === 'workspaces') {
     return (
       <WorkspaceDashboard
-        user={user}
+        user={effectiveUser}
         onEnterWorkspace={handleEnterWorkspace}
         onLogout={logout}
         onOpenAdmin={() => setView('admin')}
+        onAvatarChange={setAvatarUrl}
       />
     );
   }
 
   if (view === 'admin') {
-    return <AdminPage user={user} onBack={() => setView('workspaces')} />;
+    return <AdminPage user={effectiveUser} onBack={() => setView('workspaces')} />;
   }
 
   if (loadingBoards || loadingCategories) {
@@ -268,13 +271,13 @@ function AuthenticatedApp({ user, logout }) {
               availableTags={availableTags}
               workspaceMembers={workspaceMembers}
               onSelectBoard={handleSelectBoard}
-              user={user}
+              user={effectiveUser}
               onLogout={logout}
               onOpenAdmin={() => setView('admin')}
               workspace={activeWorkspace}
               onBackToWorkspaces={() => setView('workspaces')}
               onOpenMembers={() => setShowMembers(true)}
-              onAvatarChange={null}
+              onAvatarChange={setAvatarUrl}
             />
 
             {boardId ? (
@@ -322,7 +325,7 @@ function AuthenticatedApp({ user, logout }) {
         {showMembers && activeWorkspace && (
           <WorkspaceMembers
             workspace={activeWorkspace}
-            currentUser={user}
+            currentUser={effectiveUser}
             onClose={() => setShowMembers(false)}
           />
         )}
