@@ -27,7 +27,7 @@ import { useCategories }  from './hooks/useCategories.js';
 import { CategoriesContext } from './context/CategoriesContext.jsx';
 
 export default function App() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, updateUser } = useAuth();
 
   // Supabase recovery links land on / with type=recovery in the hash
   const hash = window.location.hash;
@@ -43,7 +43,7 @@ export default function App() {
     return <LoginPage />;
   }
 
-  return <AuthenticatedApp user={user} logout={logout} />;
+  return <AuthenticatedApp user={user} logout={logout} updateUser={updateUser} />;
 }
 
 function restoreSession() {
@@ -53,13 +53,11 @@ function restoreSession() {
   } catch { return null; }
 }
 
-function AuthenticatedApp({ user, logout }) {
+function AuthenticatedApp({ user, logout, updateUser }) {
   const saved = restoreSession();
   const [view, setView]                       = useState(saved?.view ?? 'workspaces');
   const [activeWorkspace, setActiveWorkspace] = useState(saved?.workspace ?? null);
   const [showMembers,     setShowMembers]     = useState(false);
-  const [avatarUrl,       setAvatarUrl]       = useState(user.avatarUrl ?? null);
-  const effectiveUser = { ...user, avatarUrl };
 
   const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = useBoards(activeWorkspace?.id);
   const {
@@ -223,17 +221,17 @@ function AuthenticatedApp({ user, logout }) {
   if (view === 'workspaces') {
     return (
       <WorkspaceDashboard
-        user={effectiveUser}
+        user={user}
         onEnterWorkspace={handleEnterWorkspace}
         onLogout={logout}
         onOpenAdmin={() => setView('admin')}
-        onAvatarChange={setAvatarUrl}
+        onAvatarChange={(url) => updateUser({ avatarUrl: url })}
       />
     );
   }
 
   if (view === 'admin') {
-    return <AdminPage user={effectiveUser} onBack={() => setView('workspaces')} />;
+    return <AdminPage user={user} onBack={() => setView('workspaces')} />;
   }
 
   if (loadingBoards || loadingCategories) {
@@ -271,13 +269,13 @@ function AuthenticatedApp({ user, logout }) {
               availableTags={availableTags}
               workspaceMembers={workspaceMembers}
               onSelectBoard={handleSelectBoard}
-              user={effectiveUser}
+              user={user}
               onLogout={logout}
               onOpenAdmin={() => setView('admin')}
               workspace={activeWorkspace}
               onBackToWorkspaces={() => setView('workspaces')}
               onOpenMembers={() => setShowMembers(true)}
-              onAvatarChange={setAvatarUrl}
+              onAvatarChange={(url) => updateUser({ avatarUrl: url })}
             />
 
             {boardId ? (
@@ -325,7 +323,7 @@ function AuthenticatedApp({ user, logout }) {
         {showMembers && activeWorkspace && (
           <WorkspaceMembers
             workspace={activeWorkspace}
-            currentUser={effectiveUser}
+            currentUser={user}
             onClose={() => setShowMembers(false)}
           />
         )}
