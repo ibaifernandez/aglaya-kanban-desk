@@ -87,15 +87,20 @@ function MiniKanban({ id }) {
 function ProfileDropdown({ user, onAvatarChange, onLogout, onClose }) {
   const menuRef    = useRef(null);
   const fileRef    = useRef(null);
-  const [cropSrc,   setCropSrc]   = useState(null); // base64 to crop
+  const [cropSrc,   setCropSrc]   = useState(null);
   const [uploading, setUploading] = useState(false);
   const [error,     setError]     = useState('');
+  const cropSrcRef = useRef(null); // ref mirror to read inside event listener
 
   useEffect(() => {
     function handleClick(e) {
+      if (cropSrcRef.current) return; // crop modal open — ignore outside clicks
       if (menuRef.current && !menuRef.current.contains(e.target)) onClose();
     }
-    function handleEsc(e) { if (e.key === 'Escape') onClose(); }
+    function handleEsc(e) {
+      if (cropSrcRef.current) return; // let AvatarCropModal handle Escape
+      if (e.key === 'Escape') onClose();
+    }
     document.addEventListener('mousedown', handleClick);
     document.addEventListener('keydown', handleEsc);
     return () => {
@@ -104,11 +109,21 @@ function ProfileDropdown({ user, onAvatarChange, onLogout, onClose }) {
     };
   }, [onClose]);
 
+  function openCrop(src) {
+    cropSrcRef.current = src;
+    setCropSrc(src);
+  }
+
+  function closeCrop() {
+    cropSrcRef.current = null;
+    setCropSrc(null);
+  }
+
   function handleFileSelect(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setCropSrc(reader.result);
+    reader.onload = () => openCrop(reader.result);
     reader.readAsDataURL(file);
     e.target.value = '';
   }
@@ -119,7 +134,7 @@ function ProfileDropdown({ user, onAvatarChange, onLogout, onClose }) {
     try {
       const url = await api.uploadAvatar(croppedFile);
       onAvatarChange?.(url);
-      setCropSrc(null);
+      closeCrop();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -184,7 +199,7 @@ function ProfileDropdown({ user, onAvatarChange, onLogout, onClose }) {
           imageSrc={cropSrc}
           uploading={uploading}
           onConfirm={handleCropConfirm}
-          onClose={() => setCropSrc(null)}
+          onClose={closeCrop}
         />
       )}
     </>
