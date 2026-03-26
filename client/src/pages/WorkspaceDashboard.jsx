@@ -228,13 +228,32 @@ function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit, onContextMenu }) {
 }
 
 // ── Workspace form (shared by New + Edit modals) ──────────────────────────────
-function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel }) {
-  const [name,   setName]   = useState(initial?.name   ?? '');
-  const [emoji,  setEmoji]  = useState(initial?.emoji  ?? '📋');
-  const [desc,   setDesc]   = useState(initial?.description ?? '');
-  const [type,   setType]   = useState(initial?.type && initial.type !== 'general' ? initial.type : '');
-  const [saving, setSaving] = useState(false);
-  const [error,  setError]  = useState('');
+function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCoverChange }) {
+  const [name,       setName]       = useState(initial?.name        ?? '');
+  const [emoji,      setEmoji]      = useState(initial?.emoji       ?? '📋');
+  const [desc,       setDesc]       = useState(initial?.description ?? '');
+  const [type,       setType]       = useState(initial?.type && initial.type !== 'general' ? initial.type : '');
+  const [saving,     setSaving]     = useState(false);
+  const [error,      setError]      = useState('');
+  const [coverPreview, setCoverPreview] = useState(initial?.coverUrl ?? null);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const coverFileRef = useRef(null);
+
+  async function handleCoverUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file || !initial?.id) return;
+    setCoverUploading(true);
+    try {
+      const url = await api.uploadWorkspaceCover(initial.id, file);
+      setCoverPreview(url);
+      onCoverChange?.(initial.id, url);
+    } catch (err) {
+      setError('Error al subir la portada: ' + err.message);
+    } finally {
+      setCoverUploading(false);
+      e.target.value = '';
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -300,6 +319,31 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel }) {
               className="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2.5 text-sm text-[#e8eaf0] placeholder-[#3a3f50] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors resize-none"
             />
           </div>
+
+          {/* Cover image — only when editing (initial.id exists) */}
+          {initial?.id && (
+            <div>
+              <label className="block text-xs font-medium text-[#8b92a5] mb-2">Imagen de portada <span className="text-[#3a3f50]">(opcional)</span></label>
+              <div
+                onClick={() => coverFileRef.current?.click()}
+                className="relative h-20 rounded-lg overflow-hidden cursor-pointer border border-dashed border-[#2a2d3a] hover:border-indigo-500/60 transition-colors group/cover"
+              >
+                {coverPreview ? (
+                  <>
+                    <img src={coverPreview} alt="" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/cover:opacity-100 transition-opacity">
+                      <Camera size={16} className="text-white" />
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center gap-2 text-[#555b70] hover:text-[#8b92a5] transition-colors">
+                    {coverUploading ? <Spinner size={3} /> : <><Camera size={14} /><span className="text-xs">Subir imagen de portada</span></>}
+                  </div>
+                )}
+              </div>
+              <input ref={coverFileRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+            </div>
+          )}
 
           {/* Type */}
           <div>
@@ -560,6 +604,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
           initial={editTarget}
           onClose={() => setEditTarget(null)}
           onSubmit={(body) => updateWorkspace(editTarget.id, body)}
+          onCoverChange={handleCoverChange}
         />
       )}
 
