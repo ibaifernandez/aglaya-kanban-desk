@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Settings, Search, X, ArrowRight, LogOut, Mail, ChevronLeft, UserCog, Camera } from 'lucide-react';
 import { api } from '../../api/client.js';
+import { AvatarCropModal } from '../UI/AvatarCropModal.jsx';
 import { PRIORITY_LIST } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { CategorySettings } from './CategorySettings.jsx';
@@ -12,6 +13,7 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
   const [digestState,   setDigestState]   = useState('idle'); // 'idle' | 'sending' | 'ok' | 'error'
   const [digestMsg,     setDigestMsg]     = useState('');
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarCropSrc,   setAvatarCropSrc]   = useState(null);
   const avatarFileRef = useRef(null);
 
   // Global search state
@@ -74,18 +76,25 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
     }
   }
 
-  async function handleAvatarUpload(e) {
+  function handleAvatarUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setAvatarCropSrc(reader.result);
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }
+
+  async function handleAvatarCropConfirm(croppedFile) {
     setAvatarUploading(true);
     try {
-      const avatarUrl = await api.uploadAvatar(file);
+      const avatarUrl = await api.uploadAvatar(croppedFile);
       onAvatarChange?.(avatarUrl);
+      setAvatarCropSrc(null);
     } catch (err) {
       console.error('Error al subir avatar:', err.message);
     } finally {
       setAvatarUploading(false);
-      e.target.value = '';
     }
   }
 
@@ -361,6 +370,15 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
       </header>
 
       {showSettings && <CategorySettings onClose={() => setShowSettings(false)} />}
+
+      {avatarCropSrc && (
+        <AvatarCropModal
+          imageSrc={avatarCropSrc}
+          uploading={avatarUploading}
+          onConfirm={handleAvatarCropConfirm}
+          onClose={() => setAvatarCropSrc(null)}
+        />
+      )}
     </>
   );
 }
