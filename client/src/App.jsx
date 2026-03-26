@@ -61,17 +61,17 @@ function AuthenticatedApp({ user, logout, updateUser }) {
 
   const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = useBoards(activeWorkspace?.id);
 
-  // boardId must be derived before useCategories so the hook gets the right value
-  const _activeBoardId = activeBoardId ?? boards[0]?.id ?? null;
+  const [activeBoardId, setActiveBoardId] = useState(saved?.boardId ?? null);
+  const [filters, setFilters] = useState({ category: '', priority: '', tag: '', search: '', assignee: '', overdue: false });
+  const [workspaceMembers, setWorkspaceMembers] = useState([]);
+
+  // Derive active boardId — explicit selection wins, otherwise first board
+  const boardId = activeBoardId ?? boards[0]?.id ?? null;
 
   const {
     categories, loading: loadingCategories,
     createCategory, updateCategory, deleteCategory,
-  } = useCategories(_activeBoardId);
-
-  const [activeBoardId, setActiveBoardId] = useState(saved?.boardId ?? null);
-  const [filters, setFilters] = useState({ category: '', priority: '', tag: '', search: '', assignee: '', overdue: false });
-  const [workspaceMembers, setWorkspaceMembers] = useState([]);
+  } = useCategories(boardId);
 
   // ── History API navigation ────────────────────────────────────────────────
   // Central navigate: updates React state + writes browser history entry
@@ -124,9 +124,6 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
-
-  // Pick first board once loaded; explicit selection overrides
-  const boardId = _activeBoardId;
 
   const {
     columns, cards, loading: loadingBoard,

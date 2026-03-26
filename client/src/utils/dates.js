@@ -1,5 +1,6 @@
 // Parse "YYYY-MM-DD" as local noon to avoid UTC-offset day shifts
 function parseLocalDate(dueDate) {
+  if (!dueDate || dueDate.length < 10) return new Date('invalid');
   return new Date(dueDate.slice(0, 10) + 'T12:00:00');
 }
 

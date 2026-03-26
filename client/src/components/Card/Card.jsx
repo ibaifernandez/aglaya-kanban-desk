@@ -120,9 +120,9 @@ export function Card({ card, onClick, dragHandleProps = {}, style = {}, isDraggi
         {card.assignee && (
           <span
             className="ml-auto w-5 h-5 rounded-full bg-indigo-700 flex items-center justify-center text-[9px] font-semibold text-white flex-shrink-0"
-            title={card.assignee.name || card.assignee.email}
+            title={card.assignee.name || card.assignee.email || '?'}
           >
-            {(card.assignee.name || card.assignee.email).charAt(0).toUpperCase()}
+            {(card.assignee.name || card.assignee.email || '?').charAt(0).toUpperCase()}
           </span>
         )}
 
