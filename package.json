@@ -7,8 +7,8 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node server/index.js",
     "client": "cd client && npm run dev",
-    "test": "jest server/tests",
-    "test:watch": "jest server/tests --watch"
+    "test": "jest server/tests --forceExit",
+    "test:watch": "jest server/tests --watch --forceExit"
   },
   "jest": {
     "testEnvironment": "node",
