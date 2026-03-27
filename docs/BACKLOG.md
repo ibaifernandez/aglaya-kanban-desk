@@ -69,7 +69,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 ### Seguridad
 - [x] Claves Supabase service_role solo en servidor
 - [x] Validación de dominio en doble capa (frontend + servidor)
-- [ ] Security headers HTTP (helmet)
+- [x] Security headers HTTP (helmet — activado en `server/index.js`)
 - [ ] Auditoría completa de superficie de ataque
 
 ### Multi-tenancy
@@ -120,7 +120,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 
 ---
 
-## Sub-fase 2.1: Supabase Storage + Identidad visual *(Completada — 2026-03-25)*
+## Sub-fase 2.1: Supabase Storage + Identidad visual *(Completada — 2026-03-27)*
 
 ### Supabase Storage ✅
 - [x] SQL migrations: `users.avatar_url`, `workspaces.cover_url`, `workspaces.type`
@@ -170,11 +170,11 @@ Cron job que envía email de alerta dos veces al día con tarjetas prioritarias 
 
 ## Backlog — Features futuras (sin fase asignada)
 
-- [ ] **Permisos por tablero**: owner / editor / viewer
+- [ ] **Permisos por tablero**: owner / editor / viewer (dentro de un workspace, acceso diferenciado por tablero — Phase 1+, no bloquea v1.0)
 - [ ] **Notificaciones in-app**: alertas de cambios en tarjetas asignadas
-- [ ] **Migración multi-tenant completa**: boards/columns/cards desde tasks.json → Supabase, filtrar por organizationId
-- [ ] **Security headers**: helmet en Express
+- [ ] **Migración multi-tenant completa**: boards/columns/cards filtrar por organizationId en todas las queries
 - [ ] **Límites freemium**: middleware (máx. 3 tableros / 50 tarjetas en plan free)
+- [ ] **KNOWN-02**: Email de invitación Supabase — template personalizado + redirect URL correcta
 
 ---
 

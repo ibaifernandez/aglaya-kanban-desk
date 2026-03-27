@@ -6,6 +6,7 @@ export function useCategories(boardId) {
   const [loading,    setLoading]    = useState(true);
 
   const load = useCallback(() => {
+    if (!boardId) { setCategories([]); setLoading(false); return; }
     setLoading(true);
     api.getCategories(boardId)
       .then(setCategories)

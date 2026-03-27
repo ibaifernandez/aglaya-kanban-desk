@@ -4,6 +4,55 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [0.8.0] — 2026-03-27 — Sesión 7: Sub-fase 2.1 + bug sweep + performance
+
+### Supabase Storage
+- Bucket `media` creado (público, 5 MB), 3 RLS policies (INSERT/UPDATE/SELECT)
+- SQL migrations: `users.avatar_url`, `workspaces.cover_url`, `workspaces.type`
+- Endpoints `POST /api/media/users/me/avatar` y `POST /api/media/workspaces/:id/cover`
+
+### Foto de perfil
+- Avatar con foto real en header (Toolbar y WorkspaceDashboard); fallback a inicial
+- `ProfileDropdown`: click en avatar → cropper → upload → persiste en DB y localStorage
+- Fix: mousedown del dropdown cerraba el `AvatarCropModal`; añadida guardia `cropSrcRef`
+
+### Espacios de trabajo — identidad visual
+- Portada (`cover_url`): imagen real en tarjeta del workspace; fallback al mini-kanban
+- Menú contextual (clic derecho) en cada tarjeta: Editar / Eliminar
+- Modal de edición: selector de tipo (Cliente / Departamento), portada, icono, nombre, descripción
+- `WorkspaceForm` acepta `onCoverChange` para upload directo de portada desde el modal de edición
+- Filtro de tipo simplificado: solo «Clientes» y «Departamentos» (sin «General»)
+
+### Asignación y filtros en tarjetas (Bani #1 y #3)
+- Campo `assignee_id` en `cards` (SQL migration ya ejecutada)
+- Backend: `getCardsByBoard` hace JOIN `users!assignee_id(id, name, email)`
+- `CardModal`: selector de responsable (visible solo si el workspace tiene miembros)
+- `Card`: avatar del responsable (inicial en círculo índigo) en el footer
+- `Card`: contador de días reemplaza icono de prioridad (hoy=rojo, ≤3d=ámbar, >3d=gris, vencida=rojo)
+- `Toolbar`: filtro por responsable + toggle «Vencidas»
+- `Board`: aplica filtros `assignee` y `overdue`
+
+### Categorías por tablero
+- SQL: `categories.board_id UUID REFERENCES boards(id) ON DELETE CASCADE`
+- Backend `GET/POST/PUT/DELETE /api/categories` filtran y guardan por `boardId`
+- `useCategories(boardId)`: guardia si `boardId` es null (evita request innecesaria al mount)
+
+### Performance
+- `GET /api/workspaces`: reemplazado bucle N+1 (1+2N queries) por 3 queries de agregado
+  - De ~21 round-trips para 10 workspaces a **3 fijos**, ~85% menos latencia en dashboard
+
+### Bug sweep
+- **Crítico**: `activeBoardId` referenciado antes de su `useState` → `ReferenceError` → pantalla negra en producción. Corregido reordenando declaraciones
+- `Card.jsx`: `assignee.name || assignee.email` sin fallback → crash si ambos son null; añadido `|| '?'`
+- `dates.js`: `parseLocalDate` sin guardia de longitud mínima; añadida
+
+### WorkspaceDashboard
+- Botón Admin movido a header del WorkspaceDashboard (visible para admin/superadmin); eliminado de la Toolbar
+- `sessionStorage` persiste vista activa entre recargas (workspace + tablero)
+- History API: botón Atrás del navegador navega entre workspaces y dashboard
+
+---
+
 ## [0.7.0] — 2026-03-25 — Sesión 6: UI Polish — display name, logo, mini-kanban, espacios de trabajo
 
 ### Identidad visual

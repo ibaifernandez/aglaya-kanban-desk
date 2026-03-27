@@ -30,24 +30,29 @@ router.get('/', requireAuth, async (req, res) => {
   if (error) return res.status(500).json({ error: error.message });
 
   const rows = (data || []).filter((row) => row.workspace != null);
+  if (!rows.length) return res.json({ data: [] });
 
-  // Enrich each workspace with member + board counts in parallel
+  // Fetch member + board counts in 2 aggregate queries instead of 2N
+  const wsIds = rows.map((r) => r.workspace.id);
   try {
-    const workspaces = await Promise.all(
-      rows.map(async (row) => {
-        const wsId = row.workspace.id;
-        const [{ count: memberCount }, { count: boardCount }] = await Promise.all([
-          supabaseAdmin.from('workspace_members').select('*', { count: 'exact', head: true }).eq('workspace_id', wsId),
-          supabaseAdmin.from('boards').select('*', { count: 'exact', head: true }).eq('workspace_id', wsId),
-        ]);
-        return {
-          ...toWorkspace(row.workspace),
-          myRole:      row.role,
-          memberCount: memberCount ?? 0,
-          boardCount:  boardCount  ?? 0,
-        };
-      })
-    );
+    const [membersRes, boardsRes] = await Promise.all([
+      supabaseAdmin.from('workspace_members').select('workspace_id').in('workspace_id', wsIds),
+      supabaseAdmin.from('boards').select('workspace_id').in('workspace_id', wsIds),
+    ]);
+
+    const membersByWs = (membersRes.data || []).reduce((acc, r) => {
+      acc[r.workspace_id] = (acc[r.workspace_id] || 0) + 1; return acc;
+    }, {});
+    const boardsByWs = (boardsRes.data || []).reduce((acc, r) => {
+      acc[r.workspace_id] = (acc[r.workspace_id] || 0) + 1; return acc;
+    }, {});
+
+    const workspaces = rows.map((row) => ({
+      ...toWorkspace(row.workspace),
+      myRole:      row.role,
+      memberCount: membersByWs[row.workspace.id] ?? 0,
+      boardCount:  boardsByWs[row.workspace.id]  ?? 0,
+    }));
     res.json({ data: workspaces });
   } catch (e) {
     res.status(500).json({ error: e.message });
