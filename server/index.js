@@ -1,8 +1,11 @@
-const express = require('express');
-const cors    = require('cors');
-const path    = require('path');
-const helmet  = require('helmet');
+const express   = require('express');
+const cors      = require('cors');
+const path      = require('path');
+const helmet    = require('helmet');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
+
+const isProd = process.env.NODE_ENV === 'production';
 
 const { getBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = require('./routes/boards');
 const { getColumns, createColumn, updateColumn, deleteColumn } = require('./routes/columns');
@@ -29,25 +32,42 @@ const PORT = process.env.PORT || 3003;
 
 // ── Security headers ───────────────────────────────────────
 app.use(helmet({
-  // Allow Vite dev server to load resources in development
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy:      isProd,
+  crossOriginEmbedderPolicy:  isProd,
 }));
 
-app.use(cors({
-  origin: [
-    'http://localhost:5175',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'https://myboardlfi.netlify.app',
-    'https://myboardlfi.ibaifernandez.com',
-  ],
-}));
-app.use(express.json());
+// ── CORS ───────────────────────────────────────────────────
+const allowedOrigins = isProd
+  ? ['https://myboardlfi.netlify.app', 'https://myboardlfi.ibaifernandez.com']
+  : ['http://localhost:5175'];
+
+app.use(cors({ origin: allowedOrigins }));
+
+// ── Rate limiting ──────────────────────────────────────────
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 20,
+  message: { error: 'Demasiados intentos. Espera 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// ── Request timing ─────────────────────────────────────────
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    if (ms > 500) console.warn(`[SLOW] ${req.method} ${req.path} → ${ms}ms`);
+    else          console.log(`[req]  ${req.method} ${req.path} → ${ms}ms`);
+  });
+  next();
+});
+
+app.use(express.json({ limit: '2mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ── Auth ──────────────────────────────────────────────────
-app.use('/api/auth', authRouter);
+// ── Auth (rate-limited) ────────────────────────────────────
+app.use('/api/auth', authLimiter, authRouter);
 
 // ── Digest ────────────────────────────────────────────────
 app.use('/api/digest', digestRouter);
@@ -98,13 +118,14 @@ app.get('/api/health', (_req, res) =>
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 );
 
-app.listen(PORT, () => {
-  console.log(`MyBoardLFi server → http://localhost:${PORT}`);
-  // Digest automático solo en desarrollo local — en producción se envía
-  // bajo demanda desde el botón "Enviarme mis tareas" del Toolbar.
-  // Reactivar cuando la migración a Supabase esté completa y cada
-  // usuario tenga sus propias tareas.
-  if (process.env.NODE_ENV !== 'production') {
-    require('./digest').startDigestScheduler();
-  }
-});
+// Export app for testing; only listen when run directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`MyBoardLFi server → http://localhost:${PORT}`);
+    if (process.env.NODE_ENV !== 'production') {
+      require('./digest').startDigestScheduler();
+    }
+  });
+}
+
+module.exports = app;

@@ -80,23 +80,32 @@ const createCard = async (req, res) => {
   res.status(201).json({ data: toCard(data) });
 };
 
+const VALID_PRIORITIES = new Set(['low', 'medium', 'high', 'none']);
+
 const updateCard = async (req, res) => {
-  const fieldMap = {
-    title:          'title',
-    description:    'description',
-    category:       'category',
-    priority:       'priority',
-    dueDate:        'due_date',
-    tags:           'tags',
-    checklist:      'checklist',
-    checklistTitle: 'checklist_title',
-    assigneeId:     'assignee_id',
-  };
+  const { title, description, category, priority, dueDate, tags, checklist, checklistTitle, assigneeId } = req.body;
+
+  // Input validation
+  if (priority !== undefined && !VALID_PRIORITIES.has(priority)) {
+    return res.status(400).json({ error: 'priority must be low, medium, high, or none' });
+  }
+  if (title !== undefined && (typeof title !== 'string' || title.trim().length === 0 || title.length > 255)) {
+    return res.status(400).json({ error: 'title must be a non-empty string under 255 chars' });
+  }
+  if (dueDate !== undefined && dueDate !== null && isNaN(Date.parse(dueDate))) {
+    return res.status(400).json({ error: 'dueDate must be a valid date string' });
+  }
 
   const update = { updated_at: new Date().toISOString() };
-  Object.entries(fieldMap).forEach(([camel, snake]) => {
-    if (req.body[camel] !== undefined) update[snake] = req.body[camel];
-  });
+  if (title          !== undefined) update.title           = title.trim();
+  if (description    !== undefined) update.description     = description;
+  if (category       !== undefined) update.category        = category;
+  if (priority       !== undefined) update.priority        = priority;
+  if (dueDate        !== undefined) update.due_date        = dueDate || null;
+  if (tags           !== undefined) update.tags            = Array.isArray(tags) ? tags : [];
+  if (checklist      !== undefined) update.checklist       = Array.isArray(checklist) ? checklist : [];
+  if (checklistTitle !== undefined) update.checklist_title = checklistTitle;
+  if (assigneeId     !== undefined) update.assignee_id     = assigneeId || null;
 
   const { data, error } = await supabaseAdmin
     .from('cards')
@@ -185,8 +194,9 @@ const deleteCard = async (req, res) => {
 };
 
 const searchCards = async (req, res) => {
-  const { q } = req.query;
-  if (!q || q.trim().length < 2) return res.json({ data: [] });
+  const raw = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+  if (raw.length < 2) return res.json({ data: [] });
+  const q = raw.slice(0, 100); // cap at 100 chars to prevent abuse
 
   const { data: cards, error } = await supabaseAdmin
     .from('cards')

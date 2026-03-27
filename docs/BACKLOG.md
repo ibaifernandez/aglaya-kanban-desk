@@ -69,8 +69,13 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 ### Seguridad
 - [x] Claves Supabase service_role solo en servidor
 - [x] Validación de dominio en doble capa (frontend + servidor)
-- [x] Security headers HTTP (helmet — activado en `server/index.js`)
-- [ ] Auditoría completa de superficie de ataque
+- [x] Security headers HTTP (helmet — diferenciado por entorno desde 2026-03-27)
+- [x] Rate limiting en `/api/auth` — 20 req/15 min por IP
+- [x] CORS restringido por entorno: solo `localhost:5175` en dev, dominios corporativos en prod
+- [x] Validación de enums y tipos en `PUT /api/cards/:id` (priority, title, dueDate)
+- [x] Input sanitizado en `GET /api/cards/search` (cap 100 chars)
+- [x] Auditoría completa de superficie de ataque (2026-03-27 — 15 hallazgos, 2 altos resueltos)
+- [ ] Exposición de mensajes de error Supabase al cliente (media — pendiente refactor)
 
 ### Multi-tenancy
 - [ ] Migrar rutas boards/columns/cards de `tasks.json` → Supabase

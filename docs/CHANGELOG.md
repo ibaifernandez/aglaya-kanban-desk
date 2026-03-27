@@ -46,6 +46,22 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 - `Card.jsx`: `assignee.name || assignee.email` sin fallback → crash si ambos son null; añadido `|| '?'`
 - `dates.js`: `parseLocalDate` sin guardia de longitud mínima; añadida
 
+### Seguridad
+- `express-rate-limit`: límite de 20 req/15 min en todos los endpoints de auth
+- CORS diferenciado por entorno: solo `localhost:5175` en dev, dominios corporativos en prod
+- Helmet CSP activado en producción (desactivado solo en dev)
+- `PUT /api/cards/:id`: validación explícita de `priority` (enum), `title` (non-empty, <255 chars), `dueDate` (fecha válida o null)
+- `GET /api/cards/search`: input capeado a 100 chars
+- `express.json()` limitado a 2 MB
+- `server/index.js`: app exportada como módulo → permite tests sin arrancar el servidor
+
+### Tests
+- Suite Jest + Supertest: 26 tests en 4 suites, 0.59s (`npm test`)
+  - `health.test.js`: smoke test del endpoint `/api/health`
+  - `auth.test.js`: validación de inputs, restricción de dominio corporativo, protección JWT en `/api/auth/me`
+  - `cards-validation.test.js`: validación de enums, tipos y edge cases en `PUT /api/cards/:id`
+  - `security.test.js`: 11 rutas protegidas devuelven 401 sin token; rutas públicas accesibles
+
 ### Infraestructura
 - SMTP migrado de Migadu a Resend (`smtp.resend.com`) — confirmado operativo en Railway
 - Email de invitación Supabase: plantilla LFi con tabla HTML + doctype configurada; subject «¡Hola! Te han invitado a LFi Kanban Desk.»; URL de redirección → `https://myboardlfi.ibaifernandez.com` ✅ (cierra KNOWN-02)
