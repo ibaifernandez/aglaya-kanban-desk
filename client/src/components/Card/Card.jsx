@@ -8,7 +8,7 @@ export function Card({ card, onClick, dragHandleProps = {}, style = {}, isDraggi
   const { categories } = useCategoriesCtx();
   const catDef   = categories.find((c) => c.id === card.category);
   const catColor  = catDef ? colorById(catDef.colorId).badge : 'bg-[#2e3140] text-[#555b70]';
-  const category  = { label: catDef?.label ?? card.category, color: catColor };
+  const category  = catDef ? { label: catDef.label, color: catColor } : null;
   const priority  = PRIORITIES[card.priority] ?? PRIORITIES.none;
   const overdue  = isOverdue(card.dueDate);
   const dateStr  = formatDate(card.dueDate);
@@ -96,7 +96,7 @@ export function Card({ card, onClick, dragHandleProps = {}, style = {}, isDraggi
       {/* Footer row */}
       <div className="flex items-center gap-1.5 flex-wrap">
         {/* Category badge */}
-        <Badge label={category.label} className={category.color} />
+        {category && <Badge label={category.label} className={category.color} />}
 
         {/* Priority dot (hidden when priority = none) */}
         {priority.dot && (

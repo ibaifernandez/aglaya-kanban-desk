@@ -4,6 +4,14 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [0.8.1] — 2026-03-27 — Hotfix: categoría hardcodeada en tarjetas
+
+### Fixed
+- `CardModal`: `EMPTY.category` era `'personal'` en lugar de `''`; las nuevas tarjetas se guardaban con esa cadena literal si las categorías no estaban cargadas al abrir el formulario
+- `Card`: la categoría ya no muestra el valor crudo cuando no se encuentra en el contexto; si no hay match simplemente no se renderiza el badge
+
+---
+
 ## [0.8.0] — 2026-03-27 — Sesión 7: Sub-fase 2.1 + bug sweep + performance
 
 ### Supabase Storage

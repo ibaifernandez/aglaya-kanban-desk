@@ -21,7 +21,7 @@ import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { api } from '../../api/client.js';
 
 const EMPTY = {
-  title: '', description: '', category: 'personal',
+  title: '', description: '', category: '',
   priority: 'none', dueDate: '', tags: [], checklist: [], checklistTitle: '', attachments: [], assigneeId: null,
 };
 
@@ -181,7 +181,7 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
       setForm({
         title:          card.title          || '',
         description:    card.description    || '',
-        category:       card.category       || 'personal',
+        category:       card.category       || categories[0]?.id || '',
         priority:       card.priority       || 'none',
         dueDate:        card.dueDate ? card.dueDate.slice(0, 10) : '',
         tags:           card.tags           || [],
@@ -192,9 +192,9 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
         assigneeId:     card.assigneeId     || null,
       });
     } else {
-      setForm({ ...EMPTY, columnId });
+      setForm({ ...EMPTY, category: categories[0]?.id || '', columnId });
     }
-  }, [card, columnId, boardId, columns]);
+  }, [card, columnId, boardId, columns, categories]);
 
   function set(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
