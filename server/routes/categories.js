@@ -21,7 +21,7 @@ const getCategories = async (req, res) => {
   }
 
   const { data, error } = await query;
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[categories] getCategories:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: (data || []).map(toCat) });
 };
 
@@ -42,7 +42,7 @@ const createCategory = async (req, res) => {
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[categories] createCategory:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.status(201).json({ data: toCat(data) });
 };
 
@@ -60,7 +60,7 @@ const updateCategory = async (req, res) => {
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[categories] updateCategory:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: toCat(data) });
 };
 
@@ -71,7 +71,7 @@ const deleteCategory = async (req, res) => {
     .eq('id', req.params.id)
     .eq('organization_id', req.user.organizationId);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[categories] deleteCategory:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ success: true });
 };
 

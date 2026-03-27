@@ -22,7 +22,7 @@ const getBoards = async (req, res) => {
     .order('order', { ascending: true })
     .order('created_at', { ascending: true });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[boards] getBoards:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: (data || []).map(toBoard) });
 };
 
@@ -46,7 +46,7 @@ const createBoard = async (req, res) => {
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[boards] createBoard:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
   const cols = DEFAULT_COLUMNS.map((col) => ({
     board_id: board.id,
@@ -71,7 +71,7 @@ const updateBoard = async (req, res) => {
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[boards] updateBoard:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: toBoard(data) });
 };
 
@@ -82,7 +82,7 @@ const deleteBoard = async (req, res) => {
     .eq('id', req.params.id)
     .eq('organization_id', req.user.organizationId);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[boards] deleteBoard:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ success: true });
 };
 

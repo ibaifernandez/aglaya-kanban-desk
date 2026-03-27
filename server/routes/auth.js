@@ -47,7 +47,8 @@ router.post('/register', async (req, res) => {
     .insert({ id: userId, email, name, role, organization_id: organizationId || null });
 
   if (profileError) {
-    return res.status(500).json({ error: profileError.message });
+    console.error('[auth] insert profile:', profileError.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
   }
 
   // 3. Build JWT

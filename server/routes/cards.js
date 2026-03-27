@@ -26,7 +26,7 @@ const getCardsByBoard = async (req, res) => {
     .eq('board_id', req.params.boardId)
     .order('order', { ascending: true });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[cards] getCardsByBoard:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: (data || []).map(toCard) });
 };
 
@@ -37,7 +37,7 @@ const getCardsByColumn = async (req, res) => {
     .eq('column_id', req.params.columnId)
     .order('order', { ascending: true });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[cards] getCardsByColumn:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: (data || []).map(toCard) });
 };
 
@@ -76,7 +76,7 @@ const createCard = async (req, res) => {
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[cards] createCard:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.status(201).json({ data: toCard(data) });
 };
 
@@ -114,7 +114,7 @@ const updateCard = async (req, res) => {
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[cards] updateCard:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: toCard(data) });
 };
 
@@ -179,7 +179,7 @@ const moveCard = async (req, res) => {
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[cards] moveCard:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: toCard(updated) });
 };
 
@@ -189,7 +189,7 @@ const deleteCard = async (req, res) => {
     .delete()
     .eq('id', req.params.id);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[cards] deleteCard:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ success: true });
 };
 
@@ -205,7 +205,7 @@ const searchCards = async (req, res) => {
     .or(`title.ilike.%${q}%,description.ilike.%${q}%`)
     .limit(15);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[cards] searchCards:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   if (!cards?.length) return res.json({ data: [] });
 
   const columnIds = [...new Set(cards.map((c) => c.column_id))];

@@ -25,7 +25,7 @@ router.get('/users', async (req, res) => {
     .eq('organization_id', req.user.organizationId)
     .order('created_at', { ascending: true });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[admin] GET /users:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data });
 });
 
@@ -72,7 +72,8 @@ router.post('/users/invite', async (req, res) => {
   if (profileError) {
     // Rollback: remove auth user if profile insert fails
     await supabaseAdmin.auth.admin.deleteUser(userId);
-    return res.status(500).json({ error: profileError.message });
+    console.error('[admin] POST /users/invite profile insert:', profileError.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
   }
 
   // 3. Send password setup email via recovery flow
@@ -112,7 +113,7 @@ router.patch('/users/:id/role', async (req, res) => {
     .select('id, email, name, role')
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[admin] PATCH /users/:id/role:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   if (!data)  return res.status(404).json({ error: 'Usuario no encontrado' });
   res.json({ data });
 });
@@ -140,7 +141,7 @@ router.delete('/users/:id', async (req, res) => {
     .delete()
     .eq('id', req.params.id);
 
-  if (profileError) return res.status(500).json({ error: profileError.message });
+  if (profileError) { console.error('[admin] DELETE /users/:id:', profileError.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
   // Delete from Supabase Auth
   await supabaseAdmin.auth.admin.deleteUser(req.params.id);

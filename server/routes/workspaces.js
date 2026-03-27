@@ -27,7 +27,7 @@ router.get('/', requireAuth, async (req, res) => {
     .select('role, workspace:workspaces(id, name, emoji, description, type, cover_url, created_at, created_by)')
     .eq('user_id', req.user.id);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[workspaces] GET /:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
   const rows = (data || []).filter((row) => row.workspace != null);
   if (!rows.length) return res.json({ data: [] });
@@ -55,7 +55,8 @@ router.get('/', requireAuth, async (req, res) => {
     }));
     res.json({ data: workspaces });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('[workspaces] GET / counts:', e.message);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
@@ -82,7 +83,7 @@ router.post('/', requireAuth, async (req, res) => {
     .select()
     .single();
 
-  if (wsErr) return res.status(500).json({ error: wsErr.message });
+  if (wsErr) { console.error('[workspaces] POST /:', wsErr.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
   await supabaseAdmin.from('workspace_members').insert({
     workspace_id: ws.id,
@@ -106,7 +107,7 @@ router.get('/:workspaceId', requireAuth, requireWorkspaceMember, async (req, res
     supabaseAdmin.from('boards').select('id').eq('workspace_id', workspaceId),
   ]);
 
-  if (wsRes.error) return res.status(500).json({ error: wsRes.error.message });
+  if (wsRes.error) { console.error('[workspaces] GET /:id:', wsRes.error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
   res.json({
     data: {
@@ -138,7 +139,7 @@ router.patch('/:workspaceId', requireAuth, requireWorkspaceMember, requireWorksp
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[workspaces] PATCH /:id:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: toWorkspace(data) });
 });
 
@@ -177,11 +178,12 @@ router.delete('/:workspaceId', requireAuth, requireWorkspaceMember, requireWorks
 
     // 7. Delete workspace
     const { error } = await supabaseAdmin.from('workspaces').delete().eq('id', wsId);
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) { console.error('[workspaces] DELETE /:id:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[workspaces] DELETE /:id catch:', err.message);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
@@ -193,7 +195,7 @@ router.get('/:workspaceId/members', requireAuth, requireWorkspaceMember, async (
     .select('role, invited_at, invited_by, user:users!user_id(id, name, email)')
     .eq('workspace_id', req.params.workspaceId);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[workspaces] GET /:id/members:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: data ?? [] });
 });
 
@@ -218,7 +220,7 @@ router.post('/:workspaceId/members', requireAuth, requireWorkspaceMember, requir
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[workspaces] POST /:id/members:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.status(201).json({ data });
 });
 
@@ -244,7 +246,7 @@ router.patch('/:workspaceId/members/:userId', requireAuth, requireWorkspaceMembe
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[workspaces] PATCH /:id/members/:userId:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data });
 });
 
@@ -264,7 +266,7 @@ router.delete('/:workspaceId/members/:userId', requireAuth, requireWorkspaceMemb
     .eq('workspace_id', workspaceId)
     .eq('user_id', userId);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[workspaces] DELETE /:id/members/:userId:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ success: true });
 });
 
@@ -279,7 +281,7 @@ router.get('/:workspaceId/boards', requireAuth, requireWorkspaceMember, async (r
     .order('order', { ascending: true })
     .order('created_at', { ascending: true });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[workspaces] GET /:id/boards:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: data ?? [] });
 });
 

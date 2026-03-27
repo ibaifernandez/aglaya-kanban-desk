@@ -16,7 +16,7 @@ const getColumns = async (req, res) => {
     .eq('board_id', req.params.boardId)
     .order('order', { ascending: true });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[columns] getColumns:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: (data || []).map(toColumn) });
 };
 
@@ -39,7 +39,7 @@ const createColumn = async (req, res) => {
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[columns] createColumn:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.status(201).json({ data: toColumn(data) });
 };
 
@@ -57,7 +57,7 @@ const updateColumn = async (req, res) => {
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[columns] updateColumn:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data: toColumn(data) });
 };
 
@@ -67,7 +67,7 @@ const deleteColumn = async (req, res) => {
     .delete()
     .eq('id', req.params.id);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) { console.error('[columns] deleteColumn:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ success: true });
 };
 

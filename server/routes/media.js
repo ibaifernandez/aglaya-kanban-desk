@@ -38,7 +38,7 @@ router.post('/users/me/avatar', requireAuth, upload.single('file'), async (req, 
       upsert:      true,
     });
 
-  if (uploadError) return res.status(500).json({ error: uploadError.message });
+  if (uploadError) { console.error('[media] avatar upload:', uploadError.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
   const { data: { publicUrl } } = supabaseAdmin.storage
     .from('media')
@@ -49,7 +49,7 @@ router.post('/users/me/avatar', requireAuth, upload.single('file'), async (req, 
     .update({ avatar_url: publicUrl })
     .eq('id', req.user.id);
 
-  if (updateError) return res.status(500).json({ error: updateError.message });
+  if (updateError) { console.error('[media] avatar update user:', updateError.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
   res.json({ data: { avatarUrl: publicUrl } });
 });
@@ -77,7 +77,7 @@ router.post(
         upsert:      true,
       });
 
-    if (uploadError) return res.status(500).json({ error: uploadError.message });
+    if (uploadError) { console.error('[media] cover upload:', uploadError.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
     const { data: { publicUrl } } = supabaseAdmin.storage
       .from('media')
@@ -88,7 +88,7 @@ router.post(
       .update({ cover_url: publicUrl })
       .eq('id', workspaceId);
 
-    if (updateError) return res.status(500).json({ error: updateError.message });
+    if (updateError) { console.error('[media] cover update workspace:', updateError.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
     res.json({ data: { coverUrl: publicUrl } });
   }
