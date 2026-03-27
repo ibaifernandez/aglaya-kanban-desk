@@ -1,109 +1,172 @@
 # MyBoardLFi
 
-**Plataforma de gestión de proyectos y tareas para equipos de agencia**
+![Version](https://img.shields.io/badge/version-1.0.0-6366f1)
+![Tests](https://img.shields.io/badge/tests-26%20passing-brightgreen)
+![Client](https://img.shields.io/badge/client-Netlify-00C7B7?logo=netlify)
+![Server](https://img.shields.io/badge/server-Railway-0B0D0E?logo=railway)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-> MyBoardLFi · © 2026 Ibai Fernández
+Multi-tenant Kanban SaaS for agency teams. Built with React 18, Express 4, and Supabase. Features workspace isolation, JWT auth, drag-and-drop boards, file uploads, and automated daily email digests.
 
----
-
-## ¿Qué es MyBoardLFi?
-
-MyBoardLFi es una herramienta de gestión de proyectos tipo Kanban, diseñada específicamente para el flujo de trabajo de LFi. Permite organizar campañas, clientes, proyectos web, automatizaciones y operaciones internas en tableros visuales, con tarjetas detalladas que incluyen prioridades, fechas de entrega, checklists y categorías.
-
-Está construida sobre tecnología web moderna (React + Node.js), corre en la infraestructura de PRONODO, y no depende de ningún SaaS externo: es software propio, con control total de datos.
+**Client:** [myboardlfi.ibaifernandez.com](https://myboardlfi.ibaifernandez.com) · **API:** [myboardlfi-server.up.railway.app](https://myboardlfi-server.up.railway.app) · **Release:** [v1.0.0](https://github.com/ibaifernandez/myboardlfi/releases/tag/v1.0.0)
 
 ---
 
-## ¿Por qué MyBoardLFi y no Trello o Asana?
+## Stack
 
-| Característica | Trello | Asana | **MyBoardLFi** |
-|---|---|---|---|
-| Costo mensual | $6–17 USD/usuario | $13–25 USD/usuario | **$0** (infraestructura propia) |
-| Control de datos | En servidores de Atlassian | En servidores de Asana | **En PRONODO (tu infraestructura)** |
-| Personalización | Limitada | Limitada | **Total** |
-| Acceso para clientes | Con costo adicional | Con costo adicional | **Incluido (tier guest)** |
-| Privacidad de datos de clientes | Sujeta a ToS de terceros | Sujeta a ToS de terceros | **100% bajo control de LFi** |
-| Adaptado al flujo de LFi | No | No | **Sí, construido para LFi** |
-
----
-
-## ¿Qué se puede hacer?
-
-- Crear tableros por cliente, campaña o área (Proyectos Activos, Campañas Email, Clientes, etc.)
-- Gestionar tarjetas con prioridad (alta/media/baja), fecha de entrega, descripción y checklists
-- Categorizar por tipo de trabajo: web, email-marketing, social-media, automatización, etc.
-- Filtrar y buscar tareas por categoría, prioridad o palabra clave
-- Subir adjuntos a las tarjetas (imágenes, documentos)
-- **Próximamente (Phase 1):** sistema de usuarios con roles, acceso por cliente, vista multi-equipo
-
----
-
-## Roadmap de desarrollo
-
-### Phase 0 — Limpieza y preparación *(semana del 18/03/2026)* — 🔄 En curso
-Eliminar datos personales, cargar dummy data corporativa, actualizar documentación, ajustar puertos.
-
-### Phase 1 — Multi-tenant y autenticación *(1–2 semanas)* — 📋 Planificado
-Sistema de login con JWT + roles (superadmin / admin / colaborador / cliente / guest). Multi-tenancy con `organizationId`. Migración de `tasks.json` a Supabase (PostgreSQL). Límites freemium por tenant.
-
-### Phase 2 — Deploy en PRONODO *(1 semana, en paralelo con Phase 1)* — 📋 Planificado
-Dockerización, dominio `myboard.pronodo.com`, HTTPS, variables de entorno de producción, `README-deploy.md` para el equipo técnico.
-
-### Phase 3 — Pitch interno a LFi *(tras Phase 1)* — 📋 Pendiente
-Presentación a Daniel y Marco: problema → solución → demo → roadmap → propuesta de compensación o adquisición.
-
-### Phase 4 — Protección de IP y escalado *(ongoing)*
-Código fuente en repo privado. Deploy de build compilado. Registro de propiedad intelectual si procede.
-
----
-
-## Para el equipo técnico (Fernando Murillo / PRONODO)
-
-### Stack
-
-| Capa | Tecnología |
+| Layer | Technology |
 |---|---|
 | Frontend | React 18 + Vite + TailwindCSS |
-| Backend | Node.js + Express |
-| Base de datos (actual) | JSON plano (`server/data/tasks.json`) |
-| Base de datos (Phase 1) | Supabase (PostgreSQL hosted) |
-| Autenticación (Phase 1) | Supabase Auth + JWT |
-| Deploy | Docker + PRONODO |
+| Drag & drop | react-beautiful-dnd |
+| Backend | Express 4 + Node.js 18 |
+| Database | Supabase (PostgreSQL + RLS) |
+| Auth | Supabase Auth + custom JWT middleware + bcryptjs |
+| Storage | Supabase Storage (file attachments) |
+| Email | Nodemailer + node-cron (daily digest) |
+| Security | Helmet + express-rate-limit |
+| Testing | Jest + Supertest |
+| Client deploy | Netlify (auto-deploy on push to `main`) |
+| Server deploy | Railway (auto-deploy on push to `main`) |
 
-### Cómo arrancar en local
+---
 
-```bash
-# 1. Clonar el repositorio (privado)
-git clone <repo-privado> MyBoardLFi
-cd MyBoardLFi
+## Architecture
 
-# 2. Instalar dependencias
-npm install
-cd client && npm install && cd ..
+```
+client/  (React 18 + Vite, port 5175)
+├── src/
+│   ├── components/
+│   │   ├── boards/
+│   │   ├── cards/
+│   │   └── workspaces/
+│   └── auth/
 
-# 3. Configurar variables de entorno
-cp .env.example .env
-# Editar .env con credenciales SMTP reales
+server/  (Express 4, port 3003)
+├── routes/
+├── middleware/      ← JWT validation, rate limiting
+├── jobs/            ← node-cron daily digest
+└── supabase.js
 
-# 4. Arrancar en modo desarrollo
-npm run dev
-# Server: http://localhost:3003
-# Client: http://localhost:5175
+         React ←──── JWT over HTTPS ────→ Express
+                                              │
+                                         Supabase
+                                    (PostgreSQL + RLS
+                                     + Auth + Storage)
 ```
 
-### Puertos
+- **Multi-tenancy:** workspace-level data isolation enforced via Supabase Row Level Security (RLS)
+- **Auth:** JWT issued by Supabase Auth, validated in Express middleware; passwords hashed with bcryptjs
+- **File uploads:** Multer handles multipart → stored in Supabase Storage buckets
 
-- **Server (Express):** 3003
-- **Client (Vite):** 5175
+---
 
-### Scripts disponibles
+## Features (v1.0.0)
+
+- ✅ Multi-tenant architecture with workspace isolation
+- ✅ JWT authentication with workspace role system (admin / collaborator / guest)
+- ✅ Drag-and-drop Kanban boards (react-beautiful-dnd)
+- ✅ Cards with priority, due date, description, checklists, and labels
+- ✅ File uploads to Supabase Storage
+- ✅ Daily email digest via node-cron + Nodemailer
+- ✅ Security hardening: Helmet, rate limiting, parameterized queries
+- ✅ Row Level Security (RLS) policies in Supabase
+
+---
+
+## Test suite
+
+26 tests across 4 suites — all passing.
+
+| Suite | Tests | Status |
+|---|---|---|
+| Auth API | 8 | ✅ |
+| Boards API | 7 | ✅ |
+| Cards API | 6 | ✅ |
+| Workspaces API | 5 | ✅ |
 
 ```bash
-npm run dev       # Arranca server + client en paralelo (concurrently)
-npm run server    # Solo el servidor Express
-npm run client    # Solo el cliente Vite
+cd server && npm test
 ```
 
 ---
 
-*MyBoardLFi · © 2026 Ibai Fernández · Todos los derechos reservados*
+## Getting started
+
+### Prerequisites
+
+- Node.js 18+
+- A [Supabase](https://supabase.com) project (free tier works)
+
+### Setup
+
+```bash
+# Clone
+git clone https://github.com/ibaifernandez/myboardlfi.git
+cd myboardlfi
+
+# Install server dependencies
+npm install
+
+# Install client dependencies
+cd client && npm install && cd ..
+
+# Configure environment
+cp .env.example .env
+# Fill in your Supabase URL, service role key, JWT secret, and SMTP credentials
+
+# Start in development
+npm run dev
+# Server → http://localhost:3003
+# Client → http://localhost:5175
+```
+
+### Environment variables
+
+```env
+# Supabase
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# JWT
+JWT_SECRET=
+
+# Email digest (optional)
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=
+DIGEST_FROM_EMAIL=
+DIGEST_TO_EMAIL=
+```
+
+---
+
+## Scripts
+
+```bash
+npm run dev       # Start server + client in parallel (concurrently)
+npm run server    # Server only
+npm run client    # Client only (from /client)
+npm test          # Run test suite (from /server)
+```
+
+---
+
+## Branch strategy
+
+`main` is the production branch. Both Netlify and Railway auto-deploy on push to `main`. Feature work uses short-lived branches with PR and manual merge.
+
+---
+
+## Documentation
+
+- [Architecture](./docs/ARCHITECTURE.md)
+- [Changelog](./docs/CHANGELOG.md)
+- [Roadmap](./docs/ROADMAP.md)
+- [Backlog](./docs/BACKLOG.md)
+- [Deploy guide](./docs/README-deploy.md)
+- [Agent instructions](./AGENTS.md)
+
+---
+
+*MyBoardLFi · © 2026 Ibai Fernández · MIT License*
