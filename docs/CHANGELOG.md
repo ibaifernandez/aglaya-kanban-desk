@@ -46,6 +46,11 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 - `Card.jsx`: `assignee.name || assignee.email` sin fallback → crash si ambos son null; añadido `|| '?'`
 - `dates.js`: `parseLocalDate` sin guardia de longitud mínima; añadida
 
+### Infraestructura
+- SMTP migrado de Migadu a Resend (`smtp.resend.com`) — confirmado operativo en Railway
+- Email de invitación Supabase: plantilla LFi con tabla HTML + doctype configurada; subject «¡Hola! Te han invitado a LFi Kanban Desk.»; URL de redirección → `https://myboardlfi.ibaifernandez.com` ✅ (cierra KNOWN-02)
+- Supabase Index Advisor habilitado (`index_advisor` + `hypopg`) — analiza queries y sugiere índices
+
 ### WorkspaceDashboard
 - Botón Admin movido a header del WorkspaceDashboard (visible para admin/superadmin); eliminado de la Toolbar
 - `sessionStorage` persiste vista activa entre recargas (workspace + tablero)

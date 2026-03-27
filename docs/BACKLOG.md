@@ -116,7 +116,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Mini-kanban abstracto decorativo en tarjetas (seed desde ws.id)
 
 ### Pendiente de Phase 2
-- [ ] ⚠️ KNOWN-02: Email de invitación — configurar template en Supabase Auth (ver `memory/project_email_invite_pending.md`)
+- [x] KNOWN-02: Email de invitación — template LFi configurado en Supabase Auth + URL de redirección correcta (2026-03-27)
 
 ---
 
