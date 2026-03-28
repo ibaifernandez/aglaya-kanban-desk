@@ -180,6 +180,8 @@ Cron job que envía email de alerta dos veces al día con tarjetas prioritarias 
 - [ ] **Migración multi-tenant completa**: boards/columns/cards filtrar por organizationId en todas las queries
 - [ ] **Límites freemium**: middleware (máx. 3 tableros / 50 tarjetas en plan free)
 - [ ] **KNOWN-02**: Email de invitación Supabase — template personalizado + redirect URL correcta
+- [ ] **Foto de perfil en tarjeta**: mostrar `avatar_url` del assignee en el avatar de la tarjeta (hoy solo muestra inicial); requiere añadir `avatar_url` al select de `users!assignee_id` en `/api/boards/:boardId/cards` y renderizar `<img>` con fallback a inicial
+- [ ] **Confirmación doble al borrar tarjeta**: el botón de borrar debe mostrar un diálogo de confirmación antes de ejecutar el DELETE (UX — evitar borrados accidentales)
 
 ---
 
