@@ -4,7 +4,8 @@ import { useWorkspaces } from '../hooks/useWorkspaces.js';
 import { Spinner } from '../components/UI/Spinner.jsx';
 import { AvatarCropModal } from '../components/UI/AvatarCropModal.jsx';
 import { api } from '../api/client.js';
-import lfiLogo from '../assets/lfi.png';
+import agLayaIcon from '../assets/aglaya-favicon-rojo.svg';
+import agLayaLogo  from '../assets/aglaya-logo-blanco.svg';
 
 const ROLE_LABELS = {
   owner:  { label: 'Propietario', color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
@@ -14,14 +15,15 @@ const ROLE_LABELS = {
 };
 
 const TYPE_LABELS = {
-  cliente:      { label: 'Cliente',      color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-  departamento: { label: 'Departamento', color: 'text-sky-400     bg-sky-500/10     border-sky-500/20'     },
+  personal: { label: 'Personal', color: 'text-violet-400  bg-violet-500/10  border-violet-500/20'  },
+  interno:  { label: 'Interno',  color: 'text-sky-400     bg-sky-500/10     border-sky-500/20'     },
+  externo:  { label: 'Cliente',  color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
 };
 
 const EMOJIS = ['📋', '🚀', '⭐', '🎯', '💡', '🏢', '📊', '🛠', '🎨', '📣', '🤝', '💼'];
 const TYPE_OPTS = [
-  { value: 'cliente',      label: 'Cliente' },
-  { value: 'departamento', label: 'Departamento' },
+  { value: 'interno', label: 'Interno'  },
+  { value: 'externo', label: 'Cliente'  },
 ];
 
 function RoleBadge({ role }) {
@@ -356,7 +358,7 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCover
   const [name,       setName]       = useState(initial?.name        ?? '');
   const [emoji,      setEmoji]      = useState(initial?.emoji       ?? '📋');
   const [desc,       setDesc]       = useState(initial?.description ?? '');
-  const [type,       setType]       = useState(initial?.type && initial.type !== 'general' ? initial.type : '');
+  const [type,       setType]       = useState(initial?.type && initial.type !== 'personal' ? initial.type : 'externo');
   const [saving,     setSaving]     = useState(false);
   const [error,      setError]      = useState('');
   const [coverPreview, setCoverPreview] = useState(initial?.coverUrl ?? null);
@@ -384,7 +386,7 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCover
     if (!name.trim()) { setError('El nombre es obligatorio'); return; }
     setSaving(true);
     try {
-      await onSubmit({ name: name.trim(), emoji, description: desc.trim(), type: type || 'general' });
+      await onSubmit({ name: name.trim(), emoji, description: desc.trim(), type: type || 'externo' });
       onClose();
     } catch (err) {
       setError(err.message);
@@ -548,12 +550,34 @@ function DeleteConfirmModal({ ws, onConfirm, onClose }) {
   );
 }
 
-// ── Type filter tabs ──────────────────────────────────────────────────────────
-const TYPE_FILTERS = [
-  { value: '',             label: 'Todos' },
-  { value: 'cliente',      label: 'Clientes' },
-  { value: 'departamento', label: 'Departamentos' },
-];
+// ── Workspace section ─────────────────────────────────────────────────────────
+function WorkspaceSection({ title, icon, workspaces, coverOverrides, canEdit, onEnter, onCoverChange, onContextMenu, emptyMsg, canCreate, onCreateNew }) {
+  return (
+    <div className="mb-10">
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-base">{icon}</span>
+        <h2 className="text-sm font-semibold text-[#8b92a5] uppercase tracking-wider">{title}</h2>
+        <span className="text-xs text-[#3a3f50] ml-1">({workspaces.length})</span>
+      </div>
+      {workspaces.length === 0 ? (
+        <p className="text-xs text-[#3a3f50] pl-1">{emptyMsg}</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {workspaces.map((ws) => (
+            <WorkspaceCard
+              key={ws.id}
+              ws={{ ...ws, coverUrl: coverOverrides[ws.id] ?? ws.coverUrl }}
+              onEnter={onEnter}
+              onCoverChange={onCoverChange}
+              canEdit={canEdit}
+              onContextMenu={onContextMenu}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, onOpenAdmin, onAvatarChange }) {
@@ -561,18 +585,18 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
   const [showNew,       setShowNew]       = useState(false);
   const [editTarget,    setEditTarget]    = useState(null);
   const [deleteTarget,  setDeleteTarget]  = useState(null);
-  const [typeFilter,    setTypeFilter]    = useState('');
   const [coverOverrides, setCoverOverrides] = useState({});
   const [ctxMenu,       setCtxMenu]       = useState(null); // { x, y, ws }
   const [showProfile,   setShowProfile]   = useState(false);
   const profileBtnRef = useRef(null);
 
+  const isClient  = user?.role === 'cliente';
   const canCreate = ['superadmin', 'admin'].includes(user?.role);
   const canEdit   = ['superadmin', 'admin'].includes(user?.role);
 
-  const filtered = typeFilter
-    ? workspaces.filter((ws) => (ws.type ?? 'general') === typeFilter)
-    : workspaces;
+  const personal = workspaces.filter((ws) => ws.type === 'personal');
+  const interno  = workspaces.filter((ws) => ws.type === 'interno');
+  const externo  = workspaces.filter((ws) => ws.type === 'externo');
 
   function handleCoverChange(wsId, coverUrl) {
     setCoverOverrides((prev) => ({ ...prev, [wsId]: coverUrl }));
@@ -583,14 +607,23 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
     setCtxMenu({ x: e.clientX, y: e.clientY, ws });
   }, []);
 
+  const sharedCardProps = {
+    coverOverrides,
+    canEdit,
+    onEnter: onEnterWorkspace,
+    onCoverChange: handleCoverChange,
+    onContextMenu: handleContextMenu,
+  };
+
   return (
     <div className="min-h-screen bg-[#0f1117] flex flex-col">
       {/* Header */}
       <header className="border-b border-[#2a2d3a] px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={lfiLogo} alt="LFi" className="w-8 h-8 rounded-lg object-cover" />
-            <span className="text-sm font-semibold text-[#e8eaf0]">LFi Kanban Desk</span>
+            <img src={agLayaIcon} alt="AGLAYA" className="w-7 h-7 object-contain" />
+            <img src={agLayaLogo} alt="AGLAYA" className="h-4 object-contain hidden sm:block" />
+            <span className="text-[10px] font-medium text-[#555b70] hidden sm:block">Kanban Desk</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -640,13 +673,15 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
       <main className="flex-1 px-6 py-10">
         <div className="max-w-5xl mx-auto">
           {/* Title row */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-xl font-bold text-[#e8eaf0]">Mis espacios de trabajo</h1>
+              <h1 className="text-xl font-bold text-[#e8eaf0]">
+                {isClient ? 'Mis proyectos' : 'Espacios de trabajo'}
+              </h1>
               <p className="text-sm text-[#555b70] mt-1">
                 {workspaces.length === 0
                   ? 'Aún no tienes espacios de trabajo asignados.'
-                  : `${workspaces.length} espacio${workspaces.length !== 1 ? 's' : ''} de trabajo disponible${workspaces.length !== 1 ? 's' : ''}`}
+                  : `${workspaces.length} espacio${workspaces.length !== 1 ? 's' : ''} disponible${workspaces.length !== 1 ? 's' : ''}`}
               </p>
             </div>
             {canCreate && (
@@ -655,42 +690,19 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 <Plus size={15} />
-                Nuevo espacio de trabajo
+                Nuevo
               </button>
             )}
           </div>
 
-          {/* Type filter tabs */}
-          {workspaces.length > 0 && (
-            <div className="flex gap-1.5 mb-6">
-              {TYPE_FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setTypeFilter(f.value)}
-                  className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                    typeFilter === f.value
-                      ? 'bg-indigo-500/20 border-indigo-500/60 text-indigo-300'
-                      : 'bg-[#1a1d26] border-[#2a2d3a] text-[#8b92a5] hover:border-[#3a3d4a] hover:text-[#e8eaf0]'
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          )}
-
           {/* Content */}
           {loading ? (
-            <div className="flex justify-center py-24">
-              <Spinner size={8} />
-            </div>
-          ) : filtered.length === 0 ? (
+            <div className="flex justify-center py-24"><Spinner size={8} /></div>
+          ) : workspaces.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="text-5xl mb-4">📋</div>
-              <p className="text-[#8b92a5] text-sm">
-                {typeFilter ? 'No hay espacios de trabajo de este tipo.' : 'No tienes espacios de trabajo todavía.'}
-              </p>
-              {canCreate && !typeFilter && (
+              <p className="text-[#8b92a5] text-sm">No tienes espacios de trabajo todavía.</p>
+              {canCreate && (
                 <button
                   onClick={() => setShowNew(true)}
                   className="mt-4 flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
@@ -700,19 +712,42 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                 </button>
               )}
             </div>
-          ) : (
+          ) : isClient ? (
+            // ── Client view: flat list ──────────────────────────────────────
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map((ws) => (
+              {workspaces.map((ws) => (
                 <WorkspaceCard
                   key={ws.id}
                   ws={{ ...ws, coverUrl: coverOverrides[ws.id] ?? ws.coverUrl }}
                   onEnter={onEnterWorkspace}
                   onCoverChange={handleCoverChange}
-                  canEdit={canEdit}
-                  onContextMenu={handleContextMenu}
+                  canEdit={false}
+                  onContextMenu={() => {}}
                 />
               ))}
             </div>
+          ) : (
+            // ── Collaborator/Admin view: sectioned ──────────────────────────
+            <>
+              <WorkspaceSection
+                title="Espacio personal" icon="🏠"
+                workspaces={personal}
+                emptyMsg="Sin espacio personal asignado."
+                {...sharedCardProps}
+              />
+              <WorkspaceSection
+                title="Espacios internos" icon="🏢"
+                workspaces={interno}
+                emptyMsg="No hay espacios internos asignados."
+                {...sharedCardProps}
+              />
+              <WorkspaceSection
+                title="Espacios de clientes" icon="🤝"
+                workspaces={externo}
+                emptyMsg="No hay espacios de clientes asignados."
+                {...sharedCardProps}
+              />
+            </>
           )}
         </div>
       </main>

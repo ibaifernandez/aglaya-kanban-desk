@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { api } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Spinner } from '../components/UI/Spinner.jsx';
-import agLayaLogo from '../assets/lfi.png'; // TODO: replace lfi.png with AGLAYA logo
+import agLayaIcon from '../assets/aglaya-favicon-rojo.svg';
+import agLayaLogo from '../assets/aglaya-logo-blanco.svg';
 import { supabase } from '../utils/supabaseClient.js';
 
 export default function LoginPage() {
@@ -34,9 +35,9 @@ export default function LoginPage() {
 
         {/* Logo / título */}
         <div className="text-center mb-8">
-          <img src={agLayaLogo} alt="AGLAYA" className="w-16 h-16 rounded-2xl mx-auto mb-4 object-contain" />
-          <h1 className="text-2xl font-bold text-[#e8eaf0] tracking-tight">AGLAYA Kanban Desk</h1>
-          <p className="text-sm text-[#555b70] mt-1">Plataforma de gestión AGLAYA</p>
+          <img src={agLayaIcon} alt="AGLAYA" className="w-16 h-16 mx-auto mb-4 object-contain" />
+          <img src={agLayaLogo} alt="AGLAYA Kanban Desk" className="h-7 mx-auto mb-1 object-contain" />
+          <p className="text-sm text-[#555b70] mt-1">Kanban Desk</p>
         </div>
 
         {/* Formulario */}
