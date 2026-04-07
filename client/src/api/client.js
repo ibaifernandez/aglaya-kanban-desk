@@ -1,7 +1,7 @@
 const BASE = '/api';
 
 function getToken() {
-  return localStorage.getItem('myboardlfi_token');
+  return localStorage.getItem('aglaya_token');
 }
 
 async function request(path, options = {}) {

@@ -4,6 +4,27 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [1.1.0] — 2026-04-07 — Fase A: Rebrand AGLAYA
+
+### Changed
+- Producto renombrado de **LFi Kanban Desk** a **AGLAYA Kanban Desk**
+- Repo renombrado en GitHub: `myboardlfi` → `aglaya-board`
+- `package.json`: name `myboard` → `aglaya-kanban-desk`, version `1.0.0` → `1.1.0`
+- CORS producción: dominios `myboardlfi.*` → `kanban.aglaya.biz`
+- localStorage keys: `myboardlfi_token` / `myboardli_user` → `aglaya_token` / `aglaya_user`
+- Logo alt text: `LFi` → `AGLAYA` (archivo `lfi.png` pendiente de reemplazar por logo AGLAYA)
+- Placeholder de email: `tu@lfi.la` → `tu@empresa.com`
+
+### Removed
+- Restricción de dominio corporativo (`@lfi.la`, `@lafabricaimaginaria.com`) eliminada de login, registro y recuperación de contraseña — la plataforma acepta cualquier email
+
+### Pending (rama `feature/rebrand-aglaya`)
+- Fase B: workspace types (`general/departamento/cliente` → `personal/interno/externo`)
+- Fase C: middleware de acceso por tipo de usuario
+- Fase D: UI WorkspaceDashboard diferenciada colaborador/cliente
+
+---
+
 ## [0.8.1] — 2026-03-27 — Hotfix: categoría hardcodeada en tarjetas
 
 ### Fixed

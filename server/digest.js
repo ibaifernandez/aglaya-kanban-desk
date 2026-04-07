@@ -1,5 +1,5 @@
 /**
- * digest.js — Admin digest email for MyBoardLFi
+ * digest.js — Admin digest email for AGLAYA Kanban Desk
  *
  * Sends a usage statistics report to the superadmin (DIGEST_TO).
  * Also triggered on-demand via POST /api/digest/send-me (restricted to admins).
@@ -233,7 +233,7 @@ function buildHtml(stats) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>MyBoardLFi · Admin Digest</title>
+  <title>AGLAYA Kanban Desk · Admin Digest</title>
 </head>
 <body style="margin:0;padding:0;background:#0f1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f1117;padding:40px 0;">
@@ -248,7 +248,7 @@ function buildHtml(stats) {
                 <tr>
                   <td>
                     <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">
-                      MyBoardLFi — Admin Digest
+                      AGLAYA Kanban Desk — Admin Digest
                     </div>
                     <div style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-.5px;line-height:1.2;">
                       Resumen de actividad
@@ -355,7 +355,7 @@ function buildHtml(stats) {
                 <tr>
                   <td>
                     <p style="margin:0;font-size:11px;color:#3a3f50;line-height:1.6;">
-                      MyBoardLFi · Admin Digest — generado automáticamente<br>
+                      AGLAYA Kanban Desk · Admin Digest — generado automáticamente<br>
                       © 2026 Ibai Fernández · Todos los derechos reservados
                     </p>
                   </td>
@@ -394,7 +394,7 @@ function buildSubject() {
   const weekday  = now.toLocaleDateString('es-ES', { weekday: 'long' });
   const fecha    = now.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
   const cap      = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-  return `📊 MyBoardLFi Admin — ${cap}, ${fecha}`;
+  return `📊 AGLAYA Kanban Desk Admin — ${cap}, ${fecha}`;
 }
 
 // ── Main send function ────────────────────────────────────────────────────────

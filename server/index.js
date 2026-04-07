@@ -38,7 +38,7 @@ app.use(helmet({
 
 // ── CORS ───────────────────────────────────────────────────
 const allowedOrigins = isProd
-  ? ['https://myboardlfi.netlify.app', 'https://myboardlfi.ibaifernandez.com']
+  ? ['https://kanban.aglaya.biz']
   : ['http://localhost:5175'];
 
 app.use(cors({ origin: allowedOrigins }));

@@ -6,26 +6,12 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// ── Dominios corporativos permitidos ──────────────────────────────────────────
-const ALLOWED_DOMAINS = ['lfi.la', 'lafabricaimaginaria.com'];
-
-function isAllowedEmail(email) {
-  const domain = email.split('@')[1]?.toLowerCase();
-  return ALLOWED_DOMAINS.includes(domain);
-}
-
 // ── POST /api/auth/register ───────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
   const { email, password, name, organizationId, role = 'colaborador' } = req.body;
 
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'email, password y name son requeridos' });
-  }
-
-  if (!isAllowedEmail(email)) {
-    return res.status(403).json({
-      error: `Acceso restringido. Solo se permiten cuentas corporativas (@lfi.la, @lafabricaimaginaria.com).`,
-    });
   }
 
   // 1. Create user in Supabase Auth
@@ -67,12 +53,6 @@ router.post('/login', async (req, res) => {
 
   if (!email || !password) {
     return res.status(400).json({ error: 'email y password son requeridos' });
-  }
-
-  if (!isAllowedEmail(email)) {
-    return res.status(403).json({
-      error: `Acceso restringido. Solo se permiten cuentas corporativas (@lfi.la, @lafabricaimaginaria.com).`,
-    });
   }
 
   // 1. Authenticate via Supabase Auth

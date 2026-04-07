@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { api } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Spinner } from '../components/UI/Spinner.jsx';
-import lfiLogo from '../assets/lfi.png';
+import agLayaLogo from '../assets/lfi.png'; // TODO: replace lfi.png with AGLAYA logo
 import { supabase } from '../utils/supabaseClient.js';
 
 export default function LoginPage() {
@@ -14,22 +14,9 @@ export default function LoginPage() {
   const [view,     setView]     = useState('login'); // 'login' | 'forgot' | 'forgot-sent'
   const [showPass, setShowPass] = useState(false);
 
-  const ALLOWED_DOMAINS = ['lfi.la', 'lafabricaimaginaria.com'];
-
-  function isAllowedEmail(addr) {
-    const domain = addr.split('@')[1]?.toLowerCase();
-    return ALLOWED_DOMAINS.includes(domain);
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-
-    if (!isAllowedEmail(email)) {
-      setError('Acceso restringido. Solo se permiten cuentas corporativas (@lfi.la, @lafabricaimaginaria.com).');
-      return;
-    }
-
     setLoading(true);
     try {
       const { token, user } = await api.login({ email, password });
@@ -47,9 +34,9 @@ export default function LoginPage() {
 
         {/* Logo / título */}
         <div className="text-center mb-8">
-          <img src={lfiLogo} alt="LFi" className="w-16 h-16 rounded-2xl mx-auto mb-4 object-contain" />
-          <h1 className="text-2xl font-bold text-[#e8eaf0] tracking-tight">LFi Kanban Desk</h1>
-          <p className="text-sm text-[#555b70] mt-1">Plataforma de gestión para LFi</p>
+          <img src={agLayaLogo} alt="AGLAYA" className="w-16 h-16 rounded-2xl mx-auto mb-4 object-contain" />
+          <h1 className="text-2xl font-bold text-[#e8eaf0] tracking-tight">AGLAYA Kanban Desk</h1>
+          <p className="text-sm text-[#555b70] mt-1">Plataforma de gestión AGLAYA</p>
         </div>
 
         {/* Formulario */}
@@ -64,7 +51,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoFocus
-              placeholder="tu@lfi.la"
+              placeholder="tu@empresa.com"
               className="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2.5
                          text-[#e8eaf0] text-sm placeholder-[#3a3f50]
                          focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50
@@ -143,7 +130,7 @@ export default function LoginPage() {
         )}
 
         <p className="text-center text-xs text-[#3a3f50] mt-6">
-          LFi Kanban Desk · © 2026 Ibai Fernández
+          AGLAYA Kanban Desk · © 2026 AGLAYA
         </p>
       </div>
     </div>
@@ -157,16 +144,9 @@ function ForgotPassword({ initialEmail, onBack }) {
   const [sent,    setSent]    = useState(false);
   const [error,   setError]   = useState('');
 
-  const ALLOWED_DOMAINS = ['lfi.la', 'lafabricaimaginaria.com'];
-  const isAllowed = (addr) => ALLOWED_DOMAINS.includes(addr.split('@')[1]?.toLowerCase());
-
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    if (!isAllowed(email)) {
-      setError('Solo se permiten cuentas corporativas (@lfi.la, @lafabricaimaginaria.com).');
-      return;
-    }
     setLoading(true);
     const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
@@ -200,7 +180,7 @@ function ForgotPassword({ initialEmail, onBack }) {
         onChange={(e) => setEmail(e.target.value)}
         required
         autoFocus
-        placeholder="tu@lfi.la"
+        placeholder="tu@empresa.com"
         className="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2.5
                    text-[#e8eaf0] text-sm placeholder-[#3a3f50]
                    focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
