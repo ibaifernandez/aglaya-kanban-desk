@@ -6,26 +6,12 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// ── Dominios corporativos permitidos ──────────────────────────────────────────
-const ALLOWED_DOMAINS = ['lfi.la', 'lafabricaimaginaria.com'];
-
-function isAllowedEmail(email) {
-  const domain = email.split('@')[1]?.toLowerCase();
-  return ALLOWED_DOMAINS.includes(domain);
-}
-
 // ── POST /api/auth/register ───────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
   const { email, password, name, organizationId, role = 'colaborador' } = req.body;
 
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'email, password y name son requeridos' });
-  }
-
-  if (!isAllowedEmail(email)) {
-    return res.status(403).json({
-      error: `Acceso restringido. Solo se permiten cuentas corporativas (@lfi.la, @lafabricaimaginaria.com).`,
-    });
   }
 
   // 1. Create user in Supabase Auth
@@ -51,7 +37,19 @@ router.post('/register', async (req, res) => {
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 
-  // 3. Build JWT
+  // 3. Auto-create personal workspace for non-guest users (if org is set)
+  if (organizationId && role !== 'guest' && role !== 'cliente') {
+    const { data: ws } = await supabaseAdmin
+      .from('workspaces')
+      .insert({ name: 'Personal', emoji: '🏠', type: 'personal', organization_id: organizationId, created_by: userId })
+      .select()
+      .single();
+    if (ws) {
+      await supabaseAdmin.from('workspace_members').insert({ workspace_id: ws.id, user_id: userId, role: 'owner', invited_by: userId });
+    }
+  }
+
+  // 4. Build JWT
   const token = jwt.sign(
     { id: userId, email, name, role, organizationId: organizationId || null },
     process.env.JWT_SECRET,
@@ -67,12 +65,6 @@ router.post('/login', async (req, res) => {
 
   if (!email || !password) {
     return res.status(400).json({ error: 'email y password son requeridos' });
-  }
-
-  if (!isAllowedEmail(email)) {
-    return res.status(403).json({
-      error: `Acceso restringido. Solo se permiten cuentas corporativas (@lfi.la, @lafabricaimaginaria.com).`,
-    });
   }
 
   // 1. Authenticate via Supabase Auth

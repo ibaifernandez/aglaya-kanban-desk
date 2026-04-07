@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabaseClient.js';
 import { Spinner } from '../components/UI/Spinner.jsx';
-import lfiLogo from '../assets/lfi.png';
+import agLayaIcon from '../assets/aglaya-favicon-rojo.svg';
 
 export default function ResetPasswordPage({ onDone }) {
   const [password,  setPassword]  = useState('');
@@ -37,7 +37,7 @@ export default function ResetPasswordPage({ onDone }) {
     <div className="min-h-screen bg-[#0f1117] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src={lfiLogo} alt="LFi" className="w-16 h-16 rounded-2xl mx-auto mb-4 object-contain" />
+          <img src={agLayaIcon} alt="AGLAYA" className="w-16 h-16 mx-auto mb-4 object-contain" />
           <h1 className="text-2xl font-bold text-[#e8eaf0] tracking-tight">Nueva contraseña</h1>
           <p className="text-sm text-[#555b70] mt-1">LFi Kanban Desk</p>
         </div>

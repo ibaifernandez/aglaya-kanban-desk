@@ -2,8 +2,8 @@ import { createContext, useContext, useState, useCallback } from 'react';
 
 const AuthContext = createContext(null);
 
-const TOKEN_KEY = 'myboardlfi_token';
-const USER_KEY  = 'myboardlfi_user';
+const TOKEN_KEY = 'aglaya_token';
+const USER_KEY  = 'aglaya_user';
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));

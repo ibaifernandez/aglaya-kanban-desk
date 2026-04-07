@@ -7,12 +7,14 @@ const router = express.Router();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+const VALID_TYPES = ['personal', 'interno', 'externo'];
+
 const toWorkspace = (row) => ({
   id:          row.id,
   name:        row.name,
   emoji:       row.emoji,
   description: row.description,
-  type:        row.type ?? 'general',
+  type:        row.type ?? 'externo',
   coverUrl:    row.cover_url ?? null,
   createdAt:   row.created_at,
   createdBy:   row.created_by,
@@ -29,7 +31,12 @@ router.get('/', requireAuth, async (req, res) => {
 
   if (error) { console.error('[workspaces] GET /:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
-  const rows = (data || []).filter((row) => row.workspace != null);
+  let rows = (data || []).filter((row) => row.workspace != null);
+
+  // Clients can only see external workspaces
+  if (req.user.role === 'cliente') {
+    rows = rows.filter((row) => row.workspace.type === 'externo');
+  }
   if (!rows.length) return res.json({ data: [] });
 
   // Fetch member + board counts in 2 aggregate queries instead of 2N
@@ -64,11 +71,14 @@ router.get('/', requireAuth, async (req, res) => {
 // Creates a new workspace. Creator becomes 'owner'.
 
 router.post('/', requireAuth, async (req, res) => {
-  const { name, emoji = '📋', description = '', type = 'general' } = req.body;
+  const { name, emoji = '📋', description = '', type = 'externo' } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
 
-  const validTypes = ['cliente', 'departamento', 'general'];
-  const wsType = validTypes.includes(type) ? type : 'general';
+  // Only admins can create personal/interno workspaces
+  const allowedTypes = (req.user.role === 'admin' || req.user.role === 'superadmin')
+    ? VALID_TYPES
+    : ['externo'];
+  const wsType = allowedTypes.includes(type) ? type : 'externo';
 
   const { data: ws, error: wsErr } = await supabaseAdmin
     .from('workspaces')
@@ -129,8 +139,7 @@ router.patch('/:workspaceId', requireAuth, requireWorkspaceMember, requireWorksp
   if (name?.trim())        update.name        = name.trim();
   if (emoji)               update.emoji       = emoji;
   if (description != null) update.description = description;
-  const validTypes = ['cliente', 'departamento', 'general'];
-  if (type && validTypes.includes(type)) update.type = type;
+  if (type && VALID_TYPES.includes(type)) update.type = type;
 
   const { data, error } = await supabaseAdmin
     .from('workspaces')

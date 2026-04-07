@@ -8,18 +8,31 @@ async function requireWorkspaceMember(req, res, next) {
   const workspaceId = req.params.workspaceId || req.params.id;
   if (!workspaceId) return res.status(400).json({ error: 'workspaceId requerido' });
 
-  const { data, error } = await supabaseAdmin
-    .from('workspace_members')
-    .select('workspace_id, user_id, role')
-    .eq('workspace_id', workspaceId)
-    .eq('user_id', req.user.id)
-    .single();
+  const [memberRes, wsRes] = await Promise.all([
+    supabaseAdmin
+      .from('workspace_members')
+      .select('workspace_id, user_id, role')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', req.user.id)
+      .single(),
+    supabaseAdmin
+      .from('workspaces')
+      .select('type')
+      .eq('id', workspaceId)
+      .single(),
+  ]);
 
-  if (error || !data) {
+  if (memberRes.error || !memberRes.data) {
     return res.status(403).json({ error: 'Sin acceso a este workspace' });
   }
 
-  req.workspaceMember = data;
+  // Clients can only access external workspaces
+  const wsType = wsRes.data?.type;
+  if (req.user.role === 'cliente' && wsType !== 'externo') {
+    return res.status(403).json({ error: 'Sin acceso a este workspace' });
+  }
+
+  req.workspaceMember = memberRes.data;
   next();
 }
 

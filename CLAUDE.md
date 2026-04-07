@@ -1,4 +1,4 @@
-# CLAUDE.md — MyBoardLFi
+# CLAUDE.md — AGLAYA Kanban Desk
 
 > Este archivo es leído automáticamente por Claude Code al inicio de cada sesión.
 
@@ -6,7 +6,9 @@
 
 ## Identidad del proyecto
 
-**MyBoardLFi** (nombre técnico/repositorio) — **display name: LFi Kanban Desk** — es la versión corporativa multi-tenant de MyBoard, orientada a equipos y clientes de LFi (agencia de marketing, Chile). Desarrollado por Ibai Fernández como ejercicio de emprendimiento interno.
+**aglaya-board** (nombre del repo en GitHub) — **display name: AGLAYA Kanban Desk** — plataforma de gestión de proyectos multi-tenant bajo la red AGLAYA (aglaya.biz). Soporta colaboradores (workspaces personal, interno y externo) y clientes (solo workspaces externos asignados). Desarrollado por Ibai Fernández.
+
+Antes llamado **MyBoardLFi / LFi Kanban Desk** — migrado a AGLAYA en v1.1.0.
 
 ---
 
@@ -34,17 +36,20 @@ Configuración en `.claude/launch.json`.
 
 ## Fase actual
 
-**Phase 0 — Limpieza y documentación**
+**Phase 1 — Rebrand AGLAYA + arquitectura de tipos de usuario**
 
-Eliminar datos personales, cargar dummy data corporativa, actualizar toda la documentación y ajustar puertos. Sin nuevas features hasta completar Phase 0.
+- [x] Fase A: Rebrand (display strings, dominio, localStorage keys, CORS)
+- [ ] Fase B: Workspace types (`personal / interno / externo`)
+- [ ] Fase C: Control de acceso por tipo de usuario (`colaborador` vs `cliente`)
+- [ ] Fase D: UI diferenciada por tipo de usuario en WorkspaceDashboard
 
 ---
 
 ## Reglas críticas
 
-- No matar procesos en puertos 3003/5175 sin verificar que son de MyBoardLFi.
+- No matar procesos en puertos 3003/5175 sin verificar que son de AGLAYA Kanban Desk.
 - No modificar `.claude/launch.json` sin actualizar este archivo.
-- **No sobreescribir `server/data/tasks.json` con datos personales de Ibai.** Contiene dummy data corporativa de demostración; en producción será reemplazado por Supabase.
 - Al mover una tarjeta a una columna de tipo "hecho/entregado/completado": establecer `priority` a `"none"` automáticamente.
 - Idioma del código: inglés. Idioma de documentación y commits: español.
-- Antes de implementar features de Phase 1, leer siempre `docs/ARCHITECTURE.md`.
+- Todo el trabajo de la migración AGLAYA se hace en la rama `feature/rebrand-aglaya`. No mergear a `main` hasta validar en local.
+- Antes de implementar features, leer siempre `docs/ARCHITECTURE.md`.
