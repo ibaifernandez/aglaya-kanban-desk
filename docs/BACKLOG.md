@@ -1,4 +1,4 @@
-# BACKLOG — LFi Kanban Desk (MyBoardLFi)
+# BACKLOG — AGLAYA Kanban Desk
 
 Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 
@@ -170,6 +170,36 @@ Cron job que envía email de alerta dos veces al día con tarjetas prioritarias 
 ### Bloqueantes
 - Requiere que `assignee_id` esté en uso (Sub-fase 2.1 completada)
 - Requiere acordar scope exacto con Bani/Ibai antes de implementar
+
+---
+
+## Backlog — Movilidad de objetos *(Visión a largo plazo — no implementar sin diseño previo)*
+
+La plataforma debe reflejar cómo funciona el trabajo real: los proyectos y tareas cambian de contexto. Un objeto puede empezar como personal y terminar siendo de cliente, o un trabajo interno puede abrirse a colaboración externa. La jerarquía completa debe ser fluida:
+
+### Nivel workspace — Cambio de tipo
+- [ ] **Editar tipo de workspace** (personal / interno / externo) después de la creación
+  - UI: menú de opciones en la tarjeta de workspace o en su página de ajustes
+  - Acceso: owner y admin del workspace
+  - Implicación de seguridad: cambiar a `externo` expone el workspace a usuarios tipo `cliente`; mostrar aviso explícito
+  - No bloquea ninguna otra feature — implementar cuando se construya la página de settings de workspace
+
+### Nivel board — Mover entre workspaces
+- [ ] **Mover un tablero de un workspace a otro**
+  - Caso de uso: "este proyecto personal lo paso al equipo interno"
+  - El tablero hereda el tipo de acceso del workspace destino
+  - Requiere que el usuario sea owner/admin en **ambos** workspaces
+  - Considerar qué pasa con los miembros: ¿se mantienen, se eliminan, se avisa?
+
+### Nivel card — Mover entre tableros (y por tanto entre workspaces)
+- [ ] **Mover una tarjeta a un tablero diferente** (ya existe entre columnas del mismo tablero)
+  - Caso de uso: "esta tarea personal necesita input del cliente"
+  - La tarjeta hereda el contexto del tablero destino
+  - La columna destino debe seleccionarse en el mismo gesto
+  - Desbloquea colaboración cruzada sin duplicar información
+
+### Principio de diseño
+> La visibilidad de un objeto siempre la determina el contexto más restrictivo en el que vive. Mover un objeto a un contexto más abierto requiere confirmación explícita; moverlo a uno más cerrado es inmediato.
 
 ---
 
