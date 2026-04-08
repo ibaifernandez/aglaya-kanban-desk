@@ -22,8 +22,9 @@ const TYPE_LABELS = {
 
 const EMOJIS = ['📋', '🚀', '⭐', '🎯', '💡', '🏢', '📊', '🛠', '🎨', '📣', '🤝', '💼'];
 const TYPE_OPTS = [
-  { value: 'interno', label: 'Interno'  },
-  { value: 'externo', label: 'Cliente'  },
+  { value: 'personal', label: 'Personal' },
+  { value: 'interno',  label: 'Interno'  },
+  { value: 'externo',  label: 'Cliente'  },
 ];
 
 function RoleBadge({ role }) {
