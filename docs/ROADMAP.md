@@ -1,108 +1,95 @@
-# LFi Kanban Desk — Roadmap de desarrollo
+# ROADMAP — AGLAYA Kanban Desk
 
-**Última actualización:** 2026-03-25
+**Última actualización:** 2026-04-08
 
 ---
 
-## Phase 0 — Limpieza y preparación
+## Phase 0 — MyBoard (origen)
 
-**Estado:** ✅ Completada
-**Semana:** 18/03/2026
+**Estado:** ✅ Completada · Legacy
 
-### Objetivos
-- Eliminar todos los datos personales de Ibai del repositorio
-- Cargar dummy data corporativa verosímil para LFi
-- Actualizar puertos a 3003 (server) y 5175 (client)
-- Reescribir toda la documentación con contexto corporativo
-- Establecer las bases para el desarrollo de Phase 1
-
-### Entregables
-- [x] Backup de `tasks.json` original
-- [x] Dummy data corporativa en `tasks.json` (5 tableros, 30+ tarjetas)
-- [x] Archivos personales eliminados (uploads, estrategia.md, .env)
-- [x] Puertos actualizados (3003/5175)
-- [x] CLAUDE.md, AGENTS.md, README.md reescritos
-- [x] ROADMAP.md, BACKLOG.md, ARCHITECTURE.md, DECISIONS.md, PRODUCT.md reescritos
+Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del producto. Archivada como legacy; datos migrados a AGLAYA Kanban Desk en v1.1.1.
 
 ---
 
 ## Phase 1 — Multi-tenant y autenticación
 
-**Estado:** ✅ Completada (2026-03-19 → 2026-03-24)
+**Estado:** ✅ Completada · 2026-03-19 → 2026-03-24
 
-### Objetivos
-- Convertir la aplicación de single-user a multi-tenant
-- Implementar autenticación segura con JWT
-- Migrar el almacenamiento de JSON a base de datos real
-- Establecer sistema de roles y permisos
-
-### Funcionalidades
-- Sistema de login y registro con Supabase Auth
-- Endpoints `/api/auth/login` y `/api/auth/register`
-- Middleware de autenticación JWT en todas las rutas protegidas
-- Campo `organizationId` en boards y cards (aislamiento por tenant)
+- Migración de almacenamiento: `tasks.json` → Supabase (PostgreSQL + RLS)
+- Autenticación: Supabase Auth + JWT middleware + bcryptjs
+- Jerarquía de datos: Organization → Board → Column → Card
 - Roles: superadmin / admin / colaborador / cliente / guest
-- Permisos por tablero: owner / editor / viewer
-- Panel de administración: gestión de usuarios y roles
-- Límites freemium: Free (3 tableros, 50 tarjetas, sin colaboradores) vs. Pro (sin límites)
-- Migración completa de `tasks.json` a Supabase
-
-### Tablas de base de datos (Supabase/PostgreSQL)
-- `organizations` — tenants
-- `users` — vinculados a Supabase Auth
-- `memberships` — relación usuarios ↔ organizaciones + rol
-- `boards` — con `organization_id`
-- `columns` — con `board_id`
-- `cards` — con `column_id` y `board_id`
-- `categories` — con `organization_id`
+- Email digest de administrador (estadísticas globales, node-cron)
+- Seguridad: Helmet, rate limiting, CORS por entorno, RLS en todas las tablas
+- Suite de tests: Jest + Supertest, 26 tests en 4 suites
+- Deploy: Netlify (cliente) + Railway (servidor)
 
 ---
 
 ## Phase 2 — Workspaces (multi-tenant avanzado)
 
-**Estado:** ✅ Completada (2026-03-24/25)
-**Producción:** https://myboardlfi.ibaifernandez.com
+**Estado:** ✅ Completada · 2026-03-24/25
 
-### Objetivos
-- Dockerizar la aplicación completa
-- Hacer el deploy inicial en infraestructura de PRONODO
-- Configurar dominio y HTTPS
-- Documentar el proceso de deploy para el equipo técnico
-
-### Entregables completados
-- [x] Jerarquía Organization → Workspace → Board → Column → Card
-- [x] Roles por workspace: owner / admin / member / guest
-- [x] RLS en Supabase con funciones SECURITY DEFINER
-- [x] WorkspaceDashboard, WorkspaceMembers, breadcrumb, mini-kanban
-- [x] Display name «LFi Kanban Desk» en toda la UI
-- [ ] ⚠️ Email de invitación (KNOWN-02 — pendiente)
+- Jerarquía ampliada: Organization → **Workspace** → Board → Column → Card
+- Roles por workspace: owner / admin / member / guest
+- RLS con funciones `SECURITY DEFINER` para evitar recursión
+- WorkspaceDashboard: grid de tarjetas, mini-kanban generativo, counts reales
+- WorkspaceMembers: panel lateral de gestión de roles
+- Navegación: breadcrumb, History API, sessionStorage persistente
+- Asignación de responsable por tarjeta + filtros
+- Foto de perfil y portada de workspace (Supabase Storage)
 
 ---
 
-## Phase 3 — Pitch interno a LFi
+## Phase 3 — Rebrand AGLAYA + Migración de datos
+
+**Estado:** ✅ Completada · 2026-04-07/08 · **v1.1.0 + v1.1.1**
+
+- Rebrand completo: LFi Kanban Desk → **AGLAYA Kanban Desk**
+- Dominio: `kanban.aglaya.biz`
+- Workspace types: `personal / interno / externo`
+- Acceso por rol: colaborador (todo) vs cliente (solo externo)
+- UI diferenciada en WorkspaceDashboard según rol de usuario
+- Migración de datos desde MyBoard legacy: 7 boards, 62 cards, 10 categorías
+- Fix: `'urgent'` añadido a `VALID_PRIORITIES` (bug preexistente)
+- Documentación: movilidad de objetos diseñada y documentada en backlog
+
+---
+
+## Phase 4 — Calidad de producto y UX completa
+
+**Estado:** 🔵 Próxima fase
+
+### Workspace settings
+- [ ] Página de ajustes de workspace: editar nombre, emoji, tipo, descripción, portada
+- [ ] Cambio de tipo de workspace desde la UI (sin SQL) — documentado en backlog
+
+### Seguridad y UX de destrucción
+- [ ] Confirmación doble al borrar tarjetas (diálogo de confirmación)
+- [ ] Confirmación al borrar tableros y columnas
+
+### Email
+- [ ] User digest: email diario personal con tarjetas urgentes/vencidas del usuario, segmentado por tipo de workspace (personal / interno / clientes)
+- [ ] Verificación end-to-end del flujo de invitación (email → registro → acceso a workspace)
+
+### Movilidad de objetos *(diseñado, pendiente de implementar)*
+- [ ] Mover tablero entre workspaces
+- [ ] Mover tarjeta entre tableros (cross-board desde el modal)
+
+### Tests
+- [ ] Actualizar suite `auth.test.js` para cubrir nuevo sistema sin restricción de dominio
+- [ ] Tests para rutas de workspaces con tipos `personal/interno/externo`
+
+---
+
+## Phase 5 — Escala y colaboración
 
 **Estado:** 📋 Por definir
-**Audiencia:** Héctor Vera, Iván Colodro, Daniel, Marco
 
-### Objetivos
-- Presentar MyBoardLFi como solución interna de gestión de proyectos
-- Proponer modelo de compensación o adquisición del software
-- Establecer términos de uso y propiedad intelectual
-
-### Entregables
-- Demo funcional en `myboard.pronodo.com`
-- Deck de 5–6 slides: problema → solución → demo → roadmap → propuesta
-- Propuesta comercial: reconocimiento de autoría + compensación o revenue sharing
-
----
-
-## Phase 4 — Deploy en PRONODO + Protección de IP
-
-**Estado:** 📋 Pendiente de Phase 3
-
-### Acciones permanentes
-- Código fuente en repositorio privado de Ibai (GitHub personal)
-- Deploy vía build compilado — nunca compartir código fuente con LFi/PRONODO
-- Copyright en footer de la aplicación: "MyBoardLFi · © 2026 Ibai Fernández"
-- Registro de propiedad intelectual si las negociaciones avanzan
-- Versionado semántico documentado en `docs/CHANGELOG.md`
+- Notificaciones in-app (cambios en tarjetas asignadas)
+- Actividad / audit log por workspace
+- Límites freemium (máx. boards/cards en plan free)
+- Búsqueda global unificada (cross-workspace)
+- Operaciones en lote sobre tarjetas
+- Deprecación definitiva de MyBoard (apagar servidor, archivar repo)

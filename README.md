@@ -1,142 +1,176 @@
-# MyBoardLFi
+# AGLAYA Kanban Desk
 
-![Version](https://img.shields.io/badge/version-1.0.0-6366f1)
+![Version](https://img.shields.io/badge/version-1.1.0-6366f1)
 ![Tests](https://img.shields.io/badge/tests-26%20passing-brightgreen)
 ![Client](https://img.shields.io/badge/client-Netlify-00C7B7?logo=netlify)
 ![Server](https://img.shields.io/badge/server-Railway-0B0D0E?logo=railway)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-Multi-tenant Kanban SaaS for agency teams. Built with React 18, Express 4, and Supabase. Features workspace isolation, JWT auth, drag-and-drop boards, file uploads, and automated daily email digests.
+**Tu trabajo personal y el de tu equipo, en el mismo sitio. Sin fricciones, sin cuentas separadas, sin perder el hilo.**
 
-**Client:** [myboardlfi.ibaifernandez.com](https://myboardlfi.ibaifernandez.com) · **API:** [myboardlfi-server.up.railway.app](https://myboardlfi-server.up.railway.app) · **Release:** [v1.0.0](https://github.com/ibaifernandez/myboardlfi/releases/tag/v1.0.0)
+Kanban multi-tenant para equipos que trabajan con clientes. Separa lo que es tuyo, lo que es del equipo y lo que es del cliente — y decide en cada momento quién ve qué. En producción en [kanban.aglaya.biz](https://kanban.aglaya.biz).
+
+---
+
+## Por qué existe esto
+
+La mayoría de herramientas Kanban te obligan a elegir: o gestionas tu trabajo personal, o gestionas proyectos de equipo. AGLAYA Kanban Desk no te obliga a elegir.
+
+Tres tipos de espacio de trabajo, un solo acceso:
+
+- **Personal** — tu backlog, tus proyectos, lo que solo te concierne a ti
+- **Interno** — tableros de equipo para proyectos departamentales
+- **Externo** — espacios compartidos con clientes, con visibilidad controlada
+
+Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo interno. Tú ves todo.
 
 ---
 
 ## Stack
 
-| Layer | Technology |
+| Capa | Tecnología |
 |---|---|
 | Frontend | React 18 + Vite + TailwindCSS |
-| Drag & drop | react-beautiful-dnd |
-| Backend | Express 4 + Node.js 18 |
-| Database | Supabase (PostgreSQL + RLS) |
-| Auth | Supabase Auth + custom JWT middleware + bcryptjs |
-| Storage | Supabase Storage (file attachments) |
-| Email | Nodemailer + node-cron (daily digest) |
-| Security | Helmet + express-rate-limit |
-| Testing | Jest + Supertest |
-| Client deploy | Netlify (auto-deploy on push to `main`) |
-| Server deploy | Railway (auto-deploy on push to `main`) |
+| Drag & drop | @dnd-kit |
+| Backend | Express 4 + Node.js |
+| Base de datos | Supabase (PostgreSQL + RLS) |
+| Auth | Supabase Auth + JWT middleware + bcryptjs |
+| Storage | Supabase Storage (adjuntos, avatares, portadas) |
+| Email | Nodemailer + node-cron (digest diario) |
+| Seguridad | Helmet + express-rate-limit + CORS por entorno |
+| Tests | Jest + Supertest (26 tests) |
+| Deploy cliente | Netlify (auto-deploy en push a `main`) |
+| Deploy servidor | Railway (auto-deploy en push a `main`) |
 
 ---
 
-## Architecture
+## Arquitectura
 
 ```
-client/  (React 18 + Vite, port 5175)
+client/  (React 18 + Vite · Netlify · puerto 5175)
 ├── src/
-│   ├── components/
-│   │   ├── boards/
-│   │   ├── cards/
-│   │   └── workspaces/
-│   └── auth/
+│   ├── pages/          ← LoginPage, WorkspaceDashboard, ResetPasswordPage
+│   ├── components/     ← Board, Card, CardModal, Sidebar, Toolbar…
+│   ├── context/        ← AuthContext, CategoriesContext
+│   ├── hooks/          ← useBoardData, useWorkspaces, useBoards…
+│   └── api/client.js   ← interceptor JWT · todas las peticiones
 
-server/  (Express 4, port 3003)
-├── routes/
-├── middleware/      ← JWT validation, rate limiting
-├── jobs/            ← node-cron daily digest
-└── supabase.js
+server/  (Express 4 · Railway · puerto 3003)
+├── routes/             ← auth, boards, cards, columns, categories,
+│                          workspaces, media, digest
+├── middleware/         ← requireAuth, requireRole, requireWorkspaceMember
+├── digest.js           ← admin digest · estadísticas globales diarias
+└── utils/supabase.js   ← cliente admin (service_role) + anon
 
-         React ←──── JWT over HTTPS ────→ Express
-                                              │
-                                         Supabase
-                                    (PostgreSQL + RLS
-                                     + Auth + Storage)
+         React ←──── JWT / HTTPS ────→ Express
+                                           │
+                                      Supabase
+                               (PostgreSQL + RLS + Auth
+                                + Storage + Admin API)
 ```
 
-- **Multi-tenancy:** workspace-level data isolation enforced via Supabase Row Level Security (RLS)
-- **Auth:** JWT issued by Supabase Auth, validated in Express middleware; passwords hashed with bcryptjs
-- **File uploads:** Multer handles multipart → stored in Supabase Storage buckets
+**Aislamiento de datos:** Row Level Security activa en todas las tablas. El servidor usa `service_role` (bypasa RLS para operaciones administrativas); el cliente nunca toca la DB directamente.
+
+**Jerarquía de objetos:** Organization → Workspace → Board → Column → Card. Cada nivel hereda las restricciones de visibilidad del nivel superior.
 
 ---
 
-## Features (v1.0.0)
+## Características — v1.1.0
 
-- ✅ Multi-tenant architecture with workspace isolation
-- ✅ JWT authentication with workspace role system (admin / collaborator / guest)
-- ✅ Drag-and-drop Kanban boards (react-beautiful-dnd)
-- ✅ Cards with priority, due date, description, checklists, and labels
-- ✅ File uploads to Supabase Storage
-- ✅ Daily email digest via node-cron + Nodemailer
-- ✅ Security hardening: Helmet, rate limiting, parameterized queries
-- ✅ Row Level Security (RLS) policies in Supabase
+### Workspaces y roles
+- Tres tipos de workspace: `personal` / `interno` / `externo`
+- Dos roles de usuario: `colaborador` (acceso completo) y `cliente` (solo workspaces externos asignados)
+- Roles por workspace: `owner` / `admin` / `member` / `guest`
+- Creación automática de workspace personal al registrarse
+
+### Tableros y tarjetas
+- Drag & drop de columnas y tarjetas
+- Prioridades: urgente / alta / media / baja / ninguna
+- Fecha límite con indicador visual de urgencia
+- Checklist con progreso, reordenación y edición inline
+- Responsable por tarjeta (con avatar)
+- Etiquetas y adjuntos
+- Búsqueda global y filtros por responsable / vencidas
+
+### Identidad visual y storage
+- Avatar de usuario (upload directo, crop integrado)
+- Portada de workspace (imagen real o mini-kanban generativo)
+- Mini-kanban decorativo determinista en tarjetas de workspace
+
+### Email y notificaciones
+- Digest diario de administrador: estadísticas globales, tarjetas vencidas, huérfanas, top tableros, datos de usuarios Supabase
+- Endpoint `POST /api/digest/send-me` para envío bajo demanda (admin)
+- SMTP via Resend
+
+### Seguridad
+- CORS restringido por entorno (solo `kanban.aglaya.biz` en producción)
+- Rate limiting: 20 req / 15 min en rutas de auth
+- Helmet con CSP en producción
+- Validación de enums y tipos en todos los endpoints de mutación
+- JWT con expiración de 7 días; tokens en localStorage con keys propias (`aglaya_token`, `aglaya_user`)
 
 ---
 
-## Test suite
+## Primeros pasos
 
-26 tests across 4 suites — all passing.
+### Requisitos
 
-| Suite | Tests | Status |
-|---|---|---|
-| Auth API | 8 | ✅ |
-| Boards API | 7 | ✅ |
-| Cards API | 6 | ✅ |
-| Workspaces API | 5 | ✅ |
+- Node.js 20+
+- Un proyecto [Supabase](https://supabase.com) (el plan free es suficiente para desarrollo)
+
+### Instalación
 
 ```bash
-cd server && npm test
-```
+# Clonar
+git clone https://github.com/ibaifernandez/aglaya-board.git
+cd aglaya-board
 
----
-
-## Getting started
-
-### Prerequisites
-
-- Node.js 18+
-- A [Supabase](https://supabase.com) project (free tier works)
-
-### Setup
-
-```bash
-# Clone
-git clone https://github.com/ibaifernandez/myboardlfi.git
-cd myboardlfi
-
-# Install server dependencies
+# Dependencias del servidor
 npm install
 
-# Install client dependencies
+# Dependencias del cliente
 cd client && npm install && cd ..
 
-# Configure environment
+# Variables de entorno
 cp .env.example .env
-# Fill in your Supabase URL, service role key, JWT secret, and SMTP credentials
-
-# Start in development
-npm run dev
-# Server → http://localhost:3003
-# Client → http://localhost:5175
+# Rellena SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, JWT_SECRET y SMTP
 ```
 
-### Environment variables
+### Ejecutar en local
+
+```bash
+npm run dev
+# Servidor → http://localhost:3003
+# Cliente  → http://localhost:5175
+```
+
+---
+
+## Variables de entorno
 
 ```env
 # Supabase
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_ANON_KEY=
 
 # JWT
 JWT_SECRET=
 
-# Email digest (optional)
+# Email digest
 SMTP_HOST=
-SMTP_PORT=
+SMTP_PORT=587
+SMTP_SECURE=false
 SMTP_USER=
 SMTP_PASS=
-DIGEST_FROM_EMAIL=
-DIGEST_TO_EMAIL=
+SMTP_FROM=
+DIGEST_TO=
+DIGEST_HOUR=6
+
+# App
+PORT=3003
+SITE_URL=https://kanban.aglaya.biz
+NODE_ENV=production
 ```
 
 ---
@@ -144,29 +178,63 @@ DIGEST_TO_EMAIL=
 ## Scripts
 
 ```bash
-npm run dev       # Start server + client in parallel (concurrently)
-npm run server    # Server only
-npm run client    # Client only (from /client)
-npm test          # Run test suite (from /server)
+npm run dev       # Servidor + cliente en paralelo (concurrently)
+npm run server    # Solo servidor
+npm run client    # Solo cliente (desde /client)
+npm test          # Suite Jest + Supertest (desde /server)
 ```
 
 ---
 
-## Branch strategy
+## Migraciones SQL
 
-`main` is the production branch. Both Netlify and Railway auto-deploy on push to `main`. Feature work uses short-lived branches with PR and manual merge.
+```bash
+# Ejecutar en Supabase → SQL Editor
 
----
+# Schema inicial (Phase 1)
+docs/supabase-schema.sql
 
-## Documentation
-
-- [Architecture](./docs/ARCHITECTURE.md)
-- [Changelog](./docs/CHANGELOG.md)
-- [Roadmap](./docs/ROADMAP.md)
-- [Backlog](./docs/BACKLOG.md)
-- [Deploy guide](./docs/README-deploy.md)
-- [Agent instructions](./AGENTS.md)
+# Workspace types (v1.1.0 — solo si actualizas desde una versión anterior)
+docs/migrations/002-workspace-types-aglaya.sql
+```
 
 ---
 
-*MyBoardLFi · © 2026 Ibai Fernández · MIT License*
+## Tests
+
+26 tests en 4 suites — todos en verde.
+
+| Suite | Tests |
+|---|---|
+| Auth API | 8 |
+| Boards API | 7 |
+| Cards API | 6 |
+| Workspaces API | 5 |
+
+```bash
+cd server && npm test
+```
+
+---
+
+## Estrategia de ramas
+
+`main` es la rama de producción. Netlify y Railway despliegan automáticamente en cada push. El trabajo de features va en ramas cortas con merge manual.
+
+---
+
+## Documentación
+
+| Documento | Descripción |
+|---|---|
+| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Arquitectura técnica detallada |
+| [ROADMAP.md](./docs/ROADMAP.md) | Fases completadas y próximos pasos |
+| [CHANGELOG.md](./docs/CHANGELOG.md) | Historial de versiones |
+| [BACKLOG.md](./docs/BACKLOG.md) | Features en cola |
+| [DECISIONS.md](./docs/DECISIONS.md) | Registro de decisiones técnicas (ADRs) |
+| [README-deploy.md](./docs/README-deploy.md) | Guía de deploy paso a paso |
+| [SECURITY.md](./docs/SECURITY.md) | Modelo de seguridad y RLS |
+
+---
+
+*AGLAYA Kanban Desk · parte de la red [AGLAYA](https://aglaya.biz) · © 2026 Ibai Fernández · MIT License*

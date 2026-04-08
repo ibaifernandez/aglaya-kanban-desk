@@ -1,27 +1,58 @@
-# CHANGELOG — LFi Kanban Desk (MyBoardLFi)
+# CHANGELOG — AGLAYA Kanban Desk
 
 Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/)
 
 ---
 
-## [1.1.0] — 2026-04-07 — Fase A: Rebrand AGLAYA
+## [1.1.1] — 2026-04-08 — Fixes post-migración + herramientas de migración
 
-### Changed
-- Producto renombrado de **LFi Kanban Desk** a **AGLAYA Kanban Desk**
+### Fixed
+- `server/routes/cards.js`: `VALID_PRIORITIES` no incluía `'urgent'`; cualquier tarjeta con prioridad urgente fallaba al guardar con 400. Bug preexistente que la migración de MyBoard hizo visible (14 tarjetas afectadas)
+- `WorkspaceDashboard`: opción `personal` ausente en selector de tipo al crear workspace — el auto-creado en registro no cubría usuarios existentes
+
+### Added
+- `server/scripts/migrate-myboard.js` — script de migración one-shot desde MyBoard (tasks.json) a AGLAYA Kanban (Supabase): mapea categorías a UUIDs, asigna workspace_id correcto, preserva checklists y metadatos
+- Migración ejecutada en producción: 7 tableros, 35 columnas, 10 categorías, 61/62 tarjetas importadas (1 tarjeta con columna huérfana en origen)
+- `docs/BACKLOG.md`: sección «Movilidad de objetos» — workspace type editing, mover boards entre workspaces, mover cards entre boards; principio de diseño de visibilidad
+
+---
+
+## [1.1.0] — 2026-04-07 — Rebrand AGLAYA + Workspace Types + Acceso por Rol
+
+Migración completa de LFi Kanban Desk → AGLAYA Kanban Desk. Cuatro fases ejecutadas en una sola iteración desde la rama `feature/rebrand-aglaya`, mergeada a `main` y desplegada en producción.
+
+### Fase A — Rebrand visual y de dominio
+- Producto renombrado: **LFi Kanban Desk** → **AGLAYA Kanban Desk**
 - Repo renombrado en GitHub: `myboardlfi` → `aglaya-board`
-- `package.json`: name `myboard` → `aglaya-kanban-desk`, version `1.0.0` → `1.1.0`
-- CORS producción: dominios `myboardlfi.*` → `kanban.aglaya.biz`
-- localStorage keys: `myboardlfi_token` / `myboardli_user` → `aglaya_token` / `aglaya_user`
-- Logo alt text: `LFi` → `AGLAYA` (archivo `lfi.png` pendiente de reemplazar por logo AGLAYA)
-- Placeholder de email: `tu@lfi.la` → `tu@empresa.com`
+- `package.json`: `name: aglaya-kanban-desk`, `version: 1.1.0`
+- Dominio de producción: `myboardlfi.ibaifernandez.com` → `kanban.aglaya.biz`
+- CORS producción restringido a `https://kanban.aglaya.biz`
+- localStorage keys: `myboardlfi_token/user` → `aglaya_token/user`
+- Logo y favicon LFi → assets AGLAYA (SVG rojo, blanco, negro, color)
+- Restricción de dominio corporativo eliminada — la plataforma acepta cualquier email
+- Placeholder de email en login: `tu@empresa.com`
 
-### Removed
-- Restricción de dominio corporativo (`@lfi.la`, `@lafabricaimaginaria.com`) eliminada de login, registro y recuperación de contraseña — la plataforma acepta cualquier email
+### Fase B — Workspace types
+- Tipos de workspace renombrados: `general/departamento/cliente` → `personal/interno/externo`
+- SQL migration `002-workspace-types-aglaya.sql` (DROP constraint + UPDATE + ADD constraint)
+- Constraint `workspaces_type_check` actualizado a nuevos valores
+- Auto-creación de workspace `personal` al registrar nuevos usuarios
 
-### Pending (rama `feature/rebrand-aglaya`)
-- Fase B: workspace types (`general/departamento/cliente` → `personal/interno/externo`)
-- Fase C: middleware de acceso por tipo de usuario
-- Fase D: UI WorkspaceDashboard diferenciada colaborador/cliente
+### Fase C — Control de acceso por tipo de usuario
+- Rol `cliente`: solo puede ver y acceder a workspaces de tipo `externo`
+- Middleware `workspace.js`: bloquea con 403 a clientes intentando acceder a workspaces `personal` o `interno`
+- `server/routes/workspaces.js`: filtrado de tipos permitidos según rol en creación
+
+### Fase D — UI diferenciada por rol
+- `WorkspaceDashboard`: vista en secciones para colaboradores (Personal / Internos / Clientes), vista plana para clientes
+- `TYPE_LABELS` actualizadas a nuevos tipos
+- Logo y branding AGLAYA en toda la UI
+
+### Infraestructura y deploy
+- Supabase Auth → Site URL: `https://kanban.aglaya.biz`
+- Supabase Auth → Redirect URLs: añadidas con wildcard `/**`
+- Railway `SITE_URL` actualizado
+- Tests de auth reescritos: eliminada suite de restricción de dominio, añadido test de nombre requerido
 
 ---
 
