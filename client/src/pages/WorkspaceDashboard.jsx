@@ -261,7 +261,7 @@ function ContextMenu({ x, y, ws, canEdit, onEdit, onDelete, onClose }) {
 }
 
 // ── Workspace card ────────────────────────────────────────────────────────────
-function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit, onContextMenu }) {
+function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit, onContextMenu, onEdit }) {
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
 
@@ -338,16 +338,25 @@ function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit, onContextMenu }) {
         <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
       </button>
 
-      {/* Cover upload button */}
+      {/* Edit + cover buttons (visible on hover, admin only) */}
       {canEdit && (
-        <button
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          title="Cambiar imagen de portada"
-          className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 disabled:opacity-50"
-        >
-          {uploading ? <Spinner size={3} /> : <Camera size={13} />}
-        </button>
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit?.(ws); }}
+            title="Editar espacio de trabajo"
+            className="p-1.5 rounded-lg bg-black/50 text-white hover:bg-black/70"
+          >
+            <Pencil size={13} />
+          </button>
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            title="Cambiar imagen de portada"
+            className="p-1.5 rounded-lg bg-black/50 text-white hover:bg-black/70 disabled:opacity-50"
+          >
+            {uploading ? <Spinner size={3} /> : <Camera size={13} />}
+          </button>
+        </div>
       )}
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
     </div>
@@ -359,7 +368,7 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCover
   const [name,       setName]       = useState(initial?.name        ?? '');
   const [emoji,      setEmoji]      = useState(initial?.emoji       ?? '📋');
   const [desc,       setDesc]       = useState(initial?.description ?? '');
-  const [type,       setType]       = useState(initial?.type && initial.type !== 'personal' ? initial.type : 'externo');
+  const [type,       setType]       = useState(initial?.type ?? 'externo');
   const [saving,     setSaving]     = useState(false);
   const [error,      setError]      = useState('');
   const [coverPreview, setCoverPreview] = useState(initial?.coverUrl ?? null);
@@ -491,6 +500,11 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCover
                 </button>
               ))}
             </div>
+            {initial?.id && type === 'externo' && initial.type !== 'externo' && (
+              <p className="mt-2 text-[11px] text-amber-400">
+                Este espacio pasará a ser visible para usuarios con rol <strong>cliente</strong>.
+              </p>
+            )}
           </div>
 
           {error && <p className="text-xs text-red-400">{error}</p>}
@@ -552,7 +566,7 @@ function DeleteConfirmModal({ ws, onConfirm, onClose }) {
 }
 
 // ── Workspace section ─────────────────────────────────────────────────────────
-function WorkspaceSection({ title, icon, workspaces, coverOverrides, canEdit, onEnter, onCoverChange, onContextMenu, emptyMsg, canCreate, onCreateNew }) {
+function WorkspaceSection({ title, icon, workspaces, coverOverrides, canEdit, onEnter, onCoverChange, onContextMenu, onEdit, emptyMsg, canCreate, onCreateNew }) {
   return (
     <div className="mb-10">
       <div className="flex items-center gap-2 mb-4">
@@ -572,6 +586,7 @@ function WorkspaceSection({ title, icon, workspaces, coverOverrides, canEdit, on
               onCoverChange={onCoverChange}
               canEdit={canEdit}
               onContextMenu={onContextMenu}
+              onEdit={onEdit}
             />
           ))}
         </div>
@@ -614,6 +629,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
     onEnter: onEnterWorkspace,
     onCoverChange: handleCoverChange,
     onContextMenu: handleContextMenu,
+    onEdit: setEditTarget,
   };
 
   return (
