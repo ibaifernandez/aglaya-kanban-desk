@@ -80,7 +80,7 @@ const createCard = async (req, res) => {
   res.status(201).json({ data: toCard(data) });
 };
 
-const VALID_PRIORITIES = new Set(['low', 'medium', 'high', 'none']);
+const VALID_PRIORITIES = new Set(['urgent', 'high', 'medium', 'low', 'none']);
 
 const updateCard = async (req, res) => {
   const { title, description, category, priority, dueDate, tags, checklist, checklistTitle, assigneeId } = req.body;
