@@ -164,6 +164,7 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
   const [uploadingCount, setUploadingCount] = useState(0);
   const [selectedBoardId, setSelectedBoardId] = useState(boardId);
   const [availableColumns, setAvailableColumns] = useState(columns ?? []);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const checkInputRef                   = useRef(null);
 
   const checklistSensors = useSensors(
@@ -317,15 +318,34 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
             {isNew ? 'Nueva tarea' : 'Editar tarea'}
           </h2>
           <div className="flex items-center gap-1">
-            {!isNew && (
+            {!isNew && !confirmDelete && (
               <button
                 type="button"
-                onClick={() => { onDelete(card.id); onClose(); }}
+                onClick={() => setConfirmDelete(true)}
                 className="p-1.5 rounded text-[#555b70] hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 title="Eliminar tarea"
               >
                 <Trash2 size={15} />
               </button>
+            )}
+            {!isNew && confirmDelete && (
+              <div className="flex items-center gap-1.5 mr-1">
+                <span className="text-[11px] text-red-400">¿Eliminar?</span>
+                <button
+                  type="button"
+                  onClick={() => { onDelete(card.id); onClose(); }}
+                  className="px-2 py-0.5 rounded text-[11px] bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+                >
+                  Sí
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  className="px-2 py-0.5 rounded text-[11px] bg-[#2e3140] text-[#9aa0b8] hover:bg-[#3a3f52] transition-colors"
+                >
+                  No
+                </button>
+              </div>
             )}
             <button
               type="button"

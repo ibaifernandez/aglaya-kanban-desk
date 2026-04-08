@@ -26,6 +26,7 @@ export function Board({
   const [contextMenu,    setContextMenu]    = useState(null); // { x, y, type, card?, column? }
   const [otherBoardCols, setOtherBoardCols] = useState({});   // { [boardId]: columns[] }
   const [editingColId,   setEditingColId]   = useState(null);
+  const [pendingDelete,  setPendingDelete]  = useState(null); // { kind: 'card'|'column', id, label }
 
   const { categories } = useCategoriesCtx();
 
@@ -185,7 +186,7 @@ export function Board({
       { type: 'separator' },
       ...priorityItems,
       { type: 'separator' },
-      { icon: <Trash2 size={13} />, label: 'Eliminar', danger: true, action: () => onDeleteCard(card.id) },
+      { icon: <Trash2 size={13} />, label: 'Eliminar', danger: true, action: () => setPendingDelete({ kind: 'card', id: card.id, label: card.title }) },
     ];
   }
 
@@ -194,7 +195,7 @@ export function Board({
       { icon: <Plus   size={13} />, label: 'Añadir tarjeta',  action: () => setModalState({ card: null, columnId: column.id }) },
       { icon: <Pencil size={13} />, label: 'Renombrar',        action: () => setEditingColId(column.id) },
       { type: 'separator' },
-      { icon: <Trash2 size={13} />, label: 'Eliminar columna', danger: true, action: () => onDeleteColumn(column.id) },
+      { icon: <Trash2 size={13} />, label: 'Eliminar columna', danger: true, action: () => setPendingDelete({ kind: 'column', id: column.id, label: column.title }) },
     ];
   }
 
@@ -315,6 +316,45 @@ export function Board({
           }
           onClose={() => setContextMenu(null)}
         />
+      )}
+
+      {/* Delete confirmation dialog */}
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setPendingDelete(null)}
+        >
+          <div
+            className="bg-[#1e2028] border border-[#2e3140] rounded-xl shadow-2xl p-5 w-80"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-sm font-semibold text-[#e8eaf0] mb-1">
+              {pendingDelete.kind === 'card' ? '¿Eliminar tarea?' : '¿Eliminar columna?'}
+            </p>
+            <p className="text-xs text-[#8b90a0] mb-4 truncate">
+              «{pendingDelete.label}»
+              {pendingDelete.kind === 'column' && ' y todas sus tarjetas'}
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setPendingDelete(null)}
+                className="px-3 py-1.5 rounded-lg text-xs bg-[#252830] text-[#9aa0b8] hover:bg-[#2e3140] transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingDelete.kind === 'card') onDeleteCard(pendingDelete.id);
+                  else onDeleteColumn(pendingDelete.id);
+                  setPendingDelete(null);
+                }}
+                className="px-3 py-1.5 rounded-lg text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
