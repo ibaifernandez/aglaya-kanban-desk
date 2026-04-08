@@ -122,9 +122,8 @@ app.get('/api/health', (_req, res) =>
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`MyBoardLFi server → http://localhost:${PORT}`);
-    if (process.env.NODE_ENV !== 'production') {
-      require('./digest').startDigestScheduler();
-    }
+    require('./digest').startDigestScheduler();
+    require('./userDigest').startUserDigestScheduler();
   });
 }
 
