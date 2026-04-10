@@ -121,30 +121,68 @@ router.patch('/users/:id/role', async (req, res) => {
 // ── DELETE /api/admin/users/:id ───────────────────────────────────────────────
 // Remove a user from the organization
 router.delete('/users/:id', async (req, res) => {
-  if (req.params.id === req.user.id) {
+  const targetId = req.params.id;
+
+  // 1. Prevent self-deletion
+  if (targetId === req.user.id) {
     return res.status(403).json({ error: 'No puedes eliminarte a ti mismo' });
   }
 
-  // Verify user belongs to same org before deleting
-  const { data: target } = await supabaseAdmin
+  // 2. Verify user exists and get their current role
+  const { data: target, error: fetchError } = await supabaseAdmin
     .from('users')
-    .select('id')
-    .eq('id', req.params.id)
+    .select('id, role, email')
+    .eq('id', targetId)
     .eq('organization_id', req.user.organizationId)
     .single();
 
-  if (!target) return res.status(404).json({ error: 'Usuario no encontrado' });
+  if (fetchError || !target) {
+    return res.status(404).json({ error: 'Usuario no encontrado' });
+  }
 
-  // Delete from public.users first
+  // 3. Prevent deleting a superadmin if you are just an admin
+  if (target.role === 'superadmin' && req.user.role !== 'superadmin') {
+    return res.status(403).json({ error: 'Solo un superadmin puede eliminar a otro superadmin' });
+  }
+
+  // 4. Check for workspace ownership (Phase 2 constraint)
+  // If the user is the ONLY owner of a workspace, prevent deletion or warn.
+  // For safety, we block deletion if they own any workspace as 'owner'.
+  const { data: ownerships, error: ownError } = await supabaseAdmin
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', targetId)
+    .eq('role', 'owner');
+
+  if (ownError) {
+    console.error('[admin] DELETE /users/:id ownership check:', ownError.message);
+    return res.status(500).json({ error: 'Error al verificar propiedades del usuario' });
+  }
+
+  if (ownerships && ownerships.length > 0) {
+    return res.status(400).json({
+      error: 'No se puede eliminar al usuario: es el propietario de uno o más espacios de trabajo. Transfiere la propiedad antes de borrarlo.',
+      workspaces: ownerships.map(o => o.workspace_id)
+    });
+  }
+
+  // 5. Delete from public.users
   const { error: profileError } = await supabaseAdmin
     .from('users')
     .delete()
-    .eq('id', req.params.id);
+    .eq('id', targetId);
 
-  if (profileError) { console.error('[admin] DELETE /users/:id:', profileError.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
+  if (profileError) {
+    console.error('[admin] DELETE /users/:id profile delete:', profileError.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
 
-  // Delete from Supabase Auth
-  await supabaseAdmin.auth.admin.deleteUser(req.params.id);
+  // 6. Delete from Supabase Auth
+  const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(targetId);
+  if (authError) {
+    console.error('[admin] DELETE /users/:id auth delete:', authError.message);
+    // Note: profile is already gone, which is slightly inconsistent but safer than leaving it orphaned
+  }
 
   res.json({ success: true });
 });
