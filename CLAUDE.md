@@ -43,12 +43,15 @@ Configuración en `.claude/launch.json`.
 
 ## Fase actual
 
-**Phase 1 — Rebrand AGLAYA + arquitectura de tipos de usuario**
+**Phase 4 — Calidad de producto y UX completa** *(ROADMAP.md)*
 
-- [x] Fase A: Rebrand (display strings, dominio, localStorage keys, CORS)
-- [ ] Fase B: Workspace types (`personal / interno / externo`)
-- [ ] Fase C: Control de acceso por tipo de usuario (`colaborador` vs `cliente`)
-- [ ] Fase D: UI diferenciada por tipo de usuario en WorkspaceDashboard
+Phase 1 (rebrand AGLAYA) completada en v1.1.0 — todas las fases A–D ejecutadas.
+
+Pendiente en Phase 4:
+- [ ] Página de ajustes de workspace (editar nombre, tipo, portada desde UI)
+- [ ] Verificación end-to-end flujo invite email → kanban.aglaya.biz *(bloqueante Phase 5)*
+- [ ] Mover tarjeta entre tableros (cross-board desde CardModal)
+- [ ] Tests actualizados (auth sin restricción de dominio + rutas workspaces)
 
 ---
 
@@ -56,11 +59,11 @@ Configuración en `.claude/launch.json`.
 
 | # | Feature | Prioridad | Estado |
 |---|---------|-----------|--------|
-| 1 | Movilidad de objetos — mover tableros entre workspaces | 🟡 MEDIA | ✅ Impl. (push pendiente) |
+| 1 | Movilidad de objetos — mover tableros entre workspaces | 🟡 MEDIA | ✅ v1.2.0 |
 | 1b | Movilidad de objetos — mover tarjetas cross-workspace | 🟡 MEDIA | ❌ Pendiente diseño |
 | 2 | Tests actualizados — auth, workspaces (code viejo sistema) | 🟡 MEDIA | ❌ Pendiente |
-| 3 | Limpiar localStorage — remover `myboardlfi_token` (ruido) | 🟢 BAJA | ❌ Pendiente |
-| 4 | Verificar flujo email invite — end-to-end kanban.aglaya.biz | 🔴 CRÍTICO | ❌ Bloqueante Phase 2 |
+| 3 | Limpiar localStorage — remover `myboardlfi_token` (ruido) | 🟢 BAJA | ✅ v1.2.0 |
+| 4 | Verificar flujo email invite — end-to-end kanban.aglaya.biz | 🔴 CRÍTICO | ❌ Bloqueante Phase 5 |
 | 5 | MyBoard deprecation — archivar repo | 🟢 BAJA | ❌ Pendiente |
 
 ---

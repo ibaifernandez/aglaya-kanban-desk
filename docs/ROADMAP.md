@@ -59,22 +59,24 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 
 ## Phase 4 — Calidad de producto y UX completa
 
-**Estado:** 🔵 Próxima fase
+**Estado:** 🔵 En curso · v1.2.0
 
 ### Workspace settings
+- [x] Botón editar visible al hover + preservación del tipo real al editar — `bbd0b8a`
+- [x] Aviso al cambiar workspace a tipo `externo` (visibilidad para clientes) — `bbd0b8a`
 - [ ] Página de ajustes de workspace: editar nombre, emoji, tipo, descripción, portada
 - [ ] Cambio de tipo de workspace desde la UI (sin SQL) — documentado en backlog
 
 ### Seguridad y UX de destrucción
-- [ ] Confirmación doble al borrar tarjetas (diálogo de confirmación)
-- [ ] Confirmación al borrar tableros y columnas
+- [x] Confirmación al borrar tarjetas (diálogo inline en CardModal) — `7a4e504`
+- [x] Confirmación al borrar columnas (modal en Board) — `7a4e504`
 
 ### Email
-- [ ] User digest: email diario personal con tarjetas urgentes/vencidas del usuario, segmentado por tipo de workspace (personal / interno / clientes)
+- [x] User digest: email diario personal con tarjetas urgentes/vencidas, segmentado por workspace — `a6d45ee`
 - [ ] Verificación end-to-end del flujo de invitación (email → registro → acceso a workspace)
 
-### Movilidad de objetos *(diseñado, pendiente de implementar)*
-- [ ] Mover tablero entre workspaces
+### Movilidad de objetos
+- [x] Mover tablero entre workspaces (BoardMoveModal + backend) — `90f4c4f`
 - [ ] Mover tarjeta entre tableros (cross-board desde el modal)
 
 ### Tests

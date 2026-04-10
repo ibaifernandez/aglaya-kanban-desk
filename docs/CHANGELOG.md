@@ -4,6 +4,28 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [1.2.0] — 2026-04-10 — Workspace UX · Movilidad de tableros · Digest personal
+
+### Added
+- Mover tableros entre workspaces: botón en Sidebar (hover sobre tablero) → `BoardMoveModal` con selector de workspace destino y carga lazy; validación de organización en backend (`PUT /api/boards/:id` acepta `workspaceId`); `useBoards.moveBoard()` elimina el tablero de la lista local del workspace origen
+- User digest personal diario: `server/userDigest.js` — agrupa tarjetas urgentes/vencidas del usuario por workspace y tablero (Personal → Interno → Clientes); badges de prioridad, fechas de vencimiento y progreso de checklist en el email; endpoints `POST /api/digest/send-my-digest` (cualquier usuario) y `POST /api/digest/send-all-digests` (admin); arranca con `startUserDigestScheduler` en `index.js`
+- Confirmaciones al borrar tarjetas: diálogo inline en `CardModal` (estado `confirmDelete` con botones Sí/No en el header)
+- Confirmaciones al borrar columnas: modal de confirmación en `Board` (menú contextual), misma lógica para tarjetas desde ese contexto
+- Workspace settings — botón lápiz visible al hover en tarjetas de workspace (junto al de portada), para acceso directo al modal de edición sin depender del menú contextual
+- Aviso amber al cambiar un workspace a tipo `externo`: informa al usuario que pasará a ser visible para usuarios con rol `cliente`
+
+### Fixed
+- Workspace settings: inicialización del tipo en el formulario usaba `'personal'` como fallback para el tipo `'externo'`; ahora preserva el tipo real del workspace al abrir el modal de edición
+- `Toolbar.jsx`: clave localStorage unificada a `aglaya_token` (residuo `myboardlfi_token` del rebrand pre-v1.1.0)
+- `server/index.js`: mensaje de arranque actualizado con nombre del proyecto
+
+### Chore
+- Repo GitHub renombrado: `aglaya-board` → `aglaya-kanban-desk`
+- `.claude/launch.json`: nombres de servidor actualizados a "AGLAYA Kanban Desk Server/Client"
+- `CLAUDE.md`: identidad del proyecto, carpeta local y backlog actualizados
+
+---
+
 ## [1.1.1] — 2026-04-08 — Fixes post-migración + herramientas de migración
 
 ### Fixed

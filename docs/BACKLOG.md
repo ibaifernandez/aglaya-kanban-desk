@@ -185,11 +185,10 @@ La plataforma debe reflejar cómo funciona el trabajo real: los proyectos y tare
   - No bloquea ninguna otra feature — implementar cuando se construya la página de settings de workspace
 
 ### Nivel board — Mover entre workspaces
-- [ ] **Mover un tablero de un workspace a otro**
-  - Caso de uso: "este proyecto personal lo paso al equipo interno"
-  - El tablero hereda el tipo de acceso del workspace destino
-  - Requiere que el usuario sea owner/admin en **ambos** workspaces
-  - Considerar qué pasa con los miembros: ¿se mantienen, se eliminan, se avisa?
+- [x] **Mover un tablero de un workspace a otro** — `90f4c4f` · v1.2.0
+  - Sidebar: botón FolderInput al hover → `BoardMoveModal` con selector de workspace destino
+  - Backend `PUT /api/boards/:id` acepta `workspaceId`; valida que ambos workspaces pertenezcan a la misma organización
+  - `useBoards.moveBoard()` elimina el tablero de la lista local del workspace origen
 
 ### Nivel card — Mover entre tableros (y por tanto entre workspaces)
 - [ ] **Mover una tarjeta a un tablero diferente** (ya existe entre columnas del mismo tablero)
@@ -211,7 +210,7 @@ La plataforma debe reflejar cómo funciona el trabajo real: los proyectos y tare
 - [ ] **Límites freemium**: middleware (máx. 3 tableros / 50 tarjetas en plan free)
 - [ ] **KNOWN-02**: Email de invitación Supabase — template personalizado + redirect URL correcta
 - [ ] **Foto de perfil en tarjeta**: mostrar `avatar_url` del assignee en el avatar de la tarjeta (hoy solo muestra inicial); requiere añadir `avatar_url` al select de `users!assignee_id` en `/api/boards/:boardId/cards` y renderizar `<img>` con fallback a inicial
-- [ ] **Confirmación doble al borrar tarjeta**: el botón de borrar debe mostrar un diálogo de confirmación antes de ejecutar el DELETE (UX — evitar borrados accidentales)
+- [x] **Confirmación al borrar tarjetas y columnas**: diálogo inline en `CardModal` + modal en `Board` (menú contextual) — `7a4e504` · v1.2.0
 
 ---
 
