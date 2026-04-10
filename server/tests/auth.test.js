@@ -1,5 +1,6 @@
 /**
- * Auth route tests — input validation.
+ * Auth route tests — input validation y sistema sin restricción de dominio.
+ * Desde v1.1.0 la plataforma acepta cualquier email; no hay restricción de dominio corporativo.
  * Uses mocked Supabase; no real DB connection needed.
  */
 const request = require('supertest');
@@ -52,6 +53,20 @@ describe('POST /api/auth/register', () => {
       password: 'password123',
     });
     expect(res.status).toBe(400);
+  });
+
+  it('does not restrict by email domain (no domain restriction since v1.1.0)', async () => {
+    // Any domain should reach Supabase auth, not be rejected with a domain error.
+    // The mock fails at Supabase level (gmail.com is not mocked to succeed),
+    // but the point is: no 403 / "dominio no permitido" error.
+    const res = await request(app).post('/api/auth/register').send({
+      email: 'user@gmail.com',
+      password: 'password123',
+      name: 'Test User',
+    });
+    expect(res.status).not.toBe(403);
+    expect(res.body.error || '').not.toMatch(/dominio/i);
+    expect(res.body.error || '').not.toMatch(/domain/i);
   });
 });
 

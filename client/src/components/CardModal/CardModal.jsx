@@ -165,6 +165,8 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
   const [selectedBoardId, setSelectedBoardId] = useState(boardId);
   const [availableColumns, setAvailableColumns] = useState(columns ?? []);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [xwsBoards,     setXwsBoards]     = useState(null);  // null = cargando, Array = listo
+  const [xwsMap,        setXwsMap]        = useState(null);  // { workspaceId: workspace }
   const checkInputRef                   = useRef(null);
 
   const checklistSensors = useSensors(
@@ -196,6 +198,21 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
       setForm({ ...EMPTY, category: categories[0]?.id || '', columnId });
     }
   }, [card, columnId, boardId, columns, categories]);
+
+  // Fetch todos los tableros accesibles para el selector cross-workspace (solo en edición)
+  useEffect(() => {
+    if (isNew) return;
+    let cancelled = false;
+    Promise.all([api.getBoards(), api.getWorkspaces()])
+      .then(([bds, wss]) => {
+        if (cancelled) return;
+        const accessibleIds = new Set(wss.map((w) => w.id));
+        setXwsBoards(bds.filter((b) => accessibleIds.has(b.workspaceId)));
+        setXwsMap(Object.fromEntries(wss.map((w) => [w.id, w])));
+      })
+      .catch(() => { /* mantener null — el selector vuelve a boards prop */ });
+    return () => { cancelled = true; };
+  }, [isNew]);
 
   function set(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -304,6 +321,10 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
   const checkDone  = form.checklist.filter((i) => i.done).length;
   const checkPct   = checkTotal > 0 ? (checkDone / checkTotal) * 100 : 0;
   const allDone    = checkTotal > 0 && checkDone === checkTotal;
+
+  // Tableros a mostrar: cross-workspace cuando están cargados, mismo workspace como fallback
+  const displayBoards   = xwsBoards !== null ? xwsBoards : boards;
+  const showBoardPicker = !isNew && displayBoards.length > 1;
 
   return (
     <div
@@ -583,8 +604,8 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
             )}
           </div>
 
-          {/* Selector de tablero (solo al editar, solo si hay más de uno) */}
-          {!isNew && boards.length > 1 && (
+          {/* Selector de tablero — mismo workspace de inmediato, cross-workspace al cargar */}
+          {showBoardPicker && (
             <div>
               <label className="block text-xs text-[#8b90a0] mb-1">Mover a tablero</label>
               <select
@@ -592,11 +613,31 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
                 onChange={(e) => handleBoardChange(e.target.value)}
                 className="w-full bg-[#252830] border border-[#2e3140] rounded-lg px-2.5 py-2 text-sm text-[#e8eaf0] outline-none focus:border-indigo-500"
               >
-                {boards.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.id === boardId ? `${b.title} (actual)` : b.title}
-                  </option>
-                ))}
+                {xwsMap !== null
+                  ? Object.entries(
+                      displayBoards.reduce((acc, b) => {
+                        (acc[b.workspaceId] ??= []).push(b);
+                        return acc;
+                      }, {})
+                    ).map(([wsId, wsBoards]) => {
+                      const ws    = xwsMap[wsId];
+                      const label = ws ? `${ws.emoji ?? ''} ${ws.name}`.trim() : 'Espacio de trabajo';
+                      return (
+                        <optgroup key={wsId} label={label}>
+                          {wsBoards.map((b) => (
+                            <option key={b.id} value={b.id}>
+                              {b.id === boardId ? `${b.title} (actual)` : b.title}
+                            </option>
+                          ))}
+                        </optgroup>
+                      );
+                    })
+                  : displayBoards.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.id === boardId ? `${b.title} (actual)` : b.title}
+                      </option>
+                    ))
+                }
               </select>
             </div>
           )}

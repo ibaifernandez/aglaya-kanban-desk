@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings, Search, X, ArrowRight, LogOut, Mail, ChevronLeft, UserCog, Camera } from 'lucide-react';
+import { Settings, Search, X, ArrowRight, LogOut, Mail, ChevronLeft, UserCog, Camera, SlidersHorizontal } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { AvatarCropModal } from '../UI/AvatarCropModal.jsx';
 import { PRIORITY_LIST } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { CategorySettings } from './CategorySettings.jsx';
 
-export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], workspaceMembers = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces, onOpenMembers, onAvatarChange }) {
+export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], workspaceMembers = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces, onOpenMembers, onOpenWsSettings, onAvatarChange }) {
   const { category, priority, tag, search = '', assignee = '', overdue = false } = filters;
   const { categories } = useCategoriesCtx();
   const [showSettings,  setShowSettings]  = useState(false);
@@ -284,7 +284,16 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
           </button>
         )}
 
-        {/* Workspace members button — when inside a workspace */}
+        {/* Workspace buttons — when inside a workspace */}
+        {workspace && onOpenWsSettings && ['owner', 'admin'].includes(workspace.myRole) && (
+          <button
+            onClick={onOpenWsSettings}
+            title="Ajustes del espacio de trabajo"
+            className="p-1.5 rounded text-[#555b70] hover:text-[#e8eaf0] hover:bg-[#2e3140] transition-colors"
+          >
+            <SlidersHorizontal size={15} />
+          </button>
+        )}
         {workspace && onOpenMembers && (
           <button
             onClick={onOpenMembers}

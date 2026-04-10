@@ -178,11 +178,10 @@ Cron job que envía email de alerta dos veces al día con tarjetas prioritarias 
 La plataforma debe reflejar cómo funciona el trabajo real: los proyectos y tareas cambian de contexto. Un objeto puede empezar como personal y terminar siendo de cliente, o un trabajo interno puede abrirse a colaboración externa. La jerarquía completa debe ser fluida:
 
 ### Nivel workspace — Cambio de tipo
-- [ ] **Editar tipo de workspace** (personal / interno / externo) después de la creación
-  - UI: menú de opciones en la tarjeta de workspace o en su página de ajustes
-  - Acceso: owner y admin del workspace
-  - Implicación de seguridad: cambiar a `externo` expone el workspace a usuarios tipo `cliente`; mostrar aviso explícito
-  - No bloquea ninguna otra feature — implementar cuando se construya la página de settings de workspace
+- [x] **Editar tipo de workspace** (personal / interno / externo) después de la creación — `WorkspaceSettings` panel · v1.2.1
+  - Panel lateral desde Toolbar (icono SlidersHorizontal), solo visible a owners/admins del workspace
+  - Edita: nombre, emoji, descripción, tipo, portada
+  - Aviso amber al cambiar a `externo`: informa que pasará a ser visible para usuarios `cliente`
 
 ### Nivel board — Mover entre workspaces
 - [x] **Mover un tablero de un workspace a otro** — `90f4c4f` · v1.2.0
@@ -191,11 +190,10 @@ La plataforma debe reflejar cómo funciona el trabajo real: los proyectos y tare
   - `useBoards.moveBoard()` elimina el tablero de la lista local del workspace origen
 
 ### Nivel card — Mover entre tableros (y por tanto entre workspaces)
-- [ ] **Mover una tarjeta a un tablero diferente** (ya existe entre columnas del mismo tablero)
-  - Caso de uso: "esta tarea personal necesita input del cliente"
-  - La tarjeta hereda el contexto del tablero destino
-  - La columna destino debe seleccionarse en el mismo gesto
-  - Desbloquea colaboración cruzada sin duplicar información
+- [x] **Mover una tarjeta a un tablero diferente** (ya existe entre columnas del mismo tablero) — `CardModal` · v1.2.1
+  - Selector agrupado por workspace con `<optgroup>` (carga lazy: fallback inmediato a tableros del workspace activo)
+  - Solo muestra tableros de workspaces a los que el usuario tiene acceso
+  - La columna destino se selecciona en el mismo CardModal (campo Columna)
 
 ### Principio de diseño
 > La visibilidad de un objeto siempre la determina el contexto más restrictivo en el que vive. Mover un objeto a un contexto más abierto requiere confirmación explícita; moverlo a uno más cerrado es inmediato.

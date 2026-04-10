@@ -6,6 +6,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import WorkspaceDashboard from './pages/WorkspaceDashboard.jsx';
 import { WorkspaceMembers } from './components/Workspace/WorkspaceMembers.jsx';
+import { WorkspaceSettings } from './components/Workspace/WorkspaceSettings.jsx';
 import {
   DndContext,
   DragOverlay,
@@ -58,6 +59,7 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   const [view, setView]                       = useState(saved?.view ?? 'workspaces');
   const [activeWorkspace, setActiveWorkspace] = useState(saved?.workspace ?? null);
   const [showMembers,     setShowMembers]     = useState(false);
+  const [showWsSettings,  setShowWsSettings]  = useState(false);
 
   const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards, moveBoard } = useBoards(activeWorkspace?.id);
 
@@ -138,6 +140,10 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   function handleEnterWorkspace(ws) {
     setActiveBoardId(null);
     navigate('board', ws);
+  }
+
+  function handleWorkspaceSettingsSave(updatedWs) {
+    setActiveWorkspace((prev) => ({ ...prev, ...updatedWs }));
   }
 
   // Auto-navigate to newly created board
@@ -308,6 +314,7 @@ function AuthenticatedApp({ user, logout, updateUser }) {
               workspace={activeWorkspace}
               onBackToWorkspaces={() => navigate('workspaces')}
               onOpenMembers={() => setShowMembers(true)}
+              onOpenWsSettings={() => setShowWsSettings(true)}
               onAvatarChange={(url) => updateUser({ avatarUrl: url })}
             />
 
@@ -358,6 +365,15 @@ function AuthenticatedApp({ user, logout, updateUser }) {
             workspace={activeWorkspace}
             currentUser={user}
             onClose={() => setShowMembers(false)}
+          />
+        )}
+
+        {/* Workspace settings panel */}
+        {showWsSettings && activeWorkspace && (
+          <WorkspaceSettings
+            workspace={activeWorkspace}
+            onSave={handleWorkspaceSettingsSave}
+            onClose={() => setShowWsSettings(false)}
           />
         )}
 

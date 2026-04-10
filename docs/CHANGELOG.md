@@ -4,6 +4,15 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [1.2.1] — 2026-04-10 — Tests · Mover tarjetas cross-workspace · Settings de workspace
+
+### Added
+- Mover tarjetas a otro tablero (cross-workspace): `CardModal` muestra selector agrupado por espacio de trabajo con `<optgroup>` cuando hay más de un tablero accesible; carga lazy con `api.getBoards()` + `api.getWorkspaces()`, fallback inmediato a los tableros del workspace activo mientras carga
+- Workspace settings panel: panel lateral accesible desde el Toolbar (icono `SlidersHorizontal`) para owners y admins del workspace; permite editar nombre, emoji, descripción, tipo (con aviso amber cuando el cambio es a `externo`) y portada sin salir del workspace
+- Tests backend actualizados: `server/tests/workspaces.test.js` (nuevo, 13 tests) cubre validación de `POST /api/workspaces`, coerción de tipo por rol, `requireWorkspaceMember` y gestión de miembros; `auth.test.js` añade test de no-restricción de dominio desde v1.1.0; `cards-validation.test.js` añade `'urgent'` a la lista de prioridades válidas
+
+---
+
 ## [1.2.0] — 2026-04-10 — Workspace UX · Movilidad de tableros · Digest personal
 
 ### Added

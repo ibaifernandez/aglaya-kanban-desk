@@ -68,8 +68,8 @@ describe('PUT /api/cards/:id — validation', () => {
     expect(res.body.error).toMatch(/dueDate/i);
   });
 
-  it('accepts valid priority values', async () => {
-    for (const p of ['low', 'medium', 'high', 'none']) {
+  it('accepts valid priority values (including urgent added in v1.1.1)', async () => {
+    for (const p of ['urgent', 'high', 'medium', 'low', 'none']) {
       const res = await request(app)
         .put('/api/cards/some-id')
         .set('Authorization', `Bearer ${token}`)
