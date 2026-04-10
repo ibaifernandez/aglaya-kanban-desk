@@ -59,7 +59,7 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   const [activeWorkspace, setActiveWorkspace] = useState(saved?.workspace ?? null);
   const [showMembers,     setShowMembers]     = useState(false);
 
-  const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = useBoards(activeWorkspace?.id);
+  const { boards, loading: loadingBoards, createBoard, updateBoard, deleteBoard, reorderBoards, moveBoard } = useBoards(activeWorkspace?.id);
 
   const [activeBoardId, setActiveBoardId] = useState(saved?.boardId ?? null);
   const [filters, setFilters] = useState({ category: '', priority: '', tag: '', search: '', assignee: '', overdue: false });
@@ -145,6 +145,12 @@ function AuthenticatedApp({ user, logout, updateUser }) {
     const board = await createBoard(title);
     setActiveBoardId(board.id);
     return board;
+  }
+
+  // Move board to another workspace — remove from list and clear active if needed
+  async function handleMoveBoard(id, workspaceId) {
+    await moveBoard(id, workspaceId);
+    if (activeBoardId === id) setActiveBoardId(null);
   }
 
   // Clear filters when switching boards
@@ -279,10 +285,12 @@ function AuthenticatedApp({ user, logout, updateUser }) {
           <Sidebar
             boards={boards}
             activeBoardId={boardId}
+            currentWorkspaceId={activeWorkspace?.id}
             onSelect={handleSelectBoard}
             onCreate={handleCreateBoard}
             onRename={updateBoard}
             onDelete={deleteBoard}
+            onMoveBoard={handleMoveBoard}
             isDraggingCard={!!activeCard}
           />
 

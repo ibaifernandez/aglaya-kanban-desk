@@ -13,7 +13,7 @@ const { supabaseAdmin } = require('./utils/supabase');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const DIGEST_HOUR = parseInt(process.env.DIGEST_HOUR ?? '6', 10);
+const DIGEST_HOUR = parseInt(process.env.DIGEST_HOUR ?? '7', 10);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

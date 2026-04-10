@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Pencil, Check, X, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Pencil, Check, X, GripVertical, FolderInput } from 'lucide-react';
 import agLayaIcon from '../../assets/aglaya-favicon-rojo.svg';
 import {
   SortableContext,
@@ -9,12 +9,13 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { IconButton } from '../UI/IconButton.jsx';
+import { BoardMoveModal } from '../UI/BoardMoveModal.jsx';
 
 // ── Sortable board row ────────────────────────────────────
 function SortableBoardItem({
   board, idx, isActive, isDraggingCard,
   editingId, editTitle, setEditTitle,
-  onSelect, onStartEdit, onSubmitRename, onCancelEdit, onDelete,
+  onSelect, onStartEdit, onSubmitRename, onCancelEdit, onDelete, onStartMove,
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } =
     useSortable({ id: board.id, data: { type: 'board', board } });
@@ -89,6 +90,9 @@ function SortableBoardItem({
 
           {/* Action buttons — appear on hover */}
           <span className="hidden group-hover:flex items-center gap-0.5">
+            <IconButton onClick={(e) => onStartMove(board, e)} title="Mover a workspace">
+              <FolderInput size={12} />
+            </IconButton>
             <IconButton onClick={(e) => onStartEdit(board, e)} title="Renombrar">
               <Pencil size={12} />
             </IconButton>
@@ -107,11 +111,12 @@ function SortableBoardItem({
 }
 
 // ── Sidebar ───────────────────────────────────────────────
-export function Sidebar({ boards, activeBoardId, onSelect, onCreate, onRename, onDelete, isDraggingCard = false }) {
+export function Sidebar({ boards, activeBoardId, currentWorkspaceId, onSelect, onCreate, onRename, onDelete, onMoveBoard, isDraggingCard = false }) {
   const [creating, setCreating]   = useState(false);
   const [newTitle, setNewTitle]   = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
+  const [movingBoard, setMovingBoard] = useState(null); // board object being moved
 
   function handleCreate(e) {
     e.preventDefault();
@@ -132,6 +137,11 @@ export function Sidebar({ boards, activeBoardId, onSelect, onCreate, onRename, o
     if (!editTitle.trim()) return;
     onRename(editingId, editTitle.trim());
     setEditingId(null);
+  }
+
+  function startMove(board, e) {
+    e.stopPropagation();
+    setMovingBoard(board);
   }
 
   return (
@@ -165,6 +175,7 @@ export function Sidebar({ boards, activeBoardId, onSelect, onCreate, onRename, o
               onSubmitRename={handleRename}
               onCancelEdit={() => setEditingId(null)}
               onDelete={onDelete}
+              onStartMove={startMove}
             />
           ))}
         </SortableContext>
@@ -210,6 +221,19 @@ export function Sidebar({ boards, activeBoardId, onSelect, onCreate, onRename, o
       <div className="px-4 py-3 border-t border-[#2e3140]">
         <span className="text-[10px] text-[#555b70]">MyBoard v1.0 · Phase 1</span>
       </div>
+
+      {/* Board move modal */}
+      {movingBoard && (
+        <BoardMoveModal
+          board={movingBoard}
+          currentWorkspaceId={currentWorkspaceId}
+          onMove={(workspaceId) => {
+            onMoveBoard?.(movingBoard.id, workspaceId);
+            setMovingBoard(null);
+          }}
+          onClose={() => setMovingBoard(null)}
+        />
+      )}
     </aside>
   );
 }

@@ -37,6 +37,11 @@ export function useBoards(workspaceId) {
     setBoards((prev) => prev.filter((b) => b.id !== id));
   }, []);
 
+  const moveBoard = useCallback(async (id, workspaceId) => {
+    await api.updateBoard(id, { workspaceId });
+    setBoards((prev) => prev.filter((b) => b.id !== id));
+  }, []);
+
   const reorderBoards = useCallback(async (ids) => {
     setBoards((prev) => {
       const idxMap = Object.fromEntries(ids.map((id, i) => [id, i]));
@@ -50,5 +55,5 @@ export function useBoards(workspaceId) {
     }
   }, [load]);
 
-  return { boards, loading, error, createBoard, updateBoard, deleteBoard, reorderBoards };
+  return { boards, loading, error, createBoard, updateBoard, deleteBoard, reorderBoards, moveBoard };
 }

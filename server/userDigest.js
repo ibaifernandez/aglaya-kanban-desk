@@ -15,7 +15,7 @@ const { supabaseAdmin } = require('./utils/supabase');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const USER_DIGEST_HOUR = parseInt(process.env.USER_DIGEST_HOUR ?? '8', 10);
+const USER_DIGEST_HOUR = parseInt(process.env.USER_DIGEST_HOUR ?? '7', 10);
 
 const SITE_URL = process.env.SITE_URL ?? 'https://kanban.aglaya.biz';
 

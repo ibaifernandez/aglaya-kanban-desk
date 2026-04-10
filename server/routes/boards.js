@@ -9,9 +9,10 @@ const DEFAULT_COLUMNS = [
 ];
 
 const toBoard = (row) => ({
-  id:        row.id,
-  title:     row.title,
-  createdAt: row.created_at,
+  id:          row.id,
+  title:       row.title,
+  workspaceId: row.workspace_id,
+  createdAt:   row.created_at,
 });
 
 const getBoards = async (req, res) => {
@@ -59,9 +60,21 @@ const createBoard = async (req, res) => {
 };
 
 const updateBoard = async (req, res) => {
-  const { title } = req.body;
+  const { title, workspaceId } = req.body;
   const update = {};
   if (title?.trim()) update.title = title.trim();
+
+  if (workspaceId) {
+    // Verify destination workspace belongs to same organization
+    const { data: ws } = await supabaseAdmin
+      .from('workspaces')
+      .select('id')
+      .eq('id', workspaceId)
+      .eq('organization_id', req.user.organizationId)
+      .single();
+    if (!ws) return res.status(403).json({ error: 'Workspace no autorizado' });
+    update.workspace_id = workspaceId;
+  }
 
   const { data, error } = await supabaseAdmin
     .from('boards')
