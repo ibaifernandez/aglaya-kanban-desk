@@ -2,16 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "MyBoardLFi Client",
+      "name": "AGLAYA Kanban Desk Client",
       "runtimeExecutable": "/usr/local/bin/node",
-      "runtimeArgs": ["/Users/AGLAYA/Local Sites/MyBoardLFi/client/node_modules/.bin/vite"],
-      "cwd": "/Users/AGLAYA/Local Sites/MyBoardLFi/client",
+      "runtimeArgs": ["/Users/AGLAYA/Local Sites/aglaya-kanban-desk/client/node_modules/.bin/vite"],
+      "cwd": "/Users/AGLAYA/Local Sites/aglaya-kanban-desk/client",
       "port": 5175
     },
     {
-      "name": "MyBoardLFi Server",
+      "name": "AGLAYA Kanban Desk Server",
       "runtimeExecutable": "/usr/local/bin/node",
-      "runtimeArgs": ["/Users/AGLAYA/Local Sites/MyBoardLFi/server/index.js"],
+      "runtimeArgs": ["/Users/AGLAYA/Local Sites/aglaya-kanban-desk/server/index.js"],
       "port": 3003
     }
   ]

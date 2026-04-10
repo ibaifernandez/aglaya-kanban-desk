@@ -59,7 +59,7 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
     setDigestState('sending');
     setDigestMsg('');
     try {
-      const token = localStorage.getItem('myboardlfi_token');
+      const token = localStorage.getItem('aglaya_token');
       const res = await fetch('/api/digest/send-me', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },

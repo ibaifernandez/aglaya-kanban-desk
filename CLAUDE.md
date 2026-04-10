@@ -6,9 +6,16 @@
 
 ## Identidad del proyecto
 
-**aglaya-board** (nombre del repo en GitHub) — **display name: AGLAYA Kanban Desk** — plataforma de gestión de proyectos multi-tenant bajo la red AGLAYA (aglaya.biz). Soporta colaboradores (workspaces personal, interno y externo) y clientes (solo workspaces externos asignados). Desarrollado por Ibai Fernández.
+**aglaya-kanban-desk** (nombre del repo en GitHub) — **display name: AGLAYA Kanban Desk** — plataforma de gestión de proyectos multi-tenant bajo la red AGLAYA (aglaya.biz). Soporta colaboradores (workspaces personal, interno y externo) y clientes (solo workspaces externos asignados). Desarrollado por Ibai Fernández.
 
 Antes llamado **MyBoardLFi / LFi Kanban Desk** — migrado a AGLAYA en v1.1.0.
+Antes llamado **aglaya-board** en GitHub — renombrado a **aglaya-kanban-desk** en v1.1.1.
+
+---
+
+## Carpeta local
+
+`/Users/AGLAYA/Local Sites/aglaya-kanban-desk`
 
 ---
 
@@ -27,8 +34,8 @@ Si alguno está ocupado al arrancar, investiga qué proceso lo tiene antes de ma
 
 Los servidores se arrancan con:
 ```
-preview_start → "MyBoardLFi Server"   (puerto 3003)
-preview_start → "MyBoardLFi Client"   (puerto 5175)
+preview_start → "AGLAYA Kanban Desk Server"   (puerto 3003)
+preview_start → "AGLAYA Kanban Desk Client"   (puerto 5175)
 ```
 Configuración en `.claude/launch.json`.
 
@@ -45,11 +52,23 @@ Configuración en `.claude/launch.json`.
 
 ---
 
+## Backlog priorizado (post-Phase 1A)
+
+| # | Feature | Prioridad | Estado |
+|---|---------|-----------|--------|
+| 1 | Movilidad de objetos — mover tableros entre workspaces | 🟡 MEDIA | ✅ Impl. (push pendiente) |
+| 1b | Movilidad de objetos — mover tarjetas cross-workspace | 🟡 MEDIA | ❌ Pendiente diseño |
+| 2 | Tests actualizados — auth, workspaces (code viejo sistema) | 🟡 MEDIA | ❌ Pendiente |
+| 3 | Limpiar localStorage — remover `myboardlfi_token` (ruido) | 🟢 BAJA | ❌ Pendiente |
+| 4 | Verificar flujo email invite — end-to-end kanban.aglaya.biz | 🔴 CRÍTICO | ❌ Bloqueante Phase 2 |
+| 5 | MyBoard deprecation — archivar repo | 🟢 BAJA | ❌ Pendiente |
+
+---
+
 ## Reglas críticas
 
 - No matar procesos en puertos 3003/5175 sin verificar que son de AGLAYA Kanban Desk.
 - No modificar `.claude/launch.json` sin actualizar este archivo.
 - Al mover una tarjeta a una columna de tipo "hecho/entregado/completado": establecer `priority` a `"none"` automáticamente.
 - Idioma del código: inglés. Idioma de documentación y commits: español.
-- Todo el trabajo de la migración AGLAYA se hace en la rama `feature/rebrand-aglaya`. No mergear a `main` hasta validar en local.
 - Antes de implementar features, leer siempre `docs/ARCHITECTURE.md`.

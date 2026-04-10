@@ -121,7 +121,7 @@ app.get('/api/health', (_req, res) =>
 // Export app for testing; only listen when run directly
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`MyBoardLFi server → http://localhost:${PORT}`);
+    console.log(`AGLAYA Kanban Desk server → http://localhost:${PORT}`);
     require('./digest').startDigestScheduler();
     require('./userDigest').startUserDigestScheduler();
   });
