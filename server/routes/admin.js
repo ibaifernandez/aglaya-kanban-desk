@@ -11,13 +11,20 @@ const SITE_URL        = process.env.SITE_URL || 'https://myboardlfi.ibaifernande
 router.use(requireAuth, requireRole('admin', 'superadmin'));
 
 // ── GET /api/admin/users ──────────────────────────────────────────────────────
-// List all users in the organization
+// List all users in the organization (or all for superadmin)
 router.get('/users', async (req, res) => {
-  const { data, error } = await supabaseAdmin
+  let query = supabaseAdmin
     .from('users')
-    .select('id, email, name, role, created_at')
-    .eq('organization_id', req.user.organizationId)
-    .order('created_at', { ascending: true });
+    .select('id, email, name, role, created_at');
+
+  if (req.user.role !== 'superadmin') {
+    if (!req.user.organizationId) {
+       return res.json({ data: [] }); // Not in an org, see nothing if not super
+    }
+    query = query.eq('organization_id', req.user.organizationId);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: true });
 
   if (error) { console.error('[admin] GET /users:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
   res.json({ data });
@@ -86,24 +93,42 @@ router.post('/users/invite', async (req, res) => {
 // Change a user's role
 router.patch('/users/:id/role', async (req, res) => {
   const { role } = req.body;
+  const targetId = req.params.id;
 
   if (!ALLOWED_ROLES.includes(role) || role === 'superadmin') {
     return res.status(400).json({ error: 'Rol no válido' });
   }
-  if (req.params.id === req.user.id) {
+  if (targetId === req.user.id) {
     return res.status(403).json({ error: 'No puedes cambiar tu propio rol' });
   }
 
-  const { data, error } = await supabaseAdmin
+  // Prep the query
+  let query = supabaseAdmin
     .from('users')
     .update({ role })
-    .eq('id', req.params.id)
-    .eq('organization_id', req.user.organizationId)
+    .eq('id', targetId);
+
+  // If NOT superadmin, restrict to same organization
+  if (req.user.role !== 'superadmin') {
+    if (!req.user.organizationId) {
+       return res.status(403).json({ error: 'No tienes una organización asignada' });
+    }
+    query = query.eq('organization_id', req.user.organizationId);
+  }
+
+  const { data, error } = await query
     .select('id, email, name, role')
     .single();
 
-  if (error) { console.error('[admin] PATCH /users/:id/role:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
-  if (!data)  return res.status(404).json({ error: 'Usuario no encontrado' });
+  if (error) {
+    // Check if it's a "no rows" error (likely auth/org mismatch or invalid ID)
+    if (error.code === 'PGRST116') {
+      return res.status(404).json({ error: 'Usuario no encontrado o fuera de tu organización' });
+    }
+    console.error('[admin] PATCH /users/:id/role:', error.message, error.details);
+    return res.status(500).json({ error: `Error de base de datos: ${error.message}` });
+  }
+
   res.json({ data });
 });
 
