@@ -607,8 +607,8 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
   const profileBtnRef = useRef(null);
 
   const isClient  = user?.role === 'cliente';
-  const canCreate = ['superadmin', 'admin'].includes(user?.role);
-  const canEdit   = ['superadmin', 'admin'].includes(user?.role);
+  const canCreate = ['superadmin', 'admin', 'colaborador'].includes(user?.role);
+  const canEdit   = ['superadmin', 'admin', 'colaborador'].includes(user?.role);
 
   const personal = workspaces.filter((ws) => ws.type === 'personal');
   const interno  = workspaces.filter((ws) => ws.type === 'interno');

@@ -26,6 +26,7 @@ const adminRouter             = require('./routes/admin');
 const workspacesRouter        = require('./routes/workspaces');
 const mediaRouter             = require('./routes/media');
 const { requireAuth }         = require('./middleware/auth');
+const { requireWorkspaceMember } = require('./middleware/workspace');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
@@ -83,7 +84,7 @@ app.use('/api/media', mediaRouter);
 
 // ── Boards ────────────────────────────────────────────────
 app.get('/api/boards',          requireAuth, getBoards);
-app.post('/api/boards',         requireAuth, createBoard);
+app.post('/api/boards',         requireAuth, requireWorkspaceMember, createBoard);
 app.put('/api/boards/reorder',  requireAuth, reorderBoards);   // must come before /:id
 app.put('/api/boards/:id',      requireAuth, updateBoard);
 app.delete('/api/boards/:id',   requireAuth, deleteBoard);

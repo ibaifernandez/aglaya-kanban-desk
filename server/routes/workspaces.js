@@ -74,8 +74,8 @@ router.post('/', requireAuth, async (req, res) => {
   const { name, emoji = '📋', description = '', type = 'externo' } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
 
-  // Only admins can create personal/interno workspaces
-  const allowedTypes = (req.user.role === 'admin' || req.user.role === 'superadmin')
+  // Admins and Colaboradores can create any type of workspace
+  const allowedTypes = (req.user.role === 'admin' || req.user.role === 'superadmin' || req.user.role === 'colaborador')
     ? VALID_TYPES
     : ['externo'];
   const wsType = allowedTypes.includes(type) ? type : 'externo';
@@ -214,8 +214,8 @@ router.get('/:workspaceId/members', requireAuth, requireWorkspaceMember, async (
 router.post('/:workspaceId/members', requireAuth, requireWorkspaceMember, requireWorkspaceRole('owner', 'admin'), async (req, res) => {
   const { userId, role = 'member' } = req.body;
   if (!userId) return res.status(400).json({ error: 'userId is required' });
-  if (!['admin', 'member', 'guest'].includes(role)) {
-    return res.status(400).json({ error: 'role must be admin, member, or guest' });
+  if (!['owner', 'admin', 'member', 'guest'].includes(role)) {
+    return res.status(400).json({ error: 'role must be owner, admin, member, or guest' });
   }
 
   const { data, error } = await supabaseAdmin
@@ -240,8 +240,8 @@ router.patch('/:workspaceId/members/:userId', requireAuth, requireWorkspaceMembe
   const { role } = req.body;
   const { workspaceId, userId } = req.params;
 
-  if (!['admin', 'member', 'guest'].includes(role)) {
-    return res.status(400).json({ error: 'role must be admin, member, or guest' });
+  if (!['owner', 'admin', 'member', 'guest'].includes(role)) {
+    return res.status(400).json({ error: 'role must be owner, admin, member, or guest' });
   }
   if (userId === req.user.id) {
     return res.status(400).json({ error: 'No puedes cambiar tu propio rol' });

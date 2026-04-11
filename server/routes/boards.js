@@ -32,6 +32,13 @@ const createBoard = async (req, res) => {
   if (!title?.trim()) return res.status(400).json({ error: 'title is required' });
   if (!workspaceId)   return res.status(400).json({ error: 'workspaceId is required' });
 
+  // req.workspaceMember is attached by requireWorkspaceMember middleware
+  const { role: wsRole } = req.workspaceMember;
+  const allowedRoles = ['owner', 'admin', 'member'];
+  if (!allowedRoles.includes(wsRole)) {
+    return res.status(403).json({ error: 'Rol insuficiente en este workspace para crear tableros' });
+  }
+
   const { data: existing } = await supabaseAdmin
     .from('boards')
     .select('order')
@@ -43,7 +50,13 @@ const createBoard = async (req, res) => {
 
   const { data: board, error } = await supabaseAdmin
     .from('boards')
-    .insert({ title: title.trim(), organization_id: req.user.organizationId, workspace_id: workspaceId, order: maxOrder + 1 })
+    .insert({
+      title:           title.trim(),
+      organization_id: req.user.organizationId,
+      workspace_id:    workspaceId,
+      owner_id:        req.user.id, // Audit
+      order:           maxOrder + 1
+    })
     .select()
     .single();
 

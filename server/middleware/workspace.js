@@ -5,7 +5,7 @@ const { supabaseAdmin } = require('../utils/supabase');
  * Attaches req.workspaceMember = { workspace_id, user_id, role } if valid.
  */
 async function requireWorkspaceMember(req, res, next) {
-  const workspaceId = req.params.workspaceId || req.params.id;
+  const workspaceId = req.params.workspaceId || req.params.id || req.body.workspaceId;
   if (!workspaceId) return res.status(400).json({ error: 'workspaceId requerido' });
 
   const [memberRes, wsRes] = await Promise.all([

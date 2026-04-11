@@ -123,7 +123,7 @@ En Phase 1, `tasks.json` es reemplazado por Supabase. Se añade capa de autentic
 |---|---|---|
 | `superadmin` | Ibai Fernández | Todo, incluyendo gestión de organizaciones |
 | `admin` | Gerencia de LFi (Héctor, Iván) | Gestión de usuarios y tableros de su org |
-| `colaborador` | Equipo de LFi (Daniel, Marco, etc.) | Crear y editar tarjetas en tableros asignados |
+| `colaborador` | Equipo de LFi (Daniel, Marco, etc.) | Crear sus propios workspaces y gestionar tableros/tarjetas en ellos |
 | `cliente` | Clientes de LFi | Solo lectura de sus tableros; sin ver otros clientes |
 | `guest` | Acceso temporal | Solo lectura de tableros específicamente compartidos |
 

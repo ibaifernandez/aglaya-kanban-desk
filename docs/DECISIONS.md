@@ -311,3 +311,22 @@ CREATE FUNCTION is_workspace_member(workspace_id uuid) RETURNS boolean SECURITY 
 - Los proyectos tienen objetivos distintos: MyBoard es personal, MyBoardLFi es corporativo
 
 **Consecuencias:** Cambios en MyBoard no se propagan automáticamente a MyBoardLFi. Las mejoras corporativas de MyBoardLFi son exclusivas de este fork.
+
+---
+
+## ADR-013 — Hardening de integridad de datos y protección contra borrado en cascada
+
+**Fecha:** 2026-04-10
+**Estado:** Aceptada
+
+**Contexto:** Un incidente de pérdida de visibilidad de datos ocurrió cuando se eliminó un colaborador. Debido a las restricciones `ON DELETE CASCADE` en la base de datos y a la falta de validación en las rutas de administración, la eliminación de un usuario rompía los vínculos de membresía e incluso podía eliminar recursos (workspaces/tableros).
+
+**Decisión:** Implementar tres capas de protección:
+1. **Validación en Backend (Admin):** Bloquear la eliminación de usuarios que sean propietarios únicos (`owner`) de cualquier workspace.
+2. **Transferencia de Propiedad:** Habilitar el rol `owner` en las rutas de gestión de miembros para permitir la rotación de responsabilidades antes de un borrado.
+3. **Suavizado de DB (Esquema):** Cambiar `ON DELETE CASCADE` por `ON DELETE SET NULL` en campos de autoría (`created_by`, `owner_id`) para que el recurso sobreviva al creador.
+
+**Consecuencias:**
+- Los administradores deben transferir la propiedad de un workspace antes de poder borrar al usuario propietario.
+- Requiere ejecución manual de script SQL en Supabase para actualizar las constraints existentes.
+- Aumenta la robustez ante errores humanos en la gestión de personal.
