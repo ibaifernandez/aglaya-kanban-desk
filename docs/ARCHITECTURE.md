@@ -105,4 +105,20 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 4. **Propiedad Intelectual**: El repositorio fuente es privado de AGLAYA. Los desploys se realizan mediante artefactos compilados para proteger el código fuente durante la fase de negociación inicial (ADR-005).
 5. **Aislamiento Multi-tenant (Workspaces)**: Implementado mediante una tabla dedicada de membresías y funciones SQL `SECURITY DEFINER` para evitar recursión en las políticas RLS de Supabase (ADR-012/009).
 6. **Hardening de Cascada**: Cambio de `ON DELETE CASCADE` a `SET NULL` en campos de autoría para asegurar que el contenido sobreviva a la rotación de personal (ADR-013).
-7. **Rebranding**: Transición de *MyBoardLFi* a **AGLAYA Kanban Desk** para crear una identidad de producto independiente y profesional (ADR-011).
+7. **Identidad Visual**: Consolidación de **AGLAYA Kanban Desk** como plataforma independiente y profesional (ADR-011).
+
+## ADR (Architecture Decision Records)
+
+### ADR-011: Consolidación de Marca e Identidad
+**Fecha:** 2026-04-11
+**Estado:** Aceptado
+**Contexto:** La plataforma ha evolucionado hacia un modelo multi-tenant independiente bajo la marca AGLAYA.
+**Decisión:** Eliminar toda referencia a marcas anteriores y dominios de terceros. Estandarizar mocks de prueba en `aglaya.biz`.
+**Consecuencias:** Coherencia total en la experiencia de usuario y propiedad intelectual protegida.
+
+### ADR-012: Estabilización del Entorno de Tests (Jest Downgrade)
+**Fecha:** 2026-04-11
+**Estado:** Aceptado
+**Contexto:** La versión de desarrollo `jest@30.2.0-alpha` presentaba bloqueos sistemáticos y procesos huérfanos.
+**Decisión:** Downgrade a `jest@29.7.0` (versión estable).
+**Consecuencias:** Recuperación de la capacidad de diagnóstico y eliminación de procesos zombis en el terminal.

@@ -76,6 +76,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Input sanitizado en `GET /api/cards/search` (cap 100 chars)
 - [x] Auditoría completa de superficie de ataque (2026-03-27 — 15 hallazgos, 2 altos resueltos)
 - [ ] Exposición de mensajes de error Supabase al cliente (media — pendiente refactor)
+- [ ] **Estabilización de infra de tests (Mac/Node 18)**: Resolver bloqueo sistemático de Jest en el entorno local (Hanging).
 
 ### Multi-tenancy
 - [ ] Migrar rutas boards/columns/cards de `tasks.json` → Supabase

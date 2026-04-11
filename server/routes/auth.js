@@ -56,7 +56,7 @@ router.post('/register', async (req, res) => {
     { expiresIn: '7d' }
   );
 
-  return res.status(201).json({ token, user: { id: userId, email, name, role } });
+  return res.status(201).json({ token, user: { id: userId, email, name, role, avatarUrl: null } });
 });
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
@@ -111,6 +111,7 @@ router.post('/login', async (req, res) => {
       name: profile.name,
       role: profile.role,
       organizationId: profile.organization_id,
+      avatarUrl: profile.avatar_url ?? null,
     },
   });
 });

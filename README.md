@@ -28,19 +28,19 @@ Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo inter
 
 ## Stack
 
-| Capa | Tecnología |
-|---|---|
-| Frontend | React 18 + Vite + TailwindCSS |
-| Drag & drop | @dnd-kit |
-| Backend | Express 4 + Node.js |
-| Base de datos | Supabase (PostgreSQL + RLS) |
-| Auth | Supabase Auth + JWT middleware + bcryptjs |
-| Storage | Supabase Storage (adjuntos, avatares, portadas) |
-| Email | Nodemailer + node-cron (digest diario) |
-| Seguridad | Helmet + express-rate-limit + CORS por entorno |
-| Tests | Jest + Supertest (26 tests) |
-| Deploy cliente | Netlify (auto-deploy en push a `main`) |
-| Deploy servidor | Railway (auto-deploy en push a `main`) |
+| Capa            | Tecnología                                      |
+| --------------- | ----------------------------------------------- |
+| Frontend        | React 18 + Vite + TailwindCSS                   |
+| Drag & drop     | @dnd-kit                                        |
+| Backend         | Express 4 + Node.js                             |
+| Base de datos   | Supabase (PostgreSQL + RLS)                     |
+| Auth            | Supabase Auth + JWT middleware + bcryptjs       |
+| Storage         | Supabase Storage (adjuntos, avatares, portadas) |
+| Email           | Nodemailer + node-cron (digest diario)          |
+| Seguridad       | Helmet + express-rate-limit + CORS por entorno  |
+| Tests           | Jest + Supertest (26 tests)                     |
+| Deploy cliente  | Netlify (auto-deploy en push a `main`)          |
+| Deploy servidor | Railway (auto-deploy en push a `main`)          |
 
 ---
 
@@ -78,12 +78,14 @@ server/  (Express 4 · Railway · puerto 3003)
 ## Características — v1.1.0
 
 ### Workspaces y roles
+
 - Tres tipos de workspace: `personal` / `interno` / `externo`
 - Dos roles de usuario: `colaborador` (acceso completo) y `cliente` (solo workspaces externos asignados)
 - Roles por workspace: `owner` / `admin` / `member` / `guest`
 - Creación automática de workspace personal al registrarse
 
 ### Tableros y tarjetas
+
 - Drag & drop de columnas y tarjetas
 - Prioridades: urgente / alta / media / baja / ninguna
 - Fecha límite con indicador visual de urgencia
@@ -93,16 +95,19 @@ server/  (Express 4 · Railway · puerto 3003)
 - Búsqueda global y filtros por responsable / vencidas
 
 ### Identidad visual y storage
+
 - Avatar de usuario (upload directo, crop integrado)
 - Portada de workspace (imagen real o mini-kanban generativo)
 - Mini-kanban decorativo determinista en tarjetas de workspace
 
 ### Email y notificaciones
+
 - Digest diario de administrador: estadísticas globales, tarjetas vencidas, huérfanas, top tableros, datos de usuarios Supabase
 - Endpoint `POST /api/digest/send-me` para envío bajo demanda (admin)
 - SMTP via Resend
 
 ### Seguridad
+
 - CORS restringido por entorno (solo `kanban.aglaya.biz` en producción)
 - Rate limiting: 20 req / 15 min en rutas de auth
 - Helmet con CSP en producción
@@ -204,12 +209,12 @@ docs/migrations/002-workspace-types-aglaya.sql
 
 26 tests en 4 suites — todos en verde.
 
-| Suite | Tests |
-|---|---|
-| Auth API | 8 |
-| Boards API | 7 |
-| Cards API | 6 |
-| Workspaces API | 5 |
+| Suite          | Tests |
+| -------------- | ----- |
+| Auth API       | 8     |
+| Boards API     | 7     |
+| Cards API      | 6     |
+| Workspaces API | 5     |
 
 ```bash
 cd server && npm test
@@ -225,16 +230,16 @@ cd server && npm test
 
 ## Documentación
 
-| Documento | Descripción |
-|---|---|
-| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Arquitectura técnica detallada |
-| [ROADMAP.md](./docs/ROADMAP.md) | Fases completadas y próximos pasos |
-| [CHANGELOG.md](./docs/CHANGELOG.md) | Historial de versiones |
-| [BACKLOG.md](./docs/BACKLOG.md) | Features en cola |
-| [DECISIONS.md](./docs/DECISIONS.md) | Registro de decisiones técnicas (ADRs) |
-| [README-deploy.md](./docs/README-deploy.md) | Guía de deploy paso a paso |
-| [SECURITY.md](./docs/SECURITY.md) | Modelo de seguridad y RLS |
+| Documento                                   | Descripción                            |
+| ------------------------------------------- | -------------------------------------- |
+| [ARCHITECTURE.md](./docs/ARCHITECTURE.md)   | Arquitectura técnica detallada         |
+| [ROADMAP.md](./docs/ROADMAP.md)             | Fases completadas y próximos pasos     |
+| [CHANGELOG.md](./docs/CHANGELOG.md)         | Historial de versiones                 |
+| [BACKLOG.md](./docs/BACKLOG.md)             | Features en cola                       |
+| [DECISIONS.md](./docs/DECISIONS.md)         | Registro de decisiones técnicas (ADRs) |
+| [README-deploy.md](./docs/README-deploy.md) | Guía de deploy paso a paso             |
+| [SECURITY.md](./docs/SECURITY.md)           | Modelo de seguridad y RLS              |
 
 ---
 
-*AGLAYA Kanban Desk · parte de la red [AGLAYA](https://aglaya.biz) · © 2026 Ibai Fernández · MIT License*
+_AGLAYA Kanban Desk · parte de la red [AGLAYA](https://aglaya.biz) · © 2026 Ibai Fernández · MIT License_

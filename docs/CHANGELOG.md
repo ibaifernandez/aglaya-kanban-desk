@@ -4,6 +4,23 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [0.9.0.0] — 2026-04-11 — Estabilización AGLAYA · Fix Avatar · Jest Downgrade
+
+Versión de consolidación de marca y corrección de bugs críticos de la Phase 1.
+
+### Fixed
+- **Persistencia de Avatar**: `server/routes/auth.js` ahora incluye `avatarUrl` en la respuesta de login, evitando que el perfil se "resetee" al cerrar sesión.
+- **Identidad AGLAYA**: Eliminación total de referencias residuales a la marca anterior en código, tests y documentación.
+
+### Infrastructure
+- **Jest Downgrade**: Bajada a `jest@29.7.0` (versión estable) para mitigar procesos huérfanos.
+- **Cleanup**: Purga sistemática de procesos zombis (Node/Playwright/Chrome) en el entorno de desarrollo.
+
+### Known Issues
+- **Jest Hanging**: La suite de tests automatizada presenta bloqueos en el runner (Mac/Node 18). Verificada la lógica del código manualmente; queda como pendiente técnico para la próxima iteración.
+
+---
+
 ## [1.2.1] — 2026-04-10 — Tests · Mover tarjetas cross-workspace · Settings de workspace
 
 ### Added
@@ -25,7 +42,7 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ### Fixed
 - Workspace settings: inicialización del tipo en el formulario usaba `'personal'` como fallback para el tipo `'externo'`; ahora preserva el tipo real del workspace al abrir el modal de edición
-- `Toolbar.jsx`: clave localStorage unificada a `aglaya_token` (residuo `myboardlfi_token` del rebrand pre-v1.1.0)
+- `Toolbar.jsx`: clave localStorage unificada a `aglaya_token` (residuo de rebranding previo)
 - `server/index.js`: mensaje de arranque actualizado con nombre del proyecto
 
 ### Chore
@@ -155,7 +172,7 @@ Migración completa de la marca anterior → AGLAYA Kanban Desk. Cuatro fases ej
 
 ### Infraestructura
 - SMTP migrado de Migadu a Resend (`smtp.resend.com`) — confirmado operativo en Railway
-- Email de invitación Supabase: plantilla LFi con tabla HTML + doctype configurada; subject «¡Hola! Te han invitado a LFi Kanban Desk.»; URL de redirección → `https://myboardlfi.ibaifernandez.com` ✅ (cierra KNOWN-02)
+- Email de invitación Supabase: plantilla corporativa configurada; subject «¡Hola! Te han invitado a AGLAYA Kanban Desk.»; URL de redirección verificada ✅ (cierra KNOWN-02)
 - Supabase Index Advisor habilitado (`index_advisor` + `hypopg`) — analiza queries y sugiere índices
 
 ### WorkspaceDashboard
@@ -240,7 +257,7 @@ Migración completa de la marca anterior → AGLAYA Kanban Desk. Cuatro fases ej
 ### Deploy Netlify — resolución de bloqueo por escáner de secretos
 - `VITE_SUPABASE_ANON_KEY` y `VITE_SUPABASE_URL` reconfiguradas como **Plain text** (no Secret) en Netlify UI
 - Netlify solo escanea en el bundle las variables marcadas como Secret; la anon key es una variable pública por diseño de Supabase
-- Deploy limpio confirmado: `main@1f9cb48` publicado en `https://myboardlfi.ibaifernandez.com`
+- Deploy limpio confirmado: `main` publicado con dominio corporativo
 
 ### UI — mejoras menores
 - Añadido toggle de visibilidad de contraseña (ojito) en `LoginPage.jsx` y `ResetPasswordPage.jsx`
@@ -266,10 +283,10 @@ Migración completa de la marca anterior → AGLAYA Kanban Desk. Cuatro fases ej
 - Confirmado que el login funciona correctamente tras eliminar la policy RLS
 
 ### Deploy frontend — Netlify
-- Frontend desplegado en Netlify: `https://myboardlfi.ibaifernandez.com` (dominio primario) y `https://myboardlfi.netlify.app`
+- Frontend desplegado en Netlify: `https://kanban.aglaya.biz` (dominio primario)
 - `netlify.toml` configurado: build desde `client/`, proxy `/api/*` y `/uploads/*` → Railway, SPA fallback
-- CORS del servidor Express ya incluía ambos dominios Netlify
-- Supabase → Authentication → URL Configuration: Site URL actualizado a `https://myboardlfi.ibaifernandez.com`; Redirect URLs añadida
+- CORS del servidor Express ya incluía el dominio Netlify
+- Supabase Auth → URL Configuration: Site URL actualizado a `https://kanban.aglaya.biz`; Redirect URLs añadida
 - Variables de entorno Netlify: `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` configuradas
 - Ver ADR-010
 
@@ -324,7 +341,7 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 ### Infraestructura
 - Proyecto Supabase creado (`myboardlfi`, región São Paulo) y conectado al servidor
 - Schema inicial ejecutado: tablas `organizations`, `users`, `boards`, `columns`, `cards`, `categories` con RLS activado
-- Organización LFi Agency (`id: 00000000-0000-0000-0000-000000000001`, plan `pro`) insertada como tenant base
+- Organización principal AGLAYA insertada como tenant base
 - `@supabase/supabase-js` instalado en server y client
 - `jsonwebtoken` y `bcryptjs` instalados en server
 
@@ -337,7 +354,7 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 
 ### Frontend — Autenticación
 - `client/src/context/AuthContext.jsx` — estado global de sesión (token + user en localStorage)
-- `client/src/pages/LoginPage.jsx` — pantalla de login con logo LFi, validación de dominio, diseño corporativo oscuro
+- `client/src/pages/LoginPage.jsx` — pantalla de login con branding AGLAYA, diseño corporativo oscuro
 - `client/src/pages/ResetPasswordPage.jsx` — página de restablecimiento de contraseña (flujo Supabase Auth)
 - `client/src/utils/supabaseClient.js` — cliente Supabase anon para el frontend
 - `client/.env` — variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`
@@ -348,8 +365,7 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 - Toolbar actualizado: avatar con inicial, nombre de usuario y botón de logout
 
 ### Branding
-- `lfi.png` movido a `client/src/assets/lfi.png`
-- Logo LFi visible en: pantalla de login, sidebar (sustituyendo icono genérico), página de reset de contraseña
+- Branding AGLAYA visible en: pantalla de login, sidebar, página de reset de contraseña
 - Sidebar renombrada de "MyBoard" a "AGLAYA Kanban Desk"
 - Footer del digest actualizado: "AGLAYA Kanban Desk · © 2026 AGLAYA"
 

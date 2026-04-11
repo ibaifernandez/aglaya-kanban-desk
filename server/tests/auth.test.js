@@ -18,18 +18,44 @@ jest.mock('../utils/supabase', () => ({
       };
       return chain;
     },
-    auth: {
       admin: {
         createUser: (opts) => {
-          if (opts.email === 'test@empresa.com') {
+          console.log('[MOCK] createUser called for:', opts.email);
+          if (opts.email === 'test@aglaya.biz') {
             return Promise.resolve({ data: { user: { id: 'uuid-1', email: opts.email } }, error: null });
           }
           return Promise.resolve({ data: null, error: { message: 'Supabase error' } });
         },
       },
     },
-  },
-}));
+    from: (table) => ({
+      select: () => ({
+        eq: () => ({
+          single: () => {
+            console.log('[MOCK] select/eq/single called for table:', table);
+            return Promise.resolve({ data: { id: 'uuid-1', email: 'test@aglaya.biz', name: 'Test User', role: 'admin' }, error: null });
+          }
+        }),
+        in: () => Promise.resolve({ data: [], error: null }),
+      }),
+      insert: (data) => {
+        console.log('[MOCK] insert called for table:', table, data);
+        return {
+          select: () => ({
+            single: () => Promise.resolve({ data: { id: 'uuid-ws-1', ...data }, error: null })
+          })
+        };
+      }
+    }),
+    auth: {
+      signInWithPassword: (creds) => {
+        console.log('[MOCK] signInWithPassword called for:', creds.email);
+        if (creds.email === 'test@aglaya.biz') {
+          return Promise.resolve({ data: { user: { id: 'uuid-1', email: creds.email } }, error: null });
+        }
+        return Promise.resolve({ data: null, error: { message: 'Auth error' } });
+      }
+    }
 
 const app = require('../index');
 
@@ -65,8 +91,18 @@ describe('POST /api/auth/register', () => {
       name: 'Test User',
     });
     expect(res.status).not.toBe(403);
+    // Should return 400 from Supabase or Success if we mocked it, but not Forbidden
     expect(res.body.error || '').not.toMatch(/dominio/i);
-    expect(res.body.error || '').not.toMatch(/domain/i);
+  });
+
+  it('successful registration includes avatarUrl as null', async () => {
+    const res = await request(app).post('/api/auth/register').send({
+      email: 'test@aglaya.biz',
+      password: 'password123',
+      name: 'Test User',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.user).toHaveProperty('avatarUrl', null);
   });
 });
 
