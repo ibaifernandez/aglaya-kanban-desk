@@ -74,11 +74,18 @@ router.post('/', requireAuth, async (req, res) => {
   const { name, emoji = '📋', description = '', type = 'externo' } = req.body;
   if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
 
-  // Admins and Colaboradores can create any type of workspace
-  const allowedTypes = (req.user.role === 'admin' || req.user.role === 'superadmin' || req.user.role === 'colaborador')
-    ? VALID_TYPES
-    : ['externo'];
-  const wsType = allowedTypes.includes(type) ? type : 'externo';
+  // 1. Capa Macro: ¿quién puede crear qué?
+  if (req.user.role === 'cliente') {
+    return res.status(403).json({ error: 'Tu rol no tiene permiso para crear workspaces' });
+  }
+
+  // Admins can create any type. Colaboradores ONLY personal.
+  let wsType = type;
+  if (req.user.role === 'colaborador') {
+    wsType = 'personal';
+  } else if (!VALID_TYPES.includes(type)) {
+    wsType = 'externo';
+  }
 
   const { data: ws, error: wsErr } = await supabaseAdmin
     .from('workspaces')

@@ -184,6 +184,13 @@ const moveCard = async (req, res) => {
 };
 
 const deleteCard = async (req, res) => {
+  const { role: wsRole } = req.workspaceMember;
+  
+  // Biblia matrix: Borrar tarjetas ✅ for owner, admin, member. ❌ for guest/cliente
+  if (!['owner', 'admin', 'member'].includes(wsRole)) {
+    return res.status(403).json({ error: 'Rol insuficiente para eliminar tarjetas' });
+  }
+
   const { error } = await supabaseAdmin
     .from('cards')
     .delete()

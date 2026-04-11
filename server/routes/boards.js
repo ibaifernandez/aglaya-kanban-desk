@@ -16,10 +16,29 @@ const toBoard = (row) => ({
 });
 
 const getBoards = async (req, res) => {
-  const { data, error } = await supabaseAdmin
+  let query = supabaseAdmin
     .from('boards')
     .select('*')
-    .eq('organization_id', req.user.organizationId)
+    .eq('organization_id', req.user.organizationId);
+
+  // Hardening: Only superadmin sees everything. 
+  // Others only see boards from workspaces they belong to.
+  if (req.user.role !== 'superadmin') {
+    const { data: memberships, error: memError } = await supabaseAdmin
+      .from('workspace_members')
+      .select('workspace_id')
+      .eq('user_id', req.user.id);
+
+    if (memError) {
+      console.error('[boards] getBoards membership check:', memError.message);
+      return res.status(500).json({ error: 'Error al verificar permisos' });
+    }
+
+    const invitedWsIds = (memberships || []).map(m => m.workspace_id);
+    query = query.in('workspace_id', invitedWsIds);
+  }
+
+  const { data, error } = await query
     .order('order', { ascending: true })
     .order('created_at', { ascending: true });
 
@@ -74,10 +93,22 @@ const createBoard = async (req, res) => {
 
 const updateBoard = async (req, res) => {
   const { title, workspaceId } = req.body;
+  const { role: wsRole } = req.workspaceMember;
+  
+  // Only Owner/Admin/Member can update board (matching Create/Delete)
+  if (!['owner', 'admin', 'member'].includes(wsRole)) {
+    return res.status(403).json({ error: 'Rol insuficiente para modificar tableros' });
+  }
+
   const update = {};
   if (title?.trim()) update.title = title.trim();
 
   if (workspaceId) {
+    // 🛡️ Biblia Rule: Mover tableros entre WS is Propietario/Admin ONLY
+    if (!['owner', 'admin'].includes(wsRole)) {
+      return res.status(403).json({ error: 'Solo Propietarios y Admins pueden mover tableros entre workspaces' });
+    }
+
     // Verify destination workspace belongs to same organization
     const { data: ws } = await supabaseAdmin
       .from('workspaces')
@@ -85,7 +116,7 @@ const updateBoard = async (req, res) => {
       .eq('id', workspaceId)
       .eq('organization_id', req.user.organizationId)
       .single();
-    if (!ws) return res.status(403).json({ error: 'Workspace no autorizado' });
+    if (!ws) return res.status(403).json({ error: 'Workspace no autorizado o inexistente' });
     update.workspace_id = workspaceId;
   }
 
@@ -102,6 +133,13 @@ const updateBoard = async (req, res) => {
 };
 
 const deleteBoard = async (req, res) => {
+  const { role: wsRole } = req.workspaceMember;
+  
+  // Biblia matrix: Crear/Eliminar tableros ✅ for owner, admin, member
+  if (!['owner', 'admin', 'member'].includes(wsRole)) {
+    return res.status(403).json({ error: 'Rol insuficiente para eliminar tableros' });
+  }
+
   const { error } = await supabaseAdmin
     .from('boards')
     .delete()

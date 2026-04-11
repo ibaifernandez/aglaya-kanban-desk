@@ -4,7 +4,7 @@ const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
-const ALLOWED_ROLES   = ['superadmin', 'admin', 'colaborador', 'cliente', 'guest'];
+const ALLOWED_ROLES   = ['superadmin', 'admin', 'colaborador', 'cliente'];
 const SITE_URL        = process.env.SITE_URL || 'https://myboardlfi.ibaifernandez.com';
 
 // All admin routes require auth + admin/superadmin role

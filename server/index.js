@@ -86,23 +86,23 @@ app.use('/api/media', mediaRouter);
 app.get('/api/boards',          requireAuth, getBoards);
 app.post('/api/boards',         requireAuth, requireWorkspaceMember, createBoard);
 app.put('/api/boards/reorder',  requireAuth, reorderBoards);   // must come before /:id
-app.put('/api/boards/:id',      requireAuth, updateBoard);
-app.delete('/api/boards/:id',   requireAuth, deleteBoard);
+app.put('/api/boards/:id',      requireAuth, requireWorkspaceMember, updateBoard);
+app.delete('/api/boards/:id',   requireAuth, requireWorkspaceMember, deleteBoard);
 
 // ── Columns ───────────────────────────────────────────────
-app.get('/api/boards/:boardId/columns',  requireAuth, getColumns);
-app.post('/api/boards/:boardId/columns', requireAuth, createColumn);
-app.put('/api/columns/:id',              requireAuth, updateColumn);
-app.delete('/api/columns/:id',           requireAuth, deleteColumn);
+app.get('/api/boards/:boardId/columns',  requireAuth, requireWorkspaceMember, getColumns);
+app.post('/api/boards/:boardId/columns', requireAuth, requireWorkspaceMember, createColumn);
+app.put('/api/columns/:id',              requireAuth, requireWorkspaceMember, updateColumn);
+app.delete('/api/columns/:id',           requireAuth, requireWorkspaceMember, deleteColumn);
 
 // ── Cards ─────────────────────────────────────────────────
 app.get('/api/cards/search',              requireAuth, searchCards);   // must come before /:id routes
-app.get('/api/boards/:boardId/cards',     requireAuth, getCardsByBoard);
-app.get('/api/columns/:columnId/cards',   requireAuth, getCardsByColumn);
-app.post('/api/cards',                    requireAuth, createCard);
-app.put('/api/cards/:id/move',            requireAuth, moveCard);      // must come before /:id
-app.put('/api/cards/:id',                 requireAuth, updateCard);
-app.delete('/api/cards/:id',              requireAuth, deleteCard);
+app.get('/api/boards/:boardId/cards',     requireAuth, requireWorkspaceMember, getCardsByBoard);
+app.get('/api/columns/:columnId/cards',   requireAuth, requireWorkspaceMember, getCardsByColumn);
+app.post('/api/cards',                    requireAuth, requireWorkspaceMember, createCard);
+app.put('/api/cards/:id/move',            requireAuth, requireWorkspaceMember, moveCard);      // must come before /:id
+app.put('/api/cards/:id',                 requireAuth, requireWorkspaceMember, updateCard);
+app.delete('/api/cards/:id',              requireAuth, requireWorkspaceMember, deleteCard);
 
 // ── Uploads ───────────────────────────────────────────────
 app.post('/api/uploads',             requireAuth, uploadImage);

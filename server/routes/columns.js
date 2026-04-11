@@ -21,6 +21,13 @@ const getColumns = async (req, res) => {
 };
 
 const createColumn = async (req, res) => {
+  const { role: wsRole } = req.workspaceMember;
+  
+  // Biblia matrix: Only owner, admin, member can manage columns (structural)
+  if (!['owner', 'admin', 'member'].includes(wsRole)) {
+    return res.status(403).json({ error: 'Rol insuficiente para crear columnas' });
+  }
+
   const { title } = req.body;
   if (!title?.trim()) return res.status(400).json({ error: 'title is required' });
 
@@ -44,6 +51,12 @@ const createColumn = async (req, res) => {
 };
 
 const updateColumn = async (req, res) => {
+  const { role: wsRole } = req.workspaceMember;
+  
+  if (!['owner', 'admin', 'member'].includes(wsRole)) {
+    return res.status(403).json({ error: 'Rol insuficiente para modificar columnas' });
+  }
+
   const { title, order, defaultSort } = req.body;
   const update = {};
   if (title?.trim())         update.title        = title.trim();
@@ -62,6 +75,12 @@ const updateColumn = async (req, res) => {
 };
 
 const deleteColumn = async (req, res) => {
+  const { role: wsRole } = req.workspaceMember;
+  
+  if (!['owner', 'admin', 'member'].includes(wsRole)) {
+    return res.status(403).json({ error: 'Rol insuficiente para eliminar columnas' });
+  }
+
   const { error } = await supabaseAdmin
     .from('columns')
     .delete()

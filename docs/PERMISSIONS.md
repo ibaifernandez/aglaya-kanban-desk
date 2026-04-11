@@ -1,58 +1,80 @@
-# Modelos de Roles y Permisos — MyBoardLFi
+# Modelos de Roles y Permisos — AGLAYA Kanban Desk
 
-Este documento detalla la estructura de permisos implementada en el sistema para asegurar la integridad de los datos y la correcta jerarquía de acceso.
-
----
-
-## 🏗️ 1. Roles globales (nivel organización)
-
-Estos roles están definidos en la tabla `memberships` (Supabase) y se incrustan en el JWT del usuario al hacer login. Determinan el acceso general a la infraestructura de la organización.
-
-| Rol             | Descripción                                | Capacidades Clave                                                                                                                                  |
-| :-------------- | :----------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **superadmin**  | Dueño de la plataforma (Ibai).             | info@ibaifernandez.com. Acceso total a todas las organizaciones, usuarios y configuraciones.                                                     |
-| **admin**       | Gerencia u Operaciones (ej. Mónica, Mavi). | Gestión de usuarios, auditoría de tableros y control total de su organización.                                                                     |
-| **colaborador** | Equipo técnico/creativo (ej. Bani, Álex).  | **Autonomía total** para crear sus propios workspaces y gestionar sus workspaces y aquellos a los que son invitados.                               |
-| **cliente**     | Stakeholders externos.                     | Solo lectura de los workspaces que le son asignados específicamente. No ven otros clientes, no ven workspaces internos —y mucho menos, personales. |
-| **guest**       | Invitados temporales.                      | Acceso puntual a tableros específicos.                                                                                                             |
+Este documento es la fuente de verdad única sobre la jerarquía, privacidad y capacidades del sistema.
 
 ---
 
-## 📁 2. Roles de Workspace (Nivel Espacio)
+## 🏗️ 1. Capa **macro**: roles globales (a nivel de la aplicación)
 
-Estos roles se definen en la tabla `workspace_members`. Un usuario puede tener diferentes roles en diferentes espacios de trabajo.
+Determinan el acceso general a la infraestructura y qué tipos de recursos puede crear el usuario. Se basan en el `user_role` del perfil (`users.role`).
 
-### Matriz de Permisos por Espacio
+### 👑 Superadmin (info@ibaifernandez.com)
 
-| Acción                            | Owner | Admin | Member | Guest |
-| :-------------------------------- | :---: | :---: | :----: | :---: |
-| **Eliminar Workspace**            |  ✅   |  ❌   |   ❌   |  ❌   |
-| **Configurar Emoji/Nombre/Fondo** |  ✅   |  ✅   |   ❌   |  ❌   |
-| **Añadir/Eliminar Miembros**      |  ✅   |  ✅   |   ❌   |  ❌   |
-| **Cambiar Roles de Miembros**     |  ✅   |  ✅   |   ❌   |  ❌   |
-| **Crear Tableros**                |  ✅   |  ✅   |   ✅   |  ❌   |
-| **Eliminar Tableros**             |  ✅   |  ✅   |   ✅   |  ❌   |
-| **Reordenar Tableros**            |  ✅   |  ✅   |   ✅   |  ❌   |
-| **Mover Tableros entre WS**       |  ✅   |  ✅   |   ❌   |  ❌   |
-| **Crear Columnas/Categorías**     |  ✅   |  ✅   |   ✅   |  ✅   |
-| **Crear/Editar/Mover Tarjetas**   |  ✅   |  ✅   |   ✅   |  ✅   |
-| **Eliminar Tarjetas**             |  ✅   |  ✅   |   ✅   |  ❌   |
+_Locus de control total y auditoría._
+
+- **Visibilidad limpia**: solo ve _workspaces_ propios y aquellos donde haya sido invitado.
+- **Modo Dios**: acceso universal a cualquier _workspace_ vía URL directa (en los que pasa a actuar como `owner`).
+- **Omnipotencia**: puede crear cualquier tipo de panel y cambiar los permisos de **todos** los miembros (incluyendo otros _admins_).
+
+### 🛡️ Admins
+
+_Autonomía operativa con límites jerárquicos._
+
+- **Privacidad estricta**: solo ve lo propio y allí donde ha sido invitado.
+- **Sin Modo Dios**.
+- **Gestión protegida**: puede gestionar roles inferiores (Colaborador, Cliente) pero **no puede** tocar a otros _admins_ —ni mucho menos al _superadmin_ (en el Panel de Administración).
+- **Autonomía**: creación libre de _workspaces_ de cualquier tipo (`personal`, `interno`, `externo`).
+
+### 👤 Colaboradores
+
+- **Sandbox personal**: solo puede crear _workspaces_ de tipo `personal` —de los que es `owner`—.
+- **Sin acceso global**: no tiene acceso al Panel de Administración de la aplicación.
+
+### 👥 Cliente
+
+- **Lectura restringida**: solo ve los _workspaces_ a los que ha sido específicamente asignado.
+- **Creación capada**: no puede crear _workspaces_ de ninguna clase.
 
 ---
 
-## 🛡️ 3. Reglas de Seguridad Especiales
+## 📁 2. Capa **micro**: roles de workspace (a nivel de espacio)
 
-Para evitar desastres de datos, hemos implementado las siguientes protecciones "hardened":
+Define los permisos **dentro** de un contenedor específico. Un usuario puede tener diferentes roles micro en diferentes _workspaces_, independientemente de su rol macro.
 
-1. **Protección de _owners_**: no se puede eliminar a un usuario que sea el _único_ dueño de un workspace activo. El sistema bloquea la acción hasta que se transfiera la propiedad.
-2. **Cascading Softened**: El borrado de un usuario NO borra sus recursos (workspaces, tableros). Los recursos se mantienen con `owner_id = NULL` o se reasignan, evitando la pérdida masiva de datos que ocurrió anteriormente.
-3. **Aislamiento de Clientes**: Los clientes tienen prohibido por middleware acceder a workspaces de tipo `personal` o `interno`, incluso si conocen el ID.
-4. **Auto-Administración**: Un usuario (incluyendo admins) no puede eliminarse a sí mismo ni cambiar su propio rol para evitar quedar bloqueado fuera del sistema.
+| Acción                          | Propietario | Admin | Colaborador | Cliente |
+| :------------------------------ | :---------: | :---: | :---------: | :-----: |
+| **Eliminar _workspace_**        |     ✅      |  ❌   |     ❌      |   ❌    |
+| **Configurar _workspace_**      |     ✅      |  ✅   |     ❌      |   ❌    |
+| **Añadir/Eliminar miembros**    |     ✅      |  ✅   |     ❌      |   ❌    |
+| **Cambiar roles de miembros**   |     ✅      |  ✅   |     ❌      |   ❌    |
+| **Mover tableros entre WS**     |     ✅      |  ✅   |     ❌      |   ❌    |
+| **Crear/Eliminar tableros**     |     ✅      |  ✅   |     ✅      |   ❌    |
+| **Crear/Eliminar columnas**     |     ✅      |  ✅   |     ✅      |   ❌    |
+| **Crear tarjetas**              |     ✅      |  ✅   |     ✅      |   ✅    |
+| **Gestionar tarjetas/contenido**|     ✅      |  ✅   |     ✅      |   ✅    |
+| **Borrar tarjetas**             |     ✅      |  ✅   |     ✅      |   ❌    |
+
+### 📍 La regla del propietario
+
+- **Inmutabilidad**: le rol de `Owner` es asignado **únicamente** a la persona que crea el workspace.
+- **No transferible**: ningún Admin o Superadmin puede ser **propietario** de un _workspace_ que no ha creado (salvo vía base de datos en caso extremo).
+- **Control final**: solo el propietario puede eliminar el espacio de trabajo.
+
+---
+
+## 🛡️ 3. Reglas de seguridad **hardened**
+
+1. **Protección Admin-to-Admin**: el sistema bloquea cualquier intento de un _admin_ de degradar o borrar a otro _admin_ de la organización.
+2. **Protocolo anti-infoxicación**: el _superadmin_ no "ve" los workspaces de los demás por defecto; requiere entrada activa vía ID para no saturar su interfaz.
+3. **Aislamiento perimetral**: los clientes tienen prohibido por middleware acceder a workspaces de tipo `personal` o `interno`.
+4. **Modo Dios (Auditoría Invisible)**: el `superadmin` tiene un bypass en el middleware que le permite actuar como `owner` de cualquier espacio de trabajo mediante acceso directo por URL.
+5. **Colaborador Sandbox**: los colaboradores solo pueden crear workspaces `personal`. Esto asegura que los entornos `interno` y `externo` sean gestionados exclusivamente por la gerencia (_admins_).
+6. **Bloqueo de Panel Admin**: el acceso a la gestión global de usuarios (Panel Admin) está restringido estrictamente a `superadmin` y `admin`. Los colaboradores no pueden ver ni modificar la lista de usuarios de la organización.
+7. **Independencia de capas**: un rol macro (ej. Colaborador) puede ser Admin o incluso Owner a nivel micro sin que eso le otorgue permisos macro adicionales.
 
 ---
 
 ## 📝 Notas de Implementación
 
-- **Backend**: Los permisos se verifican mediante los middleware `requireAuth` (global) y `requireWorkspaceMember/requireWorkspaceRole` (espacio).
-- **Frontend**: La visibilidad de botones (Nuevo Workspace, Ajustes, etc.) se oculta dinámicamente según estos mismos roles para mejorar la UX.
-- **Auditoría**: Todas las acciones críticas (creación de tableros, cambios de rol) quedan registradas con el `id` del usuario responsable.
+- **Backend**: Verificado por middlewares `requireAuth` (Macro), `requireRole` (Macro) y `requireWorkspaceMember` (Micro).
+- **Frontend**: Ocultación dinámica de UI basada en la combinación de `user.role` y `workspace.myRole`.
