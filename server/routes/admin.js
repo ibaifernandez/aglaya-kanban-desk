@@ -102,31 +102,45 @@ router.patch('/users/:id/role', async (req, res) => {
     return res.status(403).json({ error: 'No puedes cambiar tu propio rol' });
   }
 
-  // Prep the query
-  let query = supabaseAdmin
+  // 1. Fetch current target user to verify organization access
+  const { data: targetUser, error: fetchError } = await supabaseAdmin
     .from('users')
-    .update({ role })
-    .eq('id', targetId);
+    .select('id, email, name, role, organization_id')
+    .eq('id', targetId)
+    .single();
 
-  // If NOT superadmin, restrict to same organization
-  if (req.user.role !== 'superadmin') {
-    if (!req.user.organizationId) {
-       return res.status(403).json({ error: 'No tienes una organización asignada' });
-    }
-    query = query.eq('organization_id', req.user.organizationId);
+  if (fetchError || !targetUser) {
+    return res.status(404).json({ error: 'Usuario no encontrado' });
   }
 
-  const { data, error } = await query
+  // 2. Access control check
+  if (req.user.role !== 'superadmin') {
+    const userOrgId = req.user.organizationId || req.user.organization_id;
+    const targetOrgId = targetUser.organization_id;
+
+    if (!userOrgId) {
+      return res.status(403).json({ error: 'Tu sesión no tiene organización asignada' });
+    }
+
+    if (userOrgId !== targetOrgId) {
+      console.warn(`[admin] Access Denied: Requester ${req.user.email} (Org: ${userOrgId}) tried to edit ${targetUser.email} (Org: ${targetOrgId})`);
+      return res.status(403).json({ 
+        error: `Fuera de tu organización. (Tu Org: ${userOrgId.substring(0,8)}, Su Org: ${targetOrgId ? targetOrgId.substring(0,8) : 'NULL'})` 
+      });
+    }
+  }
+
+  // 3. Perform the update
+  const { data, error: updateError } = await supabaseAdmin
+    .from('users')
+    .update({ role })
+    .eq('id', targetId)
     .select('id, email, name, role')
     .single();
 
-  if (error) {
-    // Check if it's a "no rows" error (likely auth/org mismatch or invalid ID)
-    if (error.code === 'PGRST116') {
-      return res.status(404).json({ error: 'Usuario no encontrado o fuera de tu organización' });
-    }
-    console.error('[admin] PATCH /users/:id/role:', error.message, error.details);
-    return res.status(500).json({ error: `Error de base de datos: ${error.message}` });
+  if (updateError) {
+    console.error('[admin] role update error:', updateError.message);
+    return res.status(500).json({ error: `Error al actualizar: ${updateError.message}` });
   }
 
   res.json({ data });
