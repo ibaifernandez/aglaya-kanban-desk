@@ -68,7 +68,7 @@ function InviteModal({ onClose, onSuccess }) {
               required
               value={form.email}
               onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-              placeholder="nombre@lfi.la"
+              placeholder="nombre@empresa.com"
               className="w-full bg-[#0f1117] border border-[#2e3140] rounded-lg px-3 py-2 text-sm text-[#e8eaf0] placeholder:text-[#3d4155] outline-none focus:border-indigo-500 transition-colors"
             />
           </div>
@@ -287,8 +287,7 @@ export default function AdminPage({ user, onBack }) {
             <div className="mt-4 flex items-start gap-2 text-xs text-[#555b70] bg-[#16181f] border border-[#2e3140] rounded-xl px-4 py-3">
               <Shield size={13} className="text-indigo-400 mt-0.5 shrink-0" />
               <p>
-                Solo se permiten emails <strong className="text-[#8b90a0]">@lfi.la</strong> y{' '}
-                <strong className="text-[#8b90a0]">@lafabricaimaginaria.com</strong>.
+                Puedes invitar usuarios de <strong className="text-[#8b90a0]">cualquier dominio</strong>.
                 Al invitar a un usuario, recibirá un email para establecer su contraseña.
               </p>
             </div>

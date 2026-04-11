@@ -4,14 +4,8 @@ const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
-const ALLOWED_DOMAINS = ['lfi.la', 'lafabricaimaginaria.com'];
 const ALLOWED_ROLES   = ['superadmin', 'admin', 'colaborador', 'cliente', 'guest'];
 const SITE_URL        = process.env.SITE_URL || 'https://myboardlfi.ibaifernandez.com';
-
-function isAllowedEmail(email) {
-  const domain = email.split('@')[1]?.toLowerCase();
-  return ALLOWED_DOMAINS.includes(domain);
-}
 
 // All admin routes require auth + admin/superadmin role
 router.use(requireAuth, requireRole('admin', 'superadmin'));
@@ -36,11 +30,6 @@ router.post('/users/invite', async (req, res) => {
 
   if (!email || !name) {
     return res.status(400).json({ error: 'email y name son requeridos' });
-  }
-  if (!isAllowedEmail(email)) {
-    return res.status(403).json({
-      error: 'Solo se permiten emails corporativos (@lfi.la, @lafabricaimaginaria.com)',
-    });
   }
   if (!ALLOWED_ROLES.includes(role) || role === 'superadmin') {
     return res.status(400).json({ error: 'Rol no válido' });
