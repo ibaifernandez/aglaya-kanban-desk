@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { supabaseAdmin } = require('../server/utils/supabase');
 
-const OLD_EMAIL = 'ibai@lfi.la';
+const OLD_EMAIL = 'admin@previous-brand.com';
 const NEW_EMAIL = 'info@ibaifernandez.com';
 const USER_ID   = 'edff1ac7-2380-435e-86cf-520955e3d9a7';
 

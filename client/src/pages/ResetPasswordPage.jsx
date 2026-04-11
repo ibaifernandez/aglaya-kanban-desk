@@ -39,7 +39,7 @@ export default function ResetPasswordPage({ onDone }) {
         <div className="text-center mb-8">
           <img src={agLayaIcon} alt="AGLAYA" className="w-16 h-16 mx-auto mb-4 object-contain" />
           <h1 className="text-2xl font-bold text-[#e8eaf0] tracking-tight">Nueva contraseña</h1>
-          <p className="text-sm text-[#555b70] mt-1">LFi Kanban Desk</p>
+          <p className="text-sm text-[#555b70] mt-1">AGLAYA Kanban Desk</p>
         </div>
 
         {done ? (
@@ -122,7 +122,7 @@ export default function ResetPasswordPage({ onDone }) {
         )}
 
         <p className="text-center text-xs text-[#3a3f50] mt-6">
-          LFi Kanban Desk · © 2026 Ibai Fernández
+          AGLAYA Kanban Desk · © 2026 AGLAYA
         </p>
       </div>
     </div>

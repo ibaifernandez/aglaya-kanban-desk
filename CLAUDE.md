@@ -6,10 +6,9 @@
 
 ## Identidad del proyecto
 
-**aglaya-kanban-desk** (nombre del repo en GitHub) — **display name: AGLAYA Kanban Desk** — plataforma de gestión de proyectos multi-tenant bajo la red AGLAYA (aglaya.biz). Soporta colaboradores (workspaces personal, interno y externo) y clientes (solo workspaces externos asignados). Desarrollado por Ibai Fernández.
+**aglaya-kanban-desk** (nombre del repo en GitHub) — **display name: AGLAYA Kanban Desk** — plataforma de gestión de proyectos multi-tenant bajo la red AGLAYA (aglaya.biz). Soporta colaboradores (workspaces personal, interno y externo) y clientes (solo workspaces externos asignados). Desarrollado por AGLAYA.
 
-Antes llamado **MyBoardLFi / LFi Kanban Desk** — migrado a AGLAYA en v1.1.0.
-Antes llamado **aglaya-board** en GitHub — renombrado a **aglaya-kanban-desk** en v1.1.1.
+Proyecto migrado desde prototipos anteriores en v1.1.0 para consolidar la marca AGLAYA.
 
 ---
 
@@ -27,8 +26,7 @@ Antes llamado **aglaya-board** en GitHub — renombrado a **aglaya-kanban-desk**
 | Client (Vite) | **5175** |
 
 **⚠️ No cambies estos puertos nunca.**
-- MyBoard (versión personal) usa 3001/5173
-- conta-if usa 3002/5174
+- Proyectos hermanos: 3001/5173 (personal) | 3002/5174 (conta-if)
 
 Si alguno está ocupado al arrancar, investiga qué proceso lo tiene antes de matarlo.
 
@@ -64,7 +62,7 @@ Pendiente en Phase 4:
 | 2 | Tests actualizados — auth, workspaces (code viejo sistema) | 🟡 MEDIA | ❌ Pendiente |
 | 3 | Limpiar localStorage — remover `myboardlfi_token` (ruido) | 🟢 BAJA | ✅ v1.2.0 |
 | 4 | Verificar flujo email invite — end-to-end kanban.aglaya.biz | 🔴 CRÍTICO | ❌ Bloqueante Phase 5 |
-| 5 | MyBoard deprecation — archivar repo | 🟢 BAJA | ❌ Pendiente |
+| 5 | Deprecación de prototipos legacy — archivar repos antiguos | 🟢 BAJA | ❌ Pendiente |
 
 ---
 

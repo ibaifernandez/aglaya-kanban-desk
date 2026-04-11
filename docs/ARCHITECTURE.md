@@ -1,292 +1,108 @@
-# ARCHITECTURE.md — Arquitectura técnica de MyBoardLFi
+# ARCHITECTURE.md — Arquitectura Técnica AGLAYA Kanban Desk
 
-**Última actualización:** 2026-03-23
-
----
-
-## Arquitectura actual (Phase 1 — en producción)
-
-MyBoardLFi es una SPA con arquitectura cliente-servidor desacoplada. El frontend está desplegado en Netlify y el backend en Railway. Los datos persisten en Supabase (PostgreSQL hosted). En desarrollo local, el frontend usa el proxy de Vite; en producción, Netlify redirige `/api/*` a Railway.
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         NAVEGADOR                               │
-│                                                                 │
-│   React SPA                                                     │
-│   Producción:  https://myboardlfi.ibaifernandez.com (Netlify)   │
-│   Desarrollo:  http://localhost:5175 (Vite)                     │
-│                                                                 │
-│   ├── AuthContext (Supabase Auth SDK)                           │
-│   ├── CategoriesContext                                         │
-│   ├── Hooks de estado                                           │
-│   └── Capa API (fetch → /api/* con JWT en header)              │
-│                          │                                      │
-│   Producción: Netlify proxy /api/* → Railway                    │
-│   Desarrollo: Vite proxy /api/* → localhost:3003                │
-└──────────────────────────┼──────────────────────────────────────┘
-                           │ HTTP / JSON + Authorization: Bearer <JWT>
-┌──────────────────────────▼──────────────────────────────────────┐
-│   SERVIDOR Express                                              │
-│   Producción:  https://web-production-aa41d.up.railway.app      │
-│   Desarrollo:  http://localhost:3003                            │
-│                                                                 │
-│   Middleware                                                    │
-│   ├── requireAuth (verifica JWT)                                │
-│   └── requireRole (superadmin / admin / colaborador / ...)      │
-│                                                                 │
-│   Rutas REST                                                    │
-│   ├── /api/auth/login, /api/auth/register, /api/auth/me         │
-│   ├── /api/boards, /api/columns, /api/cards, /api/categories    │
-│   └── /api/digest/send-me (admin only)                         │
-│                          │                                      │
-│   Datos aún en tasks.json (migración a Supabase → Phase 1 core) │
-└──────────────────────────┼──────────────────────────────────────┘
-                           │ Supabase JS SDK
-┌──────────────────────────▼──────────────────────────────────────┐
-│   SUPABASE  (proyecto myboardlfi · región São Paulo)            │
-│                                                                 │
-│   Auth (JWT, gestión de usuarios)                               │
-│   PostgreSQL                                                    │
-│   ├── organizations  (tenant LFi Agency insertado)              │
-│   ├── users          (ibai@lfi.la · superadmin)                 │
-│   ├── boards                                                    │
-│   ├── columns                                                   │
-│   ├── cards                                                     │
-│   └── categories                                                │
-└─────────────────────────────────────────────────────────────────┘
-```
+**Última actualización:** 2026-04-10 (v1.2.0)
 
 ---
 
-## Arquitectura Phase 0 (histórico)
+## 📌 Resumen de Decisiones (ADR)
 
-En Phase 0 el servidor persistía datos en `server/data/tasks.json`. Sin autenticación. Frontend servido localmente en `localhost:5175`. Ver CHANGELOG v0.1.0.
-
----
-
-## Arquitectura objetivo (Phase 1 core — próxima iteración)
-
-En Phase 1, `tasks.json` es reemplazado por Supabase. Se añade capa de autenticación y multi-tenancy.
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                     NAVEGADOR                           │
-│                                                         │
-│   React SPA (Vite · puerto 5175)                        │
-│   ├── Componentes UI                                    │
-│   ├── AuthContext (Supabase Auth SDK)                   │
-│   ├── CategoriesContext, BoardsContext                  │
-│   ├── Hooks de estado                                   │
-│   └── Capa API (fetch → /api/* con JWT en header)       │
-│                          │                              │
-│                    proxy /api                           │
-└──────────────────────────┼──────────────────────────────┘
-                           │ HTTP / JSON + Authorization: Bearer <JWT>
-┌──────────────────────────▼──────────────────────────────┐
-│              SERVIDOR (Express · puerto 3003)           │
-│                                                         │
-│   Middleware                                            │
-│   ├── requireAuth (verifica JWT de Supabase)            │
-│   └── requireRole (superadmin/admin/colaborador/...)    │
-│                                                         │
-│   Rutas REST (todas protegidas por organizationId)      │
-│   ├── /api/auth/login, /api/auth/register               │
-│   ├── /api/organizations                                │
-│   ├── /api/boards       (filtrado por org)              │
-│   ├── /api/columns                                      │
-│   ├── /api/cards                                        │
-│   └── /api/categories   (filtrado por org)              │
-│                          │                              │
-│              utils/supabase.js (cliente Supabase)       │
-└──────────────────────────┼──────────────────────────────┘
-                           │ API REST / PostgreSQL
-┌──────────────────────────▼──────────────────────────────┐
-│                    SUPABASE                             │
-│                                                         │
-│   Auth (JWT, gestión de usuarios)                       │
-│   PostgreSQL                                            │
-│   ├── organizations                                     │
-│   ├── users (vinculados a Supabase Auth)                │
-│   ├── memberships (user ↔ org + rol)                    │
-│   ├── boards                                            │
-│   ├── columns                                           │
-│   ├── cards                                             │
-│   └── categories                                        │
-└─────────────────────────────────────────────────────────┘
-```
+Para el historial completo de la evolución del sistema, consulte el **Registro de Decisiones** al final de este documento.
 
 ---
 
-## Roles y permisos (Phase 1)
+## 🏗️ 1. Descripción General
 
-| Rol | Descripción | Permisos |
-|---|---|---|
-| `superadmin` | Ibai Fernández | Todo, incluyendo gestión de organizaciones |
-| `admin` | Gerencia de LFi (Héctor, Iván) | Gestión de usuarios y tableros de su org |
-| `colaborador` | Equipo de LFi (Daniel, Marco, etc.) | Crear sus propios workspaces y gestionar tableros/tarjetas en ellos |
-| `cliente` | Clientes de LFi | Solo lectura de sus tableros; sin ver otros clientes |
-| `guest` | Acceso temporal | Solo lectura de tableros específicamente compartidos |
+AGLAYA es una plataforma SaaS de gestión de tareas tipo Kanban con aislamiento multi-tenant. La arquitectura está diseñada para soportar múltiples equipos y clientes dentro de una misma organización, garantizando que los datos sean privados y seguros.
 
----
-
-## Multi-tenancy (Phase 1)
-
-Cada organización (tenant) tiene datos completamente aislados mediante `organization_id` en todas las tablas. El flujo es:
-
-1. Usuario se autentica → Supabase devuelve JWT con `user_id`
-2. El middleware de Express verifica el JWT y obtiene el `organization_id` del usuario desde la tabla `memberships`
-3. Todas las queries de boards, columns, cards y categories filtran por `organization_id`
-4. Un usuario nunca puede acceder a datos de otra organización, incluso manipulando la URL
+### Stack Tecnológico
+- **Frontend**: React 18 + Vite (SPA)
+- **Backend**: Express.js (Node.js) — *Decisión: Flexibilidad y rapidez de iteración.*
+- **Base de Datos**: Supabase (PostgreSQL + RLS) — *Decisión: Auth integrado y escalabilidad segura (ADR-001/002).*
+- **Infraestructura**: Railway (API) + Netlify (Client) — *Decisión: CI/CD inmediato y gestión de dominios simplificada (ADR-010).*
 
 ---
 
-## Esquema de base de datos (Phase 1)
+## 📁 2. Jerarquía de Datos
+
+El sistema se organiza en cinco niveles de profundidad:
+
+1. **Organización (Macro)**: Contenedor global (ej. AGLAYA Corp). Posee usuarios y configuraciones globales.
+2. **Workspace (Micro)**: Espacios aislados por departamentos, clientes o proyectos específicos (ej. "Banco Internacional", "Operaciones Internas").
+3. **Board**: Tableros Kanban específicos dentro de un Workspace.
+4. **Column**: Estados del flujo de trabajo (Backlog, En Curso, Hecho).
+5. **Card**: La unidad mínima de trabajo.
+
+---
+
+## 🔐 3. Seguridad y Multi-tenancy
+
+### Aislamiento por Middleware
+El sistema utiliza una capa de seguridad concéntrica:
+- `requireAuth`: Verifica la identidad del usuario mediante JWT de Supabase.
+- `requireRole`: Valida el rol **Macro** (Superadmin, Admin, Colaborador) para acceso a infraestructura global.
+- `requireWorkspaceMember`: El "muro de fuego" **Micro**. Verifica si el usuario pertenece al espacio de trabajo. Es un middleware *context-aware* capaz de derivar el `workspaceId` desde un `boardId`, `columnId` o `cardId`.
+
+### Modo Dios (Superadmin)
+El Superadmin (`info@ibaifernandez.com`) posee un bypass en el middleware que le permite auditar cualquier workspace mediante acceso directo por URL, actuando como Propietario virtual sin necesidad de estar invitado explícitamente.
+
+### Roles Micro
+Definidos en la tabla `workspace_members`:
+- `owner`: Solo uno por workspace. Control total.
+- `admin`: Gestión de miembros y tableros.
+- `member`: Gestión operativa.
+- `guest`: Solo lectura/colaboración en tarjetas (sin estructural).
+
+---
+
+## 💾 4. Esquema de Base de Datos (Core)
 
 ```sql
--- Organizaciones (tenants)
-organizations (
-  id          uuid PRIMARY KEY,
-  name        text NOT NULL,
-  plan        text DEFAULT 'free',  -- 'free' | 'pro'
-  created_at  timestamptz DEFAULT now()
-)
-
--- Usuarios (vinculados a Supabase Auth)
-users (
-  id          uuid PRIMARY KEY REFERENCES auth.users,
-  full_name   text,
-  avatar_url  text,
-  created_at  timestamptz DEFAULT now()
-)
-
--- Membresías (relación usuario ↔ organización)
-memberships (
+-- Gestión de Espacios
+CREATE TABLE public.workspaces (
   id              uuid PRIMARY KEY,
-  user_id         uuid REFERENCES users(id),
-  organization_id uuid REFERENCES organizations(id),
-  role            text NOT NULL,  -- 'superadmin' | 'admin' | 'colaborador' | 'cliente' | 'guest'
-  created_at      timestamptz DEFAULT now(),
-  UNIQUE(user_id, organization_id)
-)
-
--- Tableros
-boards (
-  id              uuid PRIMARY KEY,
-  organization_id uuid REFERENCES organizations(id),
-  title           text NOT NULL,
-  created_at      timestamptz DEFAULT now()
-)
-
--- Columnas
-columns (
-  id        uuid PRIMARY KEY,
-  board_id  uuid REFERENCES boards(id) ON DELETE CASCADE,
-  title     text NOT NULL,
-  "order"   integer DEFAULT 0,
-  created_at timestamptz DEFAULT now()
-)
-
--- Tarjetas
-cards (
-  id           uuid PRIMARY KEY,
-  column_id    uuid REFERENCES columns(id) ON DELETE CASCADE,
-  board_id     uuid REFERENCES boards(id),  -- desnormalizado para queries rápidas
-  title        text NOT NULL,
-  description  text,
-  priority     text DEFAULT 'none',
-  category     text,
-  due_date     timestamptz,
-  checklist    jsonb DEFAULT '[]',
-  "order"      integer DEFAULT 0,
-  created_at   timestamptz DEFAULT now(),
-  updated_at   timestamptz DEFAULT now()
-)
-
--- Categorías (por organización)
-categories (
-  id              uuid PRIMARY KEY,
-  organization_id uuid REFERENCES organizations(id),
+  organization_id uuid REFERENCES public.organizations(id),
   name            text NOT NULL,
-  color           text,
+  type            text DEFAULT 'personal', -- 'personal' | 'interno' | 'externo'
+  emoji           text DEFAULT '📋',
   created_at      timestamptz DEFAULT now()
-)
+);
+
+-- Membresías y Roles
+CREATE TABLE public.workspace_members (
+  workspace_id uuid REFERENCES public.workspaces(id),
+  user_id      uuid REFERENCES public.users(id),
+  role         text NOT NULL, -- 'owner', 'admin', 'member', 'guest'
+  PRIMARY KEY (workspace_id, user_id)
+);
+
+-- Estructura Kanban
+ALTER TABLE public.boards ADD COLUMN workspace_id uuid REFERENCES public.workspaces(id);
 ```
 
 ---
 
-## Estructura de carpetas
+## 🚀 5. Flujo de Despliegue
 
-```
-MyBoardLFi/
-├── client/                         # Frontend React + Vite (puerto 5175)
-│   ├── src/
-│   │   ├── api/
-│   │   │   └── client.js           # Wrapper fetch — añadir JWT header en Phase 1
-│   │   ├── components/
-│   │   │   ├── Board/
-│   │   │   ├── Column/
-│   │   │   ├── Card/
-│   │   │   ├── CardModal/
-│   │   │   ├── Sidebar/
-│   │   │   ├── Toolbar/
-│   │   │   └── UI/
-│   │   ├── context/
-│   │   │   ├── CategoriesContext.jsx
-│   │   │   └── AuthContext.jsx     # Phase 1: contexto de autenticación
-│   │   ├── hooks/
-│   │   └── utils/
-│   └── vite.config.js              # Proxy /api → localhost:3003
-│
-├── server/                         # Backend Express (puerto 3003)
-│   ├── routes/
-│   │   ├── boards.js
-│   │   ├── columns.js
-│   │   ├── cards.js
-│   │   ├── categories.js
-│   │   ├── uploads.js
-│   │   └── auth.js                 # Phase 1: login/register
-│   ├── middleware/
-│   │   ├── requireAuth.js          # Phase 1: verifica JWT Supabase
-│   │   └── requireRole.js          # Phase 1: verifica rol
-│   ├── utils/
-│   │   ├── db.js                   # Phase 0: readData/writeData JSON
-│   │   └── supabase.js             # Phase 1: cliente Supabase
-│   ├── data/
-│   │   └── tasks.json              # DEMO DATA — no usar en producción
-│   └── index.js                    # Middleware + rutas + PORT=3003
-│
-├── docs/
-├── .claude/launch.json             # Puertos 3003/5175
-├── CLAUDE.md
-├── AGENTS.md
-└── README.md
-```
+- **Client**: Se compila mediante `npm run build` y se despliega en Netlify. El archivo `netlify.toml` gestiona el proxy para redirigir las llamadas `/api/*` al servidor Railway.
+- **Server**: Ejecutado en Railway bajo demanda. Se conecta a Supabase mediante `SUPABASE_KEY` y `SUPABASE_URL` de nivel service_role para operaciones administrativas seguras.
 
 ---
 
-## Flujo de datos (Phase 0 — actual)
-
-### Lectura
-```
-Componente React → hook → api/client.js (fetch GET) → Express → db.readData() → tasks.json
-```
-
-### Escritura
-```
-Acción usuario → hook → api/client.js (fetch POST/PUT/DELETE) → Express → readData + mutación + writeData → tasks.json
-```
+## 📝 6. Referencias
+- Ver [PERMISSIONS.md](file:///Users/AGLAYA/Local%20Sites/aglaya-kanban-desk/docs/PERMISSIONS.md) para la matriz detallada de acciones por rol.
+- Ver [RUNBOOK.md](file:///Users/AGLAYA/Local%20Sites/aglaya-kanban-desk/docs/RUNBOOK.md) para comandos de mantenimiento y despliegue.
 
 ---
 
-## Decisiones de arquitectura
+## 📖 7. Registro de Decisiones Arquitectónicas (ADR)
 
-Ver `docs/DECISIONS.md` para el registro completo (ADR-001 a ADR-010).
+Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garantizar su robustez y escalabilidad corporativa.
 
-| Decisión | Motivo clave |
-|---|---|
-| Supabase como DB en Phase 1 | Auth integrado, PostgreSQL estándar, gratuito en dev |
-| Supabase Auth + JWT | Sin implementar auth desde cero |
-| Deploy en PRONODO | Control total de datos, sin costes SaaS externos |
-| Freemium por campo `plan` | Simplicidad, sin pasarela de pago en fase inicial |
-| Fork de MyBoard | MVP completo reutilizable, sin reescribir desde cero |
-| Código en repo privado de Ibai | Protección de propiedad intelectual |
+### Historial de Decisiones Clave:
+1. **DB & Auth (Supabase)**: Elegido por su integración nativa de autenticación y PostgreSQL estándar, evitando el *vendor lock-in* total y permitiendo una futura migración a infraestructura autogestionada (ADR-001/002).
+2. **Infraestructura (PRONODO/Railway)**: La visión final es el control total en PRONODO. Se utiliza Railway de forma provisional para agilizar demos sin sacrificar la modularidad del backend (ADR-003/010).
+3. **Control de Plan (Freemium)**: Gestor mediante campo `plan` en base de datos para simplificar la Phase 1 sin depender de pasarelas de pago externas como Stripe en la fase beta (ADR-004).
+4. **Propiedad Intelectual**: El repositorio fuente es privado de AGLAYA. Los desploys se realizan mediante artefactos compilados para proteger el código fuente durante la fase de negociación inicial (ADR-005).
+5. **Aislamiento Multi-tenant (Workspaces)**: Implementado mediante una tabla dedicada de membresías y funciones SQL `SECURITY DEFINER` para evitar recursión en las políticas RLS de Supabase (ADR-012/009).
+6. **Hardening de Cascada**: Cambio de `ON DELETE CASCADE` a `SET NULL` en campos de autoría para asegurar que el contenido sobreviva a la rotación de personal (ADR-013).
+7. **Rebranding**: Transición de *MyBoardLFi* a **AGLAYA Kanban Desk** para crear una identidad de producto independiente y profesional (ADR-011).

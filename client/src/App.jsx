@@ -40,7 +40,7 @@ export default function App() {
   }
 
   if (!isAuthenticated) {
-    sessionStorage.removeItem('lfi_session');
+    sessionStorage.removeItem('aglaya_session');
     return <LoginPage />;
   }
 
@@ -49,7 +49,7 @@ export default function App() {
 
 function restoreSession() {
   try {
-    const raw = sessionStorage.getItem('lfi_session');
+    const raw = sessionStorage.getItem('aglaya_session');
     return raw ? JSON.parse(raw) : null;
   } catch { return null; }
 }
@@ -103,7 +103,7 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   // Persist session so page refresh restores the current view
   useEffect(() => {
     try {
-      sessionStorage.setItem('lfi_session', JSON.stringify({
+      sessionStorage.setItem('aglaya_session', JSON.stringify({
         view,
         workspace: activeWorkspace,
         boardId:   activeBoardId,

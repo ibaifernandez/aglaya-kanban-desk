@@ -1,4 +1,4 @@
-# SECURITY — MyBoardLFi
+# SECURITY — AGLAYA Kanban Desk
 
 Auditoría de seguridad y superficie de ataque. Actualizar con cada cambio significativo.
 
@@ -45,7 +45,7 @@ Auditoría de seguridad y superficie de ataque. Actualizar con cada cambio signi
 
 ### Flujo de autenticación
 1. Cliente envía `POST /api/auth/login` con email + password
-2. Servidor valida dominio corporativo (`@lfi.la`, `@lafabricaimaginaria.com`)
+2. Servidor valida dominio corporativo o dominio invitado (ej. `@aglaya.is`, `@aglaya.biz`)
 3. Servidor llama a Supabase Auth con las credenciales
 4. Supabase valida y devuelve el usuario autenticado
 5. Servidor genera JWT propio firmado con `JWT_SECRET` (7 días de expiración)
@@ -104,7 +104,7 @@ cors({ origin: ['http://localhost:5175', 'http://localhost:5173', 'http://localh
 ```
 
 - Solo acepta peticiones de los puertos de desarrollo conocidos
-- En producción: actualizar con el dominio real (`https://myboard.lfi.la`)
+- En producción: actualizar con el dominio real (`https://kanban.aglaya.biz`)
 
 ---
 

@@ -50,16 +50,16 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [1.1.0] — 2026-04-07 — Rebrand AGLAYA + Workspace Types + Acceso por Rol
 
-Migración completa de LFi Kanban Desk → AGLAYA Kanban Desk. Cuatro fases ejecutadas en una sola iteración desde la rama `feature/rebrand-aglaya`, mergeada a `main` y desplegada en producción.
+Migración completa de la marca anterior → AGLAYA Kanban Desk. Cuatro fases ejecutadas en una sola iteración desde la rama `feature/rebrand-aglaya`, mergeada a `main` y desplegada en producción.
 
 ### Fase A — Rebrand visual y de dominio
-- Producto renombrado: **LFi Kanban Desk** → **AGLAYA Kanban Desk**
-- Repo renombrado en GitHub: `myboardlfi` → `aglaya-board`
+- Producto renombrado: **AGLAYA Kanban Desk**
+- Repo renombrado en GitHub: `aglaya-kanban-desk`
 - `package.json`: `name: aglaya-kanban-desk`, `version: 1.1.0`
-- Dominio de producción: `myboardlfi.ibaifernandez.com` → `kanban.aglaya.biz`
+- Dominio de producción: `kanban.aglaya.biz`
 - CORS producción restringido a `https://kanban.aglaya.biz`
-- localStorage keys: `myboardlfi_token/user` → `aglaya_token/user`
-- Logo y favicon LFi → assets AGLAYA (SVG rojo, blanco, negro, color)
+- localStorage keys: `aglaya_token/user`
+- Logo y favicon → assets AGLAYA (SVG rojo, blanco, negro, color)
 - Restricción de dominio corporativo eliminada — la plataforma acepta cualquier email
 - Placeholder de email en login: `tu@empresa.com`
 
@@ -168,9 +168,9 @@ Migración completa de LFi Kanban Desk → AGLAYA Kanban Desk. Cuatro fases ejec
 ## [0.7.0] — 2026-03-25 — Sesión 6: UI Polish — display name, logo, mini-kanban, espacios de trabajo
 
 ### Identidad visual
-- Display name oficial: **LFi Kanban Desk** (nombre técnico/repo permanece MyBoardLFi)
+- Display name oficial: **AGLAYA Kanban Desk** (nombre técnico/repo permanece aglaya-kanban-desk)
 - Actualizado en: título de pestaña (`index.html`), LoginPage, ResetPasswordPage, Sidebar, WorkspaceDashboard, footer copyright
-- Logo LFi (`lfi.png`) en header del WorkspaceDashboard (reemplaza la «M» genérica en azul)
+- Logo AGLAYA en header del WorkspaceDashboard (reemplaza la «M» genérica en azul)
 
 ### WorkspaceDashboard
 - Tarjetas de espacios de trabajo muestran ahora **counts reales** de tableros y miembros (cierra KNOWN-01)
@@ -350,14 +350,14 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 ### Branding
 - `lfi.png` movido a `client/src/assets/lfi.png`
 - Logo LFi visible en: pantalla de login, sidebar (sustituyendo icono genérico), página de reset de contraseña
-- Sidebar renombrada de "MyBoard" a "MyBoardLFi"
-- Footer del digest actualizado: "MyBoardLFi · © 2026 Ibai Fernández"
+- Sidebar renombrada de "MyBoard" a "AGLAYA Kanban Desk"
+- Footer del digest actualizado: "AGLAYA Kanban Desk · © 2026 AGLAYA"
 
 ### Email — Digest bajo demanda
 - `server/routes/digestRoute.js` — endpoint `POST /api/digest/send-me` (requiere auth JWT)
 - Botón "Enviarme mis tareas" (icono sobre) en Toolbar — envía el digest al email del usuario autenticado
 - Feedback visual en botón: verde si OK, rojo si error, desaparece a los 4 segundos
-- `digest.js` refactorizado: `sendDigest(to?)` acepta destinatario arbitrario; rebrandeado a MyBoardLFi
+- `digest.js` refactorizado: `sendDigest(to?)` acepta destinatario arbitrario; rebrandeado a AGLAYA Kanban Desk
 
 ### SMTP / Email
 - SMTP configurado con Migadu (provisional para pruebas — ver nota de migración)
@@ -399,14 +399,14 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 - `server/index.js`: CORS actualizado para aceptar `localhost:5175`
 
 ### Documentación reescrita
-- `CLAUDE.md` — contexto MyBoardLFi, puertos 3003/5175, reglas Phase 0
+- `CLAUDE.md` — contexto AGLAYA Kanban Desk, puertos 3003/5175, reglas Phase 0
 - `AGENTS.md` — identidad, comportamiento, convenciones, reglas de datos e IP
-- `README.md` — orientado a gerencia LFi + equipo técnico (Fernando/PRONODO)
+- `README.md` — orientado a gerencia AGLAYA + equipo técnico (Fernando/PRONODO)
 - `docs/ROADMAP.md` — 4 fases: Phase 0→4 con objetivos y entregables
 - `docs/BACKLOG.md` — tareas por fase (Phase 0 completada, Phases 1–3 planificadas)
 - `docs/ARCHITECTURE.md` — arquitectura actual (Phase 0) + arquitectura objetivo (Phase 1) con esquema Supabase, roles, multi-tenancy
 - `docs/DECISIONS.md` — 6 ADRs: Supabase, auth JWT, PRONODO, freemium, IP, fork
-- `docs/PRODUCT.md` — visión de producto para stakeholders LFi, comparativa herramientas, modelo freemium
+- `docs/PRODUCT.md` — visión de producto para stakeholders AGLAYA, comparativa herramientas, modelo freemium
 
 ---
 

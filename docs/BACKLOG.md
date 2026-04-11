@@ -15,14 +15,14 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Actualizar `.claude/launch.json` → puertos 3003/5175
 - [x] Actualizar `client/vite.config.js` → puerto 5175, proxy a 3003
 - [x] Actualizar `server/index.js` → `PORT = process.env.PORT || 3003`
-- [x] Reescribir `CLAUDE.md` con contexto MyBoardLFi
-- [x] Reescribir `AGENTS.md` con contexto MyBoardLFi
-- [x] Reescribir `README.md` orientado a gerencia LFi + equipo técnico
+- [x] Reescribir `CLAUDE.md` con contexto AGLAYA Kanban Desk
+- [x] Reescribir `AGENTS.md` con contexto AGLAYA Kanban Desk
+- [x] Reescribir `README.md` orientado a gerencia AGLAYA + equipo técnico
 - [x] Reescribir `docs/ROADMAP.md` con 4 fases corporativas
 - [x] Reescribir `docs/BACKLOG.md`
 - [x] Reescribir `docs/ARCHITECTURE.md` con visión Phase 1+
-- [x] Reescribir `docs/DECISIONS.md` con decisiones LFi
-- [x] Reescribir `docs/PRODUCT.md` orientado a stakeholders LFi
+- [x] Reescribir `docs/DECISIONS.md` con decisiones estratégicas
+- [x] Reescribir `docs/PRODUCT.md` orientado a stakeholders AGLAYA
 - [x] Añadir entrada en `docs/CHANGELOG.md` — Sesión 0
 
 ---
@@ -31,9 +31,9 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 
 ### Base de datos ✅
 - [x] Diseño del esquema completo en Supabase: `organizations`, `users`, `boards`, `columns`, `cards`, `categories`
-- [x] Crear proyecto en Supabase (`myboardlfi`, región São Paulo, plan free)
+- [x] Crear proyecto en Supabase (`aglaya-kanban`, región São Paulo, plan free)
 - [x] Ejecutar schema SQL inicial con RLS activado
-- [x] Insertar organización LFi Agency como tenant base
+- [x] Insertar organización AGLAYA como tenant base
 
 ### Autenticación ✅
 - [x] Integrar Supabase Auth + cliente admin en servidor
@@ -42,12 +42,12 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Endpoint `GET /api/auth/me`
 - [x] Middleware `requireAuth` (JWT) para rutas protegidas
 - [x] Middleware `requireRole(...roles)` para rutas por rol
-- [x] Restricción de dominio: solo `@lfi.la` y `@lafabricaimaginaria.com`
-- [x] Usuario superadmin creado: `ibai@lfi.la`
+- [x] Restricción de dominio: solo `@aglaya.is` y `@aglaya.biz`
+- [x] Usuario superadmin creado: `admin@aglaya.is`
 
 ### Frontend — Autenticación ✅
 - [x] `AuthContext` con token + user en localStorage
-- [x] Pantalla de login con logo LFi y validación de dominio
+- [x] Pantalla de login con logo AGLAYA y validación de dominio
 - [x] Flujo "Olvidé mi contraseña" integrado (Supabase Auth)
 - [x] Página `/reset-password` para restablecimiento de contraseña
 - [x] Interceptor JWT en `api/client.js`
@@ -55,15 +55,15 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Avatar + nombre de usuario + logout en Toolbar
 
 ### Branding ✅
-- [x] Logo LFi en login, sidebar y reset de contraseña
-- [x] Email digest rebrandeado a LFi Kanban Desk
-- [x] Display name «LFi Kanban Desk» en toda la UI (sesión 6)
+- [x] Logo AGLAYA en login, sidebar y reset de contraseña
+- [x] Email digest rebrandeado a AGLAYA Kanban Desk
+- [x] Display name «AGLAYA Kanban Desk» en toda la UI (sesión 6)
 
 ### Email ✅ (parcial)
 - [x] Endpoint `POST /api/digest/send-me` (requiere auth)
 - [x] Botón "Enviarme mis tareas" en Toolbar con feedback visual
 - [x] SMTP funcional (Migadu provisional)
-- [ ] ⚠️ Migrar SMTP a Resend (`lafabricaimaginaria.com`) — pendiente Fernando Murillo
+- [ ] ⚠️ Migrar SMTP a Resend — pendiente configuración corporativa
 - [ ] Templates de email Supabase personalizados (reset password, invite)
 
 ### Seguridad
@@ -116,12 +116,12 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 
 ### UX/Branding ✅
 - [x] Renombrado workspace → espacio de trabajo en toda la UI
-- [x] Logo LFi en header del WorkspaceDashboard
+- [x] Logo AGLAYA en header del WorkspaceDashboard
 - [x] Botón Admin eliminado del WorkspaceDashboard
 - [x] Mini-kanban abstracto decorativo en tarjetas (seed desde ws.id)
 
 ### Pendiente de Phase 2
-- [x] KNOWN-02: Email de invitación — template LFi configurado en Supabase Auth + URL de redirección correcta (2026-03-27)
+- [x] KNOWN-02: Email de invitación — template corporativo configurado en Supabase Auth + URL de redirección correcta (2026-03-27)
 
 ---
 
@@ -212,9 +212,9 @@ La plataforma debe reflejar cómo funciona el trabajo real: los proyectos y tare
 
 ---
 
-## Phase 3 — Pitch interno a LFi *(Por definir)*
+## Phase 3 — Pitch interno AGLAYA *(Por definir)*
 
-- [ ] Demo funcional verificada en producción (myboardlfi.ibaifernandez.com)
+- [ ] Demo funcional verificada en producción (kanban.aglaya.biz)
 - [ ] Deck de presentación (5–6 slides)
 - [ ] Propuesta comercial redactada
 - [ ] Reunión con Héctor Vera e Iván Colodro

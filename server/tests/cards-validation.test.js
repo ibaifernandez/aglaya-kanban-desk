@@ -32,7 +32,7 @@ const app = require('../index');
 // Create a valid JWT for test requests
 function makeToken(overrides = {}) {
   return jwt.sign(
-    { id: 'user-1', email: 'test@lfi.la', role: 'admin', organizationId: 'org-1', ...overrides },
+    { id: 'user-1', email: 'test@aglaya.is', role: 'admin', organizationId: 'org-1', ...overrides },
     process.env.JWT_SECRET || 'test-secret',
     { expiresIn: '1h' }
   );

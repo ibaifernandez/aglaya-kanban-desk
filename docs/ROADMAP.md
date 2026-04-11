@@ -4,7 +4,7 @@
 
 ---
 
-## Phase 0 — MyBoard (origen)
+## Phase 0 — AGLAYA Prototipo (origen)
 
 **Estado:** ✅ Completada · Legacy
 
@@ -46,12 +46,12 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 
 **Estado:** ✅ Completada · 2026-04-07/08 · **v1.1.0 + v1.1.1**
 
-- Rebrand completo: LFi Kanban Desk → **AGLAYA Kanban Desk**
+- Rebrand completo: Marca anterior -> **AGLAYA Kanban Desk**
 - Dominio: `kanban.aglaya.biz`
 - Workspace types: `personal / interno / externo`
 - Acceso por rol: colaborador (todo) vs cliente (solo externo)
 - UI diferenciada en WorkspaceDashboard según rol de usuario
-- Migración de datos desde MyBoard legacy: 7 boards, 62 cards, 10 categorías
+- Migración de datos desde el prototipo legacy: 7 boards, 62 cards, 10 categorías
 - Fix: `'urgent'` añadido a `VALID_PRIORITIES` (bug preexistente)
 - Documentación: movilidad de objetos diseñada y documentada en backlog
 
@@ -94,4 +94,4 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 - Límites freemium (máx. boards/cards en plan free)
 - Búsqueda global unificada (cross-workspace)
 - Operaciones en lote sobre tarjetas
-- Deprecación definitiva de MyBoard (apagar servidor, archivar repo)
+- Deprecación definitiva del prototipo legacy (apagar servidor, archivar repo)

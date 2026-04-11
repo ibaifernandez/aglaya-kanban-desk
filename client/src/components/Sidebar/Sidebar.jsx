@@ -150,7 +150,7 @@ export function Sidebar({ boards, activeBoardId, currentWorkspaceId, onSelect, o
       {/* Logo */}
       <div className="h-14 flex items-center gap-2.5 px-4 border-b border-[#2e3140] shrink-0">
         <img src={agLayaIcon} alt="AGLAYA" className="w-7 h-7 object-contain" />
-        <span className="font-bold text-[#e8eaf0] tracking-tight">LFi Kanban Desk</span>
+        <span className="font-bold text-[#e8eaf0] tracking-tight">AGLAYA Kanban Desk</span>
       </div>
 
       {/* Board list */}
@@ -219,7 +219,7 @@ export function Sidebar({ boards, activeBoardId, currentWorkspaceId, onSelect, o
 
       {/* Footer */}
       <div className="px-4 py-3 border-t border-[#2e3140]">
-        <span className="text-[10px] text-[#555b70]">MyBoard v1.0 · Phase 1</span>
+        <span className="text-[10px] text-[#555b70]">AGLAYA v1.2 · Phase 1</span>
       </div>
 
       {/* Board move modal */}

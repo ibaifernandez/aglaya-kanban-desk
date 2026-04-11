@@ -1,9 +1,19 @@
 -- ============================================================
--- MyBoardLFi — Schema inicial Phase 1
+-- AGLAYA Kanban Desk — Master Schema (v1.2.0)
 -- Ejecutar en Supabase → SQL Editor
 -- ============================================================
 
--- ── Tabla: organizations ─────────────────────────────────────
+-- ── 1. Extensiones y Funciones Auxiliares ───────────────────────
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Función para obtener el rol global (macro) del usuario actual
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS text LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT role FROM public.users WHERE id = auth.uid();
+$$;
+
+-- ── 2. Organización y Usuarios (Macro) ─────────────────────────
+
 CREATE TABLE IF NOT EXISTS public.organizations (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name          TEXT NOT NULL,
@@ -12,7 +22,6 @@ CREATE TABLE IF NOT EXISTS public.organizations (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ── Tabla: users (perfil público, vinculado a auth.users) ─────
 CREATE TABLE IF NOT EXISTS public.users (
   id              UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email           TEXT NOT NULL UNIQUE,
@@ -23,41 +32,79 @@ CREATE TABLE IF NOT EXISTS public.users (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ── RLS: users ───────────────────────────────────────────────
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Los usuarios ven su propio perfil"
   ON public.users FOR SELECT
   USING (auth.uid() = id);
 
--- NOTA: La policy "Admins ven todos los usuarios de su org" fue eliminada
--- por causar recursión infinita (SELECT en public.users dentro de policy de public.users).
--- El servidor usa service_role key que bypasea RLS, por lo que no es necesaria.
+CREATE POLICY "Admins ven usuarios de su organización"
+  ON public.users FOR SELECT
+  USING (
+    public.get_my_role() IN ('admin', 'superadmin')
+    AND organization_id = (SELECT organization_id FROM public.users WHERE id = auth.uid())
+  );
 
--- ── Tabla: boards ────────────────────────────────────────────
+-- ── 3. Workspaces (Micro) ──────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.workspaces (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
+  name            TEXT NOT NULL,
+  emoji           TEXT DEFAULT '📋',
+  description     TEXT,
+  type            TEXT DEFAULT 'externo', -- 'personal' | 'interno' | 'externo'
+  cover_url       TEXT,
+  created_by      UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.workspace_members (
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
+  user_id      UUID REFERENCES public.users(id) ON DELETE CASCADE,
+  role         TEXT NOT NULL DEFAULT 'member', -- 'owner' | 'admin' | 'member' | 'guest'
+  invited_at   TIMESTAMPTZ DEFAULT now(),
+  invited_by   UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  PRIMARY KEY (workspace_id, user_id)
+);
+
+-- Funciones de Seguridad Micro (Aislamiento)
+CREATE OR REPLACE FUNCTION public.get_workspace_role(ws_id UUID)
+RETURNS text LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT role FROM public.workspace_members WHERE workspace_id = ws_id AND user_id = auth.uid();
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_workspace_member(ws_id UUID)
+RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT EXISTS (SELECT 1 FROM public.workspace_members WHERE workspace_id = ws_id AND user_id = auth.uid());
+$$;
+
+ALTER TABLE public.workspaces ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workspace_members ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Miembros ven sus workspaces"
+  ON public.workspaces FOR SELECT
+  USING (public.is_workspace_member(id) OR public.get_my_role() = 'superadmin');
+
+CREATE POLICY "Miembros ven otros miembros"
+  ON public.workspace_members FOR SELECT
+  USING (public.is_workspace_member(workspace_id) OR public.get_my_role() = 'superadmin');
+
+-- ── 4. Estructura Kanban ───────────────────────────────────────
+
 CREATE TABLE IF NOT EXISTS public.boards (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  workspace_id    UUID REFERENCES public.workspaces(id) ON DELETE SET NULL,
+  organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
   name            TEXT NOT NULL,
   description     TEXT,
   color           TEXT,
-  organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
   owner_id        UUID REFERENCES public.users(id) ON DELETE SET NULL,
   position        INTEGER NOT NULL DEFAULT 0,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-ALTER TABLE public.boards ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Usuarios ven tableros de su org"
-  ON public.boards FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM public.users WHERE id = auth.uid()
-    )
-  );
-
--- ── Tabla: columns ───────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.columns (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   board_id   UUID NOT NULL REFERENCES public.boards(id) ON DELETE CASCADE,
@@ -67,19 +114,6 @@ CREATE TABLE IF NOT EXISTS public.columns (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-ALTER TABLE public.columns ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Usuarios ven columnas de sus tableros"
-  ON public.columns FOR SELECT
-  USING (
-    board_id IN (
-      SELECT b.id FROM public.boards b
-      JOIN public.users u ON u.organization_id = b.organization_id
-      WHERE u.id = auth.uid()
-    )
-  );
-
--- ── Tabla: cards ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.cards (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   column_id       UUID NOT NULL REFERENCES public.columns(id) ON DELETE CASCADE,
@@ -97,17 +131,6 @@ CREATE TABLE IF NOT EXISTS public.cards (
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Usuarios ven tarjetas de su org"
-  ON public.cards FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id FROM public.users WHERE id = auth.uid()
-    )
-  );
-
--- ── Tabla: categories ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.categories (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
@@ -116,21 +139,36 @@ CREATE TABLE IF NOT EXISTS public.categories (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- RLS para Kanban (Aislamiento por Workspace)
+ALTER TABLE public.boards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.columns ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Usuarios ven categorías de su org"
-  ON public.categories FOR SELECT
+CREATE POLICY "Ver boards del workspace"
+  ON public.boards FOR SELECT
+  USING (public.is_workspace_member(workspace_id) OR public.get_my_role() = 'superadmin');
+
+CREATE POLICY "Ver columnas del board"
+  ON public.columns FOR SELECT
   USING (
-    organization_id IN (
-      SELECT organization_id FROM public.users WHERE id = auth.uid()
-    )
+    EXISTS (SELECT 1 FROM public.boards WHERE id = board_id AND (public.is_workspace_member(workspace_id) OR public.get_my_role() = 'superadmin'))
   );
 
--- ── Organización LFi de demo ──────────────────────────────────
+CREATE POLICY "Ver cards del board"
+  ON public.cards FOR SELECT
+  USING (
+    EXISTS (SELECT 1 FROM public.boards WHERE id = board_id AND (public.is_workspace_member(workspace_id) OR public.get_my_role() = 'superadmin'))
+  );
+
+CREATE POLICY "Ver categorías de la organización"
+  ON public.categories FOR SELECT
+  USING (
+    organization_id = (SELECT organization_id FROM public.users WHERE id = auth.uid())
+  );
+
+-- ── 5. Datos de Demo ───────────────────────────────────────────
+
 INSERT INTO public.organizations (id, name, slug, plan)
-VALUES (
-  '00000000-0000-0000-0000-000000000001',
-  'LFi Agency',
-  'lfi',
-  'pro'
-) ON CONFLICT DO NOTHING;
+VALUES ('00000000-0000-0000-0000-000000000001', 'AGLAYA', 'aglaya', 'pro')
+ON CONFLICT DO NOTHING;

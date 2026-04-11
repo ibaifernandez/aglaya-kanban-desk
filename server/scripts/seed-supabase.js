@@ -22,7 +22,7 @@ const tasks = JSON.parse(
   fs.readFileSync(path.join(__dirname, '../data/tasks.json'), 'utf8')
 );
 
-// Map string IDs (board-lfi-001) → Supabase UUIDs
+// Map string IDs (board-aglaya-001) → Supabase UUIDs
 const boardIdMap  = {};
 const columnIdMap = {};
 
@@ -32,7 +32,7 @@ async function seed() {
   // ── 1. Verificar que las tablas están vacías ────────────────────
   const { count: boardCount } = await supabase.from('boards').select('id', { count: 'exact', head: true }).eq('organization_id', ORG_ID);
   if (boardCount > 0) {
-    console.log(`⚠️  Ya existen ${boardCount} tableros en Supabase para la org LFi. Abortando seed para evitar duplicados.`);
+    console.log(`⚠️  Ya existen ${boardCount} tableros en Supabase para la org AGLAYA. Abortando seed para evitar duplicados.`);
     console.log('   Si quieres re-seedear, borra primero los datos desde el Table Editor de Supabase.');
     process.exit(0);
   }
