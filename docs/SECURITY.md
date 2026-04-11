@@ -1,23 +1,21 @@
 # SECURITY — AGLAYA Kanban Desk
 
-Auditoría de seguridad y superficie de ataque. Actualizar con cada cambio significativo.
+Auditoría de seguridad y superficie de ataque. Documento de referencia para la certificación Kosher.
 
 ---
 
-## Estado general Phase 1
+## Estado general Phase 1 (v0.9.0.0)
 
 | Área | Estado | Detalle |
 |---|---|---|
-| Autenticación | ✅ | Supabase Auth + JWT firmado |
-| Autorización | ✅ Parcial | Middleware `requireAuth` implementado; rutas de datos aún no protegidas |
-| Restricción de dominio | ✅ | Doble capa: frontend + servidor |
-| Security headers HTTP | ✅ | `helmet` instalado en Express |
-| Exposición de claves | ✅ | `service_role` solo en servidor |
-| CORS | ✅ | Solo orígenes conocidos |
-| HTTPS | ⚠️ | Solo en producción (PRONODO) — desarrollo en HTTP local |
-| Rutas de datos protegidas | ❌ | Pendiente migración a Supabase |
-| Rate limiting | ❌ | No implementado |
-| Input sanitization | ⚠️ | Parcial — JSON parseado por Express, sin sanitización explícita |
+| Autenticación | ✅ | Supabase Auth + JWT firmado por el servidor |
+| Autorización | ✅ | Middleware `requireAuth` y `requireWorkspaceMember` en todos los endpoints de datos |
+| Restricción de dominio | ✅ | Capa de filtrado corporativo (`@aglaya.biz`, `@ibaifernandez.com`) |
+| Security headers HTTP | ✅ | `helmet` configurado con CSP activa en producción |
+| Exposición de claves | ✅ | `service_role` restringido al backend; RLS activo en DB |
+| CORS | ✅ | Orígenes estrictos (puerto 5175 en local, dominio real en prod) |
+| Rate limiting | ✅ | `express-rate-limit` activo en los endpoints de autenticación |
+| Row Level Security | ✅ | Políticas de Supabase activas por `organization_id` y `workspace_id` |
 
 ---
 
@@ -27,112 +25,75 @@ Auditoría de seguridad y superficie de ataque. Actualizar con cada cambio signi
 
 | Variable | Dónde vive | Nivel de criticidad |
 |---|---|---|
-| `SUPABASE_SERVICE_ROLE_KEY` | Solo `.env` del servidor | 🔴 CRÍTICO — acceso total a la BD sin RLS |
-| `JWT_SECRET` | Solo `.env` del servidor | 🔴 CRÍTICO — permite forjar tokens |
-| `SMTP_PASS` | Solo `.env` del servidor | 🟠 ALTO — acceso a la cuenta de email |
-| `SUPABASE_ANON_KEY` | `.env` servidor + `client/.env` (VITE_) | 🟡 MEDIO — respeta RLS, seguro en cliente |
-| `SUPABASE_URL` | `.env` servidor + `client/.env` (VITE_) | 🟢 BAJO — solo es una URL pública |
+| `SUPABASE_SERVICE_ROLE_KEY` | Solo `.env` del servidor | 🔴 CRÍTICO — bypass de RLS; solo para tareas administrativas |
+| `JWT_SECRET` | Solo `.env` del servidor | 🔴 CRÍTICO — firma de tokens de sesión |
+| `SMTP_PASS` | Solo `.env` del servidor | 🟠 ALTO — credenciales de Resend |
+| `SUPABASE_ANON_KEY` | Servidor + Cliente | 🟡 MEDIO — limitada por políticas RLS |
 
-### Reglas de manejo de claves
-- ✅ `.env` y `client/.env` están en `.gitignore` — nunca se suben al repositorio
-- ✅ `SUPABASE_SERVICE_ROLE_KEY` nunca se envía al frontend ni aparece en respuestas HTTP
-- ✅ Solo las variables `VITE_*` son accesibles en el bundle del cliente (Vite las inyecta en build time)
-- ⚠️ En producción, las variables deben gestionarse como secretos del servidor, no en archivos `.env`
+### Reglas de manejo
+- ✅ `.env` bajo `.gitignore`; gestión vía secretos en PRONODO/Railway.
+- ✅ `VITE_` prefix asegura que solo las claves necesarias lleguen al bundle del cliente.
 
 ---
 
 ## Autenticación y autorización
 
-### Flujo de autenticación
-1. Cliente envía `POST /api/auth/login` con email + password
-2. Servidor valida dominio corporativo o dominio invitado (ej. `@aglaya.is`, `@aglaya.biz`)
-3. Servidor llama a Supabase Auth con las credenciales
-4. Supabase valida y devuelve el usuario autenticado
-5. Servidor genera JWT propio firmado con `JWT_SECRET` (7 días de expiración)
-6. Cliente almacena el token en `localStorage` y lo envía en cada petición como `Authorization: Bearer <token>`
-7. Middleware `requireAuth` verifica la firma del JWT en cada ruta protegida
+### Flujo Hardened
+1.  **Rate Limiting**: Los endpoints de auth están limitados por IP para prevenir fuerza bruta.
+2.  **Domain Guard**: El registro y login validan estrictamente los dominios `@aglaya.biz` e `@ibaifernandez.com`.
+3.  **Sign-in**: Las credenciales se validan contra Supabase Auth.
+4.  **Token Issuance**: El servidor emite un JWT firmado que expira en 7 días.
+5.  **Multi-layer Auth**: 
+    - `requireAuth`: Valida identidad.
+    - `requireWorkspaceMember`: Valida que el usuario tenga acceso al workspace específico que intenta tocar.
 
-### Superficie de ataque — rutas públicas (sin auth)
-```
-POST /api/auth/login        — intencionalmente público
-POST /api/auth/register     — intencionalmente público (restringido por dominio)
-GET  /api/health            — solo devuelve status:ok, sin datos sensibles
-```
+### Superficie de ataque (Endpoints)
 
-### Rutas protegidas por `requireAuth`
-```
-GET  /api/auth/me           ✅
-POST /api/digest/send-me    ✅
-```
+#### Públicos 🔓
+- `POST /api/auth/login` (Protegido por Rate Limit y Domain Guard)
+- `POST /api/auth/register` (Protegido por Rate Limit y Domain Guard)
+- `GET /api/health` (Status anónimo)
 
-### Rutas pendientes de proteger ❌
-```
-GET/POST/PUT/DELETE /api/boards/*
-GET/POST/PUT/DELETE /api/columns/*
-GET/POST/PUT/DELETE /api/cards/*
-GET/POST/PUT/DELETE /api/categories/*
-GET/POST            /api/uploads/*
-```
-> ⚠️ Estas rutas actualmente no requieren autenticación. Están protegidas por el
-> hecho de que la app no es pública, pero **deben protegerse antes de producción**.
-> Se resolverá al migrar de `tasks.json` a Supabase con RLS.
+#### Protegidos por `requireAuth` 🛡️
+- `GET /api/auth/me`
+- `/api/digest/*`
+- `/api/admin/*`
+- `/api/categories/*`
+
+#### Protegidos por `requireWorkspaceMember` 🏰 (Context-Aware)
+- `/api/workspaces/*` (Aislamiento total)
+- `/api/boards/*`
+- `/api/columns/*`
+- `/api/cards/*`
+- `/api/uploads/*`
 
 ---
 
-## Headers HTTP de seguridad
+## CORS y Headers
 
-Configurados vía `helmet` en `server/index.js`:
-
-| Header | Valor | Protege contra |
-|---|---|---|
-| `X-DNS-Prefetch-Control` | off | Filtración de DNS |
-| `X-Frame-Options` | SAMEORIGIN | Clickjacking |
-| `X-Content-Type-Options` | nosniff | MIME type sniffing |
-| `Referrer-Policy` | no-referrer | Filtración de URL en Referer |
-| `X-Permitted-Cross-Domain-Policies` | none | Flash/PDF cross-domain |
-| `Strict-Transport-Security` | max-age=15552000 | Downgrade HTTPS→HTTP |
-
-> `Content-Security-Policy` desactivado en desarrollo para compatibilidad con Vite.
-> **Activar explícitamente en producción.**
-
----
-
-## CORS
-
-```js
-cors({ origin: ['http://localhost:5175', 'http://localhost:5173', 'http://localhost:5174'] })
-```
-
-- Solo acepta peticiones de los puertos de desarrollo conocidos
-- En producción: actualizar con el dominio real (`https://kanban.aglaya.biz`)
+### Configuración Nativa
+- **Helmet**: Activo con `contentSecurityPolicy` y Protecciones XSS/Clickjacking.
+- **CORS**: 
+  - Local: `http://localhost:5175`
+  - Prod: `https://kanban.aglaya.biz`
 
 ---
 
 ## Supabase Row Level Security (RLS)
 
-Todas las tablas tienen RLS activado. Políticas actuales:
-
-| Tabla | Política | Estado |
-|---|---|---|
-| `users` | Solo ven su propio perfil (o admins de la misma org) | ✅ |
-| `boards` | Solo usuarios de la misma organización | ✅ |
-| `columns` | Solo usuarios con acceso al tablero padre | ✅ |
-| `cards` | Solo usuarios de la misma organización | ✅ |
-| `categories` | Solo usuarios de la misma organización | ✅ |
-
-> Las políticas RLS son la segunda línea de defensa. La primera es el middleware de auth en Express.
+Segunda línea de defensa (Capa de datos):
+- `users`: RLS por `id` y `organization_id`.
+- `workspaces`: RLS por membresía.
+- `boards/columns/cards`: RLS jerárquico por `workspace_id`.
 
 ---
 
-## Pendientes de seguridad antes de producción
+## Logros de Seguridad (Certificados)
 
-1. **Proteger todas las rutas de datos** con `requireAuth` + filtrado por `organizationId`
-2. **Rate limiting**: instalar `express-rate-limit` en rutas de auth (previene fuerza bruta)
-3. **CSP en producción**: configurar `Content-Security-Policy` adecuado
-4. **CORS de producción**: cambiar orígenes al dominio real
-5. **JWT refresh**: implementar renovación de token antes de los 7 días (opcional Phase 2)
-6. **Auditoría de logs**: Supabase ya registra auth events; añadir logs de acceso en Express
+1.  **Purga de Identidad**: Eliminación total de marcas previas y dominios obsoletos en el flujo de seguridad.
+2.  **Hardening de Registro**: Solo personal autorizado puede crear cuentas.
+3.  **Consolidación de Middlewares**: No hay rutas de datos expuestas sin validación de JWT.
 
 ---
 
-*Última actualización: 2026-03-19 — Sesión 1 Phase 1*
+*Última actualización: 2026-04-11 — Auditoría Final v0.9.0.0*

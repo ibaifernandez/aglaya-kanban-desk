@@ -14,6 +14,13 @@ router.post('/register', async (req, res) => {
     return res.status(400).json({ error: 'email, password y name son requeridos' });
   }
 
+  // 0. Domain validation (AGLAYA Corporate Policy)
+  const allowedDomains = ['aglaya.biz', 'ibaifernandez.com'];
+  const domain = email.split('@')[1];
+  if (!allowedDomains.includes(domain)) {
+    return res.status(403).json({ error: 'Dominio no autorizado para registro corporativo' });
+  }
+
   // 1. Create user in Supabase Auth
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email,

@@ -11,6 +11,7 @@ Versión de consolidación de marca y corrección de bugs críticos de la Phase 
 ### Fixed
 - **Persistencia de Avatar**: `server/routes/auth.js` ahora incluye `avatarUrl` en la respuesta de login, evitando que el perfil se "resetee" al cerrar sesión.
 - **Identidad AGLAYA**: Eliminación total de referencias residuales a la marca anterior en código, tests y documentación.
+- **Seguridad**: Implementación de restricción de dominios corporativos (`@aglaya.biz`, `@ibaifernandez.com`) en el backend y actualización del email del Superadmin.
 
 ### Infrastructure
 - **Jest Downgrade**: Bajada a `jest@29.7.0` (versión estable) para mitigar procesos huérfanos.
@@ -241,10 +242,10 @@ Migración completa de la marca anterior → AGLAYA Kanban Desk. Cuatro fases ej
 ## [0.5.0] — 2026-03-24 — Sesión 4: Producción completa + Resend + seguridad RLS
 
 ### Email transaccional — migración a Resend completada
-- Fernando Murillo (PRONODO/TI de LFi) verificó el dominio `lafabricaimaginaria.com` en Resend
-- Railway actualizado: `SMTP_HOST=smtp.resend.com`, `SMTP_USER=resend`, `SMTP_FROM=myboard@lafabricaimaginaria.com`
+- El departamento de TI del entorno previo verificó el dominio corporativo en Resend
+- Railway actualizado: `SMTP_HOST=smtp.resend.com`, `SMTP_USER=resend`, `SMTP_FROM=myboard@dominio-previo.com`
 - Supabase → Authentication → Email → SMTP Settings: mismas credenciales configuradas
-- Probado y confirmado: email de recuperación de contraseña llega correctamente desde `myboard@lafabricaimaginaria.com`
+- Probado y confirmado: email de recuperación de contraseña llega correctamente desde el dominio configurado
 - Ver ADR-007 (estado actualizado a Activa)
 
 ### Seguridad — RLS restaurada correctamente en public.users
@@ -264,7 +265,7 @@ Migración completa de la marca anterior → AGLAYA Kanban Desk. Cuatro fases ej
 - Enlace "¿Olvidaste tu contraseña?" centrado correctamente en `LoginPage.jsx`
 
 ### Verificado en producción
-- Login con `ibai@lfi.la` funciona en `https://myboardlfi.ibaifernandez.com`
+- Login con cuenta administrativa funciona en el dominio de producción
 - 5 tableros corporativos cargando desde Supabase (datos filtrados por `organization_id`)
 - Email de recuperación de contraseña entregado vía Resend en menos de 1 minuto
 
@@ -278,8 +279,8 @@ Migración completa de la marca anterior → AGLAYA Kanban Desk. Cuatro fases ej
 - **Solución:** `DROP POLICY IF EXISTS "Admins ven todos los usuarios de su org" ON public.users;` ejecutado en Supabase SQL Editor. Ver ADR-009.
 
 ### Cuenta corporativa de acceso
-- Creado usuario `ibai@lfi.la` en Supabase Auth → Authentication → Users (sin necesidad de email; contraseña asignada directamente desde el dashboard)
-- Insertada la fila correspondiente en `public.users` con rol `superadmin` y `organization_id` de LFi Agency
+- Creado usuario administrador en Supabase Auth (sin necesidad de email; contraseña asignada directamente desde el dashboard)
+- Insertada la fila correspondiente en `public.users` con rol `superadmin` y la organización base
 - Confirmado que el login funciona correctamente tras eliminar la policy RLS
 
 ### Deploy frontend — Netlify
@@ -349,8 +350,8 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 - `server/utils/supabase.js` — cliente Supabase admin + anon para el servidor
 - `server/middleware/auth.js` — middleware `requireAuth` (JWT) y `requireRole(...roles)`
 - `server/routes/auth.js` — endpoints `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
-- Restricción de dominio corporativo: solo `@lfi.la` y `@lafabricaimaginaria.com` pueden registrarse o iniciar sesión (validación en servidor y en frontend)
-- Usuario superadmin creado: `ibai@lfi.la`, rol `superadmin`, org LFi Agency
+- Restricción de dominio corporativo: solo dominios autorizados pueden registrarse o iniciar sesión (validación en servidor y en frontend)
+- Usuario superadmin creado con rol `superadmin` en la organización base
 
 ### Frontend — Autenticación
 - `client/src/context/AuthContext.jsx` — estado global de sesión (token + user en localStorage)
@@ -377,8 +378,8 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 
 ### SMTP / Email
 - SMTP configurado con Migadu (provisional para pruebas — ver nota de migración)
-- Cuenta Resend creada (`ibai.fernandez@lafabricaimaginaria.com`) — pendiente verificación de dominio por Fernando Murillo
-- ⚠️ **Pendiente migración a Resend** tan pronto `lafabricaimaginaria.com` esté verificado en Resend
+- Cuenta Resend creada — pendiente verificación de dominio por el departamento técnico
+- ⚠️ **Pendiente migración a Resend** tan pronto el dominio corporativo esté verificado
 
 ### Seguridad
 - Claves Supabase (service_role) solo en servidor, nunca expuestas al cliente
@@ -401,7 +402,7 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 
 ### Añadido
 - **Dummy data corporativa** en `server/data/tasks.json`:
-  - 5 tableros: 🚀 Proyectos Activos, 📧 Campañas Email, 🤝 Clientes, ⚙️ Automatizaciones, 🏢 Operaciones LFi
+  - 5 tableros: 🚀 Proyectos Activos, 📧 Campañas Email, 🤝 Clientes, ⚙️ Automatizaciones, 🏢 Operaciones AGLAYA
   - 18 columnas distribuidas entre los 5 tableros
   - 30 tarjetas con datos verosímiles de agencia de marketing (prioridades, fechas, checklists, categorías)
   - 8 categorías: email-marketing, web, social-media, automatizacion, clientes, operaciones, contenido, analytics

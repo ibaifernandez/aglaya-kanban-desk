@@ -13,9 +13,14 @@
 - **Fase actual:** Phase 0 — Limpieza y documentación → Phase 1 — Multi-tenant y autenticación
 - **Documentación de referencia:**
   - Arquitectura → `docs/ARCHITECTURE.md`
+  - Seguridad → `docs/SECURITY.md`
+  - Permisos → `docs/PERMISSIONS.md` (Roles Micro)
   - Roadmap → `docs/ROADMAP.md`
   - Backlog → `docs/BACKLOG.md`
   - Producto → `docs/PRD.md`
+  - Operaciones → `docs/RUNBOOK.md`
+  - Email Templates → `docs/mails/`
+  - Database Schema → `docs/schema/supabase-schema.sql`
 - **Datos de demo:** `server/data/tasks.json` contiene dummy data corporativa — puede sobreescribirse libremente en desarrollo. En producción será reemplazado por base de datos real (Supabase/PostgreSQL).
 
 ---

@@ -46,7 +46,7 @@ AGLAYA es capaz de gestionar simultáneamente múltiples clientes, campañas y o
 ### Roles Micro (Workspace Member)
 - `owner`: Inmutable, control total y borrado.
 - `admin`: Gestión de miembros y tableros.
-- `member`: Gestión operativa y creación de tableros.
+- `colaborador`: Gestión operativa y creación de tableros.
 - `cliente` (Guest): Colaboración en tarjetas; sin borrado ni gestión estructural.
 
 ---

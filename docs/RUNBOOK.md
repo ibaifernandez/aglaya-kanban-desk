@@ -1,6 +1,6 @@
 # RUNBOOK.md — Guía de Operaciones AGLAYA
 
-**Última actualización:** 2026-04-10 (v1.1.0)
+**Última actualización:** 2026-04-11 (v0.9.0.0 - Estabilización)
 
 Este documento centraliza toda la operativa técnica de AGLAYA Kanban Desk, tanto para desarrollo local como para puesta en producción en infraestructura PRONODO.
 
@@ -32,7 +32,7 @@ npm run dev
 
 ## 🚀 2. Despliegue en Producción (PRONODO)
 
-Este apartado está dirigido a la infraestructura gestionada por Fernando Murillo.
+Este apartado está dirigido al Departamento Técnico y responsables de infraestructura en PRONODO.
 
 ### Requisitos del Servidor
 - **Docker 24+** y **Docker Compose v2**.
@@ -97,4 +97,4 @@ npm install && cd client && npm install && cd ..
 ## ⚠️ Reglas Críticas de Operación
 1. **Nunca** matar procesos en el rango 3001-3003 sin verificar a qué instancia de AGLAYA pertenecen.
 2. **Nunca** compartir las Service Role Keys por canales no cifrados.
-3. El servidor debe correr con **Node.js v20** o superior si no se usa Docker.
+3. El servidor debe correr con **Node.js v18** o superior (entorno de producción probado: v18.18.0).

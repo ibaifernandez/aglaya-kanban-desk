@@ -42,8 +42,8 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Endpoint `GET /api/auth/me`
 - [x] Middleware `requireAuth` (JWT) para rutas protegidas
 - [x] Middleware `requireRole(...roles)` para rutas por rol
-- [x] Restricción de dominio: solo `@aglaya.is` y `@aglaya.biz`
-- [x] Usuario superadmin creado: `admin@aglaya.is`
+- [x] Restricción de dominio: solo @aglaya.biz e @ibaifernandez.com
+- [x] Usuario superadmin actualizado: info@ibaifernandez.com
 
 ### Frontend — Autenticación ✅
 - [x] `AuthContext` con token + user en localStorage

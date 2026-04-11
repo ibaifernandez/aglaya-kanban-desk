@@ -1,6 +1,6 @@
 # ROADMAP — AGLAYA Kanban Desk
 
-**Última actualización:** 2026-04-08
+**Última actualización:** 2026-04-11
 
 ---
 
@@ -8,7 +8,7 @@
 
 **Estado:** ✅ Completada · Legacy
 
-Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del producto. Archivada como legacy; datos migrados a AGLAYA Kanban Desk en v1.1.1.
+Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del producto. Archivada como legacy; datos migrados a AGLAYA Kanban Desk en v0.9.0.0 (Rama Estabilización).
 
 ---
 
@@ -19,7 +19,7 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 - Migración de almacenamiento: `tasks.json` → Supabase (PostgreSQL + RLS)
 - Autenticación: Supabase Auth + JWT middleware + bcryptjs
 - Jerarquía de datos: Organization → Board → Column → Card
-- Roles: superadmin / admin / colaborador / cliente / guest
+- Roles: superadmin / admin / colaborador / cliente
 - Email digest de administrador (estadísticas globales, node-cron)
 - Seguridad: Helmet, rate limiting, CORS por entorno, RLS en todas las tablas
 - Suite de tests: Jest + Supertest, 26 tests en 4 suites
@@ -32,7 +32,7 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 **Estado:** ✅ Completada · 2026-03-24/25
 
 - Jerarquía ampliada: Organization → **Workspace** → Board → Column → Card
-- Roles por workspace: owner / admin / member / guest
+- Roles por workspace: owner / admin / colaborador / cliente
 - RLS con funciones `SECURITY DEFINER` para evitar recursión
 - WorkspaceDashboard: grid de tarjetas, mini-kanban generativo, counts reales
 - WorkspaceMembers: panel lateral de gestión de roles
@@ -44,12 +44,12 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 
 ## Phase 3 — Rebrand AGLAYA + Migración de datos
 
-**Estado:** ✅ Completada · 2026-04-07/08 · **v1.1.0 + v1.1.1**
+**Estado:** ✅ Completada · 2026-04-07/11 · **v0.9.0.0 (Rama AGLAYA)**
 
 - Rebrand completo: Marca anterior -> **AGLAYA Kanban Desk**
 - Dominio: `kanban.aglaya.biz`
 - Workspace types: `personal / interno / externo`
-- Acceso por rol: colaborador (todo) vs cliente (solo externo)
+- Acceso por rol: colaborador (todo) vs cliente (solo externo/asignado)
 - UI diferenciada en WorkspaceDashboard según rol de usuario
 - Migración de datos desde el prototipo legacy: 7 boards, 62 cards, 10 categorías
 - Fix: `'urgent'` añadido a `VALID_PRIORITIES` (bug preexistente)
@@ -59,7 +59,7 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 
 ## Phase 4 — Calidad de producto y UX completa
 
-**Estado:** 🔵 En curso · v1.2.0
+**Estado:** 🔵 En curso · v1.0.0 (Lanzamiento)
 
 ### Workspace settings
 - [x] Botón editar visible al hover + preservación del tipo real al editar — `bbd0b8a`
@@ -80,7 +80,8 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 - [ ] Mover tarjeta entre tableros (cross-board desde el modal)
 
 ### Tests
-- [ ] Actualizar suite `auth.test.js` para cubrir nuevo sistema sin restricción de dominio
+- [x] Reimplementar restricción de dominio corporativo en backend (`v0.9.0.0`)
+- [ ] Actualizar suite `auth.test.js` para cubrir sistema de dominios autorizados
 - [ ] Tests para rutas de workspaces con tipos `personal/interno/externo`
 
 ---

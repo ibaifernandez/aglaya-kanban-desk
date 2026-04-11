@@ -89,8 +89,9 @@ ALTER TABLE public.boards ADD COLUMN workspace_id uuid REFERENCES public.workspa
 ---
 
 ## 📝 6. Referencias
-- Ver [PERMISSIONS.md](file:///Users/AGLAYA/Local%20Sites/aglaya-kanban-desk/docs/PERMISSIONS.md) para la matriz detallada de acciones por rol.
-- Ver [RUNBOOK.md](file:///Users/AGLAYA/Local%20Sites/aglaya-kanban-desk/docs/RUNBOOK.md) para comandos de mantenimiento y despliegue.
+- Ver [SECURITY.md](./SECURITY.md) para la auditoría de superficie de ataque y gestión de secretos.
+- Ver [PERMISSIONS.md](./PERMISSIONS.md) para la matriz detallada de acciones por rol.
+- Ver [RUNBOOK.md](./RUNBOOK.md) para comandos de mantenimiento y despliegue.
 
 ---
 
