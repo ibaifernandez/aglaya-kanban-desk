@@ -1,8 +1,8 @@
 # RUNBOOK.md — Guía de Operaciones AGLAYA
 
-**Última actualización:** 2026-04-11 (v0.9.0.0 - Estabilización)
+**Última actualización:** 2026-04-11 (v1.1.0.0 - Estabilización)
 
-Este documento centraliza toda la operativa técnica de AGLAYA Kanban Desk, tanto para desarrollo local como para puesta en producción en infraestructura PRONODO.
+Este documento centraliza toda la operativa técnica de AGLAYA Kanban Desk, tanto para desarrollo local como para puesta en producción en infraestructura soberana de AGLAYA.
 
 ---
 
@@ -30,9 +30,9 @@ npm run dev
 
 ---
 
-## 🚀 2. Despliegue en Producción (PRONODO)
+## 🚀 2. Despliegue en Producción (Infraestructura Soberana)
 
-Este apartado está dirigido al Departamento Técnico y responsables de infraestructura en PRONODO.
+Este apartado está dirigido al responsable de infraestructura de AGLAYA.
 
 ### Requisitos del Servidor
 - **Docker 24+** y **Docker Compose v2**.

@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — Arquitectura Técnica AGLAYA Kanban Desk
 
-**Última actualización:** 2026-04-10 (v1.2.0)
+**Última actualización:** 2026-04-10 (v1.1.0.0)
 
 ---
 
@@ -101,7 +101,7 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 
 ### Historial de Decisiones Clave:
 1. **DB & Auth (Supabase)**: Elegido por su integración nativa de autenticación y PostgreSQL estándar, evitando el *vendor lock-in* total y permitiendo una futura migración a infraestructura autogestionada (ADR-001/002).
-2. **Infraestructura (PRONODO/Railway)**: La visión final es el control total en PRONODO. Se utiliza Railway de forma provisional para agilizar demos sin sacrificar la modularidad del backend (ADR-003/010).
+2. **Infraestructura Soberana (AGLAYA)**: La visión final es el control total en servidores propios de AGLAYA. Se utiliza Railway de forma provisional para agilizar demos sin sacrificar la modularidad del backend (ADR-003/010).
 3. **Control de Plan (Freemium)**: Gestor mediante campo `plan` en base de datos para simplificar la Phase 1 sin depender de pasarelas de pago externas como Stripe en la fase beta (ADR-004).
 4. **Propiedad Intelectual**: El repositorio fuente es privado de AGLAYA. Los desploys se realizan mediante artefactos compilados para proteger el código fuente durante la fase de negociación inicial (ADR-005).
 5. **Aislamiento Multi-tenant (Workspaces)**: Implementado mediante una tabla dedicada de membresías y funciones SQL `SECURITY DEFINER` para evitar recursión en las políticas RLS de Supabase (ADR-012/009).

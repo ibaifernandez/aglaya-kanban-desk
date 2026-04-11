@@ -4,6 +4,25 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [1.1.0.0] — 2026-04-11 — Certificación "Kosher" · Nutrición Atlas · v1.1.0 Global Sync
+
+Versión de consolidación documental y técnica para el Atlas de Proyectos, sincronizando todo el ecosistema AGLAYA tras la publicación oficial.
+
+### Added
+- **Atlas de Proyectos (Ficha Visual)**: Reconstrucción total de `index.html` bajo el estándar v1.0.0 del Atlas, incluyendo matriz de roles, stack técnico detallado y pipeline de despliegue.
+- **Registro de Archivo Nutrido**: Expansión profunda de `archive/aglaya-kanban-desk.md` con ADRs, lógica de permisos y métricas de salud del código.
+
+### Changed
+- **Salto Versional Global**: Sincronización de todas las cabeceras técnicas y archivos `package.json` a la versión **v1.1.0.0** (o 1.1.0 semver).
+- **Hardening de Documentación**: Certificación "Kosher" de toda la suite `docs/`, eliminando cualquier residuo de marca externa y validando la precisión técnica.
+
+---
+
+## [1.0.0.0] — 2026-04-11 — Lanzamiento Oficial GitHub
+
+Hito de publicación oficial del repositorio en GitHub como plataforma base estable.
+
+
 ## [0.9.0.0] — 2026-04-11 — Estabilización AGLAYA · Fix Avatar · Jest Downgrade
 
 Versión de consolidación de marca y corrección de bugs críticos de la Phase 1.
@@ -340,7 +359,7 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 ## [0.2.0] — 2026-03-19 — Sesión 1: Phase 1 — Autenticación, Supabase y email
 
 ### Infraestructura
-- Proyecto Supabase creado (`myboardlfi`, región São Paulo) y conectado al servidor
+- Proyecto Supabase creado (`aglaya-kanban`, región São Paulo) y conectado al servidor
 - Schema inicial ejecutado: tablas `organizations`, `users`, `boards`, `columns`, `cards`, `categories` con RLS activado
 - Organización principal AGLAYA insertada como tenant base
 - `@supabase/supabase-js` instalado en server y client
@@ -392,7 +411,7 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 
 ### Fork
 - Proyecto creado como fork de MyBoard (versión personal de Ibai Fernández, Phase 1 completa)
-- Renombrado a MyBoardLFi con enfoque corporativo multi-tenant para LFi
+- Renombrado a MyBoard Legacy con enfoque corporativo multi-tenant para AGLAYA
 
 ### Eliminado
 - Datos personales de Ibai en `server/data/tasks.json` → respaldados en `tasks.personal-backup.json`
@@ -418,11 +437,11 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 ### Documentación reescrita
 - `CLAUDE.md` — contexto AGLAYA Kanban Desk, puertos 3003/5175, reglas Phase 0
 - `AGENTS.md` — identidad, comportamiento, convenciones, reglas de datos e IP
-- `README.md` — orientado a gerencia AGLAYA + equipo técnico (Fernando/PRONODO)
+- `README.md` — orientado a gerencia AGLAYA + equipo técnico propio
 - `docs/ROADMAP.md` — 4 fases: Phase 0→4 con objetivos y entregables
 - `docs/BACKLOG.md` — tareas por fase (Phase 0 completada, Phases 1–3 planificadas)
 - `docs/ARCHITECTURE.md` — arquitectura actual (Phase 0) + arquitectura objetivo (Phase 1) con esquema Supabase, roles, multi-tenancy
-- `docs/DECISIONS.md` — 6 ADRs: Supabase, auth JWT, PRONODO, freemium, IP, fork
+- `docs/DECISIONS.md` — 6 ADRs: Supabase, auth JWT, Infra-Soberana, freemium, IP, fork
 - `docs/PRODUCT.md` — visión de producto para stakeholders AGLAYA, comparativa herramientas, modelo freemium
 
 ---

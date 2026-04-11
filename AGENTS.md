@@ -64,7 +64,7 @@
 
 - **Server:** 3003 | **Client:** 5175
 - MyBoard personal: 3001/5173 | conta-if: 3002/5174
-- El despliegue final es en **PRONODO**. Actualmente se usa Railway/Netlify para staging.
+- El despliegue final se realiza en **Infraestructura Soberana AGLAYA**. Actualmente se usa Railway/Netlify para staging.
 
 ---
 
@@ -74,11 +74,12 @@
 - ❌ Cambiar el stack tecnológico basal sin aprobación.
 - ❌ Generar placeholders; construye con datos estructurados reales.
 - ❌ Usar `localStorage` para persistencia de sesión sensible (usa `sessionStorage` con las claves aprobadas como `aglaya_session`).
+- ❌ Compartir acceso al código fuente con terceros sin autorización explícita de Ibai Fernández.
 
 ---
 
 ## 7. Propiedad intelectual
 
 - El código fuente reside en repo privado de AGLAYA.
-- No compartir acceso al código fuente con terceros ni con PRONODO directamente sin autorización.
+- No compartir acceso al código fuente con terceros sin autorización explícita de Ibai Fernández.
 - Copyright: "AGLAYA Kanban Desk · © 2026 AGLAYA"

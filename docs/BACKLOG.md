@@ -223,11 +223,10 @@ La plataforma debe reflejar cómo funciona el trabajo real: los proyectos y tare
 
 ---
 
-## Phase 4 — Deploy en PRONODO *(Pendiente de Phase 3)*
+## Phase 4 — Despliegue en Infraestructura Soberana *(Pendiente de Phase 3)*
 
-- [ ] `Dockerfile` para el server Express
-- [ ] `Dockerfile` para el client (build Vite + nginx)
-- [ ] `docker-compose.yml` (server + client + proxy)
-- [ ] Acordar dominio con Fernando Murillo (PRONODO)
+- [ ] Configurar servidores propios de AGLAYA con PM2/Docker
+- [ ] Implementar flujo CI/CD hacia producción
+- [ ] Configurar SSL y monitoreo de salud del servidor
 - [ ] Configurar HTTPS / SSL
 - [ ] CI/CD básico (GitHub Actions)

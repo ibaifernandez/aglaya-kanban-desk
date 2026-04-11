@@ -60,7 +60,7 @@ Pendiente en Phase 4:
 | 1 | Movilidad de objetos — mover tableros entre workspaces | 🟡 MEDIA | ✅ v1.2.0 |
 | 1b | Movilidad de objetos — mover tarjetas cross-workspace | 🟡 MEDIA | ❌ Pendiente diseño |
 | 2 | Tests actualizados — auth, workspaces (code viejo sistema) | 🟡 MEDIA | ❌ Pendiente |
-| 3 | Limpiar localStorage — remover `myboardlfi_token` (ruido) | 🟢 BAJA | ✅ v1.2.0 |
+| 3 | Limpiar localStorage — remover `aglaya_token` (legacy nomenclature) | 🟢 BAJA | ✅ v1.2.0 |
 | 4 | Verificar flujo email invite — end-to-end kanban.aglaya.biz | 🔴 CRÍTICO | ❌ Bloqueante Phase 5 |
 | 5 | Deprecación de prototipos legacy — archivar repos antiguos | 🟢 BAJA | ❌ Pendiente |
 

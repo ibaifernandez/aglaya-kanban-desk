@@ -4,7 +4,7 @@ Auditoría de seguridad y superficie de ataque. Documento de referencia para la 
 
 ---
 
-## Estado general Phase 1 (v0.9.0.0)
+## Estado general Phase 1 (v1.1.0.0)
 
 | Área | Estado | Detalle |
 |---|---|---|
@@ -31,7 +31,7 @@ Auditoría de seguridad y superficie de ataque. Documento de referencia para la 
 | `SUPABASE_ANON_KEY` | Servidor + Cliente | 🟡 MEDIO — limitada por políticas RLS |
 
 ### Reglas de manejo
-- ✅ `.env` bajo `.gitignore`; gestión vía secretos en PRONODO/Railway.
+- ✅ `.env` bajo `.gitignore`; gestión vía secretos en Infraestructura Soberana (AGLAYA) / Railway.
 - ✅ `VITE_` prefix asegura que solo las claves necesarias lleguen al bundle del cliente.
 
 ---
@@ -96,4 +96,4 @@ Segunda línea de defensa (Capa de datos):
 
 ---
 
-*Última actualización: 2026-04-11 — Auditoría Final v0.9.0.0*
+*Última actualización: 2026-04-11 — Auditoría Final v1.1.0.0*

@@ -8,7 +8,7 @@
 
 **Estado:** ✅ Completada · Legacy
 
-Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del producto. Archivada como legacy; datos migrados a AGLAYA Kanban Desk en v0.9.0.0 (Rama Estabilización).
+Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del producto. Archivada como legacy; datos migrados a AGLAYA Kanban Desk en v1.1.0.0 (Rama Estabilización).
 
 ---
 
@@ -44,7 +44,7 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 
 ## Phase 3 — Rebrand AGLAYA + Migración de datos
 
-**Estado:** ✅ Completada · 2026-04-07/11 · **v0.9.0.0 (Rama AGLAYA)**
+**Estado:** ✅ Completada · 2026-04-07/11 · **v1.1.0.0 (Rama AGLAYA)**
 
 - Rebrand completo: Marca anterior -> **AGLAYA Kanban Desk**
 - Dominio: `kanban.aglaya.biz`
@@ -80,7 +80,7 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 - [ ] Mover tarjeta entre tableros (cross-board desde el modal)
 
 ### Tests
-- [x] Reimplementar restricción de dominio corporativo en backend (`v0.9.0.0`)
+- [x] Reimplementar restricción de dominio corporativo en backend (`v1.1.0.0`)
 - [ ] Actualizar suite `auth.test.js` para cubrir sistema de dominios autorizados
 - [ ] Tests para rutas de workspaces con tipos `personal/interno/externo`
 

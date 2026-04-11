@@ -1,7 +1,7 @@
 # PRD (Product Requirements Document) — AGLAYA Kanban Desk
-**Phase 1 · Personal & Workspace Kanban**
+**Phase 1 · v1.1.0.0**
 **Owner:** AGLAYA · info@ibaifernandez.com
-**Fecha:** 2026-04-10 (Actualizado)
+**Fecha:** 2026-04-11 (Actualizado)
 
 ---
 
@@ -13,7 +13,7 @@ AGLAYA es una plataforma de gestión de proyectos y tareas diseñada para agenci
 AGLAYA es capaz de gestionar simultáneamente múltiples clientes, campañas y operaciones, consolidando la información que antes estaba dispersa para evitar pérdida de contexto y visibilidad limitada.
 
 ### Propuesta de valor
-1. **Zero vendor lock-in**: Todo el código y los datos residen en infraestructura propia (PRONODO).
+1. **Zero vendor lock-in**: Todo el código y los datos residen en infraestructura soberana AGLAYA.
 2. **Privacidad Micro/Macro**: Soporte nativo para multi-tenant con separación estricta de espacios de clientes y espacios internos.
 3. **Optimización de Costes**: Sin licencias por asiento; acceso ilimitado para personal y clientes.
 
