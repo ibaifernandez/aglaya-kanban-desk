@@ -128,6 +128,11 @@ router.patch('/users/:id/role', async (req, res) => {
         error: `Fuera de tu organización. (Tu Org: ${userOrgId.substring(0,8)}, Su Org: ${targetOrgId ? targetOrgId.substring(0,8) : 'NULL'})` 
       });
     }
+
+    // NEW: Prevents Admin from modifying another Admin
+    if (req.user.role === 'admin' && targetUser.role === 'admin') {
+      return res.status(403).json({ error: 'Un Administrador no puede modificar a otro Administrador' });
+    }
   }
 
   // 3. Perform the update
@@ -171,6 +176,11 @@ router.delete('/users/:id', async (req, res) => {
   // 3. Prevent deleting a superadmin if you are just an admin
   if (target.role === 'superadmin' && req.user.role !== 'superadmin') {
     return res.status(403).json({ error: 'Solo un superadmin puede eliminar a otro superadmin' });
+  }
+
+  // NEW: Prevents Admin from deleting another Admin
+  if (req.user.role === 'admin' && target.role === 'admin') {
+    return res.status(403).json({ error: 'Un Administrador no puede eliminar a otro Administrador' });
   }
 
   // 4. Check for workspace ownership (Phase 2 constraint)

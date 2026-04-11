@@ -242,9 +242,9 @@ export default function AdminPage({ user, onBack }) {
                         </div>
                       </td>
 
-                      {/* Rol — dropdown si no es el propio usuario ni superadmin */}
+                      {/* Rol — dropdown si no es el propio usuario ni superadmin, y no otro admin si soy admin */}
                       <td className="px-4 py-3">
-                        {u.id === user.id || u.role === 'superadmin' ? (
+                        {u.id === user.id || u.role === 'superadmin' || (user.role === 'admin' && u.role === 'admin') ? (
                           <RoleBadge role={u.role} />
                         ) : (
                           <select
@@ -264,9 +264,9 @@ export default function AdminPage({ user, onBack }) {
                         {new Date(u.created_at).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </td>
 
-                      {/* Eliminar */}
+                      {/* Eliminar — ocultar si es uno mismo, superadmin o admin si soy admin */}
                       <td className="px-4 py-3 text-right">
-                        {u.id !== user.id && u.role !== 'superadmin' && (
+                        {u.id !== user.id && u.role !== 'superadmin' && !(user.role === 'admin' && u.role === 'admin') && (
                           <button
                             onClick={() => handleDelete(u)}
                             disabled={deletingId === u.id}
