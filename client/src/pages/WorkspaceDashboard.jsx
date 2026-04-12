@@ -368,7 +368,7 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCover
   const [name,       setName]       = useState(initial?.name        ?? '');
   const [emoji,      setEmoji]      = useState(initial?.emoji       ?? '📋');
   const [desc,       setDesc]       = useState(initial?.description ?? '');
-  const [type,       setType]       = useState(initial?.type ?? 'externo');
+  const [type,       setType]       = useState(initial?.type ?? 'personal');
   const [saving,     setSaving]     = useState(false);
   const [error,      setError]      = useState('');
   const [coverPreview, setCoverPreview] = useState(initial?.coverUrl ?? null);
@@ -396,7 +396,7 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCover
     if (!name.trim()) { setError('El nombre es obligatorio'); return; }
     setSaving(true);
     try {
-      await onSubmit({ name: name.trim(), emoji, description: desc.trim(), type: type || 'externo' });
+      await onSubmit({ name: name.trim(), emoji, description: desc.trim(), type: type || 'personal' });
       onClose();
     } catch (err) {
       setError(err.message);
@@ -489,7 +489,7 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCover
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => setType(type === opt.value ? '' : opt.value)}
+                  onClick={() => setType(opt.value)}
                   className={`flex-1 py-1.5 text-xs rounded-lg border transition-colors ${
                     type === opt.value
                       ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300'

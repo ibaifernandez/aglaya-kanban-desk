@@ -71,21 +71,27 @@ router.get('/', requireAuth, async (req, res) => {
 // Creates a new workspace. Creator becomes 'owner'.
 
 router.post('/', requireAuth, async (req, res) => {
-  const { name, emoji = '📋', description = '', type = 'externo' } = req.body;
-  if (!name?.trim()) return res.status(400).json({ error: 'name is required' });
-
-  // 1. Capa Macro: ¿quién puede crear qué?
-  if (req.user.role === 'cliente') {
-    return res.status(403).json({ error: 'Tu rol no tiene permiso para crear workspaces' });
+  const { name, emoji = '📋', description = '', type } = req.body;
+  if (!name || name.trim().length === 0) {
+    return res.status(400).json({ error: 'El nombre es obligatorio' });
   }
 
   // Admins can create any type. Colaboradores ONLY personal.
   let wsType = type;
   if (req.user.role === 'colaborador') {
     wsType = 'personal';
-  } else if (!VALID_TYPES.includes(type)) {
-    wsType = 'externo';
+  } else if (!type || !VALID_TYPES.includes(type)) {
+    return res.status(400).json({ error: 'El tipo de espacio de trabajo es obligatorio y debe ser válido (personal, interno o externo)' });
   }
+
+  // Diagnostic Log for RLS bypass check
+  let roleInKey = 'unknown';
+  try {
+    const payload = JSON.parse(Buffer.from(process.env.SUPABASE_SERVICE_ROLE_KEY.split('.')[1], 'base64').toString());
+    roleInKey = payload.role;
+  } catch (e) { roleInKey = 'error_parsing'; }
+  
+  console.log(`[workspaces] Creating ${wsType} workspace. Admin Key Role: ${roleInKey}`);
 
   const { data: ws, error: wsErr } = await supabaseAdmin
     .from('workspaces')
