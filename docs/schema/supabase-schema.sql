@@ -86,9 +86,19 @@ CREATE POLICY "Miembros ven sus workspaces"
   ON public.workspaces FOR SELECT
   USING (public.is_workspace_member(id) OR public.get_my_role() = 'superadmin');
 
+CREATE POLICY "Permitir crear workspaces a usuarios autenticados"
+  ON public.workspaces FOR INSERT 
+  TO authenticated 
+  WITH CHECK (true);
+
 CREATE POLICY "Miembros ven otros miembros"
   ON public.workspace_members FOR SELECT
   USING (public.is_workspace_member(workspace_id) OR public.get_my_role() = 'superadmin');
+
+CREATE POLICY "Permitir unirse a workspaces creados"
+  ON public.workspace_members FOR INSERT 
+  TO authenticated 
+  WITH CHECK (true);
 
 -- ── 4. Estructura Kanban ───────────────────────────────────────
 

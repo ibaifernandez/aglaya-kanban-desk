@@ -4,6 +4,11 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [1.1.1] - 2026-04-12
+### Fixed
+- Error interno (500) en la creación de nuevos workspaces debido a políticas de seguridad RLS restrictivas en Supabase.
+- Añadidas políticas de `INSERT` para las tablas `workspaces` y `workspace_members` en la documentación del esquema.
+
 ## [1.1.0.0] — 2026-04-11 — Certificación "Kosher" · Nutrición Atlas · v1.1.0 Global Sync
 
 Versión de consolidación documental y técnica para el Atlas de Proyectos, sincronizando todo el ecosistema AGLAYA tras la publicación oficial.

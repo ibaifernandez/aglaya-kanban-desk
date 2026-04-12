@@ -100,7 +100,10 @@ router.post('/', requireAuth, async (req, res) => {
     .select()
     .single();
 
-  if (wsErr) { console.error('[workspaces] POST /:', wsErr.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
+    if (wsErr) {
+      console.error('[workspaces] POST /:', wsErr.message);
+      return res.status(500).json({ error: 'Error interno del servidor' });
+    }
 
   await supabaseAdmin.from('workspace_members').insert({
     workspace_id: ws.id,
