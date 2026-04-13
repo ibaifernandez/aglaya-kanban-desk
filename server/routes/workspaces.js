@@ -84,14 +84,21 @@ router.post('/', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'El tipo de espacio de trabajo es obligatorio y debe ser válido (personal, interno o externo)' });
   }
 
-  // Diagnostic Log for RLS bypass check
-  let roleInKey = 'unknown';
-  try {
-    const payload = JSON.parse(Buffer.from(process.env.SUPABASE_SERVICE_ROLE_KEY.split('.')[1], 'base64').toString());
-    roleInKey = payload.role;
-  } catch (e) { roleInKey = 'error_parsing'; }
-  
-  console.log(`[workspaces] Creating ${wsType} workspace. Admin Key Role: ${roleInKey}`);
+  // Self-healing: if organizationId is missing from token (stale session), fetch from DB
+  let orgId = req.user.organizationId;
+  if (!orgId) {
+    console.log(`[workspaces] Token missing orgId for ${req.user.email}. Fetching from DB...`);
+    const { data: userProfile } = await supabaseAdmin
+      .from('users')
+      .select('organization_id')
+      .eq('id', req.user.id)
+      .single();
+    orgId = userProfile?.organization_id;
+  }
+
+  if (!orgId) {
+    return res.status(403).json({ error: 'Tu usuario no tiene una organización asignada. Contacta con soporte.' });
+  }
 
   const { data: ws, error: wsErr } = await supabaseAdmin
     .from('workspaces')
@@ -100,7 +107,7 @@ router.post('/', requireAuth, async (req, res) => {
       emoji,
       description,
       type:            wsType,
-      organization_id: req.user.organizationId,
+      organization_id: orgId,
       created_by:      req.user.id,
     })
     .select()
