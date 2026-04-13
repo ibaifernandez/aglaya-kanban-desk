@@ -4,10 +4,13 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
-## [1.1.1] - 2026-04-12
+## [1.1.5] - 2026-04-13
 ### Fixed
-- Error interno (500) en la creación de nuevos workspaces debido a políticas de seguridad RLS restrictivas en Supabase.
-- Añadidas políticas de `INSERT` para las tablas `workspaces` y `workspace_members` en la documentación del esquema.
+- **Estabilización de RLS (Identidad Blindada)**: Resolución definitiva de los errores "Failed to fetch" y violaciones de políticas RLS al crear o eliminar workspaces.
+- **Backend Robustness**: Implementación de instancias locales "frescas" del cliente de Supabase Admin (`freshAdmin`) en rutas críticas para evitar la contaminación de sesiones del singleton global.
+- **Auto-healing de JWT**: El backend ahora recupera automáticamente el `organization_id` directamente de la base de datos si el token del usuario está desactualizado, evitando fallos en claves foráneas.
+
+## [1.1.1] - 2026-04-12
 
 ## [1.1.0.0] — 2026-04-11 — Certificación "Kosher" · Nutrición Atlas · v1.1.0 Global Sync
 

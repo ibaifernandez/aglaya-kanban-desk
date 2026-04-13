@@ -1,4 +1,5 @@
 const express = require('express');
+const { createClient } = require('@supabase/supabase-js');
 const { supabaseAdmin }        = require('../utils/supabase');
 const { requireAuth }          = require('../middleware/auth');
 const { requireWorkspaceMember, requireWorkspaceRole } = require('../middleware/workspace');
@@ -84,52 +85,61 @@ router.post('/', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'El tipo de espacio de trabajo es obligatorio y debe ser válido (personal, interno o externo)' });
   }
 
-  // Self-healing: if organizationId is missing from token (stale session), fetch from DB
-  let orgId = req.user.organizationId;
-  if (!orgId) {
-    console.log(`[workspaces] Token missing orgId for ${req.user.email}. Fetching from DB...`);
-    const { data: userProfile } = await supabaseAdmin
-      .from('users')
-      .select('organization_id')
-      .eq('id', req.user.id)
-      .single();
-    orgId = userProfile?.organization_id;
-  }
+  const freshAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-  if (!orgId) {
-    return res.status(403).json({ error: 'Tu usuario no tiene una organización asignada. Contacta con soporte.' });
-  }
-
-  // 🔍 SECURITY DIAGNOSTIC: Verify if service_role is being used
-  const keyPref = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').substring(0, 10);
-  console.log(`[workspaces] [AUTH_CHECK] User: ${req.user.email} | KeyPrefix: ${keyPref} | OrgId: ${orgId} | Type: ${wsType}`);
-
-  const { data: ws, error: wsErr } = await supabaseAdmin
-    .from('workspaces')
-    .insert({
-      name:            name.trim(),
-      emoji,
-      description,
-      type:            wsType,
-      organization_id: orgId,
-      created_by:      req.user.id,
-    })
-    .select()
-    .single();
-
-    if (wsErr) {
-      console.error('[workspaces] POST /:', wsErr.message);
-      return res.status(500).json({ error: 'Error interno del servidor' });
+  try {
+    // Self-healing: if organizationId is missing from token (stale session), fetch from DB
+    let orgId = req.user.organizationId;
+    if (!orgId) {
+      const { data: userProfile } = await freshAdmin
+        .from('users')
+        .select('organization_id')
+        .eq('id', req.user.id)
+        .single();
+      orgId = userProfile?.organization_id;
     }
 
-  await supabaseAdmin.from('workspace_members').insert({
-    workspace_id: ws.id,
-    user_id:      req.user.id,
-    role:         'owner',
-    invited_by:   req.user.id,
-  });
+    if (!orgId) {
+      return res.status(403).json({ error: 'Usuario sin organización asignada' });
+    }
 
-  res.status(201).json({ data: { ...toWorkspace(ws), myRole: 'owner' } });
+    // 1. Create the workspace
+    const { data: ws, error: wsErr } = await freshAdmin
+      .from('workspaces')
+      .insert({
+        name:            name.trim(),
+        emoji:           emoji || '📋',
+        description:     description || '',
+        type:            wsType,
+        organization_id: orgId,
+        created_by:      req.user.id,
+      })
+      .select()
+      .single();
+
+    if (wsErr) {
+      console.error('[workspaces] POST create error:', wsErr.message);
+      return res.status(500).json({ error: 'Error al crear el espacio de trabajo' });
+    }
+
+    // 2. Add creator as initial member (owner)
+    const { error: memErr } = await freshAdmin.from('workspace_members').insert({
+      workspace_id: ws.id,
+      user_id:      req.user.id,
+      role:         'owner',
+      invited_by:   req.user.id,
+    });
+
+    if (memErr) {
+      console.error('[workspaces] POST member error:', memErr.message);
+      return res.status(500).json({ error: 'Error al asignar propietario' });
+    }
+
+    res.status(201).json({ success: true, data: { ...toWorkspace(ws), myRole: 'owner' } });
+  } catch (err) {
+    console.error('[workspaces] POST exception:', err.message);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
 });
 
 // ── GET /api/workspaces/:workspaceId ─────────────────────────────────────────
@@ -183,42 +193,46 @@ router.patch('/:workspaceId', requireAuth, requireWorkspaceMember, requireWorksp
 // Deletes workspace. Only owner can do this.
 
 router.delete('/:workspaceId', requireAuth, requireWorkspaceMember, requireWorkspaceRole('owner'), async (req, res) => {
+  const freshAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
   const wsId = req.params.workspaceId;
 
   try {
     // 1. Get all boards in this workspace
-    const { data: boards } = await supabaseAdmin
+    const { data: boards } = await freshAdmin
       .from('boards').select('id').eq('workspace_id', wsId);
 
     if (boards?.length) {
       const boardIds = boards.map((b) => b.id);
 
       // 2. Get all columns in those boards
-      const { data: columns } = await supabaseAdmin
+      const { data: columns } = await freshAdmin
         .from('columns').select('id').in('board_id', boardIds);
 
       if (columns?.length) {
         const colIds = columns.map((c) => c.id);
         // 3. Delete all cards
-        await supabaseAdmin.from('cards').delete().in('column_id', colIds);
+        await freshAdmin.from('cards').delete().in('column_id', colIds);
         // 4. Delete all columns
-        await supabaseAdmin.from('columns').delete().in('id', colIds);
+        await freshAdmin.from('columns').delete().in('id', colIds);
       }
 
       // 5. Delete all boards
-      await supabaseAdmin.from('boards').delete().in('id', boardIds);
+      await freshAdmin.from('boards').delete().in('id', boardIds);
     }
 
     // 6. Delete workspace members
-    await supabaseAdmin.from('workspace_members').delete().eq('workspace_id', wsId);
+    await freshAdmin.from('workspace_members').delete().eq('workspace_id', wsId);
 
     // 7. Delete workspace
-    const { error } = await supabaseAdmin.from('workspaces').delete().eq('id', wsId);
-    if (error) { console.error('[workspaces] DELETE /:id:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
+    const { error } = await freshAdmin.from('workspaces').delete().eq('id', wsId);
+    if (error) { 
+      console.error('[workspaces] DELETE error:', error.message); 
+      return res.status(500).json({ error: 'Error al eliminar el espacio de trabajo' }); 
+    }
 
     res.json({ success: true });
   } catch (err) {
-    console.error('[workspaces] DELETE /:id catch:', err.message);
+    console.error('[workspaces] DELETE exception:', err.message);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

@@ -1,6 +1,6 @@
 # ROADMAP — AGLAYA Kanban Desk
 
-**Última actualización:** 2026-04-11
+**Última actualización:** 2026-04-13
 
 ---
 
@@ -70,6 +70,7 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 ### Seguridad y UX de destrucción
 - [x] Confirmación al borrar tarjetas (diálogo inline en CardModal) — `7a4e504`
 - [x] Confirmación al borrar columnas (modal en Board) — `7a4e504`
+- [x] **Estabilización de RLS**: Blindaje de backend con `freshAdmin` para evitar colisiones de identidad en workspaces — `v1.1.5`
 
 ### Email
 - [x] User digest: email diario personal con tarjetas urgentes/vencidas, segmentado por workspace — `a6d45ee`

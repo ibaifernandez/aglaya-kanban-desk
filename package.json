@@ -1,6 +1,6 @@
 {
   "name": "aglaya-kanban-desk",
-  "version": "1.1.0",
+  "version": "1.1.5",
   "description": "AGLAYA Kanban Desk — plataforma de gestión de proyectos multi-tenant",
   "private": true,
   "scripts": {
