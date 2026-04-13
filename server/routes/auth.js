@@ -1,13 +1,14 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { supabaseAdmin } = require('../utils/supabase');
+const { createAdminClient, createPublicClient } = require('../utils/supabase');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
 // ── POST /api/auth/register ───────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
+  const adminClient = createAdminClient();
   const { email, password, name, organizationId, role = 'colaborador' } = req.body;
 
   if (!email || !password || !name) {
@@ -22,7 +23,7 @@ router.post('/register', async (req, res) => {
   }
 
   // 1. Create user in Supabase Auth
-  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
@@ -35,7 +36,7 @@ router.post('/register', async (req, res) => {
   const userId = authData.user.id;
 
   // 2. Insert profile in public.users table
-  const { error: profileError } = await supabaseAdmin
+  const { error: profileError } = await adminClient
     .from('users')
     .insert({ id: userId, email, name, role, organization_id: organizationId || null });
 
@@ -46,13 +47,13 @@ router.post('/register', async (req, res) => {
 
   // 3. Auto-create personal workspace for non-guest users (if org is set)
   if (organizationId && role !== 'guest' && role !== 'cliente') {
-    const { data: ws } = await supabaseAdmin
+    const { data: ws } = await adminClient
       .from('workspaces')
       .insert({ name: 'Personal', emoji: '🏠', type: 'personal', organization_id: organizationId, created_by: userId })
       .select()
       .single();
     if (ws) {
-      await supabaseAdmin.from('workspace_members').insert({ workspace_id: ws.id, user_id: userId, role: 'owner', invited_by: userId });
+      await adminClient.from('workspace_members').insert({ workspace_id: ws.id, user_id: userId, role: 'owner', invited_by: userId });
     }
   }
 
@@ -68,6 +69,8 @@ router.post('/register', async (req, res) => {
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
 router.post('/login', async (req, res) => {
+  const authClient = createPublicClient();
+  const adminClient = createAdminClient();
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -75,7 +78,7 @@ router.post('/login', async (req, res) => {
   }
 
   // 1. Authenticate via Supabase Auth
-  const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+  const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
     email,
     password,
   });
@@ -87,7 +90,7 @@ router.post('/login', async (req, res) => {
   const userId = authData.user.id;
 
   // 2. Fetch profile
-  const { data: profile, error: profileError } = await supabaseAdmin
+  const { data: profile, error: profileError } = await adminClient
     .from('users')
     .select('*')
     .eq('id', userId)
@@ -125,7 +128,8 @@ router.post('/login', async (req, res) => {
 
 // ── GET /api/auth/me ──────────────────────────────────────────────────────────
 router.get('/me', requireAuth, async (req, res) => {
-  const { data: profile } = await supabaseAdmin
+  const adminClient = createAdminClient();
+  const { data: profile } = await adminClient
     .from('users')
     .select('id, email, name, role, organization_id, avatar_url')
     .eq('id', req.user.id)

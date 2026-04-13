@@ -1,15 +1,31 @@
 const { createClient } = require('@supabase/supabase-js');
 
-// Client with service_role key — use only server-side, never expose to client
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const SHARED_CLIENT_OPTIONS = {
+  auth: {
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+    persistSession: false,
+  },
+};
 
-// Client with anon key — for operations respecting RLS
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+function createAdminClient() {
+  return createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    SHARED_CLIENT_OPTIONS
+  );
+}
 
-module.exports = { supabase, supabaseAdmin };
+function createPublicClient() {
+  return createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY,
+    SHARED_CLIENT_OPTIONS
+  );
+}
+
+// Reusable clients for read-only/common flows. Avoid auth session mutations on these.
+const supabaseAdmin = createAdminClient();
+const supabase = createPublicClient();
+
+module.exports = { supabase, supabaseAdmin, createAdminClient, createPublicClient };

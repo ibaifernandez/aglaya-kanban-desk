@@ -1,5 +1,5 @@
 const express = require('express');
-const { supabaseAdmin } = require('../utils/supabase');
+const { createAdminClient } = require('../utils/supabase');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
@@ -10,8 +10,8 @@ const SITE_URL        = process.env.SITE_URL || 'https://kanban.aglaya.biz';
 // All admin routes require auth + admin/superadmin role
 router.use(requireAuth, requireRole('admin', 'superadmin'));
 
-async function resolveRequesterOrganizationId(req) {
-  const { data, error } = await supabaseAdmin
+async function resolveRequesterOrganizationId(req, adminClient) {
+  const { data, error } = await adminClient
     .from('users')
     .select('organization_id')
     .eq('id', req.user.id)
@@ -39,12 +39,12 @@ function isUniqueConstraintError(error) {
   return error?.code === '23505';
 }
 
-async function findAuthUserByEmail(email) {
+async function findAuthUserByEmail(email, adminClient) {
   let page = 1;
   const perPage = 200;
 
   while (true) {
-    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage });
     if (error) return { user: null, error };
 
     const user = data?.users?.find((candidate) => candidate.email?.toLowerCase() === email) ?? null;
@@ -62,12 +62,13 @@ async function findAuthUserByEmail(email) {
 // ── GET /api/admin/users ──────────────────────────────────────────────────────
 // List all users in the organization (or all for superadmin)
 router.get('/users', async (req, res) => {
-  let query = supabaseAdmin
+  const adminClient = createAdminClient();
+  let query = adminClient
     .from('users')
     .select('id, email, name, role, created_at');
 
   if (req.user.role !== 'superadmin') {
-    const organizationId = await resolveRequesterOrganizationId(req);
+    const organizationId = await resolveRequesterOrganizationId(req, adminClient);
     if (!organizationId) {
        return res.json({ data: [] }); // Not in an org, see nothing if not super
     }
@@ -83,6 +84,7 @@ router.get('/users', async (req, res) => {
 // ── POST /api/admin/users/invite ──────────────────────────────────────────────
 // Create a new user and send them a password setup email
 router.post('/users/invite', async (req, res) => {
+  const adminClient = createAdminClient();
   const rawEmail = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
   const rawName = typeof req.body.name === 'string' ? req.body.name.trim() : '';
   const role = req.body.role || 'colaborador';
@@ -94,12 +96,12 @@ router.post('/users/invite', async (req, res) => {
     return res.status(400).json({ error: 'Rol no válido' });
   }
 
-  const requesterOrganizationId = await resolveRequesterOrganizationId(req);
+  const requesterOrganizationId = await resolveRequesterOrganizationId(req, adminClient);
   if (!requesterOrganizationId) {
     return res.status(403).json({ error: 'Tu sesión no tiene organización asignada para invitar usuarios' });
   }
 
-  const { data: existingProfile, error: existingProfileError } = await supabaseAdmin
+  const { data: existingProfile, error: existingProfileError } = await adminClient
     .from('users')
     .select('id, email, name, role, organization_id')
     .eq('email', rawEmail)
@@ -110,7 +112,7 @@ router.post('/users/invite', async (req, res) => {
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 
-  const { user: existingAuthUser, error: authLookupError } = await findAuthUserByEmail(rawEmail);
+  const { user: existingAuthUser, error: authLookupError } = await findAuthUserByEmail(rawEmail, adminClient);
   if (authLookupError) {
     console.error('[admin] POST /users/invite auth lookup:', authLookupError.message);
     return res.status(500).json({ error: 'Error interno del servidor' });
@@ -132,7 +134,7 @@ router.post('/users/invite', async (req, res) => {
   let createdAuthUser = false;
 
   if (!userId) {
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email: rawEmail,
       email_confirm: true,
     });
@@ -149,7 +151,7 @@ router.post('/users/invite', async (req, res) => {
   }
 
   // 1. Insert or recover profile in public.users
-  const { error: profileError } = await supabaseAdmin
+  const { error: profileError } = await adminClient
     .from('users')
     .insert({
       id: userId,
@@ -161,7 +163,7 @@ router.post('/users/invite', async (req, res) => {
 
   if (profileError) {
     if (createdAuthUser) {
-      await supabaseAdmin.auth.admin.deleteUser(userId);
+      await adminClient.auth.admin.deleteUser(userId);
     }
 
     if (isUniqueConstraintError(profileError)) {
@@ -182,7 +184,7 @@ router.post('/users/invite', async (req, res) => {
   }
 
   // 2. Send password setup email via recovery flow
-  const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(rawEmail, {
+  const { error: resetError } = await adminClient.auth.resetPasswordForEmail(rawEmail, {
     redirectTo: SITE_URL,
   });
 
@@ -201,6 +203,7 @@ router.post('/users/invite', async (req, res) => {
 // ── PATCH /api/admin/users/:id/role ──────────────────────────────────────────
 // Change a user's role
 router.patch('/users/:id/role', async (req, res) => {
+  const adminClient = createAdminClient();
   const { role } = req.body;
   const targetId = req.params.id;
 
@@ -212,7 +215,7 @@ router.patch('/users/:id/role', async (req, res) => {
   }
 
   // 1. Fetch current target user to verify organization access
-  const { data: targetUser, error: fetchError } = await supabaseAdmin
+  const { data: targetUser, error: fetchError } = await adminClient
     .from('users')
     .select('id, email, name, role, organization_id')
     .eq('id', targetId)
@@ -224,7 +227,7 @@ router.patch('/users/:id/role', async (req, res) => {
 
   // 2. Access control check
   if (req.user.role !== 'superadmin') {
-    const userOrgId = await resolveRequesterOrganizationId(req);
+    const userOrgId = await resolveRequesterOrganizationId(req, adminClient);
     const targetOrgId = targetUser.organization_id;
 
     if (!userOrgId) {
@@ -245,7 +248,7 @@ router.patch('/users/:id/role', async (req, res) => {
   }
 
   // 3. Perform the update
-  const { data, error: updateError } = await supabaseAdmin
+  const { data, error: updateError } = await adminClient
     .from('users')
     .update({ role })
     .eq('id', targetId)
@@ -263,6 +266,7 @@ router.patch('/users/:id/role', async (req, res) => {
 // ── DELETE /api/admin/users/:id ───────────────────────────────────────────────
 // Remove a user from the organization
 router.delete('/users/:id', async (req, res) => {
+  const adminClient = createAdminClient();
   const targetId = req.params.id;
 
   // 1. Prevent self-deletion
@@ -271,13 +275,13 @@ router.delete('/users/:id', async (req, res) => {
   }
 
   // 2. Verify user exists and get their current role
-  let targetQuery = supabaseAdmin
+  let targetQuery = adminClient
     .from('users')
     .select('id, role, email, organization_id')
     .eq('id', targetId);
 
   if (req.user.role !== 'superadmin') {
-    const requesterOrganizationId = await resolveRequesterOrganizationId(req);
+    const requesterOrganizationId = await resolveRequesterOrganizationId(req, adminClient);
     if (!requesterOrganizationId) {
       return res.status(403).json({ error: 'Tu sesión no tiene organización asignada' });
     }
@@ -304,7 +308,7 @@ router.delete('/users/:id', async (req, res) => {
   // 4. Check for workspace ownership (Phase 2 constraint)
   // If the user is the ONLY owner of a workspace, prevent deletion or warn.
   // For safety, we block deletion if they own any workspace as 'owner'.
-  const { data: ownerships, error: ownError } = await supabaseAdmin
+  const { data: ownerships, error: ownError } = await adminClient
     .from('workspace_members')
     .select('workspace_id')
     .eq('user_id', targetId)
@@ -323,7 +327,7 @@ router.delete('/users/:id', async (req, res) => {
   }
 
   // 5. Delete from public.users
-  const { error: profileError } = await supabaseAdmin
+  const { error: profileError } = await adminClient
     .from('users')
     .delete()
     .eq('id', targetId);
@@ -334,7 +338,7 @@ router.delete('/users/:id', async (req, res) => {
   }
 
   // 6. Delete from Supabase Auth
-  const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(targetId);
+  const { error: authError } = await adminClient.auth.admin.deleteUser(targetId);
   if (authError) {
     console.error('[admin] DELETE /users/:id auth delete:', authError.message);
     // Note: profile is already gone, which is slightly inconsistent but safer than leaving it orphaned

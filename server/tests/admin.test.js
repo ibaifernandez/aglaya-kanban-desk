@@ -15,9 +15,10 @@ jest.mock('../utils/supabase', () => ({
       resetPasswordForEmail: jest.fn(),
     },
   },
+  createAdminClient: jest.fn(),
 }));
 
-const { supabaseAdmin } = require('../utils/supabase');
+const { supabaseAdmin, createAdminClient } = require('../utils/supabase');
 const app = require('../index');
 
 function makeToken(overrides = {}) {
@@ -74,6 +75,7 @@ let mockState;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  createAdminClient.mockReturnValue(supabaseAdmin);
 
   mockState = {
     usersById: {

@@ -12,9 +12,11 @@ jest.mock('../utils/supabase', () => ({
       signInWithPassword: jest.fn(),
     },
   },
+  createAdminClient: jest.fn(),
+  createPublicClient: jest.fn(),
 }));
 
-const { supabaseAdmin } = require('../utils/supabase');
+const { supabaseAdmin, createAdminClient, createPublicClient } = require('../utils/supabase');
 const app = require('../index');
 
 const TEST_PROFILE = {
@@ -55,6 +57,8 @@ function makeWorkspaceMembersTable() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  createAdminClient.mockReturnValue(supabaseAdmin);
+  createPublicClient.mockReturnValue(supabaseAdmin);
 
   supabaseAdmin.auth.admin.createUser.mockResolvedValue({
     data: { user: { id: 'user-1', email: TEST_PROFILE.email } },

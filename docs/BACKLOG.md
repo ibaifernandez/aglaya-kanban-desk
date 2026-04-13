@@ -79,6 +79,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Endurecimiento de invitaciones de workspace: validación de organización, tipo y protección del `owner`
 - [x] Protección del reorder de tableros con `workspaceId` y control micro en backend
 - [x] Invitación admin blindada frente a JWT desfasado y estados parciales Auth/perfil público
+- [x] Aislamiento de clientes Supabase en rutas `auth` y `admin` para evitar contaminación de sesión y errores RLS
 - [ ] Exposición de mensajes de error Supabase al cliente (media — pendiente refactor)
 - [ ] **Estabilización de infra de tests (Mac/Node 18)**: Resolver bloqueo sistemático de Jest en el entorno local (Hanging).
 
