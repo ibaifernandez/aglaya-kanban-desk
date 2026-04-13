@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, UserPlus, Trash2, Shield, Users } from 'lucide-react';
 import { api } from '../api/client.js';
+import { UserMenu } from '../components/User/UserMenu.jsx';
+import { useEscapeKey } from '../hooks/useEscapeKey.js';
 
 const ROLE_LABELS = {
   superadmin:  { label: 'Superadmin',  color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
@@ -24,6 +26,8 @@ function InviteModal({ onClose, onSuccess }) {
   const [form,    setForm]    = useState({ email: '', name: '', role: 'colaborador' });
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
+
+  useEscapeKey(onClose, !loading);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -113,7 +117,7 @@ function InviteModal({ onClose, onSuccess }) {
   );
 }
 
-export default function AdminPage({ user, onBack }) {
+export default function AdminPage({ user, onBack, onLogout, onAvatarChange }) {
   const [users,       setUsers]       = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState('');
@@ -195,6 +199,13 @@ export default function AdminPage({ user, onBack }) {
           <UserPlus size={13} />
           Invitar usuario
         </button>
+        <div className="pl-2 border-l border-[#2a2d3a]">
+          <UserMenu
+            user={user}
+            onAvatarChange={onAvatarChange}
+            onLogout={onLogout}
+          />
+        </div>
       </header>
 
       {/* Content */}

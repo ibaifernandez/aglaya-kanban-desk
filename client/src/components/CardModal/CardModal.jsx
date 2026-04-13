@@ -19,6 +19,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { PRIORITY_LIST } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { api } from '../../api/client.js';
+import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
 const EMPTY = {
   title: '', description: '', category: '',
@@ -168,6 +169,14 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
   const [xwsBoards,     setXwsBoards]     = useState(null);  // null = cargando, Array = listo
   const [xwsMap,        setXwsMap]        = useState(null);  // { workspaceId: workspace }
   const checkInputRef                   = useRef(null);
+
+  useEscapeKey(() => {
+    if (lightboxSrc) {
+      setLightboxSrc(null);
+      return;
+    }
+    onClose();
+  });
 
   const checklistSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })

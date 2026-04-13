@@ -11,6 +11,7 @@ import { ContextMenu } from '../UI/ContextMenu.jsx';
 import { Spinner } from '../UI/Spinner.jsx';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { api } from '../../api/client.js';
+import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
 const PRIORITY_SORT_ORDER = { urgent: 0, high: 1, medium: 2, low: 3, none: 4 };
 
@@ -29,6 +30,7 @@ export function Board({
   const [pendingDelete,  setPendingDelete]  = useState(null); // { kind: 'card'|'column', id, label }
 
   const { categories } = useCategoriesCtx();
+  useEscapeKey(() => setPendingDelete(null), Boolean(pendingDelete));
 
   // ── Filters ───────────────────────────────────────────────
   const visibleCards = cards.filter((c) => {
@@ -214,6 +216,12 @@ export function Board({
     setAddingColumn(false);
   }
 
+  function requestColumnDelete(columnId) {
+    const column = columns.find((item) => item.id === columnId);
+    if (!column) return;
+    setPendingDelete({ kind: 'column', id: column.id, label: column.title });
+  }
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -241,7 +249,7 @@ export function Board({
               onEditCard={openEdit}
               onDeleteCard={onDeleteCard}
               onRenameColumn={onRenameColumn}
-              onDeleteColumn={onDeleteColumn}
+              onDeleteColumn={requestColumnDelete}
               forceEdit={editingColId === col.id}
               onForceEditDone={() => setEditingColId(null)}
             />

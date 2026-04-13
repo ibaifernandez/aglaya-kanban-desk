@@ -10,6 +10,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { IconButton } from '../UI/IconButton.jsx';
 import { BoardMoveModal } from '../UI/BoardMoveModal.jsx';
+import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
 // ── Sortable board row ────────────────────────────────────
 function SortableBoardItem({
@@ -141,8 +142,11 @@ export function Sidebar({
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [movingBoard, setMovingBoard] = useState(null); // board object being moved
+  const [pendingDeleteBoard, setPendingDeleteBoard] = useState(null);
   const [error, setError] = useState('');
   const errorTimerRef = useRef(null);
+
+  useEscapeKey(() => setPendingDeleteBoard(null), Boolean(pendingDeleteBoard));
 
   function showError(message) {
     setError(message);
@@ -192,6 +196,16 @@ export function Sidebar({
     }
   }
 
+  async function confirmDeleteBoard() {
+    if (!pendingDeleteBoard) return;
+    try {
+      await handleDelete(pendingDeleteBoard.id);
+      setPendingDeleteBoard(null);
+    } catch {
+      // Errors are surfaced through handleDelete.
+    }
+  }
+
   async function handleMoveBoard(workspaceId) {
     if (!movingBoard) return;
     try {
@@ -232,7 +246,7 @@ export function Sidebar({
               onStartEdit={startEdit}
               onSubmitRename={handleRename}
               onCancelEdit={() => setEditingId(null)}
-              onDelete={handleDelete}
+              onDelete={(boardId) => setPendingDeleteBoard(boards.find((board) => board.id === boardId) ?? null)}
               onStartMove={startMove}
               canReorder={canCreateBoards}
               canRenameOrDelete={canRenameOrDeleteBoards}
@@ -299,6 +313,37 @@ export function Sidebar({
           onMove={handleMoveBoard}
           onClose={() => setMovingBoard(null)}
         />
+      )}
+
+      {pendingDeleteBoard && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setPendingDeleteBoard(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-xl border border-[#2e3140] bg-[#1e2028] p-6 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 className="text-base font-semibold text-[#e8eaf0] mb-2">¿Eliminar tablero?</h2>
+            <p className="text-sm text-[#555b70] mb-4">
+              Se eliminará <span className="font-medium text-[#e8eaf0]">{pendingDeleteBoard.title}</span> junto con sus columnas y tarjetas. Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setPendingDeleteBoard(null)}
+                className="px-4 py-2 text-sm text-[#8b92a5] hover:text-[#e8eaf0] transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDeleteBoard}
+                className="px-4 py-2 rounded-lg bg-red-600 text-sm font-medium text-white hover:bg-red-500 transition-colors"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </aside>
   );

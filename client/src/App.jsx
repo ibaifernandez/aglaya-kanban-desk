@@ -268,7 +268,14 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   }
 
   if (view === 'admin') {
-    return <AdminPage user={user} onBack={() => navigate('workspaces')} />;
+    return (
+      <AdminPage
+        user={user}
+        onBack={() => navigate('workspaces')}
+        onLogout={logout}
+        onAvatarChange={(url) => updateUser({ avatarUrl: url })}
+      />
+    );
   }
 
   if (loadingBoards || loadingCategories) {

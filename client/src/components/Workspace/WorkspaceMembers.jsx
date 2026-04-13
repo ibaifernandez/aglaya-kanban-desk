@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { X, UserPlus, Trash2, Users, ChevronDown } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { Spinner } from '../UI/Spinner.jsx';
+import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
 const WS_ROLES = ['admin', 'member', 'guest'];
 
@@ -36,6 +37,8 @@ function AddMemberModal({ workspaceId, existingIds, onClose, onAdded }) {
   const [role,     setRole]     = useState('member');
   const [saving,   setSaving]   = useState(false);
   const [error,    setError]    = useState('');
+
+  useEscapeKey(onClose, !saving);
 
   useEffect(() => {
     api.getWorkspaceAvailableUsers(workspaceId)
@@ -145,6 +148,8 @@ export function WorkspaceMembers({ workspace, currentUser, onClose }) {
   const [loading,  setLoading]  = useState(true);
   const [showAdd,  setShowAdd]  = useState(false);
   const [toast,    setToast]    = useState('');
+
+  useEscapeKey(onClose, !showAdd);
 
   const myRole = members.find((m) => m.user?.id === currentUser?.id)?.role;
   const canManage = ['owner', 'admin'].includes(myRole);

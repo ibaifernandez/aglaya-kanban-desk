@@ -92,6 +92,7 @@ ALTER TABLE public.boards ADD COLUMN workspace_id uuid REFERENCES public.workspa
 - Ver [SECURITY.md](./SECURITY.md) para la auditoría de superficie de ataque y gestión de secretos.
 - Ver [PERMISSIONS.md](./PERMISSIONS.md) para la matriz detallada de acciones por rol.
 - Ver [RUNBOOK.md](./RUNBOOK.md) para comandos de mantenimiento y despliegue.
+- Ver [INCIDENTS.md](./INCIDENTS.md) para el histórico de fallos reales, causas raíz y correctivos aplicados.
 
 ---
 
@@ -151,3 +152,10 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 **Contexto:** El borrado de tarjetas dependía de que el middleware reconstruyera el `workspaceId` a partir de joins implícitos (`cards -> boards(workspace_id)`), lo que en producción podía fallar y devolver `400 Contexto de workspace no encontrado` aunque la tarjeta fuera válida y visible en GUI.
 **Decisión:** Hacer el contrato explícito en dos capas: el frontend envía `boardId` en `DELETE /api/cards/:id`, y el middleware resuelve el `workspaceId` en dos pasos deterministas (`card -> board -> workspace`) en lugar de confiar en relaciones anidadas de PostgREST.
 **Consecuencias:** Las operaciones destructivas sobre tarjetas dejan de depender de inferencias frágiles del backend y el sistema se vuelve más estable ante cambios de relaciones, naming o serialización entre Supabase y Express.
+
+### ADR-018: Contrato Único para Overlays, Confirmaciones y Navegación Compacta
+**Fecha:** 2026-04-13
+**Estado:** Aceptado
+**Contexto:** La capa de interfaz había crecido con patrones desiguales: algunas acciones destructivas se ejecutaban sin confirmación, varios overlays no respondían a `Escape` y la toolbar interior del workspace sacrificaba la navegación en resoluciones pequeñas.
+**Decisión:** Unificar el comportamiento de overlays y acciones destructivas con tres reglas: toda eliminación estructural requiere confirmación explícita, los overlays principales deben cerrarse con `Escape`, y la navegación contextual tiene prioridad sobre filtros secundarios cuando el ancho disponible es limitado.
+**Consecuencias:** Se reduce el riesgo de borrados accidentales, la interfaz se vuelve más predecible para teclado y ratón, y la experiencia de workspace conserva legibilidad en pantallas estrechas sin comprometer la lógica de negocio.

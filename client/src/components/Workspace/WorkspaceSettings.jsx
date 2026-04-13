@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { X, Camera } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { Spinner } from '../UI/Spinner.jsx';
+import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
 const EMOJIS = ['📋', '🚀', '⭐', '🎯', '💡', '🏢', '📊', '🛠', '🎨', '📣', '🤝', '💼'];
 
@@ -26,6 +27,7 @@ export function WorkspaceSettings({ workspace, onSave, onClose }) {
   const [coverUploading, setCoverUploading] = useState(false);
   const [error,          setError]          = useState('');
   const coverFileRef = useRef(null);
+  useEscapeKey(onClose, !saving && !coverUploading);
 
   const showExternoWarning = type === 'externo' && workspace.type !== 'externo';
 

@@ -17,10 +17,16 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 - **Invitación admin más resistente**: `POST /api/admin/users/invite` ya no confía ciegamente en el `organizationId` del JWT, recupera la organización real desde base de datos, repara estados parciales donde existe el usuario en Auth pero no en `public.users`, y degrada conflictos de unicidad a `409` en vez de `500`.
 - **Aislamiento de clientes Supabase en backend**: `auth` y `admin` dejan de reutilizar el singleton global para flujos sensibles; ahora crean clientes frescos por request para evitar contaminación de sesión y errores RLS tras login.
 - **Borrado de tarjetas con contexto explícito**: el frontend envía `boardId` al eliminar tarjetas y el middleware backend ya no depende de relaciones implícitas `cards -> boards(workspace_id)` para resolver el workspace; ahora hace resolución determinista en dos pasos.
+- **Protecciones UX para borrado estructural**: eliminar columnas y tableros ahora exige confirmación explícita desde la GUI, evitando ejecuciones destructivas directas por clic accidental.
+- **Teclado consistente en overlays**: los diálogos principales de workspace, tarjeta, invitación y confirmación ahora responden a `Escape`, alineando el comportamiento con expectativas de escritorio.
+- **Workspace cards más operables**: los owners disponen de papelera directa en cada tarjeta de workspace sin depender del menú contextual.
+- **Toolbar interior más legible en resoluciones pequeñas**: el filtro local `Filtrar tablero…` se oculta en anchos reducidos para preservar la visibilidad del botón de vuelta.
+- **Panel admin con menú de perfil coherente**: la cabecera reutiliza el mismo icono y menú de usuario que el dashboard principal, incluyendo cambio de avatar y logout.
 
 ### Added
 - **Cobertura renovada de validación**: Nuevas suites y smoke checks para auth, workspaces y administración, enfocadas en los flujos de permisos que estaban desalineados entre GUI, backend y Supabase.
 - **Cobertura anti-regresión para invitaciones admin**: Tests específicos para JWT con organización obsoleta, recuperación de usuarios parciales y conflictos de email ya existente.
+- **Registro de incidencias operativo**: nuevo documento `docs/INCIDENTS.md` con fallos reales, causa raíz, correctivos y notas pendientes de operación.
 
 ## [1.1.1] - 2026-04-12
 

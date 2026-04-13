@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, Users, LayoutGrid, LogOut, ChevronRight, Camera, Pencil, Trash2, UserCircle } from 'lucide-react';
+import { Plus, Users, LayoutGrid, ChevronRight, Camera, Pencil, Trash2 } from 'lucide-react';
 import { useWorkspaces } from '../hooks/useWorkspaces.js';
 import { Spinner } from '../components/UI/Spinner.jsx';
-import { AvatarCropModal } from '../components/UI/AvatarCropModal.jsx';
 import { api } from '../api/client.js';
 import agLayaIcon from '../assets/aglaya-favicon-rojo.svg';
 import agLayaLogo  from '../assets/aglaya-logo-blanco.svg';
+import { UserMenu } from '../components/User/UserMenu.jsx';
+import { useEscapeKey } from '../hooks/useEscapeKey.js';
 
 const ROLE_LABELS = {
   owner:  { label: 'Propietario', color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
@@ -94,129 +95,6 @@ function MiniKanban({ id }) {
   );
 }
 
-// ── Profile dropdown ──────────────────────────────────────────────────────────
-function ProfileDropdown({ user, onAvatarChange, onLogout, onClose }) {
-  const menuRef    = useRef(null);
-  const fileRef    = useRef(null);
-  const [cropSrc,   setCropSrc]   = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [error,     setError]     = useState('');
-  const cropSrcRef = useRef(null); // ref mirror to read inside event listener
-
-  useEffect(() => {
-    function handleClick(e) {
-      if (cropSrcRef.current) return; // crop modal open — ignore outside clicks
-      if (menuRef.current && !menuRef.current.contains(e.target)) onClose();
-    }
-    function handleEsc(e) {
-      if (cropSrcRef.current) return; // let AvatarCropModal handle Escape
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('mousedown', handleClick);
-    document.addEventListener('keydown', handleEsc);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, [onClose]);
-
-  function openCrop(src) {
-    cropSrcRef.current = src;
-    setCropSrc(src);
-  }
-
-  function closeCrop() {
-    cropSrcRef.current = null;
-    setCropSrc(null);
-  }
-
-  function handleFileSelect(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => openCrop(reader.result);
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  }
-
-  async function handleCropConfirm(croppedFile) {
-    setUploading(true);
-    setError('');
-    try {
-      const url = await api.uploadAvatar(croppedFile);
-      onAvatarChange?.(url);
-      closeCrop();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  return (
-    <>
-      <div
-        ref={menuRef}
-        className="absolute right-0 top-full mt-2 w-60 bg-[#1e2028] border border-[#2e3140] rounded-xl shadow-2xl z-50 overflow-hidden"
-      >
-        {/* User info */}
-        <div className="px-4 py-3 border-b border-[#2e3140]">
-          <div className="flex items-center gap-3">
-            <div
-              className="relative group/av w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
-              onClick={() => fileRef.current?.click()}
-              title="Cambiar foto de perfil"
-            >
-              {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold uppercase">
-                  {user.name?.[0] ?? user.email?.[0] ?? '?'}
-                </div>
-              )}
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover/av:opacity-100 transition-opacity rounded-full">
-                <Camera size={12} className="text-white" />
-              </div>
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-[#e8eaf0] truncate">{user.name ?? '—'}</p>
-              <p className="text-[11px] text-[#555b70] truncate">{user.email}</p>
-            </div>
-          </div>
-          {error && <p className="text-[10px] text-red-400 mt-2">{error}</p>}
-        </div>
-
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-
-        <button
-          onClick={() => fileRef.current?.click()}
-          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#c8ccd8] hover:bg-[#252830] hover:text-[#e8eaf0] transition-colors"
-        >
-          <UserCircle size={13} className="text-[#555b70]" />
-          Cambiar foto de perfil
-        </button>
-
-        <button
-          onClick={() => { onClose(); onLogout(); }}
-          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors border-t border-[#2e3140]"
-        >
-          <LogOut size={13} />
-          Cerrar sesión
-        </button>
-      </div>
-
-      {cropSrc && (
-        <AvatarCropModal
-          imageSrc={cropSrc}
-          uploading={uploading}
-          onConfirm={handleCropConfirm}
-          onClose={closeCrop}
-        />
-      )}
-    </>
-  );
-}
-
 // ── Context menu ──────────────────────────────────────────────────────────────
 function ContextMenu({ x, y, ws, canEdit, canDelete, onEdit, onDelete, onClose }) {
   const menuRef = useRef(null);
@@ -269,10 +147,11 @@ function ContextMenu({ x, y, ws, canEdit, canDelete, onEdit, onDelete, onClose }
 }
 
 // ── Workspace card ────────────────────────────────────────────────────────────
-function WorkspaceCard({ ws, onEnter, onCoverChange, onContextMenu, onEdit }) {
+function WorkspaceCard({ ws, onEnter, onCoverChange, onContextMenu, onEdit, onDelete }) {
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const canEdit = canManageWorkspace(ws);
+  const canDelete = canDeleteWorkspace(ws);
 
   async function handleCoverUpload(e) {
     const file = e.target.files?.[0];
@@ -365,6 +244,15 @@ function WorkspaceCard({ ws, onEnter, onCoverChange, onContextMenu, onEdit }) {
           >
             {uploading ? <Spinner size={3} /> : <Camera size={13} />}
           </button>
+          {canDelete && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete?.(ws); }}
+              title="Eliminar espacio de trabajo"
+              className="p-1.5 rounded-lg bg-black/50 text-red-300 hover:bg-red-500/20 hover:text-red-200"
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
         </div>
       )}
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
@@ -384,6 +272,8 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCover
   const [coverPreview, setCoverPreview] = useState(initial?.coverUrl ?? null);
   const [coverUploading, setCoverUploading] = useState(false);
   const coverFileRef = useRef(null);
+
+  useEscapeKey(onClose, !saving && !coverUploading);
 
   async function handleCoverUpload(e) {
     const file = e.target.files?.[0];
@@ -547,6 +437,8 @@ function DeleteConfirmModal({ ws, onConfirm, onClose }) {
   const [deleting, setDeleting] = useState(false);
   const [error,    setError]    = useState('');
 
+  useEscapeKey(onClose, !deleting);
+
   async function handleDelete() {
     setDeleting(true);
     setError('');
@@ -581,7 +473,7 @@ function DeleteConfirmModal({ ws, onConfirm, onClose }) {
 }
 
 // ── Workspace section ─────────────────────────────────────────────────────────
-function WorkspaceSection({ title, icon, workspaces, coverOverrides, onEnter, onCoverChange, onContextMenu, onEdit, emptyMsg }) {
+function WorkspaceSection({ title, icon, workspaces, coverOverrides, onEnter, onCoverChange, onContextMenu, onEdit, onDelete, emptyMsg }) {
   return (
     <div className="mb-10">
       <div className="flex items-center gap-2 mb-4">
@@ -601,6 +493,7 @@ function WorkspaceSection({ title, icon, workspaces, coverOverrides, onEnter, on
               onCoverChange={onCoverChange}
               onContextMenu={onContextMenu}
               onEdit={onEdit}
+              onDelete={onDelete}
             />
           ))}
         </div>
@@ -617,8 +510,6 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
   const [deleteTarget,  setDeleteTarget]  = useState(null);
   const [coverOverrides, setCoverOverrides] = useState({});
   const [ctxMenu,       setCtxMenu]       = useState(null); // { x, y, ws }
-  const [showProfile,   setShowProfile]   = useState(false);
-  const profileBtnRef = useRef(null);
 
   const isClient  = user?.role === 'cliente';
   const canCreate = ['superadmin', 'admin', 'colaborador'].includes(user?.role);
@@ -645,6 +536,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
     onCoverChange: handleCoverChange,
     onContextMenu: handleContextMenu,
     onEdit: setEditTarget,
+    onDelete: setDeleteTarget,
   };
 
   return (
@@ -669,33 +561,12 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                 Admin
               </button>
             )}
-            <div className="relative flex items-center gap-2 pl-2 border-l border-[#2a2d3a]">
-              <button
-                ref={profileBtnRef}
-                onClick={() => setShowProfile((v) => !v)}
-                className="flex items-center gap-2 rounded-lg hover:bg-[#252830] px-2 py-1 transition-colors"
-                title="Perfil"
-              >
-                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0">
-                  {user?.avatarUrl ? (
-                    <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-indigo-600 flex items-center justify-center text-white text-xs font-semibold">
-                      {user?.name?.charAt(0)?.toUpperCase() ?? '?'}
-                    </div>
-                  )}
-                </div>
-                <span className="text-xs text-[#8b92a5] hidden sm:block">{user?.name}</span>
-              </button>
-
-              {showProfile && (
-                <ProfileDropdown
-                  user={user}
-                  onAvatarChange={onAvatarChange}
-                  onLogout={onLogout}
-                  onClose={() => setShowProfile(false)}
-                />
-              )}
+            <div className="pl-2 border-l border-[#2a2d3a]">
+              <UserMenu
+                user={user}
+                onAvatarChange={onAvatarChange}
+                onLogout={onLogout}
+              />
             </div>
           </div>
         </div>
@@ -754,6 +625,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                   onEnter={onEnterWorkspace}
                   onCoverChange={handleCoverChange}
                   onContextMenu={() => {}}
+                  onDelete={setDeleteTarget}
                 />
               ))}
             </div>

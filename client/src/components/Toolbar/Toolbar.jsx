@@ -190,7 +190,7 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
         </div>
 
         {/* Board-scoped search */}
-        <div className="relative flex items-center">
+        <div className="relative hidden 2xl:flex items-center">
           <Search size={13} className="absolute left-2 text-[#555b70] pointer-events-none" />
           <input
             type="text"
