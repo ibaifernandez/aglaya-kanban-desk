@@ -83,6 +83,26 @@ Este documento resume los fallos relevantes encontrados durante la estabilizaci�
 
 ---
 
+## 2026-04-13 — Botón de digest en workspace apuntando al flujo equivocado
+
+**Síntoma**
+- El icono de correo en la navbar interior del workspace disparaba un digest administrativo global.
+- El feedback podía mostrar un destinatario legado (`ibai@lfi.la`) en vez del usuario autenticado actual.
+
+**Causa raíz**
+- El botón de la toolbar seguía conectado a `POST /api/digest/send-me`, pensado para el admin digest de plataforma.
+- El texto de confirmación no existía y el mensaje usaba un email procedente de `public.users`, susceptible a drift respecto a Supabase Auth.
+
+**Solución aplicada**
+- La acción del icono pasa a usar el digest personal contextualizado por `workspaceId`.
+- Se añade confirmación explícita antes del envío.
+- El backend sincroniza el email efectivo desde Supabase Auth cuando detecta divergencia con `public.users`.
+
+**Verificación**
+- Build del cliente correcto y carga válida de módulos backend con `.env`.
+
+---
+
 ## 2026-04-13 — Navegación interior del workspace demasiado cargada en resoluciones pequeñas
 
 **Síntoma**
@@ -93,6 +113,20 @@ Este documento resume los fallos relevantes encontrados durante la estabilizaci�
 
 **Solución aplicada**
 - Ocultación del filtro local de tablero en resoluciones estrechas para priorizar la navegación y el contexto.
+
+---
+
+## 2026-04-13 — Modal de categorías sin cierre por `Escape`
+
+**Síntoma**
+- El diálogo de categorías no respetaba el patrón de cierre por teclado aplicado al resto de overlays.
+
+**Causa raíz**
+- El componente no estaba registrado en el contrato común de `Escape`.
+
+**Solución aplicada**
+- Integración del modal con el hook común de cierre por `Escape`.
+- Los inputs inline de edición interceptan `Escape` solo para revertir la edición local sin cerrar el diálogo completo por accidente.
 
 ---
 

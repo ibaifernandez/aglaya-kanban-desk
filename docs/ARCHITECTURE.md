@@ -159,3 +159,10 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 **Contexto:** La capa de interfaz había crecido con patrones desiguales: algunas acciones destructivas se ejecutaban sin confirmación, varios overlays no respondían a `Escape` y la toolbar interior del workspace sacrificaba la navegación en resoluciones pequeñas.
 **Decisión:** Unificar el comportamiento de overlays y acciones destructivas con tres reglas: toda eliminación estructural requiere confirmación explícita, los overlays principales deben cerrarse con `Escape`, y la navegación contextual tiene prioridad sobre filtros secundarios cuando el ancho disponible es limitado.
 **Consecuencias:** Se reduce el riesgo de borrados accidentales, la interfaz se vuelve más predecible para teclado y ratón, y la experiencia de workspace conserva legibilidad en pantallas estrechas sin comprometer la lógica de negocio.
+
+### ADR-019: Digest Contextual por Workspace y Email Derivado de Auth
+**Fecha:** 2026-04-13
+**Estado:** Aceptado
+**Contexto:** El icono de correo dentro de un workspace seguía disparando el admin digest global, lo que rompía la expectativa de contexto del usuario y además podía mostrar correos obsoletos cuando `public.users.email` divergía de Supabase Auth.
+**Decisión:** Reinterpretar el botón de la toolbar como acción contextual del workspace: ahora envía el digest personal filtrado por `workspaceId`, exige confirmación explícita en GUI y resuelve el email efectivo desde Supabase Auth, sincronizando `public.users` cuando detecta drift.
+**Consecuencias:** El comportamiento del botón queda alineado con la pantalla donde vive, el feedback muestra el destinatario correcto y se elimina una fuente recurrente de inconsistencias entre identidad autenticada y perfil público.

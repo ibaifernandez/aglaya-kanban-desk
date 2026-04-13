@@ -75,18 +75,33 @@ function formatDueDate(dueDate) {
  *   - it is overdue (due_date < today)
  *   AND it is NOT in a done-type column.
  */
-async function buildUserCards(userId) {
+async function buildUserCards(userId, options = {}) {
+  const { workspaceId = null } = options;
+
   // 1. Workspaces the user belongs to
-  const { data: memberships, error: mErr } = await supabaseAdmin
-    .from('workspace_members')
-    .select('workspace:workspaces(id, name, emoji, type)')
-    .eq('user_id', userId);
+  let workspaces = [];
 
-  if (mErr || !memberships?.length) return { personal: [], interno: [], externo: [], total: 0 };
+  if (workspaceId) {
+    const { data: workspace, error: wsErr } = await supabaseAdmin
+      .from('workspaces')
+      .select('id, name, emoji, type')
+      .eq('id', workspaceId)
+      .single();
 
-  const workspaces = memberships
-    .map((m) => m.workspace)
-    .filter(Boolean);
+    if (wsErr || !workspace) return { personal: [], interno: [], externo: [], total: 0 };
+    workspaces = [workspace];
+  } else {
+    const { data: memberships, error: mErr } = await supabaseAdmin
+      .from('workspace_members')
+      .select('workspace:workspaces(id, name, emoji, type)')
+      .eq('user_id', userId);
+
+    if (mErr || !memberships?.length) return { personal: [], interno: [], externo: [], total: 0 };
+
+    workspaces = memberships
+      .map((m) => m.workspace)
+      .filter(Boolean);
+  }
 
   if (!workspaces.length) return { personal: [], interno: [], externo: [], total: 0 };
 
@@ -385,11 +400,12 @@ function createTransport() {
   });
 }
 
-function buildSubject() {
+function buildSubject(workspaceName = null) {
   const now     = new Date();
   const weekday = now.toLocaleDateString('es-ES', { weekday: 'long' });
   const fecha   = now.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
   const cap     = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  if (workspaceName) return `📌 ${workspaceName} — ${cap}, ${fecha}`;
   return `📌 Tus tareas del día — ${cap}, ${fecha}`;
 }
 
@@ -400,12 +416,12 @@ function buildSubject() {
  * Silently skips if the user has no actionable cards.
  * Returns { ok: true, sent: boolean, total: number }.
  */
-async function sendUserDigest({ id, name, email }) {
+async function sendUserDigest({ id, name, email, sections: prebuiltSections = null, workspaceName = null, workspaceId = null }) {
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
     throw new Error('SMTP no configurado en el servidor.');
   }
 
-  const sections = await buildUserCards(id);
+  const sections = prebuiltSections ?? await buildUserCards(id, { workspaceId });
 
   if (sections.total === 0) {
     console.log(`[userDigest] ${email} — sin tarjetas accionables, omitido`);
@@ -413,7 +429,7 @@ async function sendUserDigest({ id, name, email }) {
   }
 
   const html      = buildHtml(name, sections);
-  const subject   = buildSubject();
+  const subject   = buildSubject(workspaceName);
   const transport = createTransport();
 
   const info = await transport.sendMail({
@@ -478,4 +494,4 @@ function startUserDigestScheduler() {
   console.log(`[userDigest] Scheduler started — daily at ${String(hour).padStart(2, '0')}:00 local time`);
 }
 
-module.exports = { sendUserDigest, sendAllUserDigests, startUserDigestScheduler };
+module.exports = { buildUserCards, sendUserDigest, sendAllUserDigests, startUserDigestScheduler };

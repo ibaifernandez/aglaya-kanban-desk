@@ -5,6 +5,7 @@ export function useEscapeKey(onEscape, enabled = true) {
     if (!enabled || typeof onEscape !== 'function') return undefined;
 
     function handleKeyDown(event) {
+      if (event.defaultPrevented) return;
       if (event.key === 'Escape') onEscape(event);
     }
 

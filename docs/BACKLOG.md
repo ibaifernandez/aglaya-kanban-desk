@@ -106,6 +106,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] `docs/INCIDENTS.md` — registro de fallos reales, causa raíz y correctivos aplicados
 - [x] Confirmaciones explícitas al borrar tableros, columnas y workspaces desde la GUI
 - [x] Cierre por `Escape` en overlays principales (workspace, card, invitaciones y confirmaciones)
+- [x] Digest contextual por workspace con confirmación previa y destinatario derivado de Auth
 
 ---
 
@@ -221,6 +222,7 @@ La plataforma debe reflejar cómo funciona el trabajo real: los proyectos y tare
 - [ ] **Foto de perfil en tarjeta**: mostrar `avatar_url` del assignee en el avatar de la tarjeta (hoy solo muestra inicial); requiere añadir `avatar_url` al select de `users!assignee_id` en `/api/boards/:boardId/cards` y renderizar `<img>` con fallback a inicial
 - [x] **Confirmación al borrar tarjetas y columnas**: diálogo inline en `CardModal` + modal en `Board` (menú contextual) — `7a4e504` · v1.2.0
 - [x] **Confirmación al borrar tableros y acceso directo para eliminar workspaces**: modal de confirmación en Sidebar + papelera visible en tarjetas de workspace para owners — `2026-04-13`
+- [x] **Resumen por workspace desde la navbar interior**: el icono de correo envía el digest personal filtrado por el workspace actual y ya no usa el admin digest global — `2026-04-13`
 
 ---
 

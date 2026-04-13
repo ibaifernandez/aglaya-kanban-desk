@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, Trash2, Plus } from 'lucide-react';
 import { COLOR_OPTIONS } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
+import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
 // ── Color picker ──────────────────────────────────────────────────────────────
 function ColorPicker({ selected, onChange }) {
@@ -65,7 +66,12 @@ function CategoryRow({ cat }) {
           onBlur={saveLabel}
           onKeyDown={(e) => {
             if (e.key === 'Enter') { e.target.blur(); }
-            if (e.key === 'Escape') { setLabel(cat.label); e.target.blur(); }
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              e.stopPropagation();
+              setLabel(cat.label);
+              e.target.blur();
+            }
           }}
           className="flex-1 text-sm text-[#e8eaf0] bg-transparent border-b border-transparent hover:border-[#3d4155] focus:border-indigo-500 outline-none transition-colors"
         />
@@ -96,6 +102,8 @@ export function CategorySettings({ onClose }) {
   const { categories, createCategory } = useCategoriesCtx();
   const [newLabel,   setNewLabel]   = useState('');
   const [newColorId, setNewColorId] = useState('blue');
+
+  useEscapeKey(onClose);
 
   async function handleAdd(e) {
     e.preventDefault();

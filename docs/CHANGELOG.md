@@ -19,14 +19,18 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 - **Borrado de tarjetas con contexto explícito**: el frontend envía `boardId` al eliminar tarjetas y el middleware backend ya no depende de relaciones implícitas `cards -> boards(workspace_id)` para resolver el workspace; ahora hace resolución determinista en dos pasos.
 - **Protecciones UX para borrado estructural**: eliminar columnas y tableros ahora exige confirmación explícita desde la GUI, evitando ejecuciones destructivas directas por clic accidental.
 - **Teclado consistente en overlays**: los diálogos principales de workspace, tarjeta, invitación y confirmación ahora responden a `Escape`, alineando el comportamiento con expectativas de escritorio.
+- **Modal de categorías alineado con teclado**: `Categorías` ya se cierra con `Escape` y respeta la edición inline sin cerrar el diálogo por accidente.
 - **Workspace cards más operables**: los owners disponen de papelera directa en cada tarjeta de workspace sin depender del menú contextual.
 - **Toolbar interior más legible en resoluciones pequeñas**: el filtro local `Filtrar tablero…` se oculta en anchos reducidos para preservar la visibilidad del botón de vuelta.
 - **Panel admin con menú de perfil coherente**: la cabecera reutiliza el mismo icono y menú de usuario que el dashboard principal, incluyendo cambio de avatar y logout.
+- **Digest contextual del workspace**: el icono de correo de la navbar interior deja de invocar el admin digest global y pasa a enviar el resumen personal filtrado por el workspace actual, con confirmación previa y mensaje de destino correcto.
+- **Sincronización defensiva de email**: login, `GET /api/auth/me` y digest personal corrigen divergencias entre Supabase Auth y `public.users.email`, evitando feedback con direcciones legadas.
 
 ### Added
 - **Cobertura renovada de validación**: Nuevas suites y smoke checks para auth, workspaces y administración, enfocadas en los flujos de permisos que estaban desalineados entre GUI, backend y Supabase.
 - **Cobertura anti-regresión para invitaciones admin**: Tests específicos para JWT con organización obsoleta, recuperación de usuarios parciales y conflictos de email ya existente.
 - **Registro de incidencias operativo**: nuevo documento `docs/INCIDENTS.md` con fallos reales, causa raíz, correctivos y notas pendientes de operación.
+- **Cobertura anti-regresión de identidad**: tests dirigidos para drift de email Auth/perfil y digest contextual por workspace.
 
 ## [1.1.1] - 2026-04-12
 

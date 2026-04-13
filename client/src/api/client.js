@@ -134,4 +134,20 @@ export const api = {
         return { data: json.data, message: json.message };
       });
   },
+
+  sendPersonalDigest: (body = {}) => {
+    const token = getToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    return fetch('/api/digest/send-my-digest', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    }).then(async (response) => {
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.error || `HTTP ${response.status}`);
+      return json;
+    });
+  },
 };

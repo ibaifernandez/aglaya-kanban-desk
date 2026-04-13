@@ -8,6 +8,7 @@ jest.mock('../utils/supabase', () => ({
     auth: {
       admin: {
         createUser: jest.fn(),
+        getUserById: jest.fn(),
       },
       signInWithPassword: jest.fn(),
     },
@@ -28,12 +29,20 @@ const TEST_PROFILE = {
   avatar_url: null,
 };
 
+let profileState;
+
 function makeUsersTable() {
   return {
     insert: jest.fn(() => Promise.resolve({ error: null })),
     select: jest.fn(() => ({
       eq: jest.fn(() => ({
-        single: jest.fn(() => Promise.resolve({ data: TEST_PROFILE, error: null })),
+        single: jest.fn(() => Promise.resolve({ data: profileState, error: null })),
+      })),
+    })),
+    update: jest.fn((payload) => ({
+      eq: jest.fn(() => {
+        profileState = { ...profileState, ...payload };
+        return Promise.resolve({ data: profileState, error: null });
       })),
     })),
   };
@@ -57,10 +66,15 @@ function makeWorkspaceMembersTable() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  profileState = { ...TEST_PROFILE };
   createAdminClient.mockReturnValue(supabaseAdmin);
   createPublicClient.mockReturnValue(supabaseAdmin);
 
   supabaseAdmin.auth.admin.createUser.mockResolvedValue({
+    data: { user: { id: 'user-1', email: TEST_PROFILE.email } },
+    error: null,
+  });
+  supabaseAdmin.auth.admin.getUserById.mockResolvedValue({
     data: { user: { id: 'user-1', email: TEST_PROFILE.email } },
     error: null,
   });
@@ -136,6 +150,19 @@ describe('POST /api/auth/login', () => {
       role: TEST_PROFILE.role,
       organizationId: TEST_PROFILE.organization_id,
     }));
+  });
+
+  it('repairs stale public.users email from Supabase Auth on login', async () => {
+    profileState = { ...profileState, email: 'legacy@lfi.la' };
+
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'test@aglaya.biz',
+      password: 'password123',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.email).toBe('test@aglaya.biz');
+    expect(profileState.email).toBe('test@aglaya.biz');
   });
 });
 

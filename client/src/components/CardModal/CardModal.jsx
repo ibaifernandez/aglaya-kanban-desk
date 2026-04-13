@@ -458,7 +458,10 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
                 value={form.description}
                 onChange={(e) => set('description', e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Escape') setDescPreview(true);
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setDescPreview(true);
+                  }
                 }}
                 placeholder={"Acepta **Markdown**: _cursiva_, [enlace](https://...), `código`…"}
                 className="w-full bg-[#252830] border border-indigo-500/50 rounded-lg px-3 py-2 text-sm text-[#e8eaf0] outline-none focus:border-indigo-500 resize-none placeholder:text-[#555b70] font-mono"

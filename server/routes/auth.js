@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { createAdminClient, createPublicClient } = require('../utils/supabase');
 const { requireAuth } = require('../middleware/auth');
+const { getSyncedUserProfile } = require('../utils/userProfile');
 
 const router = express.Router();
 
@@ -89,12 +90,8 @@ router.post('/login', async (req, res) => {
 
   const userId = authData.user.id;
 
-  // 2. Fetch profile
-  const { data: profile, error: profileError } = await adminClient
-    .from('users')
-    .select('*')
-    .eq('id', userId)
-    .single();
+  // 2. Fetch profile and repair email drift against Supabase Auth
+  const { profile, error: profileError } = await getSyncedUserProfile(adminClient, userId);
 
   if (profileError || !profile) {
     return res.status(500).json({ error: 'Error al obtener el perfil de usuario' });
@@ -129,11 +126,7 @@ router.post('/login', async (req, res) => {
 // ── GET /api/auth/me ──────────────────────────────────────────────────────────
 router.get('/me', requireAuth, async (req, res) => {
   const adminClient = createAdminClient();
-  const { data: profile } = await adminClient
-    .from('users')
-    .select('id, email, name, role, organization_id, avatar_url')
-    .eq('id', req.user.id)
-    .single();
+  const { profile } = await getSyncedUserProfile(adminClient, req.user.id);
 
   if (!profile) return res.json({ user: req.user });
 
