@@ -100,6 +100,10 @@ router.post('/', requireAuth, async (req, res) => {
     return res.status(403).json({ error: 'Tu usuario no tiene una organización asignada. Contacta con soporte.' });
   }
 
+  // 🔍 SECURITY DIAGNOSTIC: Verify if service_role is being used
+  const keyPref = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').substring(0, 10);
+  console.log(`[workspaces] [AUTH_CHECK] User: ${req.user.email} | KeyPrefix: ${keyPref} | OrgId: ${orgId} | Type: ${wsType}`);
+
   const { data: ws, error: wsErr } = await supabaseAdmin
     .from('workspaces')
     .insert({

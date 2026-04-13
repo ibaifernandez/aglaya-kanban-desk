@@ -29,6 +29,7 @@ const { requireAuth }         = require('./middleware/auth');
 const { requireWorkspaceMember } = require('./middleware/workspace');
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3003;
 
 // ── Security headers ───────────────────────────────────────
