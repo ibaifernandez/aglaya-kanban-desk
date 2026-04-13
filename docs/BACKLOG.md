@@ -78,6 +78,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Alineación de permisos entre GUI y backend para workspaces/tableros (acciones visibles según `workspace.myRole`)
 - [x] Endurecimiento de invitaciones de workspace: validación de organización, tipo y protección del `owner`
 - [x] Protección del reorder de tableros con `workspaceId` y control micro en backend
+- [x] Invitación admin blindada frente a JWT desfasado y estados parciales Auth/perfil público
 - [ ] Exposición de mensajes de error Supabase al cliente (media — pendiente refactor)
 - [ ] **Estabilización de infra de tests (Mac/Node 18)**: Resolver bloqueo sistemático de Jest en el entorno local (Hanging).
 

@@ -14,9 +14,11 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 - **Panel admin coherente**: Eliminada la opción `guest` del panel global de usuarios; ese rol queda restringido al ámbito del workspace, como dicta la arquitectura del producto.
 - **Sesión sensible endurecida**: Migración de autenticación desde `localStorage` a `sessionStorage` con compatibilidad de migración para sesiones ya existentes.
 - **Reorder de tableros protegido**: `PUT /api/boards/reorder` ahora exige `workspaceId` y valida permisos micro antes de persistir el cambio.
+- **Invitación admin más resistente**: `POST /api/admin/users/invite` ya no confía ciegamente en el `organizationId` del JWT, recupera la organización real desde base de datos, repara estados parciales donde existe el usuario en Auth pero no en `public.users`, y degrada conflictos de unicidad a `409` en vez de `500`.
 
 ### Added
 - **Cobertura renovada de validación**: Nuevas suites y smoke checks para auth, workspaces y administración, enfocadas en los flujos de permisos que estaban desalineados entre GUI, backend y Supabase.
+- **Cobertura anti-regresión para invitaciones admin**: Tests específicos para JWT con organización obsoleta, recuperación de usuarios parciales y conflictos de email ya existente.
 
 ## [1.1.1] - 2026-04-12
 

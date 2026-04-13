@@ -11,22 +11,52 @@ const SITE_URL        = process.env.SITE_URL || 'https://kanban.aglaya.biz';
 router.use(requireAuth, requireRole('admin', 'superadmin'));
 
 async function resolveRequesterOrganizationId(req) {
-  if (req.user.organizationId || req.user.organization_id) {
-    return req.user.organizationId || req.user.organization_id;
-  }
-
   const { data, error } = await supabaseAdmin
     .from('users')
     .select('organization_id')
     .eq('id', req.user.id)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('[admin] resolveRequesterOrganizationId:', error.message);
-    return null;
+    return req.user.organizationId || req.user.organization_id || null;
   }
 
-  return data?.organization_id ?? null;
+  return data?.organization_id ?? req.user.organizationId ?? req.user.organization_id ?? null;
+}
+
+function isDuplicateAuthError(error) {
+  const message = error?.message?.toLowerCase() ?? '';
+  return (
+    message.includes('already been registered')
+    || message.includes('already registered')
+    || message.includes('already exists')
+    || error?.status === 422
+  );
+}
+
+function isUniqueConstraintError(error) {
+  return error?.code === '23505';
+}
+
+async function findAuthUserByEmail(email) {
+  let page = 1;
+  const perPage = 200;
+
+  while (true) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+    if (error) return { user: null, error };
+
+    const user = data?.users?.find((candidate) => candidate.email?.toLowerCase() === email) ?? null;
+    if (user) return { user, error: null };
+
+    const lastPage = data?.lastPage ?? page;
+    if (!data?.users?.length || page >= lastPage) {
+      return { user: null, error: null };
+    }
+
+    page += 1;
+  }
 }
 
 // ── GET /api/admin/users ──────────────────────────────────────────────────────
@@ -69,19 +99,56 @@ router.post('/users/invite', async (req, res) => {
     return res.status(403).json({ error: 'Tu sesión no tiene organización asignada para invitar usuarios' });
   }
 
-  // 1. Create user in Supabase Auth (no password — will be set via recovery email)
-  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-    email: rawEmail,
-    email_confirm: true,
-  });
+  const { data: existingProfile, error: existingProfileError } = await supabaseAdmin
+    .from('users')
+    .select('id, email, name, role, organization_id')
+    .eq('email', rawEmail)
+    .maybeSingle();
 
-  if (authError) {
-    return res.status(400).json({ error: authError.message });
+  if (existingProfileError) {
+    console.error('[admin] POST /users/invite profile lookup:', existingProfileError.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
   }
 
-  const userId = authData.user.id;
+  const { user: existingAuthUser, error: authLookupError } = await findAuthUserByEmail(rawEmail);
+  if (authLookupError) {
+    console.error('[admin] POST /users/invite auth lookup:', authLookupError.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
 
-  // 2. Insert profile in public.users
+  if (existingProfile && existingAuthUser) {
+    return res.status(409).json({ error: 'Ya existe un usuario con ese correo' });
+  }
+
+  if (existingProfile && !existingAuthUser) {
+    console.error('[admin] POST /users/invite inconsistent profile without auth user:', JSON.stringify({
+      email: rawEmail,
+      profileId: existingProfile.id,
+    }));
+    return res.status(409).json({ error: 'Ya existe un perfil con ese correo. Revisa la integridad del usuario antes de reinvitarlo.' });
+  }
+
+  let userId = existingAuthUser?.id ?? null;
+  let createdAuthUser = false;
+
+  if (!userId) {
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: rawEmail,
+      email_confirm: true,
+    });
+
+    if (authError) {
+      if (isDuplicateAuthError(authError)) {
+        return res.status(409).json({ error: 'Ya existe un usuario con ese correo' });
+      }
+      return res.status(400).json({ error: authError.message });
+    }
+
+    userId = authData.user.id;
+    createdAuthUser = true;
+  }
+
+  // 1. Insert or recover profile in public.users
   const { error: profileError } = await supabaseAdmin
     .from('users')
     .insert({
@@ -93,13 +160,28 @@ router.post('/users/invite', async (req, res) => {
     });
 
   if (profileError) {
-    // Rollback: remove auth user if profile insert fails
-    await supabaseAdmin.auth.admin.deleteUser(userId);
-    console.error('[admin] POST /users/invite profile insert:', profileError.message);
+    if (createdAuthUser) {
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+    }
+
+    if (isUniqueConstraintError(profileError)) {
+      return res.status(409).json({ error: 'Ya existe un usuario con ese correo' });
+    }
+
+    console.error('[admin] POST /users/invite profile insert:', JSON.stringify({
+      message: profileError.message,
+      code: profileError.code,
+      details: profileError.details,
+      hint: profileError.hint,
+      requesterId: req.user.id,
+      requesterOrganizationId,
+      inviteEmail: rawEmail,
+      recoveredAuthUser: Boolean(existingAuthUser),
+    }));
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 
-  // 3. Send password setup email via recovery flow
+  // 2. Send password setup email via recovery flow
   const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(rawEmail, {
     redirectTo: SITE_URL,
   });
