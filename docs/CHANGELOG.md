@@ -16,6 +16,7 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 - **Reorder de tableros protegido**: `PUT /api/boards/reorder` ahora exige `workspaceId` y valida permisos micro antes de persistir el cambio.
 - **Invitación admin más resistente**: `POST /api/admin/users/invite` ya no confía ciegamente en el `organizationId` del JWT, recupera la organización real desde base de datos, repara estados parciales donde existe el usuario en Auth pero no en `public.users`, y degrada conflictos de unicidad a `409` en vez de `500`.
 - **Aislamiento de clientes Supabase en backend**: `auth` y `admin` dejan de reutilizar el singleton global para flujos sensibles; ahora crean clientes frescos por request para evitar contaminación de sesión y errores RLS tras login.
+- **Borrado de tarjetas con contexto explícito**: el frontend envía `boardId` al eliminar tarjetas y el middleware backend ya no depende de relaciones implícitas `cards -> boards(workspace_id)` para resolver el workspace; ahora hace resolución determinista en dos pasos.
 
 ### Added
 - **Cobertura renovada de validación**: Nuevas suites y smoke checks para auth, workspaces y administración, enfocadas en los flujos de permisos que estaban desalineados entre GUI, backend y Supabase.

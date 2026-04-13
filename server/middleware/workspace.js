@@ -1,5 +1,41 @@
 const { supabaseAdmin } = require('../utils/supabase');
 
+async function resolveWorkspaceIdFromBoard(boardId) {
+  if (!boardId) return null;
+
+  const { data } = await supabaseAdmin
+    .from('boards')
+    .select('workspace_id')
+    .eq('id', boardId)
+    .single();
+
+  return data?.workspace_id ?? null;
+}
+
+async function resolveWorkspaceIdFromColumn(columnId) {
+  if (!columnId) return null;
+
+  const { data: column } = await supabaseAdmin
+    .from('columns')
+    .select('board_id')
+    .eq('id', columnId)
+    .single();
+
+  return resolveWorkspaceIdFromBoard(column?.board_id);
+}
+
+async function resolveWorkspaceIdFromCard(cardId) {
+  if (!cardId) return null;
+
+  const { data: card } = await supabaseAdmin
+    .from('cards')
+    .select('board_id')
+    .eq('id', cardId)
+    .single();
+
+  return resolveWorkspaceIdFromBoard(card?.board_id);
+}
+
 /**
  * Middleware: verifies the authenticated user is a member of the relevant workspace.
  * Resolves workspaceId from:
@@ -11,34 +47,27 @@ const { supabaseAdmin } = require('../utils/supabase');
  */
 async function requireWorkspaceMember(req, res, next) {
   let workspaceId = req.params.workspaceId || req.body.workspaceId;
+  const routeHint = `${req.baseUrl || ''}${req.path || req.originalUrl || ''}`;
 
   // If no direct workspaceId, try to resolve from other IDs
   if (!workspaceId) {
-    const { id, boardId, columnId, cardId } = req.params;
+    const { id } = req.params;
+    const boardId = req.params.boardId || req.body.boardId;
+    const columnId = req.params.columnId || req.body.columnId;
+    const cardId = req.params.cardId || req.body.cardId;
     
     // Determine context based on route pattern or common param names
-    if (req.baseUrl.includes('/workspaces') && id) {
+    if (routeHint.includes('/workspaces') && id) {
       workspaceId = id;
-    } else if (boardId || (req.baseUrl.includes('/boards') && id)) {
+    } else if (boardId || (routeHint.includes('/boards') && id)) {
       const bid = boardId || id;
-      const { data } = await supabaseAdmin.from('boards').select('workspace_id').eq('id', bid).single();
-      workspaceId = data?.workspace_id;
-    } else if (columnId || (req.baseUrl.includes('/columns') && id)) {
+      workspaceId = await resolveWorkspaceIdFromBoard(bid);
+    } else if (columnId || (routeHint.includes('/columns') && id)) {
       const cid = columnId || id;
-      const { data } = await supabaseAdmin
-        .from('columns')
-        .select('boards(workspace_id)')
-        .eq('id', cid)
-        .single();
-      workspaceId = data?.boards?.workspace_id;
-    } else if (cardId || (req.baseUrl.includes('/cards') && id)) {
+      workspaceId = await resolveWorkspaceIdFromColumn(cid);
+    } else if (cardId || (routeHint.includes('/cards') && id)) {
       const cid = cardId || id;
-      const { data } = await supabaseAdmin
-        .from('cards')
-        .select('boards(workspace_id)')
-        .eq('id', cid)
-        .single();
-      workspaceId = data?.boards?.workspace_id;
+      workspaceId = await resolveWorkspaceIdFromCard(cid);
     }
   }
 

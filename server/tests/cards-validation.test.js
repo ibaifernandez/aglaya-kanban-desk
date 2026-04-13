@@ -11,7 +11,7 @@ process.env.JWT_SECRET = 'test-secret';
 // Mock Supabase
 jest.mock('../utils/supabase', () => ({
   supabaseAdmin: {
-    from: () => {
+    from: (table) => {
       const chain = {
         select: () => chain,
         insert: () => chain,
@@ -22,7 +22,19 @@ jest.mock('../utils/supabase', () => ({
         order: () => chain,
         limit: () => chain,
         or: () => chain,
-        single: () => Promise.resolve({ data: { id: 'uuid', column_id: 'col', board_id: 'board', title: 'Test', priority: 'medium', tags: [], checklist: [], order: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }, error: null }),
+        single: () => {
+          if (table === 'boards') {
+            return Promise.resolve({ data: { id: 'board-1', workspace_id: 'ws-1' }, error: null });
+          }
+          if (table === 'workspace_members') {
+            return Promise.resolve({ data: { workspace_id: 'ws-1', user_id: 'user-1', role: 'owner' }, error: null });
+          }
+          if (table === 'workspaces') {
+            return Promise.resolve({ data: { id: 'ws-1', type: 'interno' }, error: null });
+          }
+          return Promise.resolve({ data: { id: 'uuid', column_id: 'col', board_id: 'board-1', title: 'Test', priority: 'medium', tags: [], checklist: [], order: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }, error: null });
+        },
+        then: (resolve, reject) => Promise.resolve({ data: [], error: null }).then(resolve, reject),
       };
       return chain;
     },
@@ -98,5 +110,19 @@ describe('GET /api/cards/search — validation', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
     expect(res.body.data).toEqual([]);
+  });
+});
+
+describe('DELETE /api/cards/:id — workspace context', () => {
+  const token = makeToken();
+
+  it('accepts boardId in the request body to resolve workspace membership', async () => {
+    const res = await request(app)
+      .delete('/api/cards/some-id')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ boardId: 'board-1' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
   });
 });

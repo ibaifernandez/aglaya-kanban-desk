@@ -87,9 +87,9 @@ export function useBoardData(boardId) {
   }, [load, boardId]);
 
   const deleteCard = useCallback(async (id) => {
-    await api.deleteCard(id);
+    await api.deleteCard(id, { boardId });
     setCards((prev) => prev.filter((c) => c.id !== id));
-  }, []);
+  }, [boardId]);
 
   return {
     columns, cards, loading, error,

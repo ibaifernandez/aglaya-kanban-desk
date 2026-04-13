@@ -144,3 +144,10 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 **Contexto:** El backend reutilizaba un singleton global de Supabase tanto para operaciones `service_role` como para autenticación interactiva (`signInWithPassword`). En producción esto podía contaminar el estado interno del cliente tras un login y provocar que rutas administrativas posteriores ejecutaran inserciones bajo identidad autenticada, disparando errores RLS inesperados como el observado en `POST /api/admin/users/invite`.
 **Decisión:** Introducir factorías `createAdminClient()` y `createPublicClient()` con sesiones no persistentes, y usar clientes frescos por request en `auth` y `admin` para separar estrictamente login interactivo, operaciones de Auth Admin y escrituras privilegiadas sobre `public.*`.
 **Consecuencias:** Se elimina una clase completa de errores intermitentes asociados al estado compartido del cliente de Supabase, especialmente en Railway bajo tráfico real. El backend pasa a comportarse de forma determinista independientemente del orden de login y operaciones administrativas.
+
+### ADR-017: Contexto de Workspace Explícito para Operaciones de Tarjeta
+**Fecha:** 2026-04-13
+**Estado:** Aceptado
+**Contexto:** El borrado de tarjetas dependía de que el middleware reconstruyera el `workspaceId` a partir de joins implícitos (`cards -> boards(workspace_id)`), lo que en producción podía fallar y devolver `400 Contexto de workspace no encontrado` aunque la tarjeta fuera válida y visible en GUI.
+**Decisión:** Hacer el contrato explícito en dos capas: el frontend envía `boardId` en `DELETE /api/cards/:id`, y el middleware resuelve el `workspaceId` en dos pasos deterministas (`card -> board -> workspace`) en lugar de confiar en relaciones anidadas de PostgREST.
+**Consecuencias:** Las operaciones destructivas sobre tarjetas dejan de depender de inferencias frágiles del backend y el sistema se vuelve más estable ante cambios de relaciones, naming o serialización entre Supabase y Express.

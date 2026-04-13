@@ -51,7 +51,10 @@ export const api = {
   createCard:  (body)    => request('/cards', { method: 'POST', body: JSON.stringify(body) }),
   updateCard:  (id, body)=> request(`/cards/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   moveCard:    (id, body)=> request(`/cards/${id}/move`, { method: 'PUT', body: JSON.stringify(body) }),
-  deleteCard:  (id)      => request(`/cards/${id}`, { method: 'DELETE' }),
+  deleteCard:  (id, body = null) => request(`/cards/${id}`, {
+    method: 'DELETE',
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  }),
 
   // Uploads
   uploadFile: (file) => {
