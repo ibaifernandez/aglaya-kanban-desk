@@ -9,6 +9,7 @@ const router = express.Router();
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const VALID_TYPES = ['personal', 'interno', 'externo'];
+const MANAGEABLE_MEMBER_ROLES = ['admin', 'member', 'guest'];
 
 const toWorkspace = (row) => ({
   id:          row.id,
@@ -20,6 +21,31 @@ const toWorkspace = (row) => ({
   createdAt:   row.created_at,
   createdBy:   row.created_by,
 });
+
+async function getWorkspaceContext(workspaceId) {
+  return supabaseAdmin
+    .from('workspaces')
+    .select('id, type, organization_id')
+    .eq('id', workspaceId)
+    .single();
+}
+
+async function getWorkspaceMember(workspaceId, userId) {
+  return supabaseAdmin
+    .from('workspace_members')
+    .select('workspace_id, user_id, role')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', userId)
+    .single();
+}
+
+async function getUserProfile(userId) {
+  return supabaseAdmin
+    .from('users')
+    .select('id, email, name, role, organization_id, created_at')
+    .eq('id', userId)
+    .single();
+}
 
 // ── GET /api/workspaces ───────────────────────────────────────────────────────
 // Returns all workspaces the authenticated user is a member of.
@@ -75,6 +101,10 @@ router.post('/', requireAuth, async (req, res) => {
   const { name, emoji = '📋', description = '', type } = req.body;
   if (!name || name.trim().length === 0) {
     return res.status(400).json({ error: 'El nombre es obligatorio' });
+  }
+
+  if (req.user.role === 'cliente') {
+    return res.status(403).json({ error: 'Los usuarios cliente no pueden crear espacios de trabajo' });
   }
 
   // Admins can create any type. Colaboradores ONLY personal.
@@ -249,20 +279,85 @@ router.get('/:workspaceId/members', requireAuth, requireWorkspaceMember, async (
   res.json({ data: data ?? [] });
 });
 
+// ── GET /api/workspaces/:workspaceId/available-users ─────────────────────────
+// Lists org users that can still be invited to this workspace.
+
+router.get('/:workspaceId/available-users', requireAuth, requireWorkspaceMember, requireWorkspaceRole('owner', 'admin'), async (req, res) => {
+  const { workspaceId } = req.params;
+
+  const [wsRes, membersRes] = await Promise.all([
+    getWorkspaceContext(workspaceId),
+    supabaseAdmin.from('workspace_members').select('user_id').eq('workspace_id', workspaceId),
+  ]);
+
+  if (wsRes.error || !wsRes.data) {
+    console.error('[workspaces] GET /:id/available-users workspace:', wsRes.error?.message);
+    return res.status(404).json({ error: 'Workspace no encontrado' });
+  }
+
+  let usersQuery = supabaseAdmin
+    .from('users')
+    .select('id, email, name, role, created_at');
+
+  if (wsRes.data.organization_id) {
+    usersQuery = usersQuery.eq('organization_id', wsRes.data.organization_id);
+  }
+
+  const { data: users, error: usersError } = await usersQuery.order('created_at', { ascending: true });
+
+  if (usersError) {
+    console.error('[workspaces] GET /:id/available-users users:', usersError.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+
+  const existingIds = new Set((membersRes.data || []).map((member) => member.user_id));
+  const availableUsers = (users || []).filter((candidate) => !existingIds.has(candidate.id));
+
+  res.json({ data: availableUsers });
+});
+
 // ── POST /api/workspaces/:workspaceId/members ─────────────────────────────────
 // Invites an existing org user to the workspace.
 
 router.post('/:workspaceId/members', requireAuth, requireWorkspaceMember, requireWorkspaceRole('owner', 'admin'), async (req, res) => {
   const { userId, role = 'member' } = req.body;
   if (!userId) return res.status(400).json({ error: 'userId is required' });
-  if (!['owner', 'admin', 'member', 'guest'].includes(role)) {
-    return res.status(400).json({ error: 'role must be owner, admin, member, or guest' });
+  if (!MANAGEABLE_MEMBER_ROLES.includes(role)) {
+    return res.status(400).json({ error: 'role must be admin, member, or guest' });
+  }
+
+  const { workspaceId } = req.params;
+  const [wsRes, userRes, memberRes] = await Promise.all([
+    getWorkspaceContext(workspaceId),
+    getUserProfile(userId),
+    getWorkspaceMember(workspaceId, userId),
+  ]);
+
+  if (wsRes.error || !wsRes.data) {
+    console.error('[workspaces] POST /:id/members workspace:', wsRes.error?.message);
+    return res.status(404).json({ error: 'Workspace no encontrado' });
+  }
+
+  if (userRes.error || !userRes.data) {
+    return res.status(404).json({ error: 'Usuario no encontrado' });
+  }
+
+  if (memberRes.data) {
+    return res.status(409).json({ error: 'El usuario ya pertenece a este workspace' });
+  }
+
+  if (userRes.data.organization_id !== wsRes.data.organization_id) {
+    return res.status(403).json({ error: 'El usuario no pertenece a la organización de este workspace' });
+  }
+
+  if (userRes.data.role === 'cliente' && wsRes.data.type !== 'externo') {
+    return res.status(400).json({ error: 'Los usuarios cliente solo pueden ser invitados a workspaces externos' });
   }
 
   const { data, error } = await supabaseAdmin
     .from('workspace_members')
     .insert({
-      workspace_id: req.params.workspaceId,
+      workspace_id: workspaceId,
       user_id:      userId,
       role,
       invited_by:   req.user.id,
@@ -281,11 +376,21 @@ router.patch('/:workspaceId/members/:userId', requireAuth, requireWorkspaceMembe
   const { role } = req.body;
   const { workspaceId, userId } = req.params;
 
-  if (!['owner', 'admin', 'member', 'guest'].includes(role)) {
-    return res.status(400).json({ error: 'role must be owner, admin, member, or guest' });
+  if (!MANAGEABLE_MEMBER_ROLES.includes(role)) {
+    return res.status(400).json({ error: 'role must be admin, member, or guest' });
   }
   if (userId === req.user.id) {
     return res.status(400).json({ error: 'No puedes cambiar tu propio rol' });
+  }
+
+  const { data: targetMember, error: targetError } = await getWorkspaceMember(workspaceId, userId);
+
+  if (targetError || !targetMember) {
+    return res.status(404).json({ error: 'Miembro no encontrado en este workspace' });
+  }
+
+  if (targetMember.role === 'owner') {
+    return res.status(400).json({ error: 'El rol owner es inmutable en el workspace' });
   }
 
   const { data, error } = await supabaseAdmin
@@ -308,6 +413,16 @@ router.delete('/:workspaceId/members/:userId', requireAuth, requireWorkspaceMemb
 
   if (userId === req.user.id) {
     return res.status(400).json({ error: 'No puedes eliminarte a ti mismo del workspace' });
+  }
+
+  const { data: targetMember, error: targetError } = await getWorkspaceMember(workspaceId, userId);
+
+  if (targetError || !targetMember) {
+    return res.status(404).json({ error: 'Miembro no encontrado en este workspace' });
+  }
+
+  if (targetMember.role === 'owner') {
+    return res.status(400).json({ error: 'No se puede eliminar al owner del workspace' });
   }
 
   const { error } = await supabaseAdmin

@@ -10,6 +10,25 @@ const SITE_URL        = process.env.SITE_URL || 'https://kanban.aglaya.biz';
 // All admin routes require auth + admin/superadmin role
 router.use(requireAuth, requireRole('admin', 'superadmin'));
 
+async function resolveRequesterOrganizationId(req) {
+  if (req.user.organizationId || req.user.organization_id) {
+    return req.user.organizationId || req.user.organization_id;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('organization_id')
+    .eq('id', req.user.id)
+    .single();
+
+  if (error) {
+    console.error('[admin] resolveRequesterOrganizationId:', error.message);
+    return null;
+  }
+
+  return data?.organization_id ?? null;
+}
+
 // ── GET /api/admin/users ──────────────────────────────────────────────────────
 // List all users in the organization (or all for superadmin)
 router.get('/users', async (req, res) => {
@@ -18,10 +37,11 @@ router.get('/users', async (req, res) => {
     .select('id, email, name, role, created_at');
 
   if (req.user.role !== 'superadmin') {
-    if (!req.user.organizationId) {
+    const organizationId = await resolveRequesterOrganizationId(req);
+    if (!organizationId) {
        return res.json({ data: [] }); // Not in an org, see nothing if not super
     }
-    query = query.eq('organization_id', req.user.organizationId);
+    query = query.eq('organization_id', organizationId);
   }
 
   const { data, error } = await query.order('created_at', { ascending: true });
@@ -33,18 +53,25 @@ router.get('/users', async (req, res) => {
 // ── POST /api/admin/users/invite ──────────────────────────────────────────────
 // Create a new user and send them a password setup email
 router.post('/users/invite', async (req, res) => {
-  const { email, name, role = 'colaborador' } = req.body;
+  const rawEmail = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  const rawName = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+  const role = req.body.role || 'colaborador';
 
-  if (!email || !name) {
+  if (!rawEmail || !rawName) {
     return res.status(400).json({ error: 'email y name son requeridos' });
   }
   if (!ALLOWED_ROLES.includes(role) || role === 'superadmin') {
     return res.status(400).json({ error: 'Rol no válido' });
   }
 
+  const requesterOrganizationId = await resolveRequesterOrganizationId(req);
+  if (!requesterOrganizationId) {
+    return res.status(403).json({ error: 'Tu sesión no tiene organización asignada para invitar usuarios' });
+  }
+
   // 1. Create user in Supabase Auth (no password — will be set via recovery email)
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-    email,
+    email: rawEmail,
     email_confirm: true,
   });
 
@@ -59,10 +86,10 @@ router.post('/users/invite', async (req, res) => {
     .from('users')
     .insert({
       id: userId,
-      email,
-      name,
+      email: rawEmail,
+      name: rawName,
       role,
-      organization_id: req.user.organizationId,
+      organization_id: requesterOrganizationId,
     });
 
   if (profileError) {
@@ -73,18 +100,18 @@ router.post('/users/invite', async (req, res) => {
   }
 
   // 3. Send password setup email via recovery flow
-  const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+  const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(rawEmail, {
     redirectTo: SITE_URL,
   });
 
   if (resetError) {
     // User is created but email failed — log and warn, don't fail the request
-    console.warn(`[admin/invite] Failed to send invite email to ${email}:`, resetError.message);
+    console.warn(`[admin/invite] Failed to send invite email to ${rawEmail}:`, resetError.message);
   }
 
   res.status(201).json({
-    data: { id: userId, email, name, role },
-    message: `Usuario creado. Se ha enviado un email a ${email} para que establezca su contraseña.`,
+    data: { id: userId, email: rawEmail, name: rawName, role },
+    message: `Usuario creado. Se ha enviado un email a ${rawEmail} para que establezca su contraseña.`,
     emailSent: !resetError,
   });
 });
@@ -115,7 +142,7 @@ router.patch('/users/:id/role', async (req, res) => {
 
   // 2. Access control check
   if (req.user.role !== 'superadmin') {
-    const userOrgId = req.user.organizationId || req.user.organization_id;
+    const userOrgId = await resolveRequesterOrganizationId(req);
     const targetOrgId = targetUser.organization_id;
 
     if (!userOrgId) {
@@ -162,12 +189,21 @@ router.delete('/users/:id', async (req, res) => {
   }
 
   // 2. Verify user exists and get their current role
-  const { data: target, error: fetchError } = await supabaseAdmin
+  let targetQuery = supabaseAdmin
     .from('users')
-    .select('id, role, email')
-    .eq('id', targetId)
-    .eq('organization_id', req.user.organizationId)
-    .single();
+    .select('id, role, email, organization_id')
+    .eq('id', targetId);
+
+  if (req.user.role !== 'superadmin') {
+    const requesterOrganizationId = await resolveRequesterOrganizationId(req);
+    if (!requesterOrganizationId) {
+      return res.status(403).json({ error: 'Tu sesión no tiene organización asignada' });
+    }
+
+    targetQuery = targetQuery.eq('organization_id', requesterOrganizationId);
+  }
+
+  const { data: target, error: fetchError } = await targetQuery.single();
 
   if (fetchError || !target) {
     return res.status(404).json({ error: 'Usuario no encontrado' });

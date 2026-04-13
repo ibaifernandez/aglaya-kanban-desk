@@ -27,6 +27,14 @@ const TYPE_OPTS = [
   { value: 'externo',  label: 'Cliente'  },
 ];
 
+function canManageWorkspace(ws) {
+  return ['owner', 'admin'].includes(ws?.myRole);
+}
+
+function canDeleteWorkspace(ws) {
+  return ws?.myRole === 'owner';
+}
+
 function RoleBadge({ role }) {
   const { label, color } = ROLE_LABELS[role] ?? ROLE_LABELS.member;
   return (
@@ -210,7 +218,7 @@ function ProfileDropdown({ user, onAvatarChange, onLogout, onClose }) {
 }
 
 // ── Context menu ──────────────────────────────────────────────────────────────
-function ContextMenu({ x, y, ws, canEdit, onEdit, onDelete, onClose }) {
+function ContextMenu({ x, y, ws, canEdit, canDelete, onEdit, onDelete, onClose }) {
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -244,7 +252,7 @@ function ContextMenu({ x, y, ws, canEdit, onEdit, onDelete, onClose }) {
           Editar
         </button>
       )}
-      {canEdit && (
+      {canDelete && (
         <button
           onClick={() => { onDelete(ws); onClose(); }}
           className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
@@ -253,7 +261,7 @@ function ContextMenu({ x, y, ws, canEdit, onEdit, onDelete, onClose }) {
           Eliminar
         </button>
       )}
-      {!canEdit && (
+      {!canEdit && !canDelete && (
         <p className="px-3 py-2 text-xs text-[#555b70]">Sin acciones disponibles</p>
       )}
     </div>
@@ -261,9 +269,10 @@ function ContextMenu({ x, y, ws, canEdit, onEdit, onDelete, onClose }) {
 }
 
 // ── Workspace card ────────────────────────────────────────────────────────────
-function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit, onContextMenu, onEdit }) {
+function WorkspaceCard({ ws, onEnter, onCoverChange, onContextMenu, onEdit }) {
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const canEdit = canManageWorkspace(ws);
 
   async function handleCoverUpload(e) {
     const file = e.target.files?.[0];
@@ -364,11 +373,12 @@ function WorkspaceCard({ ws, onEnter, onCoverChange, canEdit, onContextMenu, onE
 }
 
 // ── Workspace form (shared by New + Edit modals) ──────────────────────────────
-function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCoverChange }) {
+function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCoverChange, typeOptions = TYPE_OPTS }) {
+  const resolvedTypeOptions = typeOptions.length > 0 ? typeOptions : TYPE_OPTS;
   const [name,       setName]       = useState(initial?.name        ?? '');
   const [emoji,      setEmoji]      = useState(initial?.emoji       ?? '📋');
   const [desc,       setDesc]       = useState(initial?.description ?? '');
-  const [type,       setType]       = useState(initial?.type ?? 'personal');
+  const [type,       setType]       = useState(initial?.type ?? resolvedTypeOptions[0]?.value ?? 'personal');
   const [saving,     setSaving]     = useState(false);
   const [error,      setError]      = useState('');
   const [coverPreview, setCoverPreview] = useState(initial?.coverUrl ?? null);
@@ -485,7 +495,7 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCover
           <div>
             <label className="block text-xs font-medium text-[#8b92a5] mb-2">Tipo <span className="text-[#3a3f50]">(opcional)</span></label>
             <div className="flex gap-2">
-              {TYPE_OPTS.map((opt) => (
+              {resolvedTypeOptions.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
@@ -500,6 +510,11 @@ function WorkspaceForm({ initial, onSubmit, onClose, title, submitLabel, onCover
                 </button>
               ))}
             </div>
+            {resolvedTypeOptions.length === 1 && (
+              <p className="mt-2 text-[11px] text-[#555b70]">
+                Tu rol actual solo permite crear espacios personales.
+              </p>
+            )}
             {initial?.id && type === 'externo' && initial.type !== 'externo' && (
               <p className="mt-2 text-[11px] text-amber-400">
                 Este espacio pasará a ser visible para usuarios con rol <strong>cliente</strong>.
@@ -566,7 +581,7 @@ function DeleteConfirmModal({ ws, onConfirm, onClose }) {
 }
 
 // ── Workspace section ─────────────────────────────────────────────────────────
-function WorkspaceSection({ title, icon, workspaces, coverOverrides, canEdit, onEnter, onCoverChange, onContextMenu, onEdit, emptyMsg, canCreate, onCreateNew }) {
+function WorkspaceSection({ title, icon, workspaces, coverOverrides, onEnter, onCoverChange, onContextMenu, onEdit, emptyMsg }) {
   return (
     <div className="mb-10">
       <div className="flex items-center gap-2 mb-4">
@@ -584,7 +599,6 @@ function WorkspaceSection({ title, icon, workspaces, coverOverrides, canEdit, on
               ws={{ ...ws, coverUrl: coverOverrides[ws.id] ?? ws.coverUrl }}
               onEnter={onEnter}
               onCoverChange={onCoverChange}
-              canEdit={canEdit}
               onContextMenu={onContextMenu}
               onEdit={onEdit}
             />
@@ -608,7 +622,9 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
 
   const isClient  = user?.role === 'cliente';
   const canCreate = ['superadmin', 'admin', 'colaborador'].includes(user?.role);
-  const canEdit   = ['superadmin', 'admin', 'colaborador'].includes(user?.role);
+  const createTypeOptions = user?.role === 'colaborador'
+    ? TYPE_OPTS.filter((option) => option.value === 'personal')
+    : TYPE_OPTS;
 
   const personal = workspaces.filter((ws) => ws.type === 'personal');
   const interno  = workspaces.filter((ws) => ws.type === 'interno');
@@ -625,7 +641,6 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
 
   const sharedCardProps = {
     coverOverrides,
-    canEdit,
     onEnter: onEnterWorkspace,
     onCoverChange: handleCoverChange,
     onContextMenu: handleContextMenu,
@@ -738,7 +753,6 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                   ws={{ ...ws, coverUrl: coverOverrides[ws.id] ?? ws.coverUrl }}
                   onEnter={onEnterWorkspace}
                   onCoverChange={handleCoverChange}
-                  canEdit={false}
                   onContextMenu={() => {}}
                 />
               ))}
@@ -775,7 +789,8 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
           x={ctxMenu.x}
           y={ctxMenu.y}
           ws={ctxMenu.ws}
-          canEdit={canEdit}
+          canEdit={canManageWorkspace(ctxMenu.ws)}
+          canDelete={canDeleteWorkspace(ctxMenu.ws)}
           onEdit={setEditTarget}
           onDelete={setDeleteTarget}
           onClose={() => setCtxMenu(null)}
@@ -789,6 +804,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
           submitLabel="Crear espacio de trabajo"
           onClose={() => setShowNew(false)}
           onSubmit={createWorkspace}
+          typeOptions={createTypeOptions}
         />
       )}
 
@@ -801,6 +817,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
           onClose={() => setEditTarget(null)}
           onSubmit={(body) => updateWorkspace(editTarget.id, body)}
           onCoverChange={handleCoverChange}
+          typeOptions={TYPE_OPTS}
         />
       )}
 

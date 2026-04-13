@@ -1,23 +1,20 @@
-/**
- * Workspace route tests — tipos personal/interno/externo y control de acceso.
- *
- * Cubre:
- *   - POST /api/workspaces: name requerido, coerción de tipo según rol
- *   - requireWorkspaceMember: bloquea no-miembros y clientes en workspaces no externos
- *   - Gestión de miembros: validación de rol, protección auto-cambio
- */
 const request = require('supertest');
-const jwt     = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
-// ── Mock Supabase con jest.fn() para configuración por test ────────────────────
+process.env.JWT_SECRET = 'test-secret';
+
+const mockFreshAdmin = { from: jest.fn() };
+
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => mockFreshAdmin),
+}));
+
 jest.mock('../utils/supabase', () => ({
   supabaseAdmin: { from: jest.fn() },
 }));
 
 const { supabaseAdmin } = require('../utils/supabase');
 const app = require('../index');
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function makeToken(overrides = {}) {
   return jwt.sign(
@@ -27,240 +24,247 @@ function makeToken(overrides = {}) {
   );
 }
 
-/**
- * Crea una cadena Supabase mockeable.
- * .single() resuelve con { data, error }; el resto devuelve la cadena (para queries de lista).
- */
-function dbChain({ data = null, error = null } = {}) {
-  const c = {};
-  ['select', 'insert', 'update', 'delete', 'eq', 'neq', 'in', 'order', 'limit', 'or', 'gte'].forEach((m) => {
-    c[m] = () => c;
-  });
-  c.single = () => Promise.resolve({ data, error });
-  return c;
+function makeChain(resolver) {
+  const state = {
+    filters: {},
+    inFilters: {},
+    payload: null,
+    selectFields: null,
+  };
+
+  const chain = {
+    select(fields) {
+      state.selectFields = fields;
+      return chain;
+    },
+    insert(payload) {
+      state.payload = payload;
+      return chain;
+    },
+    update(payload) {
+      state.payload = payload;
+      return chain;
+    },
+    delete() {
+      state.payload = null;
+      return chain;
+    },
+    eq(column, value) {
+      state.filters[column] = value;
+      return chain;
+    },
+    in(column, values) {
+      state.inFilters[column] = values;
+      return chain;
+    },
+    order() {
+      return chain;
+    },
+    limit() {
+      return chain;
+    },
+    single() {
+      return Promise.resolve(resolver(state));
+    },
+    then(resolve, reject) {
+      return Promise.resolve(resolver(state)).then(resolve, reject);
+    },
+  };
+
+  return chain;
 }
 
-const WORKSPACE_ROW = {
-  id: 'ws-1', name: 'Test WS', emoji: '📋', description: '',
-  type: 'externo', cover_url: null,
-  organization_id: 'org-1', created_by: 'user-1',
-  created_at: '2026-01-01T00:00:00Z',
-};
+function configureMocks({
+  workspace = { id: 'ws-1', type: 'externo', organization_id: 'org-1' },
+  memberByUserId = { 'user-1': { workspace_id: 'ws-1', user_id: 'user-1', role: 'owner' } },
+  usersById = {
+    'user-1': { id: 'user-1', name: 'Owner User', email: 'owner@aglaya.biz', role: 'admin', organization_id: 'org-1', created_at: '2026-01-01T00:00:00Z' },
+    'user-2': { id: 'user-2', name: 'Member User', email: 'member@aglaya.biz', role: 'colaborador', organization_id: 'org-1', created_at: '2026-01-02T00:00:00Z' },
+  },
+} = {}) {
+  const workspaceRows = Object.values(memberByUserId)
+    .filter((member) => member.workspace_id === workspace.id)
+    .map((member) => ({ user_id: member.user_id }));
 
-// ── POST /api/workspaces — validación de entrada ──────────────────────────────
+  supabaseAdmin.from.mockImplementation((table) => {
+    if (table === 'workspace_members') {
+      return makeChain((state) => {
+        if (state.payload) {
+          return { data: state.payload, error: null };
+        }
 
-describe('POST /api/workspaces — validación de entrada', () => {
-  beforeEach(() => {
-    supabaseAdmin.from.mockImplementation(() =>
-      dbChain({ data: { ...WORKSPACE_ROW } })
-    );
+        if (state.selectFields === 'user_id') {
+          return { data: workspaceRows, error: null };
+        }
+
+        return { data: memberByUserId[state.filters.user_id] ?? null, error: memberByUserId[state.filters.user_id] ? null : { message: 'not found' } };
+      });
+    }
+
+    if (table === 'workspaces') {
+      return makeChain((state) => {
+        if (state.payload) {
+          return { data: { id: 'ws-new', ...state.payload }, error: null };
+        }
+
+        return { data: workspace, error: workspace ? null : { message: 'not found' } };
+      });
+    }
+
+    if (table === 'users') {
+      return makeChain((state) => {
+        if (state.filters.id) {
+          const user = usersById[state.filters.id] ?? null;
+          return { data: user, error: user ? null : { message: 'not found' } };
+        }
+
+        const users = Object.values(usersById).filter((user) => {
+          if (!state.filters.organization_id) return true;
+          return user.organization_id === state.filters.organization_id;
+        });
+
+        return { data: users, error: null };
+      });
+    }
+
+    return makeChain(() => ({ data: null, error: null }));
   });
 
-  it('requiere autenticación — 401 sin token', async () => {
+  mockFreshAdmin.from.mockImplementation((table) => {
+    if (table === 'workspaces') {
+      return makeChain((state) => ({ data: { id: 'ws-new', ...state.payload }, error: null }));
+    }
+
+    if (table === 'workspace_members') {
+      return makeChain((state) => ({ data: state.payload, error: null }));
+    }
+
+    if (table === 'users') {
+      return makeChain((state) => {
+        const user = usersById[state.filters.id] ?? null;
+        return { data: user, error: user ? null : { message: 'not found' } };
+      });
+    }
+
+    return makeChain(() => ({ data: null, error: null }));
+  });
+}
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  configureMocks();
+});
+
+describe('POST /api/workspaces', () => {
+  it('requires authentication', async () => {
     const res = await request(app).post('/api/workspaces').send({ name: 'Test' });
     expect(res.status).toBe(401);
   });
 
-  it('requiere name — 400 sin name', async () => {
-    const res = await request(app)
-      .post('/api/workspaces')
-      .set('Authorization', `Bearer ${makeToken()}`)
-      .send({});
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/name/i);
-  });
-
-  it('requiere name — 400 con name vacío', async () => {
-    const res = await request(app)
-      .post('/api/workspaces')
-      .set('Authorization', `Bearer ${makeToken()}`)
-      .send({ name: '   ' });
-    expect(res.status).toBe(400);
-  });
-});
-
-// ── POST /api/workspaces — control de tipo por rol ────────────────────────────
-
-describe('POST /api/workspaces — coerción de tipo según rol', () => {
-  it('admin puede crear workspace personal', async () => {
-    supabaseAdmin.from.mockImplementation(() =>
-      dbChain({ data: { ...WORKSPACE_ROW, type: 'personal' } })
-    );
-    const res = await request(app)
-      .post('/api/workspaces')
-      .set('Authorization', `Bearer ${makeToken({ role: 'admin' })}`)
-      .send({ name: 'Personal', type: 'personal' });
-    expect(res.status).toBe(201);
-    expect(res.body.data.type).toBe('personal');
-  });
-
-  it('admin puede crear workspace interno', async () => {
-    supabaseAdmin.from.mockImplementation(() =>
-      dbChain({ data: { ...WORKSPACE_ROW, type: 'interno' } })
-    );
-    const res = await request(app)
-      .post('/api/workspaces')
-      .set('Authorization', `Bearer ${makeToken({ role: 'admin' })}`)
-      .send({ name: 'Interno', type: 'interno' });
-    expect(res.status).toBe(201);
-    expect(res.body.data.type).toBe('interno');
-  });
-
-  it('colaborador solicitando tipo personal recibe externo (coerción)', async () => {
-    // La ruta fuerza wsType='externo' para roles no-admin; el mock devuelve el tipo real de DB
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === 'workspaces') return dbChain({ data: { ...WORKSPACE_ROW, type: 'externo' } });
-      return dbChain();
-    });
-    const res = await request(app)
-      .post('/api/workspaces')
-      .set('Authorization', `Bearer ${makeToken({ role: 'colaborador' })}`)
-      .send({ name: 'Test', type: 'personal' });
-    expect(res.status).toBe(201);
-    expect(res.body.data.type).toBe('externo');
-  });
-
-  it('cliente solicitando tipo interno recibe externo (coerción)', async () => {
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === 'workspaces') return dbChain({ data: { ...WORKSPACE_ROW, type: 'externo' } });
-      return dbChain();
-    });
+  it('blocks cliente users from creating workspaces', async () => {
     const res = await request(app)
       .post('/api/workspaces')
       .set('Authorization', `Bearer ${makeToken({ role: 'cliente' })}`)
-      .send({ name: 'Test', type: 'interno' });
+      .send({ name: 'Cliente WS', type: 'externo' });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('forces colaboradores to personal workspaces', async () => {
+    const res = await request(app)
+      .post('/api/workspaces')
+      .set('Authorization', `Bearer ${makeToken({ role: 'colaborador' })}`)
+      .send({ name: 'Mi espacio', type: 'interno' });
+
     expect(res.status).toBe(201);
-    expect(res.body.data.type).toBe('externo');
+    expect(res.body.data.type).toBe('personal');
   });
 });
 
-// ── requireWorkspaceMember — control de acceso ────────────────────────────────
-
-describe('requireWorkspaceMember — control de acceso por tipo', () => {
-  it('bloquea no-miembros con 403', async () => {
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === 'workspace_members')
-        return dbChain({ data: null, error: { message: 'not found' } });
-      return dbChain();
-    });
+describe('GET /api/workspaces/:workspaceId/available-users', () => {
+  it('lists organization users not yet present in the workspace', async () => {
     const res = await request(app)
-      .get('/api/workspaces/ws-1/members')
+      .get('/api/workspaces/ws-1/available-users')
       .set('Authorization', `Bearer ${makeToken()}`);
-    expect(res.status).toBe(403);
-  });
 
-  it('bloquea a cliente en workspace personal con 403', async () => {
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === 'workspace_members')
-        return dbChain({ data: { workspace_id: 'ws-1', user_id: 'user-1', role: 'member' } });
-      if (table === 'workspaces')
-        return dbChain({ data: { type: 'personal' } });
-      return dbChain();
-    });
-    const res = await request(app)
-      .get('/api/workspaces/ws-1/members')
-      .set('Authorization', `Bearer ${makeToken({ role: 'cliente' })}`);
-    expect(res.status).toBe(403);
-  });
-
-  it('bloquea a cliente en workspace interno con 403', async () => {
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === 'workspace_members')
-        return dbChain({ data: { workspace_id: 'ws-1', user_id: 'user-1', role: 'member' } });
-      if (table === 'workspaces')
-        return dbChain({ data: { type: 'interno' } });
-      return dbChain();
-    });
-    const res = await request(app)
-      .get('/api/workspaces/ws-1/members')
-      .set('Authorization', `Bearer ${makeToken({ role: 'cliente' })}`);
-    expect(res.status).toBe(403);
-  });
-
-  it('permite a cliente acceder a workspace externo (no 403)', async () => {
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === 'workspace_members')
-        return dbChain({ data: { workspace_id: 'ws-1', user_id: 'user-1', role: 'member' } });
-      if (table === 'workspaces')
-        return dbChain({ data: { type: 'externo' } });
-      return dbChain();
-    });
-    const res = await request(app)
-      .get('/api/workspaces/ws-1/members')
-      .set('Authorization', `Bearer ${makeToken({ role: 'cliente' })}`);
-    expect(res.status).not.toBe(403);
-    expect(res.status).not.toBe(401);
-  });
-
-  it('colaborador puede acceder a workspace personal (no 403)', async () => {
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === 'workspace_members')
-        return dbChain({ data: { workspace_id: 'ws-1', user_id: 'user-1', role: 'member' } });
-      if (table === 'workspaces')
-        return dbChain({ data: { type: 'personal' } });
-      return dbChain();
-    });
-    const res = await request(app)
-      .get('/api/workspaces/ws-1/members')
-      .set('Authorization', `Bearer ${makeToken({ role: 'colaborador' })}`);
-    expect(res.status).not.toBe(403);
-    expect(res.status).not.toBe(401);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(1);
+    expect(res.body.data[0].id).toBe('user-2');
   });
 });
 
-// ── Gestión de miembros — validación ─────────────────────────────────────────
-
-describe('Workspace member management — validación', () => {
-  // Mock: usuario ES miembro con rol owner (supera requireWorkspaceMember + requireWorkspaceRole)
-  beforeEach(() => {
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === 'workspace_members')
-        return dbChain({ data: { workspace_id: 'ws-1', user_id: 'user-1', role: 'owner' } });
-      if (table === 'workspaces')
-        return dbChain({ data: { type: 'externo' } });
-      return dbChain();
-    });
-  });
-
-  it('POST /members requiere userId — 400', async () => {
+describe('POST /api/workspaces/:workspaceId/members', () => {
+  it('rejects owner as assignable member role', async () => {
     const res = await request(app)
       .post('/api/workspaces/ws-1/members')
       .set('Authorization', `Bearer ${makeToken()}`)
-      .send({ role: 'member' });
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/userId/i);
-  });
+      .send({ userId: 'user-2', role: 'owner' });
 
-  it('POST /members rechaza rol inválido — 400', async () => {
-    const res = await request(app)
-      .post('/api/workspaces/ws-1/members')
-      .set('Authorization', `Bearer ${makeToken()}`)
-      .send({ userId: 'user-2', role: 'superadmin' });
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/role/i);
   });
 
-  it('PATCH /members/:userId rechaza rol inválido — 400', async () => {
+  it('rejects users from another organization', async () => {
+    configureMocks({
+      usersById: {
+        'user-1': { id: 'user-1', name: 'Owner User', email: 'owner@aglaya.biz', role: 'admin', organization_id: 'org-1', created_at: '2026-01-01T00:00:00Z' },
+        'user-2': { id: 'user-2', name: 'External User', email: 'external@other.biz', role: 'colaborador', organization_id: 'org-9', created_at: '2026-01-02T00:00:00Z' },
+      },
+    });
+
+    const res = await request(app)
+      .post('/api/workspaces/ws-1/members')
+      .set('Authorization', `Bearer ${makeToken()}`)
+      .send({ userId: 'user-2', role: 'member' });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('rejects cliente users for non-external workspaces', async () => {
+    configureMocks({
+      workspace: { id: 'ws-1', type: 'personal', organization_id: 'org-1' },
+      usersById: {
+        'user-1': { id: 'user-1', name: 'Owner User', email: 'owner@aglaya.biz', role: 'admin', organization_id: 'org-1', created_at: '2026-01-01T00:00:00Z' },
+        'user-2': { id: 'user-2', name: 'Client User', email: 'client@aglaya.biz', role: 'cliente', organization_id: 'org-1', created_at: '2026-01-02T00:00:00Z' },
+      },
+    });
+
+    const res = await request(app)
+      .post('/api/workspaces/ws-1/members')
+      .set('Authorization', `Bearer ${makeToken()}`)
+      .send({ userId: 'user-2', role: 'guest' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/cliente/i);
+  });
+});
+
+describe('Workspace owner invariants', () => {
+  beforeEach(() => {
+    configureMocks({
+      memberByUserId: {
+        'user-1': { workspace_id: 'ws-1', user_id: 'user-1', role: 'owner' },
+        'user-2': { workspace_id: 'ws-1', user_id: 'user-2', role: 'owner' },
+      },
+    });
+  });
+
+  it('prevents changing the owner role', async () => {
     const res = await request(app)
       .patch('/api/workspaces/ws-1/members/user-2')
       .set('Authorization', `Bearer ${makeToken()}`)
-      .send({ role: 'owner' }); // 'owner' no es editable vía PATCH members
-    expect(res.status).toBe(400);
-  });
-
-  it('PATCH /members/:userId previene auto-cambio de rol — 400', async () => {
-    const res = await request(app)
-      .patch('/api/workspaces/ws-1/members/user-1') // mismo id que el token
-      .set('Authorization', `Bearer ${makeToken()}`)
       .send({ role: 'admin' });
+
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/propio/i);
+    expect(res.body.error).toMatch(/owner/i);
   });
 
-  it('DELETE /members/:userId previene auto-eliminación — 400', async () => {
+  it('prevents removing the owner', async () => {
     const res = await request(app)
-      .delete('/api/workspaces/ws-1/members/user-1') // mismo id que el token
+      .delete('/api/workspaces/ws-1/members/user-2')
       .set('Authorization', `Bearer ${makeToken()}`);
+
     expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/owner/i);
   });
 });

@@ -46,7 +46,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Usuario superadmin actualizado: info@ibaifernandez.com
 
 ### Frontend — Autenticación ✅
-- [x] `AuthContext` con token + user en localStorage
+- [x] `AuthContext` con token + user en sessionStorage (`aglaya_session`) con migración suave desde localStorage legado
 - [x] Pantalla de login con logo AGLAYA y validación de dominio
 - [x] Flujo "Olvidé mi contraseña" integrado (Supabase Auth)
 - [x] Página `/reset-password` para restablecimiento de contraseña
@@ -75,6 +75,9 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Validación de enums y tipos en `PUT /api/cards/:id` (priority, title, dueDate)
 - [x] Input sanitizado en `GET /api/cards/search` (cap 100 chars)
 - [x] Auditoría completa de superficie de ataque (2026-03-27 — 15 hallazgos, 2 altos resueltos)
+- [x] Alineación de permisos entre GUI y backend para workspaces/tableros (acciones visibles según `workspace.myRole`)
+- [x] Endurecimiento de invitaciones de workspace: validación de organización, tipo y protección del `owner`
+- [x] Protección del reorder de tableros con `workspaceId` y control micro en backend
 - [ ] Exposición de mensajes de error Supabase al cliente (media — pendiente refactor)
 - [ ] **Estabilización de infra de tests (Mac/Node 18)**: Resolver bloqueo sistemático de Jest en el entorno local (Hanging).
 
@@ -86,7 +89,8 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 
 ### Roles y permisos
 - [ ] Permisos por tablero: owner / editor / viewer
-- [ ] Panel de administración (crear/gestionar usuarios)
+- [x] Panel de administración (crear/gestionar usuarios)
+- [x] Separación explícita de roles macro y roles micro (el rol `guest` queda restringido al workspace)
 
 ### Freemium
 - [ ] Middleware de límites: máx. 3 tableros y 50 tarjetas en plan free

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Plus, Trash2, Pencil, Check, X, GripVertical, FolderInput } from 'lucide-react';
 import agLayaIcon from '../../assets/aglaya-favicon-rojo.svg';
 import {
@@ -16,6 +16,7 @@ function SortableBoardItem({
   board, idx, isActive, isDraggingCard,
   editingId, editTitle, setEditTitle,
   onSelect, onStartEdit, onSubmitRename, onCancelEdit, onDelete, onStartMove,
+  canReorder, canRenameOrDelete, canMove,
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } =
     useSortable({ id: board.id, data: { type: 'board', board } });
@@ -68,15 +69,17 @@ function SortableBoardItem({
         /* ── Normal mode ────────────────────────────────── */
         <>
           {/* Drag handle */}
-          <span
-            {...attributes}
-            {...listeners}
-            onClick={(e) => e.stopPropagation()}
-            className="text-[#3d4155] hover:text-[#555b70] cursor-grab active:cursor-grabbing p-0.5 rounded transition-colors shrink-0"
-            title="Arrastrar"
-          >
-            <GripVertical size={12} />
-          </span>
+          {canReorder && (
+            <span
+              {...attributes}
+              {...listeners}
+              onClick={(e) => e.stopPropagation()}
+              className="text-[#3d4155] hover:text-[#555b70] cursor-grab active:cursor-grabbing p-0.5 rounded transition-colors shrink-0"
+              title="Arrastrar"
+            >
+              <GripVertical size={12} />
+            </span>
+          )}
 
           {/* Title */}
           <span className="flex-1 truncate">{board.title}</span>
@@ -89,21 +92,29 @@ function SortableBoardItem({
           )}
 
           {/* Action buttons — appear on hover */}
-          <span className="hidden group-hover:flex items-center gap-0.5">
-            <IconButton onClick={(e) => onStartMove(board, e)} title="Mover a workspace">
-              <FolderInput size={12} />
-            </IconButton>
-            <IconButton onClick={(e) => onStartEdit(board, e)} title="Renombrar">
-              <Pencil size={12} />
-            </IconButton>
-            <IconButton
-              onClick={(e) => { e.stopPropagation(); onDelete(board.id); }}
-              title="Eliminar"
-              danger
-            >
-              <Trash2 size={12} />
-            </IconButton>
-          </span>
+          {(canMove || canRenameOrDelete) && (
+            <span className="hidden group-hover:flex items-center gap-0.5">
+              {canMove && (
+                <IconButton onClick={(e) => onStartMove(board, e)} title="Mover a workspace">
+                  <FolderInput size={12} />
+                </IconButton>
+              )}
+              {canRenameOrDelete && (
+                <IconButton onClick={(e) => onStartEdit(board, e)} title="Renombrar">
+                  <Pencil size={12} />
+                </IconButton>
+              )}
+              {canRenameOrDelete && (
+                <IconButton
+                  onClick={(e) => { e.stopPropagation(); onDelete(board.id); }}
+                  title="Eliminar"
+                  danger
+                >
+                  <Trash2 size={12} />
+                </IconButton>
+              )}
+            </span>
+          )}
         </>
       )}
     </div>
@@ -111,19 +122,44 @@ function SortableBoardItem({
 }
 
 // ── Sidebar ───────────────────────────────────────────────
-export function Sidebar({ boards, activeBoardId, currentWorkspaceId, onSelect, onCreate, onRename, onDelete, onMoveBoard, isDraggingCard = false }) {
+export function Sidebar({
+  boards,
+  activeBoardId,
+  currentWorkspaceId,
+  onSelect,
+  onCreate,
+  onRename,
+  onDelete,
+  onMoveBoard,
+  isDraggingCard = false,
+  canCreateBoards = false,
+  canRenameOrDeleteBoards = false,
+  canMoveBoards = false,
+}) {
   const [creating, setCreating]   = useState(false);
   const [newTitle, setNewTitle]   = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [movingBoard, setMovingBoard] = useState(null); // board object being moved
+  const [error, setError] = useState('');
+  const errorTimerRef = useRef(null);
 
-  function handleCreate(e) {
+  function showError(message) {
+    setError(message);
+    window.clearTimeout(errorTimerRef.current);
+    errorTimerRef.current = window.setTimeout(() => setError(''), 3500);
+  }
+
+  async function handleCreate(e) {
     e.preventDefault();
     if (!newTitle.trim()) return;
-    onCreate(newTitle.trim());
-    setNewTitle('');
-    setCreating(false);
+    try {
+      await onCreate(newTitle.trim());
+      setNewTitle('');
+      setCreating(false);
+    } catch (err) {
+      showError(err.message ?? 'No se pudo crear el tablero');
+    }
   }
 
   function startEdit(board, e) {
@@ -132,16 +168,38 @@ export function Sidebar({ boards, activeBoardId, currentWorkspaceId, onSelect, o
     setEditTitle(board.title);
   }
 
-  function handleRename(e) {
+  async function handleRename(e) {
     e?.preventDefault();
     if (!editTitle.trim()) return;
-    onRename(editingId, editTitle.trim());
-    setEditingId(null);
+    try {
+      await onRename(editingId, editTitle.trim());
+      setEditingId(null);
+    } catch (err) {
+      showError(err.message ?? 'No se pudo renombrar el tablero');
+    }
   }
 
   function startMove(board, e) {
     e.stopPropagation();
     setMovingBoard(board);
+  }
+
+  async function handleDelete(boardId) {
+    try {
+      await onDelete(boardId);
+    } catch (err) {
+      showError(err.message ?? 'No se pudo eliminar el tablero');
+    }
+  }
+
+  async function handleMoveBoard(workspaceId) {
+    if (!movingBoard) return;
+    try {
+      await onMoveBoard?.(movingBoard.id, workspaceId);
+      setMovingBoard(null);
+    } catch (err) {
+      showError(err.message ?? 'No se pudo mover el tablero');
+    }
   }
 
   return (
@@ -174,14 +232,17 @@ export function Sidebar({ boards, activeBoardId, currentWorkspaceId, onSelect, o
               onStartEdit={startEdit}
               onSubmitRename={handleRename}
               onCancelEdit={() => setEditingId(null)}
-              onDelete={onDelete}
+              onDelete={handleDelete}
               onStartMove={startMove}
+              canReorder={canCreateBoards}
+              canRenameOrDelete={canRenameOrDeleteBoards}
+              canMove={canMoveBoards}
             />
           ))}
         </SortableContext>
 
         {/* Inline create form */}
-        {creating ? (
+        {creating && canCreateBoards ? (
           <form onSubmit={handleCreate} className="px-2 pt-1">
             <input
               autoFocus
@@ -206,7 +267,7 @@ export function Sidebar({ boards, activeBoardId, currentWorkspaceId, onSelect, o
               </button>
             </div>
           </form>
-        ) : (
+        ) : canCreateBoards ? (
           <button
             onClick={() => setCreating(true)}
             className="flex items-center gap-2 w-full px-2 py-2 text-sm text-[#555b70] hover:text-[#8b90a0] rounded-md hover:bg-[#252830] transition-colors"
@@ -214,7 +275,15 @@ export function Sidebar({ boards, activeBoardId, currentWorkspaceId, onSelect, o
             <Plus size={14} />
             Nuevo tablero
           </button>
-        )}
+        ) : null}
+
+        {error ? (
+          <div className="px-2 pt-2">
+            <p className="rounded-md border border-red-500/20 bg-red-500/10 px-2 py-1.5 text-[11px] text-red-300">
+              {error}
+            </p>
+          </div>
+        ) : null}
       </nav>
 
       {/* Footer */}
@@ -227,10 +296,7 @@ export function Sidebar({ boards, activeBoardId, currentWorkspaceId, onSelect, o
         <BoardMoveModal
           board={movingBoard}
           currentWorkspaceId={currentWorkspaceId}
-          onMove={(workspaceId) => {
-            onMoveBoard?.(movingBoard.id, workspaceId);
-            setMovingBoard(null);
-          }}
+          onMove={handleMoveBoard}
           onClose={() => setMovingBoard(null)}
         />
       )}

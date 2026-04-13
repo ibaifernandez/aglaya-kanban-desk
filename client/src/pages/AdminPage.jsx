@@ -7,13 +7,12 @@ const ROLE_LABELS = {
   admin:       { label: 'Admin',       color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' },
   colaborador: { label: 'Colaborador', color: 'bg-green-500/20  text-green-300  border-green-500/30'  },
   cliente:     { label: 'Cliente',     color: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' },
-  guest:       { label: 'Invitado',    color: 'bg-[#2e3140]     text-[#8b90a0]  border-[#3d4155]'     },
 };
 
-const ASSIGNABLE_ROLES = ['admin', 'colaborador', 'cliente', 'guest'];
+const ASSIGNABLE_ROLES = ['admin', 'colaborador', 'cliente'];
 
 function RoleBadge({ role }) {
-  const { label, color } = ROLE_LABELS[role] ?? ROLE_LABELS.guest;
+  const { label, color } = ROLE_LABELS[role] ?? ROLE_LABELS.colaborador;
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${color}`}>
       {label}
@@ -287,8 +286,8 @@ export default function AdminPage({ user, onBack }) {
             <div className="mt-4 flex items-start gap-2 text-xs text-[#555b70] bg-[#16181f] border border-[#2e3140] rounded-xl px-4 py-3">
               <Shield size={13} className="text-indigo-400 mt-0.5 shrink-0" />
               <p>
-                Puedes invitar usuarios de <strong className="text-[#8b90a0]">cualquier dominio</strong>.
-                Al invitar a un usuario, recibirá un email para establecer su contraseña.
+                Desde este panel puedes invitar y reasignar roles macro de organización.
+                El rol <strong className="text-[#8b90a0]">Invitado</strong> existe solo dentro de cada workspace, no en la gestión global de usuarios.
               </p>
             </div>
           </div>

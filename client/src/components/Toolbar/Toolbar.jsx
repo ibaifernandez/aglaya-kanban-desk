@@ -5,6 +5,7 @@ import { AvatarCropModal } from '../UI/AvatarCropModal.jsx';
 import { PRIORITY_LIST } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { CategorySettings } from './CategorySettings.jsx';
+import { getAuthToken } from '../../utils/session.js';
 
 export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], workspaceMembers = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces, onOpenMembers, onOpenWsSettings, onAvatarChange }) {
   const { category, priority, tag, search = '', assignee = '', overdue = false } = filters;
@@ -59,7 +60,7 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
     setDigestState('sending');
     setDigestMsg('');
     try {
-      const token = localStorage.getItem('aglaya_token');
+      const token = getAuthToken();
       const res = await fetch('/api/digest/send-me', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },

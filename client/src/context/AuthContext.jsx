@@ -1,35 +1,32 @@
 import { createContext, useContext, useState, useCallback } from 'react';
+import {
+  clearAuthSession,
+  readAuthSession,
+  updateAuthSessionUser,
+  writeAuthSession,
+} from '../utils/session.js';
 
 const AuthContext = createContext(null);
 
-const TOKEN_KEY = 'aglaya_token';
-const USER_KEY  = 'aglaya_user';
-
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
-  const [user,  setUser]  = useState(() => {
-    try { return JSON.parse(localStorage.getItem(USER_KEY)); }
-    catch { return null; }
-  });
+  const [token, setToken] = useState(() => readAuthSession().token);
+  const [user,  setUser]  = useState(() => readAuthSession().user);
 
   const login = useCallback((newToken, newUser) => {
-    localStorage.setItem(TOKEN_KEY, newToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(newUser));
+    writeAuthSession(newToken, newUser);
     setToken(newToken);
     setUser(newUser);
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    clearAuthSession();
     setToken(null);
     setUser(null);
   }, []);
 
   const updateUser = useCallback((patch) => {
     setUser((prev) => {
-      const updated = { ...prev, ...patch };
-      localStorage.setItem(USER_KEY, JSON.stringify(updated));
+      const updated = updateAuthSessionUser(patch);
       return updated;
     });
   }, []);

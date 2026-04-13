@@ -38,11 +38,16 @@ function AddMemberModal({ workspaceId, existingIds, onClose, onAdded }) {
   const [error,    setError]    = useState('');
 
   useEffect(() => {
-    api.getAdminUsers().then(({ data }) => {
-      setOrgUsers((data ?? []).filter((u) => !existingIds.has(u.id)));
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, [existingIds]);
+    api.getWorkspaceAvailableUsers(workspaceId)
+      .then((data) => {
+        setOrgUsers((data ?? []).filter((u) => !existingIds.has(u.id)));
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message ?? 'Error al cargar usuarios disponibles');
+        setLoading(false);
+      });
+  }, [existingIds, workspaceId]);
 
   async function handleSubmit(e) {
     e.preventDefault();

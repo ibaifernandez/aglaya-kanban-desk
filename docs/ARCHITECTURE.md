@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — Arquitectura Técnica AGLAYA Kanban Desk
 
-**Última actualización:** 2026-04-10 (v1.1.0.0)
+**Última actualización:** 2026-04-13 (v1.1.5)
 
 ---
 
@@ -123,3 +123,10 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 **Contexto:** La versión de desarrollo `jest@30.2.0-alpha` presentaba bloqueos sistemáticos y procesos huérfanos.
 **Decisión:** Downgrade a `jest@29.7.0` (versión estable).
 **Consecuencias:** Recuperación de la capacidad de diagnóstico y eliminación de procesos zombis en el terminal.
+
+### ADR-014: Alineación Estricta de Permisos GUI/API y Sesión Efímera
+**Fecha:** 2026-04-13
+**Estado:** Aceptado
+**Contexto:** La UI exponía acciones que el backend rechazaba después por rol micro o por mezcla entre roles macro y micro. Además, la invitación de miembros del workspace dependía indebidamente del panel global de administración, y la sesión sensible seguía persistiendo en `localStorage`, en contra de la política del proyecto.
+**Decisión:** Convertir el backend en fuente de verdad explícita para estos flujos: validación de organización y tipo en invitaciones de workspace, inmutabilidad del `owner`, bloqueo de creación de workspaces para `cliente`, `reorder` de tableros con `workspaceId` obligatorio y control micro, y endpoint dedicado `GET /api/workspaces/:workspaceId/available-users` para invitar miembros sin depender del panel global. En frontend, ocultar acciones no autorizadas por `workspace.myRole`, separar roles macro de los roles de workspace y migrar la sesión autenticada a `sessionStorage` con migración suave desde `localStorage`.
+**Consecuencias:** Se reduce drásticamente el número de falsos conflictos entre GUI y API, se elimina una fuente recurrente de errores de validación, y la sesión queda alineada con la política de seguridad de AGLAYA. El sistema pasa a ser más predecible tanto en local como en producción.

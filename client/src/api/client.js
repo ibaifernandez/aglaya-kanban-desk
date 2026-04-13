@@ -1,7 +1,9 @@
+import { getAuthToken } from '../utils/session.js';
+
 const BASE = '/api';
 
 function getToken() {
-  return localStorage.getItem('aglaya_token');
+  return getAuthToken();
 }
 
 async function request(path, options = {}) {
@@ -33,7 +35,7 @@ export const api = {
   // Boards
   getBoards:     ()         => request('/boards'),
   createBoard:   (body)     => request('/boards', { method: 'POST', body: JSON.stringify(body) }),
-  reorderBoards: (ids)      => request('/boards/reorder', { method: 'PUT', body: JSON.stringify({ ids }) }),
+  reorderBoards: (ids, workspaceId) => request('/boards/reorder', { method: 'PUT', body: JSON.stringify({ ids, workspaceId }) }),
   updateBoard:   (id, body) => request(`/boards/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteBoard:   (id)       => request(`/boards/${id}`, { method: 'DELETE' }),
 
@@ -77,6 +79,7 @@ export const api = {
   updateWorkspace:        (id, body)       => request(`/workspaces/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
   deleteWorkspace:        (id)             => request(`/workspaces/${id}`, { method: 'DELETE' }),
   getWorkspaceMembers:    (id)             => request(`/workspaces/${id}/members`),
+  getWorkspaceAvailableUsers: (id)         => request(`/workspaces/${id}/available-users`),
   addWorkspaceMember:     (id, body)       => request(`/workspaces/${id}/members`, { method: 'POST', body: JSON.stringify(body) }),
   updateWorkspaceMember:  (id, uid, body)  => request(`/workspaces/${id}/members/${uid}`, { method: 'PATCH', body: JSON.stringify(body) }),
   removeWorkspaceMember:  (id, uid)        => request(`/workspaces/${id}/members/${uid}`, { method: 'DELETE' }),

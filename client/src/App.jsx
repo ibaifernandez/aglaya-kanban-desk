@@ -26,6 +26,7 @@ import { useBoards }      from './hooks/useBoards.js';
 import { useBoardData }   from './hooks/useBoardData.js';
 import { useCategories }  from './hooks/useCategories.js';
 import { CategoriesContext } from './context/CategoriesContext.jsx';
+import { clearUiState, readUiState, writeUiState } from './utils/session.js';
 
 export default function App() {
   const { isAuthenticated, user, logout, updateUser } = useAuth();
@@ -40,7 +41,7 @@ export default function App() {
   }
 
   if (!isAuthenticated) {
-    sessionStorage.removeItem('aglaya_session');
+    clearUiState();
     return <LoginPage />;
   }
 
@@ -48,10 +49,7 @@ export default function App() {
 }
 
 function restoreSession() {
-  try {
-    const raw = sessionStorage.getItem('aglaya_session');
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+  return readUiState();
 }
 
 function AuthenticatedApp({ user, logout, updateUser }) {
@@ -102,13 +100,11 @@ function AuthenticatedApp({ user, logout, updateUser }) {
 
   // Persist session so page refresh restores the current view
   useEffect(() => {
-    try {
-      sessionStorage.setItem('aglaya_session', JSON.stringify({
-        view,
-        workspace: activeWorkspace,
-        boardId:   activeBoardId,
-      }));
-    } catch { /* ignore */ }
+    writeUiState({
+      view,
+      workspace: activeWorkspace,
+      boardId: activeBoardId,
+    });
   }, [view, activeWorkspace, activeBoardId]);
 
   useEffect(() => {
@@ -186,6 +182,10 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   const availableTags = [...new Set(cards.flatMap((c) => c.tags || []))].sort();
 
   const activeBoard = boards.find((b) => b.id === boardId);
+  const workspaceRole = activeWorkspace?.myRole;
+  const canCreateBoards = ['owner', 'admin', 'member'].includes(workspaceRole);
+  const canRenameOrDeleteBoards = ['owner', 'admin', 'member'].includes(workspaceRole);
+  const canMoveBoards = ['owner', 'admin'].includes(workspaceRole);
 
   // ── Unified drag handlers ──────────────────────────────────
   function handleDragStart({ active }) {
@@ -292,12 +292,16 @@ function AuthenticatedApp({ user, logout, updateUser }) {
             boards={boards}
             activeBoardId={boardId}
             currentWorkspaceId={activeWorkspace?.id}
+            workspaceRole={workspaceRole}
             onSelect={handleSelectBoard}
             onCreate={handleCreateBoard}
             onRename={updateBoard}
             onDelete={deleteBoard}
             onMoveBoard={handleMoveBoard}
             isDraggingCard={!!activeCard}
+            canCreateBoards={canCreateBoards}
+            canRenameOrDeleteBoards={canRenameOrDeleteBoards}
+            canMoveBoards={canMoveBoards}
           />
 
           <div className="flex flex-col flex-1 min-w-0">

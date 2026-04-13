@@ -151,18 +151,55 @@ const deleteBoard = async (req, res) => {
 };
 
 const reorderBoards = async (req, res) => {
-  const { ids } = req.body;
-  if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids must be an array' });
+  const { ids, workspaceId } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'ids must be a non-empty array' });
+  }
+  if (!workspaceId) {
+    return res.status(400).json({ error: 'workspaceId is required' });
+  }
+
+  const { role: wsRole } = req.workspaceMember;
+  if (!['owner', 'admin', 'member'].includes(wsRole)) {
+    return res.status(403).json({ error: 'Rol insuficiente para reordenar tableros' });
+  }
+
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  if (uniqueIds.length !== ids.length) {
+    return res.status(400).json({ error: 'ids must be unique' });
+  }
+
+  const { data: scopedBoards, error: scopeError } = await supabaseAdmin
+    .from('boards')
+    .select('id')
+    .eq('workspace_id', workspaceId)
+    .eq('organization_id', req.user.organizationId)
+    .in('id', uniqueIds);
+
+  if (scopeError) {
+    console.error('[boards] reorderBoards scope:', scopeError.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+
+  if ((scopedBoards || []).length !== uniqueIds.length) {
+    return res.status(400).json({ error: 'Uno o más tableros no pertenecen al workspace indicado' });
+  }
 
   await Promise.all(
-    ids.map((id, i) =>
-      supabaseAdmin.from('boards').update({ order: i }).eq('id', id).eq('organization_id', req.user.organizationId)
+    uniqueIds.map((id, i) =>
+      supabaseAdmin
+        .from('boards')
+        .update({ order: i + 1 })
+        .eq('id', id)
+        .eq('workspace_id', workspaceId)
+        .eq('organization_id', req.user.organizationId)
     )
   );
 
   const { data } = await supabaseAdmin
     .from('boards')
     .select('*')
+    .eq('workspace_id', workspaceId)
     .eq('organization_id', req.user.organizationId)
     .order('order', { ascending: true });
 

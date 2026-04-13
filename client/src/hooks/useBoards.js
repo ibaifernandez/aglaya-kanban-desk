@@ -48,12 +48,12 @@ export function useBoards(workspaceId) {
       return [...prev].sort((a, b) => (idxMap[a.id] ?? 999) - (idxMap[b.id] ?? 999));
     });
     try {
-      const updated = await api.reorderBoards(ids);
+      const updated = await api.reorderBoards(ids, workspaceId);
       setBoards(updated);
     } catch {
       load();
     }
-  }, [load]);
+  }, [load, workspaceId]);
 
   return { boards, loading, error, createBoard, updateBoard, deleteBoard, reorderBoards, moveBoard };
 }

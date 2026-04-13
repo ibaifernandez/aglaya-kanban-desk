@@ -6,6 +6,8 @@
 const request = require('supertest');
 const jwt     = require('jsonwebtoken');
 
+process.env.JWT_SECRET = 'test-secret';
+
 // Mock Supabase
 jest.mock('../utils/supabase', () => ({
   supabaseAdmin: {

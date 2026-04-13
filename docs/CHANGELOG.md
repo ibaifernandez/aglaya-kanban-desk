@@ -9,6 +9,14 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 - **Estabilización de RLS (Identidad Blindada)**: Resolución definitiva de los errores "Failed to fetch" y violaciones de políticas RLS al crear o eliminar workspaces.
 - **Backend Robustness**: Implementación de instancias locales "frescas" del cliente de Supabase Admin (`freshAdmin`) en rutas críticas para evitar la contaminación de sesiones del singleton global.
 - **Auto-healing de JWT**: El backend ahora recupera automáticamente el `organization_id` directamente de la base de datos si el token del usuario está desactualizado, evitando fallos en claves foráneas.
+- **Permisos GUI/API alineados**: La UI deja de mostrar acciones de workspace y tablero que el backend no autoriza por rol micro (`workspace.myRole`), reduciendo conflictos de validación falsos en creación, edición, movimiento e invitaciones.
+- **Invitaciones de workspace saneadas**: Nuevo flujo con endpoint dedicado de usuarios disponibles por workspace, validación de organización y tipo (`cliente` solo en workspaces `externo`), y protección de invariantes del `owner`.
+- **Panel admin coherente**: Eliminada la opción `guest` del panel global de usuarios; ese rol queda restringido al ámbito del workspace, como dicta la arquitectura del producto.
+- **Sesión sensible endurecida**: Migración de autenticación desde `localStorage` a `sessionStorage` con compatibilidad de migración para sesiones ya existentes.
+- **Reorder de tableros protegido**: `PUT /api/boards/reorder` ahora exige `workspaceId` y valida permisos micro antes de persistir el cambio.
+
+### Added
+- **Cobertura renovada de validación**: Nuevas suites y smoke checks para auth, workspaces y administración, enfocadas en los flujos de permisos que estaban desalineados entre GUI, backend y Supabase.
 
 ## [1.1.1] - 2026-04-12
 

@@ -86,7 +86,7 @@ app.use('/api/media', mediaRouter);
 // ── Boards ────────────────────────────────────────────────
 app.get('/api/boards',          requireAuth, getBoards);
 app.post('/api/boards',         requireAuth, requireWorkspaceMember, createBoard);
-app.put('/api/boards/reorder',  requireAuth, reorderBoards);   // must come before /:id
+app.put('/api/boards/reorder',  requireAuth, requireWorkspaceMember, reorderBoards);   // must come before /:id
 app.put('/api/boards/:id',      requireAuth, requireWorkspaceMember, updateBoard);
 app.delete('/api/boards/:id',   requireAuth, requireWorkspaceMember, deleteBoard);
 
