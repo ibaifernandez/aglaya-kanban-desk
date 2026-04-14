@@ -34,6 +34,7 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ### Docs
 - **Sincronización documental completa con `v1.1.5`**: `PRD`, `PERMISSIONS`, `SECURITY`, `RUNBOOK`, `ROADMAP`, `BACKLOG` y el schema documentado reflejan ya los nombres reales de roles micro (`member/guest`), la restricción de dominio solo en registro, la separación de clientes Supabase en backend y el digest contextual por workspace.
+- **Poda del backlog**: `docs/BACKLOG.md` elimina tareas ya absorbidas o contradictorias, actualiza el estado real del correo transaccional, saca del documento la fase descartada de pitch interno y compacta la siguiente etapa de infraestructura soberana.
 
 ## [1.1.1] - 2026-04-12
 

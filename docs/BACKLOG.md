@@ -4,7 +4,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 
 ---
 
-## Phase 0 — Limpieza y preparación *(En curso)*
+## Phase 0 — Limpieza y preparación *(Completada)*
 
 - [x] Backup de `tasks.json` original → `tasks.personal-backup.json`
 - [x] Limpiar datos personales de `tasks.json`
@@ -63,9 +63,8 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Endpoint `POST /api/digest/send-me` para el admin digest global (requiere auth + rol macro)
 - [x] Endpoint `POST /api/digest/send-my-digest` para el digest personal/contextual del usuario autenticado
 - [x] Botón "Enviarme mis tareas" en Toolbar con feedback visual y scope por workspace
-- [x] SMTP funcional (Migadu provisional)
-- [ ] ⚠️ Migrar SMTP a Resend — pendiente configuración corporativa
-- [ ] Templates de email Supabase personalizados (reset password, invite)
+- [x] SMTP funcional con Resend
+- [ ] Templates de Supabase Auth sincronizados manualmente con `docs/mails/` (invite y reset password)
 
 ### Seguridad
 - [x] Claves Supabase service_role solo en servidor
@@ -86,8 +85,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [ ] **Estabilización de infra de tests (Mac/Node 18)**: Resolver bloqueo sistemático de Jest en el entorno local (Hanging).
 
 ### Multi-tenancy
-- [ ] Migrar rutas boards/columns/cards de `tasks.json` → Supabase
-- [ ] Filtrar datos por `organizationId` en todas las queries
+- [ ] Consolidar el aislamiento multi-tenant legado basado en `organizationId` en helpers compartidos para rutas no contextualizadas por workspace
 - [ ] Endpoint `POST /api/organizations`
 - [ ] Endpoint `GET /api/organizations/:id/members`
 
@@ -131,11 +129,6 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Logo AGLAYA en header del WorkspaceDashboard
 - [x] Botón Admin eliminado del WorkspaceDashboard
 - [x] Mini-kanban abstracto decorativo en tarjetas (seed desde ws.id)
-
-### Pendiente de Phase 2
-- [x] KNOWN-02: Email de invitación — template corporativo configurado en Supabase Auth + URL de redirección correcta (2026-03-27)
-
----
 
 ## Sub-fase 2.1: Supabase Storage + Identidad visual *(Completada — 2026-03-27)*
 
@@ -216,30 +209,13 @@ La plataforma debe reflejar cómo funciona el trabajo real: los proyectos y tare
 
 - [ ] **Permisos por tablero**: owner / editor / viewer (dentro de un workspace, acceso diferenciado por tablero — Phase 1+, no bloquea v1.0)
 - [ ] **Notificaciones in-app**: alertas de cambios en tarjetas asignadas
-- [ ] **Migración multi-tenant completa**: boards/columns/cards filtrar por organizationId en todas las queries
 - [ ] **Límites freemium**: middleware (máx. 3 tableros / 50 tarjetas en plan free)
-- [ ] **KNOWN-02**: Email de invitación Supabase — template personalizado + redirect URL correcta
 - [ ] **Foto de perfil en tarjeta**: mostrar `avatar_url` del assignee en el avatar de la tarjeta (hoy solo muestra inicial); requiere añadir `avatar_url` al select de `users!assignee_id` en `/api/boards/:boardId/cards` y renderizar `<img>` con fallback a inicial
-- [x] **Confirmación al borrar tarjetas y columnas**: diálogo inline en `CardModal` + modal en `Board` (menú contextual) — `7a4e504` · v1.2.0
-- [x] **Confirmación al borrar tableros y acceso directo para eliminar workspaces**: modal de confirmación en Sidebar + papelera visible en tarjetas de workspace para owners — `2026-04-13`
-- [x] **Resumen por workspace desde la navbar interior**: el icono de correo envía el digest personal filtrado por el workspace actual y ya no usa el admin digest global — `2026-04-13`
 
 ---
 
-## Phase 3 — Pitch interno AGLAYA *(Por definir)*
-
-- [ ] Demo funcional verificada en producción (kanban.aglaya.biz)
-- [ ] Deck de presentación (5–6 slides)
-- [ ] Propuesta comercial redactada
-- [ ] Reunión con Héctor Vera e Iván Colodro
-- [ ] Reunión con Daniel y Marco
-
----
-
-## Phase 4 — Despliegue en Infraestructura Soberana *(Pendiente de Phase 3)*
+## Infraestructura soberana *(Pendiente)*
 
 - [ ] Configurar servidores propios de AGLAYA con PM2/Docker
-- [ ] Implementar flujo CI/CD hacia producción
-- [ ] Configurar SSL y monitoreo de salud del servidor
-- [ ] Configurar HTTPS / SSL
-- [ ] CI/CD básico (GitHub Actions)
+- [ ] Configurar HTTPS / SSL y monitoreo de salud del servidor
+- [ ] Implementar CI/CD básico hacia producción (GitHub Actions)
