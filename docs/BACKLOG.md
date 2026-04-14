@@ -21,8 +21,8 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Reescribir `docs/ROADMAP.md` con 4 fases corporativas
 - [x] Reescribir `docs/BACKLOG.md`
 - [x] Reescribir `docs/ARCHITECTURE.md` con visión Phase 1+
-- [x] Reescribir `docs/DECISIONS.md` con decisiones estratégicas
-- [x] Reescribir `docs/PRODUCT.md` orientado a stakeholders AGLAYA
+- [x] Consolidar decisiones estratégicas en `docs/ARCHITECTURE.md` (sección ADR)
+- [x] Reescribir `docs/PRD.md` orientado a stakeholders AGLAYA
 - [x] Añadir entrada en `docs/CHANGELOG.md` — Sesión 0
 
 ---
@@ -42,7 +42,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Endpoint `GET /api/auth/me`
 - [x] Middleware `requireAuth` (JWT) para rutas protegidas
 - [x] Middleware `requireRole(...roles)` para rutas por rol
-- [x] Restricción de dominio: solo @aglaya.biz e @ibaifernandez.com
+- [x] Restricción de dominio en registro corporativo: solo @aglaya.biz e @ibaifernandez.com
 - [x] Usuario superadmin actualizado: info@ibaifernandez.com
 
 ### Frontend — Autenticación ✅
@@ -60,8 +60,9 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Display name «AGLAYA Kanban Desk» en toda la UI (sesión 6)
 
 ### Email ✅ (parcial)
-- [x] Endpoint `POST /api/digest/send-me` (requiere auth)
-- [x] Botón "Enviarme mis tareas" en Toolbar con feedback visual
+- [x] Endpoint `POST /api/digest/send-me` para el admin digest global (requiere auth + rol macro)
+- [x] Endpoint `POST /api/digest/send-my-digest` para el digest personal/contextual del usuario autenticado
+- [x] Botón "Enviarme mis tareas" en Toolbar con feedback visual y scope por workspace
 - [x] SMTP funcional (Migadu provisional)
 - [ ] ⚠️ Migrar SMTP a Resend — pendiente configuración corporativa
 - [ ] Templates de email Supabase personalizados (reset password, invite)
@@ -100,10 +101,9 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [ ] UI de aviso cuando se alcanza el límite
 
 ### QA y documentación
-- [x] `docs/QA-DESKTOP.md` — checklist funcional desktop
-- [x] `docs/QA-MOBILE.md` — checklist mobile
-- [x] `docs/README-deploy.md` — instrucciones de deploy
+- [x] `docs/RUNBOOK.md` — guía operativa unificada para local y producción
 - [x] `docs/INCIDENTS.md` — registro de fallos reales, causa raíz y correctivos aplicados
+- [x] Sincronización de `PRD`, `PERMISSIONS`, `SECURITY`, `RUNBOOK`, `ROADMAP` y schema documentado con la codebase `v1.1.5`
 - [x] Confirmaciones explícitas al borrar tableros, columnas y workspaces desde la GUI
 - [x] Cierre por `Escape` en overlays principales (workspace, card, invitaciones y confirmaciones)
 - [x] Digest contextual por workspace con confirmación previa y destinatario derivado de Auth
@@ -155,7 +155,7 @@ Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
 - [x] Botón cámara al hover sobre tarjeta (solo admins/owners)
 
 ### Tipo de espacio de trabajo ✅
-- [x] Campo `type`: `'cliente'` | `'departamento'` | `'general'`
+- [x] Campo `type`: `'personal'` | `'interno'` | `'externo'`
 - [x] Selector en modal de creación (botones)
 - [x] Badge TypeBadge en cada tarjeta de workspace
 - [x] Filtro por tipo — tabs en WorkspaceDashboard

@@ -1,5 +1,5 @@
 # Modelos de Roles y Permisos — AGLAYA Kanban Desk
-**Versión:** v1.1.0.0 · **Fecha:** 2026-04-11
+**Versión:** v1.1.5 · **Fecha:** 2026-04-14
 
 Este documento es la fuente de verdad única sobre la jerarquía, privacidad y capacidades del sistema.
 
@@ -15,7 +15,7 @@ _Locus de control total y auditoría._
 
 - **Visibilidad limpia**: solo ve _workspaces_ propios y aquellos donde haya sido invitado.
 - **Modo Dios**: acceso universal a cualquier _workspace_ vía URL directa (en los que pasa a actuar como `owner`).
-- **Omnipotencia**: puede crear cualquier tipo de panel y cambiar los permisos de **todos** los miembros (incluyendo otros _admins_).
+- **Omnipotencia**: puede crear cualquier tipo de workspace y cambiar los permisos de **todos** los miembros (incluyendo otros _admins_).
 
 ### 🛡️ Admins
 
@@ -42,18 +42,24 @@ _Autonomía operativa con límites jerárquicos._
 
 Define los permisos **dentro** de un contenedor específico. Un usuario puede tener diferentes roles micro en diferentes _workspaces_, independientemente de su rol macro.
 
-| Acción                          | Propietario | Admin | Colaborador | Cliente |
-| :------------------------------ | :---------: | :---: | :---------: | :-----: |
-| **Eliminar _workspace_**        |     ✅      |  ❌   |     ❌      |   ❌    |
-| **Configurar _workspace_**      |     ✅      |  ✅   |     ❌      |   ❌    |
-| **Añadir/Eliminar miembros**    |     ✅      |  ✅   |     ❌      |   ❌    |
-| **Cambiar roles de miembros**   |     ✅      |  ✅   |     ❌      |   ❌    |
-| **Mover tableros entre WS**     |     ✅      |  ✅   |     ❌      |   ❌    |
-| **Crear/Eliminar tableros**     |     ✅      |  ✅   |     ✅      |   ❌    |
-| **Crear/Eliminar columnas**     |     ✅      |  ✅   |     ✅      |   ❌    |
-| **Crear tarjetas**              |     ✅      |  ✅   |     ✅      |   ✅    |
-| **Gestionar tarjetas/contenido**|     ✅      |  ✅   |     ✅      |   ✅    |
-| **Borrar tarjetas**             |     ✅      |  ✅   |     ✅      |   ❌    |
+Valores internos reales:
+- `owner` → Propietario
+- `admin` → Admin del workspace
+- `member` → Miembro
+- `guest` → Invitado
+
+| Acción                          | Propietario | Admin | Miembro | Invitado |
+| :------------------------------ | :---------: | :---: | :-----: | :-------: |
+| **Eliminar _workspace_**        |     ✅      |  ❌   |   ❌    |    ❌     |
+| **Configurar _workspace_**      |     ✅      |  ✅   |   ❌    |    ❌     |
+| **Añadir/Eliminar miembros**    |     ✅      |  ✅   |   ❌    |    ❌     |
+| **Cambiar roles de miembros**   |     ✅      |  ✅   |   ❌    |    ❌     |
+| **Mover tableros entre WS**     |     ✅      |  ✅   |   ❌    |    ❌     |
+| **Crear/Eliminar tableros**     |     ✅      |  ✅   |   ✅    |    ❌     |
+| **Crear/Eliminar columnas**     |     ✅      |  ✅   |   ✅    |    ❌     |
+| **Crear tarjetas**              |     ✅      |  ✅   |   ✅    |    ✅     |
+| **Gestionar tarjetas/contenido**|     ✅      |  ✅   |   ✅    |    ✅     |
+| **Borrar tarjetas**             |     ✅      |  ✅   |   ✅    |    ❌     |
 
 ### 📍 La regla del propietario
 
@@ -71,7 +77,7 @@ Define los permisos **dentro** de un contenedor específico. Un usuario puede te
 4. **Modo Dios (Auditoría Invisible)**: el `superadmin` tiene un bypass en el middleware que le permite actuar como `owner` de cualquier espacio de trabajo mediante acceso directo por URL.
 5. **Colaborador Sandbox**: los colaboradores solo pueden crear workspaces `personal`. Esto asegura que los entornos `interno` y `externo` sean gestionados exclusivamente por la gerencia (_admins_).
 6. **Bloqueo de Panel Admin**: el acceso a la gestión global de usuarios (Panel Admin) está restringido estrictamente a `superadmin` y `admin`. Los colaboradores no pueden ver ni modificar la lista de usuarios de la organización.
-7. **Independencia de capas**: un rol macro (ej. Colaborador) puede ser Admin o incluso Owner a nivel micro sin que eso le otorgue permisos macro adicionales.
+7. **Independencia de capas**: un rol macro (ej. Colaborador o Cliente) puede tener un rol micro distinto dentro de un workspace sin que eso le otorgue permisos macro adicionales.
 
 ---
 

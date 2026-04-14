@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS public.users (
   email           TEXT NOT NULL UNIQUE,
   name            TEXT NOT NULL,
   role            TEXT NOT NULL DEFAULT 'colaborador',
-  -- roles: superadmin | admin | colaborador | cliente | guest
+  -- roles macro: superadmin | admin | colaborador | cliente
+  -- nota: 'guest' queda reservado al ambito micro (`workspace_members.role`)
   organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );

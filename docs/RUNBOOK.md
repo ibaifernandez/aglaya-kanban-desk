@@ -1,6 +1,6 @@
 # RUNBOOK.md — Guía de Operaciones AGLAYA
 
-**Última actualización:** 2026-04-13 (v1.1.5 - Estabilización)
+**Última actualización:** 2026-04-14 (v1.1.5 - Operativa sincronizada)
 
 Este documento centraliza toda la operativa técnica de AGLAYA Kanban Desk, tanto para desarrollo local como para puesta en producción en infraestructura soberana de AGLAYA.
 
@@ -81,13 +81,20 @@ curl https://kanban.aglaya.biz/api/health
 
 ### Ejecutar Tareas Manuales
 ```bash
-# Forzar envío de digest de tareas (ignora el cron)
+# Forzar envío del admin digest global (ignora el cron)
 node -e "require('dotenv').config(); require('./server/digest').sendDigest()"
+```
+
+```bash
+# Enviar digest personal/contextual vía API autenticada
+# POST /api/digest/send-my-digest
+# Body opcional: { "workspaceId": "<uuid-del-workspace>" }
 ```
 
 ### Consultar Historial de Incidencias
 - Revisar [INCIDENTS.md](./INCIDENTS.md) antes de diagnosticar regresiones ya conocidas.
 - Si el síntoma afecta a correo transaccional de Supabase, verificar también que las plantillas del panel Auth coincidan con los HTML versionados en `docs/mails/`.
+- Si el síntoma afecta a permisos o errores RLS intermitentes, confirmar que Railway esté corriendo una revisión posterior al aislamiento de clientes Supabase (`v1.1.5`).
 
 ### Limpieza de Caché y Reinstalación
 ```bash

@@ -1,6 +1,6 @@
 # ROADMAP — AGLAYA Kanban Desk
 
-**Última actualización:** 2026-04-13
+**Última actualización:** 2026-04-14
 
 ---
 
@@ -32,7 +32,7 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 **Estado:** ✅ Completada · 2026-03-24/25
 
 - Jerarquía ampliada: Organization → **Workspace** → Board → Column → Card
-- Roles por workspace: owner / admin / colaborador / cliente
+- Roles por workspace: owner / admin / member / guest
 - RLS con funciones `SECURITY DEFINER` para evitar recursión
 - WorkspaceDashboard: grid de tarjetas, mini-kanban generativo, counts reales
 - WorkspaceMembers: panel lateral de gestión de roles
@@ -81,8 +81,8 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 - [ ] Mover tarjeta entre tableros (cross-board desde el modal)
 
 ### Tests
-- [x] Reimplementar restricción de dominio corporativo en backend (`v1.1.0.0`)
-- [ ] Actualizar suite `auth.test.js` para cubrir sistema de dominios autorizados
+- [x] Reimplementar restricción de dominio corporativo en backend para registro (`v1.1.0.0`)
+- [ ] Actualizar suite `auth.test.js` para cubrir restricción de dominio en registro y no restricción en login
 - [ ] Tests para rutas de workspaces con tipos `personal/interno/externo`
 
 ---

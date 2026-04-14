@@ -4,7 +4,7 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
-## [1.1.5] - 2026-04-13
+## [1.1.5] - 2026-04-13/14
 ### Fixed
 - **Estabilización de RLS (Identidad Blindada)**: Resolución definitiva de los errores "Failed to fetch" y violaciones de políticas RLS al crear o eliminar workspaces.
 - **Backend Robustness**: Implementación de instancias locales "frescas" del cliente de Supabase Admin (`freshAdmin`) en rutas críticas para evitar la contaminación de sesiones del singleton global.
@@ -31,6 +31,9 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 - **Cobertura anti-regresión para invitaciones admin**: Tests específicos para JWT con organización obsoleta, recuperación de usuarios parciales y conflictos de email ya existente.
 - **Registro de incidencias operativo**: nuevo documento `docs/INCIDENTS.md` con fallos reales, causa raíz, correctivos y notas pendientes de operación.
 - **Cobertura anti-regresión de identidad**: tests dirigidos para drift de email Auth/perfil y digest contextual por workspace.
+
+### Docs
+- **Sincronización documental completa con `v1.1.5`**: `PRD`, `PERMISSIONS`, `SECURITY`, `RUNBOOK`, `ROADMAP`, `BACKLOG` y el schema documentado reflejan ya los nombres reales de roles micro (`member/guest`), la restricción de dominio solo en registro, la separación de clientes Supabase en backend y el digest contextual por workspace.
 
 ## [1.1.1] - 2026-04-12
 
@@ -355,9 +358,9 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 ```
 
 ### Seguridad — limpieza de secretos en repositorio
-- `docs/DECISIONS.md`: clave API real de Resend que estaba hardcodeada en el ADR-007 → redactada y sustituida por placeholder. **Clave revocada y nueva generada por Ibai; guardada a buen recaudo hasta poder configurar Resend.**
+- `docs/ARCHITECTURE.md` (sección ADR): clave API real de Resend que estaba hardcodeada en el ADR-007 → redactada y sustituida por placeholder. **Clave revocada y nueva generada por Ibai; guardada a buen recaudo hasta poder configurar Resend.**
 - `.env.example`: placeholders de SMTP neutralizados para no activar detectores de secretos (GitGuardian)
-- `docs/README-deploy.md`: URL real de Supabase sustituida por placeholder
+- `docs/RUNBOOK.md`: URL real de Supabase sustituida por placeholder
 - GitGuardian: 3 incidentes resueltos (2 falsos positivos de `.env.example`, 1 clave Resend real ya revocada)
 
 ---
@@ -471,8 +474,8 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 - `docs/ROADMAP.md` — 4 fases: Phase 0→4 con objetivos y entregables
 - `docs/BACKLOG.md` — tareas por fase (Phase 0 completada, Phases 1–3 planificadas)
 - `docs/ARCHITECTURE.md` — arquitectura actual (Phase 0) + arquitectura objetivo (Phase 1) con esquema Supabase, roles, multi-tenancy
-- `docs/DECISIONS.md` — 6 ADRs: Supabase, auth JWT, Infra-Soberana, freemium, IP, fork
-- `docs/PRODUCT.md` — visión de producto para stakeholders AGLAYA, comparativa herramientas, modelo freemium
+- `docs/ARCHITECTURE.md` — ADRs y decisiones estructurales: Supabase, auth JWT, Infra-Soberana, freemium, IP, fork
+- `docs/PRD.md` — visión de producto para stakeholders AGLAYA, comparativa herramientas y modelo freemium
 
 ---
 

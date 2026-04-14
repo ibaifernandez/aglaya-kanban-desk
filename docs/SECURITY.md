@@ -4,18 +4,20 @@ Auditoría de seguridad y superficie de ataque. Documento de referencia para la 
 
 ---
 
-## Estado general Phase 1 (v1.1.0.0)
+## Estado general actual (v1.1.5)
 
 | Área | Estado | Detalle |
 |---|---|---|
 | Autenticación | ✅ | Supabase Auth + JWT firmado por el servidor |
 | Autorización | ✅ | Middleware `requireAuth` y `requireWorkspaceMember` en todos los endpoints de datos |
-| Restricción de dominio | ✅ | Capa de filtrado corporativo (`@aglaya.biz`, `@ibaifernandez.com`) |
+| Restricción de dominio | ✅ | Filtrado corporativo en `POST /api/auth/register` para `@aglaya.biz` e `@ibaifernandez.com` |
+| Persistencia de sesión | ✅ | Sesión sensible en `sessionStorage` (`aglaya_session`) con migración suave desde legado |
 | Security headers HTTP | ✅ | `helmet` configurado con CSP activa en producción |
 | Exposición de claves | ✅ | `service_role` restringido al backend; RLS activo en DB |
 | CORS | ✅ | Orígenes estrictos (puerto 5175 en local, dominio real en prod) |
 | Rate limiting | ✅ | `express-rate-limit` activo en los endpoints de autenticación |
 | Row Level Security | ✅ | Políticas de Supabase activas por `organization_id` y `workspace_id` |
+| Aislamiento Supabase Admin/Auth | ✅ | `auth` y `admin` usan clientes frescos por request para evitar contaminación de sesión |
 
 ---
 
@@ -40,17 +42,18 @@ Auditoría de seguridad y superficie de ataque. Documento de referencia para la 
 
 ### Flujo Hardened
 1.  **Rate Limiting**: Los endpoints de auth están limitados por IP para prevenir fuerza bruta.
-2.  **Domain Guard**: El registro y login validan estrictamente los dominios `@aglaya.biz` e `@ibaifernandez.com`.
+2.  **Domain Guard**: El registro corporativo valida estrictamente los dominios `@aglaya.biz` e `@ibaifernandez.com`.
 3.  **Sign-in**: Las credenciales se validan contra Supabase Auth.
 4.  **Token Issuance**: El servidor emite un JWT firmado que expira en 7 días.
-5.  **Multi-layer Auth**: 
+5.  **Clientes separados por propósito**: el backend crea clientes Supabase frescos para auth interactiva y para operaciones privilegiadas, evitando contaminación de identidad entre requests.
+6.  **Multi-layer Auth**:
     - `requireAuth`: Valida identidad.
     - `requireWorkspaceMember`: Valida que el usuario tenga acceso al workspace específico que intenta tocar.
 
 ### Superficie de ataque (Endpoints)
 
 #### Públicos 🔓
-- `POST /api/auth/login` (Protegido por Rate Limit y Domain Guard)
+- `POST /api/auth/login` (Protegido por Rate Limit)
 - `POST /api/auth/register` (Protegido por Rate Limit y Domain Guard)
 - `GET /api/health` (Status anónimo)
 
@@ -93,7 +96,8 @@ Segunda línea de defensa (Capa de datos):
 1.  **Purga de Identidad**: Eliminación total de marcas previas y dominios obsoletos en el flujo de seguridad.
 2.  **Hardening de Registro**: Solo personal autorizado puede crear cuentas.
 3.  **Consolidación de Middlewares**: No hay rutas de datos expuestas sin validación de JWT.
+4.  **Separación de identidades backend**: las rutas administrativas ya no reutilizan el mismo cliente Supabase que el login, evitando errores RLS intermitentes.
 
 ---
 
-*Última actualización: 2026-04-11 — Auditoría Final v1.1.0.0*
+*Última actualización: 2026-04-14 — Auditoría vigente v1.1.5*

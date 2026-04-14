@@ -1,7 +1,7 @@
 # PRD (Product Requirements Document) — AGLAYA Kanban Desk
-**Phase 1 · v1.1.0.0**
+**Phase 4 · v1.1.5**
 **Owner:** AGLAYA · info@ibaifernandez.com
-**Fecha:** 2026-04-11 (Actualizado)
+**Fecha:** 2026-04-14 (Sincronizado con codebase)
 
 ---
 
@@ -46,8 +46,8 @@ AGLAYA es capaz de gestionar simultáneamente múltiples clientes, campañas y o
 ### Roles Micro (Workspace Member)
 - `owner`: Inmutable, control total y borrado.
 - `admin`: Gestión de miembros y tableros.
-- `colaborador`: Gestión operativa y creación de tableros.
-- `cliente` (Guest): Colaboración en tarjetas; sin borrado ni gestión estructural.
+- `member` (Miembro): Gestión operativa, creación y mantenimiento de tableros/columnas/tarjetas, sin control de miembros ni movimiento estructural entre workspaces.
+- `guest` (Invitado): Colaboración ligera en tarjetas dentro del workspace; sin borrado ni gestión estructural.
 
 ---
 
@@ -76,15 +76,18 @@ Una vez validado internamente, AGLAYA puede escalarse a otras agencias:
 - Jerarquía: Organización -> Workspaces -> Boards -> Columns -> Cards.
 - Drag & drop fluido de tarjetas entre columnas y tableros.
 - Sidebar de navegación global y búsqueda de tableros.
+- Digest personal contextual por workspace desde la navbar interior.
 
 ### Seguridad y Privacidad
 - Aislamiento perimetral: Los clientes no ven el trabajo de otros clientes ni el interno.
 - Modo Dios (Superadmin): Auditoría invisible pero total.
 - Hardened Permission Matrix: Roles micro protegidos por middleware context-aware.
+- La sesión sensible vive en `sessionStorage` (`aglaya_session`), no en `localStorage`.
 
 ---
 
 ## 7. Criterios de Aceptación
 - Los datos persisten en Supabase y respetan la jerarquía de la organización.
 - El drag & drop mantiene el orden íntegro tras recargar.
-- Usuarios con rol `cliente` reciben `403 Forbidden` al intentar borrar columnas o mover tableros.
+- Usuarios macro `cliente` reciben `403 Forbidden` al intentar acceder a workspaces `personal` o `interno`.
+- Usuarios con rol micro `guest` no pueden ejecutar acciones estructurales como mover tableros o borrar elementos del workspace.
