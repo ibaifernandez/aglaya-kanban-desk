@@ -6,14 +6,14 @@
 # Proxy /api/* → Railway backend (evita CORS y no requiere cambios en el frontend)
 [[redirects]]
   from   = "/api/*"
-  to     = "https://web-production-aa41d.up.railway.app/api/:splat"
+  to     = "https://web-production-099a0.up.railway.app/api/:splat"
   status = 200
   force  = true
 
 # Proxy /uploads/* → Railway
 [[redirects]]
   from   = "/uploads/*"
-  to     = "https://web-production-aa41d.up.railway.app/uploads/:splat"
+  to     = "https://web-production-099a0.up.railway.app/uploads/:splat"
   status = 200
   force  = true
 
