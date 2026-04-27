@@ -64,8 +64,8 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 ### Workspace settings
 - [x] Botón editar visible al hover + preservación del tipo real al editar — `bbd0b8a`
 - [x] Aviso al cambiar workspace a tipo `externo` (visibilidad para clientes) — `bbd0b8a`
-- [ ] Página de ajustes de workspace: editar nombre, emoji, tipo, descripción, portada
-- [ ] Cambio de tipo de workspace desde la UI (sin SQL) — documentado en backlog
+- [x] Página de ajustes de workspace: editar nombre, emoji, tipo, descripción, portada — modal completo funcional
+- [x] Cambio de tipo de workspace desde la UI (sin SQL) — selector de tipo en modal
 
 ### Seguridad y UX de destrucción
 - [x] Confirmación al borrar tarjetas (diálogo inline en CardModal) — `7a4e504`
@@ -78,7 +78,7 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 
 ### Movilidad de objetos
 - [x] Mover tablero entre workspaces (BoardMoveModal + backend) — `90f4c4f`
-- [ ] Mover tarjeta entre tableros (cross-board desde el modal)
+- [x] Mover tarjeta entre tableros (cross-board desde el modal) — opción "Mover a tablero"
 
 ### Tests
 - [x] Reimplementar restricción de dominio corporativo en backend para registro (`v1.1.0.0`)

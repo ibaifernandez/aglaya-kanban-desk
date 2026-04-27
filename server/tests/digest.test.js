@@ -145,4 +145,45 @@ describe('POST /api/digest/send-my-digest', () => {
     expect(res.body.message).toMatch(/No tienes tareas accionables/i);
     expect(sendUserDigest).not.toHaveBeenCalled();
   });
+
+  it('returns error if digest send fails', async () => {
+    sendUserDigest.mockRejectedValueOnce(new Error('SMTP connection failed'));
+
+    const res = await request(app)
+      .post('/api/digest/send-my-digest')
+      .set('Authorization', `Bearer ${makeToken()}`)
+      .send({ workspaceId: 'ws-1' });
+
+    expect(res.status).toBe(500);
+    expect(res.body.ok).toBe(false);
+    expect(res.body.error).toContain('SMTP connection failed');
+  });
+
+  it('returns error if digest send exceeds 10s timeout', async () => {
+    // Mock sendUserDigest to hang indefinitely
+    sendUserDigest.mockImplementationOnce(() =>
+      new Promise(() => {}) // Never resolves
+    );
+
+    const res = await request(app)
+      .post('/api/digest/send-my-digest')
+      .set('Authorization', `Bearer ${makeToken()}`)
+      .send({ workspaceId: 'ws-1' })
+      .timeout(15000); // Give test time to hit 10s timeout
+
+    expect(res.status).toBe(500);
+    expect(res.body.ok).toBe(false);
+    expect(res.body.error).toContain('expirado');
+  });
+
+  it('responds with ok=true when digest sends successfully', async () => {
+    const res = await request(app)
+      .post('/api/digest/send-my-digest')
+      .set('Authorization', `Bearer ${makeToken()}`)
+      .send({ workspaceId: 'ws-1' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.message).toContain('enviado');
+  });
 });

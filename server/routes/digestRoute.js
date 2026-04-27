@@ -16,12 +16,19 @@ router.post('/send-me', requireAuth, requireRole('admin', 'superadmin'), async (
     return res.status(500).json({ error: 'DIGEST_TO no configurado en el servidor.' });
   }
 
-  // Respond immediately — digest builds + sends async to avoid gateway timeout
-  res.json({ ok: true, message: `Digest en camino a ${recipient}. Revisa tu correo en unos segundos.` });
+  try {
+    // Send with 10s timeout to avoid gateway timeout
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Envío de digest expirado (>10s)')), 10000)
+    );
 
-  sendDigest(recipient).catch((err) => {
+    await Promise.race([sendDigest(recipient), timeoutPromise]);
+
+    res.json({ ok: true, message: `Digest enviado a ${recipient}.` });
+  } catch (err) {
     console.error('[digest/send-me]', err.message);
-  });
+    res.status(500).json({ ok: false, error: `Error al enviar digest: ${err.message}` });
+  }
 });
 
 // ── POST /api/digest/send-my-digest ──────────────────────────────────────────
@@ -32,69 +39,79 @@ router.post('/send-my-digest', requireAuth, async (req, res) => {
   const adminClient = createAdminClient();
   const { workspaceId = null } = req.body ?? {};
 
-  const { profile: user, error } = await getSyncedUserProfile(adminClient, req.user.id);
-  if (error || !user) {
-    return res.status(404).json({ error: 'Usuario no encontrado.' });
-  }
-
-  let workspace = null;
-  if (workspaceId) {
-    const { data: candidateWorkspace, error: workspaceError } = await adminClient
-      .from('workspaces')
-      .select('id, name, emoji')
-      .eq('id', workspaceId)
-      .single();
-
-    if (workspaceError || !candidateWorkspace) {
-      return res.status(404).json({ error: 'Espacio de trabajo no encontrado.' });
+  try {
+    const { profile: user, error } = await getSyncedUserProfile(adminClient, req.user.id);
+    if (error || !user) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
     }
 
-    if (req.user.role !== 'superadmin') {
-      const { data: membership, error: membershipError } = await adminClient
-        .from('workspace_members')
-        .select('workspace_id')
-        .eq('workspace_id', workspaceId)
-        .eq('user_id', req.user.id)
-        .maybeSingle();
+    let workspace = null;
+    if (workspaceId) {
+      const { data: candidateWorkspace, error: workspaceError } = await adminClient
+        .from('workspaces')
+        .select('id, name, emoji')
+        .eq('id', workspaceId)
+        .single();
 
-      if (membershipError || !membership) {
-        return res.status(403).json({ error: 'No tienes acceso a este espacio de trabajo.' });
+      if (workspaceError || !candidateWorkspace) {
+        return res.status(404).json({ error: 'Espacio de trabajo no encontrado.' });
       }
+
+      if (req.user.role !== 'superadmin') {
+        const { data: membership, error: membershipError } = await adminClient
+          .from('workspace_members')
+          .select('workspace_id')
+          .eq('workspace_id', workspaceId)
+          .eq('user_id', req.user.id)
+          .maybeSingle();
+
+        if (membershipError || !membership) {
+          return res.status(403).json({ error: 'No tienes acceso a este espacio de trabajo.' });
+        }
+      }
+
+      workspace = candidateWorkspace;
     }
 
-    workspace = candidateWorkspace;
-  }
+    const sections = await buildUserCards(user.id, { workspaceId });
+    if (sections.total === 0) {
+      return res.json({
+        ok: true,
+        message: workspace
+          ? `No tienes tareas accionables ahora mismo en ${workspace.emoji ?? ''} ${workspace.name}`.trim()
+          : 'No tienes tareas accionables ahora mismo.',
+      });
+    }
 
-  const sections = await buildUserCards(user.id, { workspaceId });
-  if (sections.total === 0) {
-    return res.json({
+    const workspaceLabel = workspace ? `${workspace.emoji ?? ''} ${workspace.name}`.trim() : null;
+
+    // Send with 10s timeout for feedback
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Envío de digest expirado (>10s)')), 10000)
+    );
+
+    await Promise.race([
+      sendUserDigest({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        sections,
+        workspaceName: workspace?.name ?? null,
+        workspaceId,
+      }),
+      timeoutPromise,
+    ]);
+
+    res.json({
       ok: true,
-      message: workspace
-        ? `No tienes tareas accionables ahora mismo en ${workspace.emoji ?? ''} ${workspace.name}`.trim()
-        : 'No tienes tareas accionables ahora mismo.',
+      message: workspaceLabel
+        ? `Resumen de ${workspaceLabel} enviado a ${user.email}.`
+        : `Tu digest personal enviado a ${user.email}.`,
     });
-  }
-
-  const workspaceLabel = workspace ? `${workspace.emoji ?? ''} ${workspace.name}`.trim() : null;
-
-  // Respond immediately so the client isn't blocked waiting for SMTP
-  res.json({
-    ok: true,
-    message: workspaceLabel
-      ? `Resumen de ${workspaceLabel} en camino a ${user.email}. Revisa tu correo en unos segundos.`
-      : `Tu digest personal está en camino a ${user.email}. Revisa tu correo en unos segundos.`,
-  });
-
-  sendUserDigest({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    sections,
-    workspaceName: workspace?.name ?? null,
-    workspaceId,
-  }).catch((err) => {
+  } catch (err) {
     console.error('[digest/send-my-digest]', err.message);
-  });
+    res.status(500).json({ ok: false, error: `Error al enviar digest: ${err.message}` });
+  }
 });
 
 // ── POST /api/digest/send-all-digests ─────────────────────────────────────────
@@ -102,12 +119,19 @@ router.post('/send-my-digest', requireAuth, async (req, res) => {
 // Useful for testing the scheduler manually.
 
 router.post('/send-all-digests', requireAuth, requireRole('admin', 'superadmin'), async (req, res) => {
-  // Respond immediately — can take several seconds for large user bases
-  res.json({ ok: true, message: 'Enviando digest a todos los usuarios. Revisa los logs del servidor.' });
-
-  sendAllUserDigests().catch((err) => {
-    console.error('[digest/send-all-digests]', err.message);
+  // Respond immediately — can take several minutes for large user bases
+  res.json({
+    ok: true,
+    message: 'Enviando digests a todos los usuarios. Monitorea los logs del servidor para resultados.',
   });
+
+  sendAllUserDigests()
+    .then((results) => {
+      console.log(`✅ [digest/send-all-digests] Completado: ${results.sent} enviados, ${results.skipped} omitidos, ${results.errors} errores`);
+    })
+    .catch((err) => {
+      console.error(`❌ [digest/send-all-digests] Error fatal: ${err.message}`);
+    });
 });
 
 module.exports = router;

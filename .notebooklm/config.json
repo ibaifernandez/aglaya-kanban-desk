@@ -1,0 +1,8 @@
+{
+  "notebook_id": "97a74229-2ecd-44b1-978e-561ec8bcfd36",
+  "notebook_title": "aglaya-kanban-desk",
+  "project_path": "/Users/AGLAYA/Local Sites/aglaya-kanban-desk",
+  "created_at": "2026-04-27",
+  "auto_sources": ["README.md", "CLAUDE.md", "AGENTS.md", "docs/"],
+  "live_url": "https://kanban.aglaya.biz"
+}

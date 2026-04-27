@@ -120,8 +120,18 @@ app.get('/api/health', (_req, res) =>
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 );
 
-// Export app for testing; only listen when run directly
+// ── Startup ───────────────────────────────────────────────
+const { validateSmtpConfig, validateDigestSchedules } = require('./utils/smtpConfig');
+
 if (require.main === module) {
+  try {
+    validateSmtpConfig();
+    validateDigestSchedules();
+  } catch (err) {
+    console.error(`❌ Startup failed: ${err.message}`);
+    process.exit(1);
+  }
+
   app.listen(PORT, () => {
     console.log(`AGLAYA Kanban Desk server → http://localhost:${PORT}`);
     require('./digest').startDigestScheduler();
