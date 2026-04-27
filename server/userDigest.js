@@ -16,7 +16,8 @@ const { logDigestAttempt } = require('./utils/digestLogging');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const USER_DIGEST_HOUR = parseInt(process.env.USER_DIGEST_HOUR ?? '8', 10);
+const USER_DIGEST_HOUR   = parseInt(process.env.USER_DIGEST_HOUR ?? '8', 10);
+const USER_DIGEST_MINUTE = parseInt(process.env.USER_DIGEST_MINUTE ?? '0', 10);
 
 const SITE_URL = process.env.SITE_URL ?? 'https://kanban.aglaya.biz';
 
@@ -504,8 +505,9 @@ async function sendAllUserDigests() {
 // ── Scheduler ─────────────────────────────────────────────────────────────────
 
 function startUserDigestScheduler() {
-  const hour = Number.isFinite(USER_DIGEST_HOUR) ? USER_DIGEST_HOUR : 8;
-  const expr = `0 ${hour} * * *`;
+  const hour   = Number.isFinite(USER_DIGEST_HOUR) ? USER_DIGEST_HOUR : 8;
+  const minute = Number.isFinite(USER_DIGEST_MINUTE) ? USER_DIGEST_MINUTE : 0;
+  const expr   = `${minute} ${hour} * * *`;
 
   cron.schedule(expr, () => {
     console.log(`[userDigest] Running scheduled user digests (${new Date().toISOString()})`);
@@ -514,7 +516,7 @@ function startUserDigestScheduler() {
     );
   });
 
-  console.log(`[userDigest] Scheduler started — daily at ${String(hour).padStart(2, '0')}:00 local time`);
+  console.log(`[userDigest] Scheduler started — daily at ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')} local time`);
 }
 
 module.exports = { buildUserCards, sendUserDigest, sendAllUserDigests, startUserDigestScheduler };

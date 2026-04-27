@@ -14,7 +14,8 @@ const { logDigestAttempt } = require('./utils/digestLogging');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const DIGEST_HOUR = parseInt(process.env.DIGEST_HOUR ?? '7', 10);
+const DIGEST_HOUR   = parseInt(process.env.DIGEST_HOUR ?? '7', 10);
+const DIGEST_MINUTE = parseInt(process.env.DIGEST_MINUTE ?? '0', 10);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -454,15 +455,16 @@ async function sendDigest(to) {
 // ── Scheduler ─────────────────────────────────────────────────────────────────
 
 function startDigestScheduler() {
-  const hour = Number.isFinite(DIGEST_HOUR) ? DIGEST_HOUR : 6;
-  const expr  = `0 ${hour} * * *`;
+  const hour   = Number.isFinite(DIGEST_HOUR) ? DIGEST_HOUR : 6;
+  const minute = Number.isFinite(DIGEST_MINUTE) ? DIGEST_MINUTE : 0;
+  const expr   = `${minute} ${hour} * * *`;
 
   cron.schedule(expr, () => {
     console.log(`[digest] Running scheduled admin digest (${new Date().toISOString()})`);
     sendDigest().catch(err => console.error('[digest] Scheduled send failed:', err.message));
   });
 
-  console.log(`[digest] Scheduler started — daily at ${String(hour).padStart(2, '0')}:00 local time`);
+  console.log(`[digest] Scheduler started — daily at ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')} local time`);
 }
 
 module.exports = { startDigestScheduler, sendDigest };
