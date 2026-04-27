@@ -8,7 +8,7 @@
 'use strict';
 
 const cron              = require('node-cron');
-const nodemailer        = require('nodemailer');
+const { sendEmail }     = require('./utils/mailer');
 const { supabaseAdmin } = require('./utils/supabase');
 const { logDigestAttempt } = require('./utils/digestLogging');
 
@@ -379,22 +379,6 @@ function buildHtml(stats) {
 
 // ── Mailer ────────────────────────────────────────────────────────────────────
 
-function createTransport() {
-  const host = process.env.SMTP_HOST;
-  const servername = process.env.SMTP_HOSTNAME || host;
-  return nodemailer.createTransport({
-    host,
-    port:   parseInt(process.env.SMTP_PORT ?? '587', 10),
-    secure: process.env.SMTP_SECURE === 'true',
-    family: 4,
-    tls:    { servername },
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-}
-
 function buildSubject() {
   const now      = new Date();
   const weekday  = now.toLocaleDateString('es-ES', { weekday: 'long' });
@@ -421,17 +405,11 @@ async function sendDigest(to) {
   }
 
   try {
-    const stats     = await buildStats();
-    const html      = buildHtml(stats);
-    const subject   = buildSubject();
-    const transport = createTransport();
+    const stats   = await buildStats();
+    const html    = buildHtml(stats);
+    const subject = buildSubject();
 
-    const info = await transport.sendMail({
-      from:    process.env.SMTP_FROM ?? process.env.SMTP_USER,
-      to:      recipient,
-      subject,
-      html,
-    });
+    const info = await sendEmail({ to: recipient, subject, html });
 
     console.log(`[digest] Admin digest sent → ${recipient} [${info.messageId}]`);
 
