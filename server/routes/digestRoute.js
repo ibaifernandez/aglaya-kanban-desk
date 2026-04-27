@@ -4,6 +4,7 @@ const { buildUserCards, sendUserDigest, sendAllUserDigests } = require('../userD
 const { requireAuth, requireRole }              = require('../middleware/auth');
 const { createAdminClient, supabaseAdmin }      = require('../utils/supabase');
 const { getSyncedUserProfile }                  = require('../utils/userProfile');
+const { queryDigestLogs }                       = require('../utils/digestLogging');
 
 const router = express.Router();
 
@@ -132,6 +133,40 @@ router.post('/send-all-digests', requireAuth, requireRole('admin', 'superadmin')
     .catch((err) => {
       console.error(`❌ [digest/send-all-digests] Error fatal: ${err.message}`);
     });
+});
+
+// ── GET /api/digest/logs ──────────────────────────────────────────────────────
+// Query audit logs for digest send attempts (admin/superadmin only)
+// Query params: type, status, dateStart, dateEnd, limit, offset
+
+router.get('/logs', requireAuth, requireRole('admin', 'superadmin'), async (req, res) => {
+  try {
+    const { type, status, dateStart, dateEnd, limit = 50, offset = 0 } = req.query;
+
+    const result = await queryDigestLogs({
+      type: type || null,
+      status: status || null,
+      startDate: dateStart || null,
+      endDate: dateEnd || null,
+      limit: parseInt(limit, 10) || 50,
+      offset: parseInt(offset, 10) || 0,
+    });
+
+    if (!result.ok) {
+      return res.status(500).json({ ok: false, error: result.error });
+    }
+
+    res.json({
+      ok: true,
+      total: result.total,
+      limit: result.limit,
+      offset: result.offset,
+      logs: result.logs,
+    });
+  } catch (err) {
+    console.error('[digest/logs]', err.message);
+    res.status(500).json({ ok: false, error: `Error al obtener logs: ${err.message}` });
+  }
 });
 
 module.exports = router;

@@ -10,6 +10,7 @@
 const cron              = require('node-cron');
 const nodemailer        = require('nodemailer');
 const { supabaseAdmin } = require('./utils/supabase');
+const { logDigestAttempt } = require('./utils/digestLogging');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -414,20 +415,40 @@ async function sendDigest(to) {
     throw new Error('SMTP no configurado en el servidor.');
   }
 
-  const stats     = await buildStats();
-  const html      = buildHtml(stats);
-  const subject   = buildSubject();
-  const transport = createTransport();
+  try {
+    const stats     = await buildStats();
+    const html      = buildHtml(stats);
+    const subject   = buildSubject();
+    const transport = createTransport();
 
-  const info = await transport.sendMail({
-    from:    process.env.SMTP_FROM ?? process.env.SMTP_USER,
-    to:      recipient,
-    subject,
-    html,
-  });
+    const info = await transport.sendMail({
+      from:    process.env.SMTP_FROM ?? process.env.SMTP_USER,
+      to:      recipient,
+      subject,
+      html,
+    });
 
-  console.log(`[digest] Admin digest sent → ${recipient} [${info.messageId}]`);
-  return { ok: true, stats };
+    console.log(`[digest] Admin digest sent → ${recipient} [${info.messageId}]`);
+
+    // Log successful send
+    await logDigestAttempt({
+      type: 'admin',
+      recipient,
+      status: 'sent',
+    });
+
+    return { ok: true, stats };
+  } catch (err) {
+    // Log failed send
+    await logDigestAttempt({
+      type: 'admin',
+      recipient,
+      status: 'failed',
+      errorMsg: err.message,
+    });
+
+    throw err;
+  }
 }
 
 // ── Scheduler ─────────────────────────────────────────────────────────────────

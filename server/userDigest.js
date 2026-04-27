@@ -12,6 +12,7 @@
 const cron              = require('node-cron');
 const nodemailer        = require('nodemailer');
 const { supabaseAdmin } = require('./utils/supabase');
+const { logDigestAttempt } = require('./utils/digestLogging');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -421,26 +422,48 @@ async function sendUserDigest({ id, name, email, sections: prebuiltSections = nu
     throw new Error('SMTP no configurado en el servidor.');
   }
 
-  const sections = prebuiltSections ?? await buildUserCards(id, { workspaceId });
+  try {
+    const sections = prebuiltSections ?? await buildUserCards(id, { workspaceId });
 
-  if (sections.total === 0) {
-    console.log(`[userDigest] ${email} — sin tarjetas accionables, omitido`);
-    return { ok: true, sent: false, total: 0 };
+    if (sections.total === 0) {
+      console.log(`[userDigest] ${email} — sin tarjetas accionables, omitido`);
+      return { ok: true, sent: false, total: 0 };
+    }
+
+    const html      = buildHtml(name, sections);
+    const subject   = buildSubject(workspaceName);
+    const transport = createTransport();
+
+    const info = await transport.sendMail({
+      from:    process.env.SMTP_FROM ?? process.env.SMTP_USER,
+      to:      email,
+      subject,
+      html,
+    });
+
+    console.log(`[userDigest] Sent → ${email} (${sections.total} cards) [${info.messageId}]`);
+
+    // Log successful send
+    await logDigestAttempt({
+      type: 'user',
+      userId: id,
+      recipient: email,
+      status: 'sent',
+    });
+
+    return { ok: true, sent: true, total: sections.total };
+  } catch (err) {
+    // Log failed send
+    await logDigestAttempt({
+      type: 'user',
+      userId: id,
+      recipient: email,
+      status: 'failed',
+      errorMsg: err.message,
+    });
+
+    throw err;
   }
-
-  const html      = buildHtml(name, sections);
-  const subject   = buildSubject(workspaceName);
-  const transport = createTransport();
-
-  const info = await transport.sendMail({
-    from:    process.env.SMTP_FROM ?? process.env.SMTP_USER,
-    to:      email,
-    subject,
-    html,
-  });
-
-  console.log(`[userDigest] Sent → ${email} (${sections.total} cards) [${info.messageId}]`);
-  return { ok: true, sent: true, total: sections.total };
 }
 
 /**
