@@ -391,11 +391,14 @@ function buildHtml(userName, sections) {
 // ── Mailer ────────────────────────────────────────────────────────────────────
 
 function createTransport() {
+  const host = process.env.SMTP_HOST;
+  const servername = process.env.SMTP_HOSTNAME || host;
   return nodemailer.createTransport({
-    host:   process.env.SMTP_HOST,
+    host,
     port:   parseInt(process.env.SMTP_PORT ?? '587', 10),
     secure: process.env.SMTP_SECURE === 'true',
     family: 4,
+    tls:    { servername },
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
