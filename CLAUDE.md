@@ -49,7 +49,8 @@ Pendiente en Phase 4:
 - [x] Página de ajustes de workspace (editar nombre, tipo, portada desde UI)
 - [x] Verificación end-to-end flujo invite email → kanban.aglaya.biz
 - [x] Mover tarjeta entre tableros (cross-board y cross-workspace desde CardModal)
-- [ ] Tests actualizados (auth sin restricción de dominio + rutas workspaces)
+- [x] Menciones en checklist (asignaciones por ítem) + notificaciones in-app (campana) + digest
+- [x] Tests actualizados (auth sin restricción de dominio + rutas workspaces)
 
 ---
 
@@ -59,7 +60,7 @@ Pendiente en Phase 4:
 |---|---------|-----------|--------|
 | 1 | Movilidad de objetos — mover tableros entre workspaces | 🟡 MEDIA | ✅ v1.2.0 |
 | 1b | Movilidad de objetos — mover tarjetas cross-workspace | 🟡 MEDIA | ✅ v1.2.x |
-| 2 | Tests actualizados — auth, workspaces (code viejo sistema) | 🟡 MEDIA | ❌ Pendiente |
+| 2 | Tests actualizados — auth, workspaces (code viejo sistema) | 🟡 MEDIA | ✅ v1.3.0 |
 | 3 | Limpiar localStorage — remover `aglaya_token` (legacy nomenclature) | 🟢 BAJA | ✅ v1.2.0 |
 | 4 | Verificar flujo email invite — end-to-end kanban.aglaya.biz | 🔴 CRÍTICO | ✅ v1.2.x |
 | 5 | Deprecación de prototipos legacy — archivar repos antiguos | 🟢 BAJA | ❌ Pendiente |

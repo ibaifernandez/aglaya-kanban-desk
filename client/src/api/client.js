@@ -135,6 +135,11 @@ export const api = {
       });
   },
 
+  // Notifications
+  getNotifications:         ()    => request('/notifications'),
+  markNotificationRead:     (id)  => request(`/notifications/${id}/read`, { method: 'PATCH' }),
+  markAllNotificationsRead: ()    => request('/notifications/read-all', { method: 'PATCH' }),
+
   sendPersonalDigest: (body = {}) => {
     const token = getToken();
     const headers = { 'Content-Type': 'application/json' };

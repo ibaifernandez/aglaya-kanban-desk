@@ -178,7 +178,25 @@ CREATE POLICY "Ver categorías de la organización"
     organization_id = (SELECT organization_id FROM public.users WHERE id = auth.uid())
   );
 
--- ── 5. Datos de Demo ───────────────────────────────────────────
+-- ── 5. Notificaciones ─────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  type        TEXT NOT NULL,                  -- 'checklist_mention' | ...
+  payload     JSONB NOT NULL DEFAULT '{}',    -- { cardId, cardTitle, boardId, workspaceId, checklistText, mentionedBy }
+  read        BOOLEAN NOT NULL DEFAULT false,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "notifications_owner"
+  ON public.notifications
+  FOR ALL
+  USING (user_id = auth.uid());
+
+-- ── 6. Datos de Demo ───────────────────────────────────────────
 
 INSERT INTO public.organizations (id, name, slug, plan)
 VALUES ('00000000-0000-0000-0000-000000000001', 'AGLAYA', 'aglaya', 'pro')

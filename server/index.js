@@ -25,6 +25,7 @@ const digestRouter            = require('./routes/digestRoute');
 const adminRouter             = require('./routes/admin');
 const workspacesRouter        = require('./routes/workspaces');
 const mediaRouter             = require('./routes/media');
+const notificationsRouter     = require('./routes/notifications');
 const { requireAuth }         = require('./middleware/auth');
 const { requireWorkspaceMember } = require('./middleware/workspace');
 
@@ -82,6 +83,9 @@ app.use('/api/workspaces', workspacesRouter);
 
 // ── Media (Supabase Storage) ───────────────────────────────
 app.use('/api/media', mediaRouter);
+
+// ── Notifications ─────────────────────────────────────────
+app.use('/api/notifications', notificationsRouter);
 
 // ── Boards ────────────────────────────────────────────────
 app.get('/api/boards',          requireAuth, getBoards);

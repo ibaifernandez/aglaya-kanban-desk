@@ -75,7 +75,7 @@ router.post('/send-my-digest', requireAuth, async (req, res) => {
     }
 
     const sections = await buildUserCards(user.id, { workspaceId });
-    if (sections.total === 0) {
+    if (sections.total === 0 && !sections.assignedItems?.length) {
       return res.json({
         ok: true,
         message: workspace

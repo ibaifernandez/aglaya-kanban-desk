@@ -1,5 +1,53 @@
 const { supabaseAdmin } = require('../utils/supabase');
 
+// ── Checklist notification helper ─────────────────────────────────────────────
+
+async function createChecklistNotifications(cardId, boardId, cardTitle, oldChecklist, newChecklist, authorId) {
+  const { data: board } = await supabaseAdmin
+    .from('boards')
+    .select('workspace_id')
+    .eq('id', boardId)
+    .single();
+
+  if (!board?.workspace_id) return;
+
+  const oldAssigneeMap = {};
+  for (const item of (oldChecklist || [])) {
+    oldAssigneeMap[item.id] = new Set(item.assignees || []);
+  }
+
+  const toInsert = [];
+
+  for (const item of (newChecklist || [])) {
+    const oldSet  = oldAssigneeMap[item.id] || new Set();
+    const added   = (item.assignees || []).filter((a) => !oldSet.has(a));
+    if (!added.length) continue;
+
+    let userIds;
+    if (added.includes('__all__')) {
+      const { data: members } = await supabaseAdmin
+        .from('workspace_members')
+        .select('user_id')
+        .eq('workspace_id', board.workspace_id);
+      userIds = (members || []).map((m) => m.user_id).filter((id) => id !== authorId);
+    } else {
+      userIds = added.filter((id) => id !== authorId);
+    }
+
+    const payload = { cardId, cardTitle, boardId, workspaceId: board.workspace_id, checklistText: item.text, mentionedBy: authorId };
+    for (const userId of userIds) {
+      toInsert.push({ user_id: userId, type: 'checklist_mention', payload, read: false });
+    }
+  }
+
+  if (toInsert.length) {
+    const { error } = await supabaseAdmin.from('notifications').insert(toInsert);
+    if (error) console.error('[notifications] insert:', error.message);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const toCard = (row) => ({
   id:             row.id,
   columnId:       row.column_id,
@@ -96,6 +144,17 @@ const updateCard = async (req, res) => {
     return res.status(400).json({ error: 'dueDate must be a valid date string' });
   }
 
+  // Fetch previous state for notification diff when checklist is being updated
+  let prevCard = null;
+  if (checklist !== undefined) {
+    const { data: prev } = await supabaseAdmin
+      .from('cards')
+      .select('checklist, board_id, title')
+      .eq('id', req.params.id)
+      .single();
+    prevCard = prev;
+  }
+
   const update = { updated_at: new Date().toISOString() };
   if (title          !== undefined) update.title           = title.trim();
   if (description    !== undefined) update.description     = description;
@@ -115,6 +174,19 @@ const updateCard = async (req, res) => {
     .single();
 
   if (error) { console.error('[cards] updateCard:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
+
+  // Fire-and-forget: create notifications for newly assigned checklist users
+  if (checklist !== undefined && prevCard) {
+    createChecklistNotifications(
+      req.params.id,
+      prevCard.board_id,
+      data.title,
+      prevCard.checklist,
+      checklist,
+      req.user.id,
+    ).catch((err) => console.error('[notifications] diff failed:', err.message));
+  }
+
   res.json({ data: toCard(data) });
 };
 

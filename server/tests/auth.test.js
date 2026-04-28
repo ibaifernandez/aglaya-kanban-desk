@@ -43,7 +43,7 @@ function makeUsersTable() {
       eq: jest.fn(() => {
         profileState = { ...profileState, ...payload };
         return Promise.resolve({ data: profileState, error: null });
-      })),
+      }),
     })),
   };
 }
@@ -150,6 +150,22 @@ describe('POST /api/auth/login', () => {
       role: TEST_PROFILE.role,
       organizationId: TEST_PROFILE.organization_id,
     }));
+  });
+
+  it('does NOT restrict login by domain — any email can authenticate', async () => {
+    profileState = { ...TEST_PROFILE, email: 'user@gmail.com' };
+    supabaseAdmin.auth.signInWithPassword.mockResolvedValue({
+      data: { user: { id: 'user-1', email: 'user@gmail.com' } },
+      error: null,
+    });
+
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'user@gmail.com',
+      password: 'password123',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.email).toBe('user@gmail.com');
   });
 
   it('repairs stale public.users email from Supabase Auth on login', async () => {

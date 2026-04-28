@@ -4,6 +4,22 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [Unreleased] - 2026-04-28 (v1.3.0)
+
+### Added
+- **Asignaciones por ítem de checklist**: cada ítem puede asignarse a ninguno, uno, varios o todos los miembros del workspace. El campo `assignees` se añade al JSONB `checklist` en `cards` (sin cambio de schema SQL). La UX es un selector de avatares por ítem, con opción "Todos los miembros".
+- **Notificaciones in-app**: nueva tabla `notifications` en Supabase (SQL proporcionado manualmente). Cuando se guarda una tarjeta con nuevos asignados en checklist, el backend crea notificaciones para los usuarios afectados (`POST /api/cards/:id` con diff de `assignees`).
+- **Rutas de notificaciones**: `GET /api/notifications`, `PATCH /api/notifications/:id/read`, `PATCH /api/notifications/read-all`. Registradas en `server/routes/notifications.js`.
+- **Campana en Toolbar**: icono `Bell` (lucide-react) con badge de conteo de no leídas. Dropdown con lista de notificaciones (max 50, no leídas primero). Polling cada 45 s. Marcar individualmente o todas como leídas. Cierra con Escape o clic fuera.
+- **Digest — sección "Tus asignaciones pendientes"**: el user digest incluye ahora una sección con los ítems de checklist asignados al usuario (no terminados), antes de las secciones de tarjetas urgentes/vencidas. El digest se envía también si solo hay asignaciones pendientes (sin tarjetas urgentes).
+- **Tests Phase 4 — auth**: nuevo test que confirma que el login NO tiene restricción de dominio (cualquier email puede autenticarse si existe en la BD).
+- **Tests Phase 4 — workspaces**: nuevos tests para coerción de tipo (`colaborador` forzado a `personal` al pedir `externo`; `admin` puede crear `interno` y `externo`).
+
+### Fixed
+- **Sintaxis pre-existente en `auth.test.js`**: paréntesis de más en `makeUsersTable.update.eq` (line 46) impedía que la suite arrancara.
+
+---
+
 ## [Unreleased] - 2026-04-27/28
 
 ### Added

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { X, Trash2, Tag, Pencil, Plus, GripVertical, Check, Paperclip, ZoomIn, FileText, File, Download } from 'lucide-react';
+import { X, Trash2, Tag, Pencil, Plus, GripVertical, Check, Paperclip, ZoomIn, FileText, File, Download, Users } from 'lucide-react';
 import {
   DndContext,
   PointerSensor,
@@ -51,8 +51,25 @@ function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
+// ── Assignee avatar chip ───────────────────────────────────
+function AssigneeChip({ member }) {
+  const initials = (member?.name || member?.email || '?')[0].toUpperCase();
+  return (
+    <span
+      className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-700 text-white text-[8px] font-bold flex-shrink-0"
+      title={member?.name || member?.email}
+    >
+      {initials}
+    </span>
+  );
+}
+
 // ── Sortable checklist item ────────────────────────────────
-function SortableCheckItem({ item, onToggle, onRemove, isEditing, editText, onEditStart, onEditChange, onEditConfirm, onEditCancel }) {
+function SortableCheckItem({
+  item, onToggle, onRemove,
+  isEditing, editText, onEditStart, onEditChange, onEditConfirm, onEditCancel,
+  workspaceMembers, isAssigneeOpen, onToggleAssigneePanel, onToggleAssignee,
+}) {
   const {
     attributes,
     listeners,
@@ -63,11 +80,27 @@ function SortableCheckItem({ item, onToggle, onRemove, isEditing, editText, onEd
   } = useSortable({ id: item.id });
 
   const style = { transform: CSS.Transform.toString(transform), transition };
-  const editRef = useRef(null);
+  const editRef   = useRef(null);
+  const panelRef  = useRef(null);
 
   useEffect(() => {
     if (isEditing) editRef.current?.focus();
   }, [isEditing]);
+
+  // Close assignee popover on outside click
+  useEffect(() => {
+    if (!isAssigneeOpen) return;
+    function handler(e) {
+      if (panelRef.current && !panelRef.current.contains(e.target)) onToggleAssigneePanel();
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isAssigneeOpen, onToggleAssigneePanel]);
+
+  const assignees    = item.assignees || [];
+  const isAllMode    = assignees.includes('__all__');
+  const memberMap    = Object.fromEntries((workspaceMembers || []).map((m) => [m.id, m]));
+  const assignedMembers = isAllMode ? [] : assignees.map((id) => memberMap[id]).filter(Boolean);
 
   return (
     <div
@@ -75,7 +108,7 @@ function SortableCheckItem({ item, onToggle, onRemove, isEditing, editText, onEd
       style={style}
       className={`flex items-center gap-2 group/item py-0.5 ${isDragging ? 'opacity-50' : ''}`}
     >
-      {/* Drag handle — oculto mientras se edita */}
+      {/* Drag handle */}
       {isEditing ? (
         <div className="w-[13px] flex-shrink-0" />
       ) : (
@@ -116,6 +149,66 @@ function SortableCheckItem({ item, onToggle, onRemove, isEditing, editText, onEd
         >
           {item.text}
         </span>
+      )}
+
+      {/* Assignees area — hidden while editing text */}
+      {!isEditing && workspaceMembers?.length > 0 && (
+        <div className="relative flex-shrink-0" ref={panelRef}>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onToggleAssigneePanel(); }}
+            className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-all"
+            title="Asignar miembros"
+          >
+            {isAllMode ? (
+              <span className="text-[9px] font-bold text-indigo-400 bg-indigo-500/20 px-1.5 py-0.5 rounded-full">Todos</span>
+            ) : assignedMembers.length > 0 ? (
+              <span className="flex items-center gap-0.5">
+                {assignedMembers.slice(0, 3).map((m) => <AssigneeChip key={m.id} member={m} />)}
+                {assignedMembers.length > 3 && (
+                  <span className="text-[8px] text-[#555b70]">+{assignedMembers.length - 3}</span>
+                )}
+              </span>
+            ) : (
+              <Users size={11} className="text-[#3d4155] hover:text-indigo-400" />
+            )}
+          </button>
+
+          {/* Assignee popover */}
+          {isAssigneeOpen && (
+            <div className="absolute right-0 bottom-full mb-1 w-44 bg-[#1e2028] border border-[#2e3140] rounded-lg shadow-xl z-50 py-1 overflow-hidden">
+              {/* Todos option */}
+              <button
+                type="button"
+                onClick={() => onToggleAssignee('__all__')}
+                className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-[#252830] transition-colors ${isAllMode ? 'text-indigo-400' : 'text-[#c8cadd]'}`}
+              >
+                <span className={`w-2.5 h-2.5 rounded border flex-shrink-0 flex items-center justify-center ${isAllMode ? 'bg-indigo-500 border-indigo-500' : 'border-[#555b70]'}`}>
+                  {isAllMode && <Check size={8} className="text-white" />}
+                </span>
+                Todos los miembros
+              </button>
+              <div className="h-px bg-[#2e3140] mx-2 my-0.5" />
+              {workspaceMembers.map((m) => {
+                const checked = !isAllMode && assignees.includes(m.id);
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => onToggleAssignee(m.id)}
+                    className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-[#252830] transition-colors ${checked ? 'text-indigo-400' : 'text-[#c8cadd]'}`}
+                  >
+                    <span className={`w-2.5 h-2.5 rounded border flex-shrink-0 flex items-center justify-center ${checked ? 'bg-indigo-500 border-indigo-500' : 'border-[#555b70]'}`}>
+                      {checked && <Check size={8} className="text-white" />}
+                    </span>
+                    <AssigneeChip member={m} />
+                    <span className="truncate">{m.name || m.email}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
 
       {isEditing ? (
@@ -166,9 +259,10 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
   const [selectedBoardId, setSelectedBoardId] = useState(boardId);
   const [availableColumns, setAvailableColumns] = useState(columns ?? []);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [xwsBoards,     setXwsBoards]     = useState(null);  // null = cargando, Array = listo
-  const [xwsMap,        setXwsMap]        = useState(null);  // { workspaceId: workspace }
-  const checkInputRef                   = useRef(null);
+  const [xwsBoards,          setXwsBoards]          = useState(null);  // null = cargando, Array = listo
+  const [xwsMap,             setXwsMap]             = useState(null);  // { workspaceId: workspace }
+  const [openAssigneeItemId, setOpenAssigneeItemId] = useState(null);
+  const checkInputRef                              = useRef(null);
 
   useEscapeKey(() => {
     if (lightboxSrc) {
@@ -197,7 +291,7 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
         priority:       card.priority       || 'none',
         dueDate:        card.dueDate ? card.dueDate.slice(0, 10) : '',
         tags:           card.tags           || [],
-        checklist:      card.checklist      || [],
+        checklist:      (card.checklist || []).map((i) => ({ assignees: [], ...i })),
         checklistTitle: card.checklistTitle || '',
         attachments:    normalizeAttachments(card),
         columnId:       card.columnId       || columnId,
@@ -242,9 +336,21 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
   function addCheckItem() {
     const text = checkInput.trim();
     if (!text) return;
-    set('checklist', [...form.checklist, { id: uid(), text, done: false }]);
+    set('checklist', [...form.checklist, { id: uid(), text, done: false, assignees: [] }]);
     setCheckInput('');
     checkInputRef.current?.focus();
+  }
+
+  function toggleItemAssignee(itemId, userId) {
+    set('checklist', form.checklist.map((i) => {
+      if (i.id !== itemId) return i;
+      const current = i.assignees || [];
+      if (userId === '__all__') {
+        return { ...i, assignees: current.includes('__all__') ? [] : ['__all__'] };
+      }
+      const without = current.filter((a) => a !== '__all__');
+      return { ...i, assignees: without.includes(userId) ? without.filter((a) => a !== userId) : [...without, userId] };
+    }));
   }
   function toggleCheckItem(id) {
     set('checklist', form.checklist.map((i) => i.id === id ? { ...i, done: !i.done } : i));
@@ -524,6 +630,10 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
                         onEditChange={setEditingCheckText}
                         onEditConfirm={confirmEditCheckItem}
                         onEditCancel={cancelEditCheckItem}
+                        workspaceMembers={workspaceMembers}
+                        isAssigneeOpen={openAssigneeItemId === item.id}
+                        onToggleAssigneePanel={() => setOpenAssigneeItemId((prev) => prev === item.id ? null : item.id)}
+                        onToggleAssignee={(userId) => toggleItemAssignee(item.id, userId)}
                       />
                     ))}
                   </div>

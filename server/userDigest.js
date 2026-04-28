@@ -137,17 +137,31 @@ async function buildUserCards(userId, options = {}) {
     .in('board_id', boardIds)
     .not('column_id', 'in', `(${[...doneColumnIds].join(',') || 'null'})`);
 
-  if (!cards?.length) return { personal: [], interno: [], externo: [], total: 0 };
+  if (!cards?.length) return { personal: [], interno: [], externo: [], total: 0, assignedItems: [] };
+
+  // Checklist items assigned to this user (not done)
+  const boardMap = Object.fromEntries(boards.map((b) => [b.id, b]));
+  const wsMap    = Object.fromEntries(workspaces.map((w) => [w.id, w]));
+  const assignedItems = [];
+  for (const card of cards) {
+    if (!Array.isArray(card.checklist)) continue;
+    for (const item of card.checklist) {
+      if (!Array.isArray(item.assignees) || item.done) continue;
+      if (item.assignees.includes(userId) || item.assignees.includes('__all__')) {
+        const board = boardMap[card.board_id];
+        const ws    = board ? wsMap[board.workspace_id] : null;
+        if (board && ws) assignedItems.push({ card, item, board, workspace: ws });
+      }
+    }
+  }
 
   const actionable = cards.filter((c) =>
     URGENT_PRIORITIES.has(c.priority) || isOverdue(c.due_date)
   );
 
-  if (!actionable.length) return { personal: [], interno: [], externo: [], total: 0 };
+  if (!actionable.length && !assignedItems.length) return { personal: [], interno: [], externo: [], total: 0, assignedItems };
 
   // 5. Group: workspace → board → cards
-  const boardMap    = Object.fromEntries(boards.map((b) => [b.id, b]));
-  const wsMap       = Object.fromEntries(workspaces.map((w) => [w.id, w]));
 
   // { wsId: { boardId: [card, ...] } }
   const grouped = {};
@@ -196,7 +210,7 @@ async function buildUserCards(userId, options = {}) {
     total += wsBoards.reduce((sum, b) => sum + b.cards.length, 0);
   }
 
-  return { ...sections, total };
+  return { ...sections, total, assignedItems };
 }
 
 // ── HTML builder ──────────────────────────────────────────────────────────────
@@ -232,6 +246,36 @@ function checklistBadge(checklist) {
   const done  = checklist.filter((i) => i.done).length;
   const total = checklist.length;
   return `<span style="font-size:11px;color:#6b7280;margin-left:8px;">☑ ${done}/${total}</span>`;
+}
+
+function buildAssignedSection(items) {
+  if (!items.length) return '';
+  const rows = items.map(({ card, item, board, workspace }) => `
+    <tr>
+      <td style="padding:7px 12px 7px 20px;border-bottom:1px solid #1e2130;">
+        <div style="font-size:11px;color:#555b70;margin-bottom:2px;">
+          ${escHtml(workspace.emoji ?? '')} ${escHtml(workspace.name)} · ${escHtml(board.title)}
+        </div>
+        <div style="font-size:13px;">
+          <span style="color:#c9cdd8;">☑ ${escHtml(item.text)}</span>
+          <span style="font-size:11px;color:#555b70;margin-left:6px;">en «${escHtml(card.title)}»</span>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  return `
+    <tr>
+      <td style="padding:0 32px 24px;">
+        <div style="display:flex;align-items:center;margin-bottom:12px;">
+          <span style="font-size:15px;margin-right:8px;">📋</span>
+          <span style="font-size:13px;font-weight:700;color:#e8eaf0;text-transform:uppercase;letter-spacing:.8px;">Tus asignaciones pendientes</span>
+          <span style="margin-left:8px;padding:1px 7px;background:#1e2130;border-radius:10px;font-size:11px;color:#6366f1;font-weight:700;">${items.length}</span>
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f1117;border:1px solid #1e2130;border-radius:6px;">
+          ${rows}
+        </table>
+      </td>
+    </tr>`;
 }
 
 const SECTION_META = {
@@ -284,9 +328,10 @@ function buildSection(type, entries) {
 }
 
 function buildHtml(userName, sections) {
-  const { personal, interno, externo, total } = sections;
+  const { personal, interno, externo, total, assignedItems = [] } = sections;
 
   const sectionHtml =
+    buildAssignedSection(assignedItems) +
     buildSection('personal', personal) +
     buildSection('interno',  interno)  +
     buildSection('externo',  externo);

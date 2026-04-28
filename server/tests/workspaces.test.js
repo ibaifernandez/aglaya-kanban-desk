@@ -155,7 +155,7 @@ beforeEach(() => {
   configureMocks();
 });
 
-describe('POST /api/workspaces', () => {
+describe('POST /api/workspaces — tipos y permisos', () => {
   it('requires authentication', async () => {
     const res = await request(app).post('/api/workspaces').send({ name: 'Test' });
     expect(res.status).toBe(401);
@@ -170,7 +170,7 @@ describe('POST /api/workspaces', () => {
     expect(res.status).toBe(403);
   });
 
-  it('forces colaboradores to personal workspaces', async () => {
+  it('forces colaboradores to personal when requesting interno', async () => {
     const res = await request(app)
       .post('/api/workspaces')
       .set('Authorization', `Bearer ${makeToken({ role: 'colaborador' })}`)
@@ -178,6 +178,36 @@ describe('POST /api/workspaces', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.data.type).toBe('personal');
+  });
+
+  it('forces colaboradores to personal when requesting externo', async () => {
+    const res = await request(app)
+      .post('/api/workspaces')
+      .set('Authorization', `Bearer ${makeToken({ role: 'colaborador' })}`)
+      .send({ name: 'Proyecto cliente', type: 'externo' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.type).toBe('personal');
+  });
+
+  it('allows admin to create interno workspace', async () => {
+    const res = await request(app)
+      .post('/api/workspaces')
+      .set('Authorization', `Bearer ${makeToken({ role: 'admin' })}`)
+      .send({ name: 'Equipo interno', type: 'interno' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.type).toBe('interno');
+  });
+
+  it('allows admin to create externo workspace', async () => {
+    const res = await request(app)
+      .post('/api/workspaces')
+      .set('Authorization', `Bearer ${makeToken({ role: 'admin' })}`)
+      .send({ name: 'Cliente externo', type: 'externo' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.type).toBe('externo');
   });
 });
 
