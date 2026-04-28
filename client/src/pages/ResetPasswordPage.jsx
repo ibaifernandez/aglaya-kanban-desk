@@ -3,7 +3,7 @@ import { supabase } from '../utils/supabaseClient.js';
 import { Spinner } from '../components/UI/Spinner.jsx';
 import agLayaIcon from '../assets/aglaya-favicon-rojo.svg';
 
-export default function ResetPasswordPage({ onDone }) {
+export default function ResetPasswordPage({ onDone, isInvite = false }) {
   const [password,  setPassword]  = useState('');
   const [password2, setPassword2] = useState('');
   const [loading,   setLoading]   = useState(false);
@@ -13,12 +13,12 @@ export default function ResetPasswordPage({ onDone }) {
   const [showPass,  setShowPass]  = useState(false);
   const [showPass2, setShowPass2] = useState(false);
 
-  // Supabase puts the recovery token in the URL hash — exchange it for a session
   useEffect(() => {
     supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setReady(true);
+      if (event === 'SIGNED_IN' && isInvite) setReady(true);
     });
-  }, []);
+  }, [isInvite]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -38,14 +38,18 @@ export default function ResetPasswordPage({ onDone }) {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <img src={agLayaIcon} alt="AGLAYA" className="w-16 h-16 mx-auto mb-4 object-contain" />
-          <h1 className="text-2xl font-bold text-[#e8eaf0] tracking-tight">Nueva contraseña</h1>
+          <h1 className="text-2xl font-bold text-[#e8eaf0] tracking-tight">
+            {isInvite ? 'Configura tu contraseña' : 'Nueva contraseña'}
+          </h1>
           <p className="text-sm text-[#555b70] mt-1">AGLAYA Kanban Desk</p>
         </div>
 
         {done ? (
           <div className="bg-[#1a1d26] border border-[#2a2d3a] rounded-2xl p-6 text-center">
-            <p className="text-green-400 text-sm">✅ Contraseña actualizada correctamente.</p>
-            <p className="text-[#555b70] text-xs mt-2">Redirigiendo al login…</p>
+            <p className="text-green-400 text-sm">✅ Contraseña guardada correctamente.</p>
+            <p className="text-[#555b70] text-xs mt-2">
+              {isInvite ? 'Accediendo a AGLAYA Kanban Desk…' : 'Redirigiendo al login…'}
+            </p>
           </div>
         ) : !ready ? (
           <div className="bg-[#1a1d26] border border-[#2a2d3a] rounded-2xl p-6 text-center">

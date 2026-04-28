@@ -31,13 +31,19 @@ import { clearUiState, readUiState, writeUiState } from './utils/session.js';
 export default function App() {
   const { isAuthenticated, user, logout, updateUser } = useAuth();
 
-  // Supabase recovery links land on / with type=recovery in the hash
+  // Supabase recovery and invite links land on / with access_token in the hash
   const hash = window.location.hash;
-  if (
-    window.location.pathname === '/reset-password' ||
-    (hash.includes('type=recovery') && hash.includes('access_token='))
-  ) {
-    return <ResetPasswordPage onDone={() => { logout(); window.location.replace('/'); }} />;
+  const isInvite   = hash.includes('type=invite')   && hash.includes('access_token=');
+  const isRecovery = hash.includes('type=recovery')  && hash.includes('access_token=');
+  if (window.location.pathname === '/reset-password' || isRecovery || isInvite) {
+    return (
+      <ResetPasswordPage
+        isInvite={isInvite}
+        onDone={isInvite
+          ? () => window.location.replace('/')
+          : () => { logout(); window.location.replace('/'); }}
+      />
+    );
   }
 
   if (!isAuthenticated) {

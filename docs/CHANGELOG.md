@@ -4,6 +4,26 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [Unreleased] - 2026-04-27/28
+
+### Added
+- **Iteración 1 — Sistema de digest robusto**: validación de config de email en startup (fail-fast), desfase configurable entre admin digest y user digest, endpoints `/api/digest/send-me` y `/api/digest/send-my-digest` síncronos con feedback inmediato de éxito/error.
+- **`DIGEST_MINUTE` y `USER_DIGEST_MINUTE`**: variables de entorno para controlar el minuto exacto de cada scheduler (default: 0). Expresión cron pasa de `0 ${hour} * * *` a `${minute} ${hour} * * *`.
+- **Iteración 2 — Audit logs de digest**: nueva tabla `digest_logs` en Supabase (migration: `migrations/create_digest_logs.sql`) con RLS admin-only. Logging automático de cada intento de envío (éxito y fallo). Endpoint `GET /api/digest/logs` con filtros por `type`, `status`, rango de fechas y paginación.
+- **Migración a Resend**: reemplazado nodemailer/SMTP por el SDK de Resend. Centralizado en `server/utils/mailer.js` (12 líneas). Elimina la dependencia de configuración SMTP y los problemas de IPv6 en Railway.
+
+### Fixed
+- **Timezone en Railway**: añadida variable `TZ=America/Sao_Paulo` en producción. Los cron jobs ahora respetan horario Brasil en lugar de UTC.
+- **`validateSmtpConfig()` actualizado para Resend**: ya no exige `SMTP_HOST/PORT/USER/PASS` (eliminadas). Ahora valida `RESEND_API_KEY` y `SMTP_FROM`. Sin este fix el servidor no arrancaría tras eliminar las variables SMTP.
+- **`validateDigestSchedules()` corregido**: la advertencia de "misma hora" ahora compara hora Y minuto, eliminando el falso positivo cuando ambos digests comparten hora pero tienen minutos distintos.
+- **Cleanup de variables Railway**: eliminadas 6 variables SMTP obsoletas (`SMTP_HOST`, `SMTP_HOSTNAME`, `SMTP_PASS`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`). Variables activas: 13 de servicio + 8 de sistema Railway.
+- **Documentación movida a `docs/`**: archivos de testing e iteraciones reubicados desde `.claude/` a `docs/` donde corresponden.
+
+### Verified
+- **Tests Iteraciones 1 y 2 completados** (2026-04-28): todos los endpoints verificados contra el servidor local y producción Railway. Emails confirmados recibidos vía Resend desde `info@aglaya.biz`.
+
+---
+
 ## [1.1.5] - 2026-04-13/14
 ### Fixed
 - **Estabilización de RLS (Identidad Blindada)**: Resolución definitiva de los errores "Failed to fetch" y violaciones de políticas RLS al crear o eliminar workspaces.

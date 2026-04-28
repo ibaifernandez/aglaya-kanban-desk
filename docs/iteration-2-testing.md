@@ -2,7 +2,7 @@
 
 **Fecha inicio:** 2026-04-27  
 **Objetivo:** Audit logs + test suite expansion + concurrency improvements  
-**Status:** En progreso
+**Status:** Testing en curso — verificación manual activa
 
 ---
 
@@ -11,7 +11,7 @@
 ### Phase 1: Tabla digest_logs en Supabase
 
 - [x] SQL migration creada — `migrations/create_digest_logs.sql`
-- [ ] Tabla digest_logs existe en Supabase — (pendiente aplicar migración)
+- [x] Tabla digest_logs existe en Supabase — migración aplicada 2026-04-27 ✅
 - [x] RLS policies definidas en migration — admin-only read + service role write
 - [x] Índices creados en migration — created_at, type+status, user_id, recipient
 
@@ -50,11 +50,13 @@
 
 ### Phase 5: Verification Manual
 
-- [ ] Trigger manual digest send
-- [ ] Verificar logs aparecen en tabla
-- [ ] Verificar endpoint devuelve logs
-- [ ] Verificar filtros funcionan
-- [ ] Verificar error cases se registran
+- [x] Trigger manual digest send — cron jobs ejecutados localmente 09:50/09:55 ✅
+- [x] Verificar logs aparecen en tabla — 4 registros en digest_logs (2 sent, 2 failed) ✅
+- [x] Verificar error cases se registran — fallos de Railway (ENETUNREACH) registrados con error_msg ✅
+- [ ] Verificar endpoint GET /api/digest/logs devuelve logs — pendiente JWT admin
+- [ ] Verificar filtros funcionan — pendiente JWT admin
+- [ ] Verificar paginación — pendiente JWT admin
+- [ ] Verificar seguridad (403 para no-admin) — pendiente JWT admin
 
 ---
 
@@ -70,7 +72,7 @@
 - RLS policies: admin/superadmin read, service_role insert/update
 - Comments en cada column
 
-**Status:** ✅ COMPLETADO (SQL creado, pendiente aplicar en Supabase)
+**Status:** ✅ COMPLETADO — migración aplicada en Supabase 2026-04-27
 
 **Observaciones:**
 - Status check constraint: 'sent'|'failed'|'pending'

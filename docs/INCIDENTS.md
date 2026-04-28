@@ -1,8 +1,51 @@
 # INCIDENTS.md — Registro de Incidencias y Correctivos
 
-**Última actualización:** 2026-04-13
+**Última actualización:** 2026-04-28
 
 Este documento resume los fallos relevantes encontrados durante la estabilización de AGLAYA Kanban Desk, su causa raíz, la solución aplicada y cualquier nota operativa pendiente.
+
+---
+
+## 2026-04-27 — Cron jobs de digest no ejecutan en Railway (UTC vs. Brasil)
+
+**Síntoma**
+- Los cron jobs registraban horarios correctos en los logs de startup pero los emails nunca llegaban a la hora esperada (07:00/08:00 Brasil).
+
+**Causa raíz**
+- Railway ejecuta en UTC. `DIGEST_HOUR=7` dispara a las 07:00 UTC = 04:00 hora Brasil.
+- El servidor local (Mac, GMT-3) sí enviaba a las 7 AM correctamente, ocultando el problema hasta el primer test en producción.
+
+**Solución aplicada**
+- Añadida variable `TZ=America/Sao_Paulo` en Railway. Los schedulers ahora interpretan las horas en timezone Brasil.
+
+---
+
+## 2026-04-27 — SMTP falla en Railway con ENETUNREACH (IPv6)
+
+**Síntoma**
+- `connect ENETUNREACH 2001:41d0:203:375:::465` al intentar enviar emails desde Railway.
+- En local (Mac) funcionaba sin problemas.
+
+**Causa raíz**
+- Railway resuelve `smtp.migadu.com` a su dirección IPv6 (OVH). La red de Railway no tiene ruta IPv6 hacia ese servidor.
+- `family: 4` en nodemailer no fue suficiente para forzar IPv4 en este entorno.
+
+**Solución aplicada**
+- Migración completa de nodemailer/SMTP a **Resend** (SDK oficial). Resend usa HTTPS puro, eliminando cualquier dependencia de resolución DNS IPv4/IPv6.
+- Centralizado en `server/utils/mailer.js`.
+
+---
+
+## 2026-04-27 — Resend rechaza envío por dominio no verificado
+
+**Síntoma**
+- `The ibaifernandez.com domain is not verified` al intentar enviar desde `info@ibaifernandez.com`.
+
+**Causa raíz**
+- Resend exige verificación del dominio remitente. `ibaifernandez.com` no estaba verificado en la cuenta de Resend.
+
+**Solución aplicada**
+- Cambiado `SMTP_FROM` a `AGLAYA Kanban Desk <info@aglaya.biz>`. El dominio `aglaya.biz` ya estaba verificado en Resend (región São Paulo).
 
 ---
 

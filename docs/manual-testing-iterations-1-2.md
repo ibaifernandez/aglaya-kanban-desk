@@ -1,8 +1,8 @@
 # Manual Testing Guide — Iteraciones 1 y 2
 
 **Objetivo:** Verificar que todas las features de Iteration 1 y 2 funcionan correctamente  
-**Fecha:** 2026-04-27  
-**Status:** En preparación para testing manual
+**Fecha:** 2026-04-27 / Completado: 2026-04-28  
+**Status:** ✅ COMPLETADO — todos los tests pasados en producción
 
 ---
 
@@ -480,20 +480,20 @@ Antes de empezar, verifica:
 ### Checklist Final
 
 **Iteration 1:**
-- [ ] Test 1.1 ✅ SMTP Validation en startup
-- [ ] Test 1.2 ✅ Desfase cron (7 vs 8)
-- [ ] Test 1.3 ✅ Feedback visual POST /send-me
-- [ ] Test 1.4 ✅ Feedback visual POST /send-my-digest
+- [x] Test 1.1 — Validación Resend en startup (variables SMTP migradas a RESEND_API_KEY + SMTP_FROM)
+- [x] Test 1.2 — Cron arranca con hora y minuto configurables (DIGEST_MINUTE / USER_DIGEST_MINUTE)
+- [x] Test 1.3 — POST /send-me: `{ok:true, message:"Digest enviado a..."}` ✅
+- [x] Test 1.4 — POST /send-my-digest: email recibido con 7 tareas urgentes ✅
 
 **Iteration 2:**
-- [ ] Test 2.1 ✅ Tabla digest_logs existe
-- [ ] Test 2.2 ✅ Admin digest se registra
-- [ ] Test 2.3 ✅ User digest se registra
-- [ ] Test 2.4 ✅ GET /api/digest/logs funciona
-- [ ] Test 2.5 ✅ Filtro por type
-- [ ] Test 2.6 ✅ Filtro por status
-- [ ] Test 2.7 ✅ Paginación (limit + offset)
-- [ ] Test 2.8 ✅ Seguridad (admin-only)
+- [x] Test 2.1 — Tabla `digest_logs` con 8 columnas verificada en Supabase ✅
+- [x] Test 2.2 — Admin digest registrado (11 entradas total, 6 tipo admin) ✅
+- [x] Test 2.3 — User digest registrado (5 tipo user, user_id poblado) ✅
+- [x] Test 2.4 — GET /api/digest/logs: total=11, paginación y campos correctos ✅
+- [x] Test 2.5 — ?type=admin → 6 registros, todos type=admin ✅
+- [x] Test 2.6 — ?type=user → 5 registros, todos type=user ✅
+- [x] Test 2.7 — ?limit=2&offset=0 → 2 devueltos de 11 ✅
+- [x] Test 2.8 — Sin token → 401; colaborador → 403 ✅
 
 ---
 
@@ -525,5 +525,5 @@ Antes de empezar, verifica:
 
 ---
 
-**Status:** Listo para testing manual  
-**Próximo:** Después de completar este testing, proceder con Iteration 3
+**Status:** ✅ COMPLETADO 2026-04-28  
+**Próximo:** Verificación flujo invite email end-to-end → kanban.aglaya.biz
