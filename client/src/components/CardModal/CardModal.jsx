@@ -185,19 +185,18 @@ function SortableCheckItem({
           {/* Assignee popover */}
           {isAssigneeOpen && (
             <div className="absolute right-0 bottom-full mb-1 w-52 bg-[#1e2028] border border-[#2e3140] rounded-lg shadow-xl z-50 overflow-hidden">
-              {/* Search input */}
-              {workspaceMembers.length > 5 && (
-                <div className="px-2 pt-2 pb-1">
-                  <input
-                    type="text"
-                    value={memberSearch}
-                    onChange={(e) => setMemberSearch(e.target.value)}
-                    placeholder="Buscar miembro…"
-                    className="w-full bg-[#252830] border border-[#2e3140] text-xs text-[#e8eaf0] placeholder:text-[#555b70] rounded px-2 py-1 outline-none focus:border-indigo-500"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-              )}
+              {/* Search input — always visible */}
+              <div className="px-2 pt-2 pb-1">
+                <input
+                  type="text"
+                  value={memberSearch}
+                  onChange={(e) => setMemberSearch(e.target.value)}
+                  placeholder="Buscar miembro…"
+                  autoFocus
+                  className="w-full bg-[#252830] border border-[#2e3140] text-xs text-[#e8eaf0] placeholder:text-[#555b70] rounded px-2 py-1 outline-none focus:border-indigo-500"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
               <div className="py-1">
                 {/* Todos option — only show when not filtering */}
                 {!memberSearch && (

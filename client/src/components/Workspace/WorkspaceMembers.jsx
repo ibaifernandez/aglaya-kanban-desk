@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { X, UserPlus, Trash2, Users, ChevronDown } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { X, UserPlus, Trash2, Users, ChevronDown, Search } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { Spinner } from '../UI/Spinner.jsx';
 import { useEscapeKey } from '../../hooks/useEscapeKey.js';
@@ -30,13 +30,110 @@ function Avatar({ name }) {
   );
 }
 
+function UserSearchInput({ users, selectedUser, onSelect }) {
+  const [query,     setQuery]     = useState('');
+  const [open,      setOpen]      = useState(false);
+  const wrapRef = useRef(null);
+
+  // Close on outside click
+  useEffect(() => {
+    function handler(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const filtered = query.trim().length === 0
+    ? users
+    : users.filter((u) => {
+        const q = query.toLowerCase();
+        return (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q);
+      });
+
+  function handleSelect(u) {
+    onSelect(u);
+    setQuery('');
+    setOpen(false);
+  }
+
+  function handleClear() {
+    onSelect(null);
+    setQuery('');
+    setOpen(true);
+  }
+
+  // Show the selected user as a chip; input for searching otherwise
+  if (selectedUser) {
+    return (
+      <div className="flex items-center gap-2 w-full bg-[#0f1117] border border-indigo-500 rounded-lg px-3 py-2.5">
+        <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+          {selectedUser.name?.[0]?.toUpperCase() ?? '?'}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-[#e8eaf0] truncate">{selectedUser.name}</p>
+          <p className="text-[11px] text-[#555b70] truncate">{selectedUser.email}</p>
+        </div>
+        <button type="button" onClick={handleClear} className="text-[#555b70] hover:text-[#e8eaf0] transition-colors shrink-0">
+          <X size={13} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative" ref={wrapRef}>
+      <div className="relative">
+        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#555b70] pointer-events-none" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          placeholder="Buscar por nombre o email…"
+          autoFocus
+          className="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg pl-8 pr-3 py-2.5 text-sm text-[#e8eaf0] placeholder:text-[#3d4155] focus:outline-none focus:border-indigo-500 transition-colors"
+        />
+      </div>
+
+      {open && (
+        <div className="absolute z-10 top-full mt-1 w-full bg-[#1a1d26] border border-[#2a2d3a] rounded-lg shadow-xl overflow-hidden">
+          {filtered.length === 0 ? (
+            <p className="text-xs text-[#555b70] text-center py-3">Sin coincidencias</p>
+          ) : (
+            <ul className="max-h-48 overflow-y-auto py-1">
+              {filtered.map((u) => (
+                <li key={u.id}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(u)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-[#252830] transition-colors text-left"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-indigo-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                      {u.name?.[0]?.toUpperCase() ?? '?'}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm text-[#e8eaf0] truncate">{u.name}</p>
+                      <p className="text-[11px] text-[#555b70] truncate">{u.email}</p>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AddMemberModal({ workspaceId, existingIds, onClose, onAdded }) {
-  const [orgUsers, setOrgUsers] = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [userId,   setUserId]   = useState('');
-  const [role,     setRole]     = useState('member');
-  const [saving,   setSaving]   = useState(false);
-  const [error,    setError]    = useState('');
+  const [orgUsers,      setOrgUsers]      = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [selectedUser,  setSelectedUser]  = useState(null);
+  const [role,          setRole]          = useState('member');
+  const [saving,        setSaving]        = useState(false);
+  const [error,         setError]         = useState('');
 
   useEscapeKey(onClose, !saving);
 
@@ -54,10 +151,10 @@ function AddMemberModal({ workspaceId, existingIds, onClose, onAdded }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!userId) { setError('Selecciona un usuario'); return; }
+    if (!selectedUser) { setError('Selecciona un usuario'); return; }
     setSaving(true);
     try {
-      await api.addWorkspaceMember(workspaceId, { userId, role });
+      await api.addWorkspaceMember(workspaceId, { userId: selectedUser.id, role });
       onAdded();
       onClose();
     } catch (err) {
@@ -90,19 +187,11 @@ function AddMemberModal({ workspaceId, existingIds, onClose, onAdded }) {
             <>
               <div>
                 <label className="block text-xs font-medium text-[#8b92a5] mb-1.5">Usuario</label>
-                <div className="relative">
-                  <select
-                    value={userId}
-                    onChange={(e) => setUserId(e.target.value)}
-                    className="w-full appearance-none bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2.5 text-sm text-[#e8eaf0] focus:outline-none focus:border-indigo-500 transition-colors pr-8"
-                  >
-                    <option value="">Seleccionar usuario…</option>
-                    {orgUsers.map((u) => (
-                      <option key={u.id} value={u.id}>{u.name} — {u.email}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#555b70] pointer-events-none" />
-                </div>
+                <UserSearchInput
+                  users={orgUsers}
+                  selectedUser={selectedUser}
+                  onSelect={setSelectedUser}
+                />
               </div>
 
               <div>
@@ -128,8 +217,8 @@ function AddMemberModal({ workspaceId, existingIds, onClose, onAdded }) {
                   Cancelar
                 </button>
                 <button
-                  type="submit" disabled={saving}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                  type="submit" disabled={saving || !selectedUser}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   {saving ? <Spinner size={3} /> : <UserPlus size={13} />}
                   Añadir
