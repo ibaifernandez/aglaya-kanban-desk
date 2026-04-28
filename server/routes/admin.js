@@ -1,6 +1,19 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const { createAdminClient } = require('../utils/supabase');
 const { requireAuth, requireRole } = require('../middleware/auth');
+const { sendEmail } = require('../utils/mailer');
+
+const INVITE_TEMPLATE_PATH = path.join(__dirname, '../../docs/mails/supabase-email-invite.html');
+let _inviteTemplate = null;
+function getInviteTemplate() {
+  if (!_inviteTemplate) {
+    try { _inviteTemplate = fs.readFileSync(INVITE_TEMPLATE_PATH, 'utf8'); }
+    catch (e) { console.warn('[admin] invite template not found:', e.message); }
+  }
+  return _inviteTemplate;
+}
 
 const router = express.Router();
 
@@ -183,20 +196,32 @@ router.post('/users/invite', async (req, res) => {
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 
-  // 2. Send password setup email via recovery flow
-  const { error: resetError } = await adminClient.auth.resetPasswordForEmail(rawEmail, {
-    redirectTo: SITE_URL,
-  });
+  // 2. Generate invite link and send via Resend with AGLAYA template
+  let emailSent = false;
+  try {
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: 'invite',
+      email: rawEmail,
+      options: { redirectTo: SITE_URL },
+    });
 
-  if (resetError) {
-    // User is created but email failed — log and warn, don't fail the request
-    console.warn(`[admin/invite] Failed to send invite email to ${rawEmail}:`, resetError.message);
+    if (linkError) throw new Error(linkError.message);
+
+    const actionLink = linkData?.properties?.action_link;
+    const template = getInviteTemplate();
+    if (!actionLink || !template) throw new Error('No se pudo generar el link de invitación');
+
+    const html = template.replaceAll('{{ .ConfirmationURL }}', actionLink);
+    await sendEmail({ to: rawEmail, subject: 'Bienvenid@ a AGLAYA Kanban Desk', html });
+    emailSent = true;
+  } catch (emailErr) {
+    console.warn(`[admin/invite] Email not sent to ${rawEmail}:`, emailErr.message);
   }
 
   res.status(201).json({
     data: { id: userId, email: rawEmail, name: rawName, role },
     message: `Usuario creado. Se ha enviado un email a ${rawEmail} para que establezca su contraseña.`,
-    emailSent: !resetError,
+    emailSent,
   });
 });
 
