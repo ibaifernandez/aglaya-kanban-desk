@@ -196,7 +196,36 @@ CREATE POLICY "notifications_owner"
   FOR ALL
   USING (user_id = auth.uid());
 
--- ── 6. Datos de Demo ───────────────────────────────────────────
+-- ── 6. Índices de Rendimiento ─────────────────────────────────
+-- workspace_members(user_id): consultado en cada request vía funciones RLS
+CREATE INDEX IF NOT EXISTS idx_workspace_members_user_id
+  ON public.workspace_members(user_id);
+
+-- notifications(user_id): consultado en cada poll de la campana (cada 45s)
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id
+  ON public.notifications(user_id);
+
+-- notifications(user_id, read): optimiza el filtro de no leídas
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread
+  ON public.notifications(user_id, read) WHERE read = false;
+
+-- cards(board_id): consultado en cada carga de tablero
+CREATE INDEX IF NOT EXISTS idx_cards_board_id
+  ON public.cards(board_id);
+
+-- columns(board_id): consultado en cada carga de tablero
+CREATE INDEX IF NOT EXISTS idx_columns_board_id
+  ON public.columns(board_id);
+
+-- boards(workspace_id): consultado en cada carga de sidebar
+CREATE INDEX IF NOT EXISTS idx_boards_workspace_id
+  ON public.boards(workspace_id);
+
+-- users(organization_id): consultado en operaciones admin y available-users
+CREATE INDEX IF NOT EXISTS idx_users_organization_id
+  ON public.users(organization_id);
+
+-- ── 7. Datos de Demo ───────────────────────────────────────────
 
 INSERT INTO public.organizations (id, name, slug, plan)
 VALUES ('00000000-0000-0000-0000-000000000001', 'AGLAYA', 'aglaya', 'pro')

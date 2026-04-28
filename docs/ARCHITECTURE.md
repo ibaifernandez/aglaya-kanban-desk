@@ -160,6 +160,13 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 **Decisión:** Unificar el comportamiento de overlays y acciones destructivas con tres reglas: toda eliminación estructural requiere confirmación explícita, los overlays principales deben cerrarse con `Escape`, y la navegación contextual tiene prioridad sobre filtros secundarios cuando el ancho disponible es limitado.
 **Consecuencias:** Se reduce el riesgo de borrados accidentales, la interfaz se vuelve más predecible para teclado y ratón, y la experiencia de workspace conserva legibilidad en pantallas estrechas sin comprometer la lógica de negocio.
 
+### ADR-022: Índices de Rendimiento en Columnas de Alta Frecuencia
+**Fecha:** 2026-04-28
+**Estado:** Aceptado
+**Contexto:** El schema inicial no tenía índices explícitos. Con volumen creciente, las queries más frecuentes (carga de tablero, poll de notificaciones, evaluación de RLS) realizaban sequential scans completos sobre tablas que filtran siempre por las mismas columnas.
+**Decisión:** Añadir 7 índices sobre las columnas de mayor frecuencia de consulta: `workspace_members(user_id)` — evaluado en cada request autenticado via funciones RLS; `notifications(user_id)` y `notifications(user_id, read) WHERE read = false` — consultados cada 45s por usuario; `cards(board_id)`, `columns(board_id)` y `boards(workspace_id)` — consultados en cada carga de tablero; `users(organization_id)` — consultado en operaciones admin y disponibilidad de miembros.
+**Consecuencias:** Las queries críticas pasan de O(n) a O(log n). Sin impacto en el comportamiento funcional. Los índices parciales (`WHERE read = false`) son especialmente eficientes porque la proporción de notificaciones no leídas es siempre pequeña respecto al total.
+
 ### ADR-021: Migración de cards.category_id de TEXT a UUID FK
 **Fecha:** 2026-04-28
 **Estado:** Aceptado
