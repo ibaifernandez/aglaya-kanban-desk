@@ -158,7 +158,7 @@ const updateCard = async (req, res) => {
   const update = { updated_at: new Date().toISOString() };
   if (title          !== undefined) update.title           = title.trim();
   if (description    !== undefined) update.description     = description;
-  if (category       !== undefined) update.category        = category;
+  if (category       !== undefined) update.category        = category || null;
   if (priority       !== undefined) update.priority        = priority;
   if (dueDate        !== undefined) update.due_date        = dueDate || null;
   if (tags           !== undefined) update.tags            = Array.isArray(tags) ? tags : [];
