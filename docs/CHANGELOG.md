@@ -24,8 +24,13 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 - **`App.jsx` — detección de invitaciones**: detecta `type=invite` en el hash de URL y muestra `ResetPasswordPage` con `isInvite=true`. Tras configurar contraseña el usuario va al dashboard (no al login).
 - **`ResetPasswordPage`**: acepta prop `isInvite` para ajustar evento Supabase (`SIGNED_IN` vs `PASSWORD_RECOVERY`), título y mensaje post-configuración.
 
+### Improved
+- **Toast de confirmación al mover tarjeta cross-board**: cuando una tarjeta se mueve a otro tablero (mismo o distinto workspace) desde el CardModal, aparece brevemente un banner en la parte inferior del tablero con el nombre del destino. Evita la confusión de que la tarjeta "desaparezca" sin explicación.
+
 ### Verified
 - **Tests Iteraciones 1 y 2 completados** (2026-04-28): todos los endpoints verificados contra el servidor local y producción Railway. Emails confirmados recibidos vía Resend desde `info@aglaya.biz`.
+- **Flujo invite email end-to-end** (2026-04-28): email recibido con SPF/DKIM/DMARC PASS, asunto «Bienvenid@ a AGLAYA Kanban Desk», botón «Activar mi cuenta» con `type=invite` en URL.
+- **Mover tarjeta cross-board y cross-workspace desde CardModal**: selector agrupado por workspace con carga lazy de tableros y columnas. Lógica completa en `CardModal → Board.handleSave → useBoardData.moveCard → PUT /api/cards/:id/move`.
 
 ---
 
