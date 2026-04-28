@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS public.cards (
   description     TEXT,
   priority        TEXT DEFAULT 'none',   -- none | low | medium | high
   due_date        DATE,
-  category_id     TEXT,
+  category_id     UUID REFERENCES public.categories(id) ON DELETE SET NULL,
   checklist       JSONB DEFAULT '[]',
   attachments     JSONB DEFAULT '[]',
   position        INTEGER NOT NULL DEFAULT 0,

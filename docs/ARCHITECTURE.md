@@ -160,6 +160,13 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 **Decisión:** Unificar el comportamiento de overlays y acciones destructivas con tres reglas: toda eliminación estructural requiere confirmación explícita, los overlays principales deben cerrarse con `Escape`, y la navegación contextual tiene prioridad sobre filtros secundarios cuando el ancho disponible es limitado.
 **Consecuencias:** Se reduce el riesgo de borrados accidentales, la interfaz se vuelve más predecible para teclado y ratón, y la experiencia de workspace conserva legibilidad en pantallas estrechas sin comprometer la lógica de negocio.
 
+### ADR-021: Migración de cards.category_id de TEXT a UUID FK
+**Fecha:** 2026-04-28
+**Estado:** Aceptado
+**Contexto:** La columna `cards.category_id` estaba definida como `TEXT` sin referencia a `public.categories`. Esto permitía que las tarjetas mantuvieran IDs de categorías ya eliminadas sin que la BD lo detectara, resultando en referencias huérfanas silenciosas que la UI mostraba como categoría vacía.
+**Decisión:** Migrar la columna a `UUID REFERENCES public.categories(id) ON DELETE SET NULL`. La migración limpia previamente cualquier valor huérfano, castea el tipo y añade el FK. A partir de este punto, borrar una categoría pone automáticamente a `NULL` el campo en todas las tarjetas que la usaban.
+**Consecuencias:** Integridad referencial garantizada a nivel de BD. No requiere cambios en el backend ni en el frontend — el comportamiento observable es idéntico, pero ahora con garantías de datos consistentes.
+
 ### ADR-020: Modelo Single-Tenant Intencional — Multi-Organización Diferido
 **Fecha:** 2026-04-28
 **Estado:** Aceptado
