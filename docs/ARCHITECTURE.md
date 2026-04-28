@@ -160,6 +160,13 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 **Decisión:** Unificar el comportamiento de overlays y acciones destructivas con tres reglas: toda eliminación estructural requiere confirmación explícita, los overlays principales deben cerrarse con `Escape`, y la navegación contextual tiene prioridad sobre filtros secundarios cuando el ancho disponible es limitado.
 **Consecuencias:** Se reduce el riesgo de borrados accidentales, la interfaz se vuelve más predecible para teclado y ratón, y la experiencia de workspace conserva legibilidad en pantallas estrechas sin comprometer la lógica de negocio.
 
+### ADR-020: Modelo Single-Tenant Intencional — Multi-Organización Diferido
+**Fecha:** 2026-04-28
+**Estado:** Aceptado
+**Contexto:** El schema de base de datos soporta múltiples organizaciones: las tablas `users`, `workspaces`, `boards`, `cards` y `categories` incluyen `organization_id` con referencias a `public.organizations`, y las políticas RLS aíslan los datos por organización. Sin embargo, la aplicación opera sobre una única organización (`AGLAYA`, id fijo `00000000-0000-0000-0000-000000000001` definido en el seed SQL). No existen endpoints CRUD para organizaciones ni GUI de gestión multi-org. El panel de admin asigna automáticamente cualquier usuario invitado a la organización del invitador.
+**Decisión:** Mantener el modelo single-tenant de forma explícita e intencional. La fontanería multi-org existe en la BD pero no se activa. El sistema opera correctamente con una sola organización; activar el soporte multi-org en el futuro requerirá: (1) endpoints `POST/GET/PATCH/DELETE /api/organizations`, (2) lógica de asignación de org al registrar o invitar usuarios, (3) GUI de superadmin para gestión de organizaciones y asignación de usuarios, y opcionalmente (4) un flujo de registro por slug de organización (al estilo Notion/Linear).
+**Consecuencias:** El sistema es más simple de mantener y depurar. No existe ambigüedad sobre la organización de pertenencia de ningún usuario o recurso. La arquitectura de BD no necesita modificarse para activar multi-org; solo se requiere extender el backend y el frontend. Esta decisión debe revisarse si AGLAYA Kanban Desk evoluciona hacia un SaaS con múltiples clientes independientes.
+
 ### ADR-019: Digest Contextual por Workspace y Email Derivado de Auth
 **Fecha:** 2026-04-13
 **Estado:** Aceptado
