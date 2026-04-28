@@ -191,6 +191,10 @@ Este documento resume los fallos relevantes encontrados durante la estabilizaci�
 - `App.jsx`: detecta `type=invite` en hash → muestra `ResetPasswordPage(isInvite=true)`.
 - `ResetPasswordPage`: escucha `SIGNED_IN` (invite) o `PASSWORD_RECOVERY` (reset) según `isInvite`.
 - Supabase Dashboard → Project Settings → General: nombre cambiado a `AGLAYA Kanban Desk`.
+- Supabase Authentication → Email → SMTP Settings: configurado `smtp.resend.com:465` con `resend`/apikey y sender `info@aglaya.biz` — todos los emails de Supabase pasan ahora por Resend con SPF/DKIM/DMARC PASS.
+
+**Verificación** (2026-04-28)
+- Email recibido en ibai600@gmail.com con asunto "Bienvenid@ a AGLAYA Kanban Desk", remitente "AGLAYA Kanban Desk <info@aglaya.biz>", SPF/DKIM/DMARC PASS, botón "Activar mi cuenta", `type=invite` en URL.
 
 ---
 
