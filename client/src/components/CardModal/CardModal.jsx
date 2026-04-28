@@ -52,11 +52,14 @@ function uid() {
 }
 
 // ── Assignee avatar chip ───────────────────────────────────
-function AssigneeChip({ member }) {
+function AssigneeChip({ member, size = 'md' }) {
   const initials = (member?.name || member?.email || '?')[0].toUpperCase();
+  const sizeClass = size === 'sm'
+    ? 'w-4 h-4 text-[8px]'
+    : 'w-6 h-6 text-[10px]';
   return (
     <span
-      className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-700 text-white text-[8px] font-bold flex-shrink-0"
+      className={`inline-flex items-center justify-center rounded-full bg-indigo-700 text-white font-bold flex-shrink-0 ${sizeClass}`}
       title={member?.name || member?.email}
     >
       {initials}
@@ -80,16 +83,17 @@ function SortableCheckItem({
   } = useSortable({ id: item.id });
 
   const style = { transform: CSS.Transform.toString(transform), transition };
-  const editRef   = useRef(null);
-  const panelRef  = useRef(null);
+  const editRef      = useRef(null);
+  const panelRef     = useRef(null);
+  const [memberSearch, setMemberSearch] = useState('');
 
   useEffect(() => {
     if (isEditing) editRef.current?.focus();
   }, [isEditing]);
 
-  // Close assignee popover on outside click
+  // Close assignee popover on outside click; reset search when closed
   useEffect(() => {
-    if (!isAssigneeOpen) return;
+    if (!isAssigneeOpen) { setMemberSearch(''); return; }
     function handler(e) {
       if (panelRef.current && !panelRef.current.contains(e.target)) onToggleAssigneePanel();
     }
@@ -157,7 +161,11 @@ function SortableCheckItem({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onToggleAssigneePanel(); }}
-            className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-all"
+            className={`flex items-center gap-1 transition-all ${
+              isAllMode || assignedMembers.length > 0
+                ? ''
+                : 'opacity-0 group-hover/item:opacity-100'
+            }`}
             title="Asignar miembros"
           >
             {isAllMode ? (
@@ -166,46 +174,71 @@ function SortableCheckItem({
               <span className="flex items-center gap-0.5">
                 {assignedMembers.slice(0, 3).map((m) => <AssigneeChip key={m.id} member={m} />)}
                 {assignedMembers.length > 3 && (
-                  <span className="text-[8px] text-[#555b70]">+{assignedMembers.length - 3}</span>
+                  <span className="text-[9px] text-[#555b70] font-medium">+{assignedMembers.length - 3}</span>
                 )}
               </span>
             ) : (
-              <Users size={11} className="text-[#3d4155] hover:text-indigo-400" />
+              <Users size={12} className="text-[#3d4155] hover:text-indigo-400" />
             )}
           </button>
 
           {/* Assignee popover */}
           {isAssigneeOpen && (
-            <div className="absolute right-0 bottom-full mb-1 w-44 bg-[#1e2028] border border-[#2e3140] rounded-lg shadow-xl z-50 py-1 overflow-hidden">
-              {/* Todos option */}
-              <button
-                type="button"
-                onClick={() => onToggleAssignee('__all__')}
-                className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-[#252830] transition-colors ${isAllMode ? 'text-indigo-400' : 'text-[#c8cadd]'}`}
-              >
-                <span className={`w-2.5 h-2.5 rounded border flex-shrink-0 flex items-center justify-center ${isAllMode ? 'bg-indigo-500 border-indigo-500' : 'border-[#555b70]'}`}>
-                  {isAllMode && <Check size={8} className="text-white" />}
-                </span>
-                Todos los miembros
-              </button>
-              <div className="h-px bg-[#2e3140] mx-2 my-0.5" />
-              {workspaceMembers.map((m) => {
-                const checked = !isAllMode && assignees.includes(m.id);
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => onToggleAssignee(m.id)}
-                    className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-[#252830] transition-colors ${checked ? 'text-indigo-400' : 'text-[#c8cadd]'}`}
-                  >
-                    <span className={`w-2.5 h-2.5 rounded border flex-shrink-0 flex items-center justify-center ${checked ? 'bg-indigo-500 border-indigo-500' : 'border-[#555b70]'}`}>
-                      {checked && <Check size={8} className="text-white" />}
-                    </span>
-                    <AssigneeChip member={m} />
-                    <span className="truncate">{m.name || m.email}</span>
-                  </button>
-                );
-              })}
+            <div className="absolute right-0 bottom-full mb-1 w-52 bg-[#1e2028] border border-[#2e3140] rounded-lg shadow-xl z-50 overflow-hidden">
+              {/* Search input */}
+              {workspaceMembers.length > 5 && (
+                <div className="px-2 pt-2 pb-1">
+                  <input
+                    type="text"
+                    value={memberSearch}
+                    onChange={(e) => setMemberSearch(e.target.value)}
+                    placeholder="Buscar miembro…"
+                    className="w-full bg-[#252830] border border-[#2e3140] text-xs text-[#e8eaf0] placeholder:text-[#555b70] rounded px-2 py-1 outline-none focus:border-indigo-500"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              )}
+              <div className="py-1">
+                {/* Todos option — only show when not filtering */}
+                {!memberSearch && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onToggleAssignee('__all__')}
+                      className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-[#252830] transition-colors ${isAllMode ? 'text-indigo-400' : 'text-[#c8cadd]'}`}
+                    >
+                      <span className={`w-2.5 h-2.5 rounded border flex-shrink-0 flex items-center justify-center ${isAllMode ? 'bg-indigo-500 border-indigo-500' : 'border-[#555b70]'}`}>
+                        {isAllMode && <Check size={8} className="text-white" />}
+                      </span>
+                      Todos los miembros
+                    </button>
+                    <div className="h-px bg-[#2e3140] mx-2 my-0.5" />
+                  </>
+                )}
+                {workspaceMembers
+                  .filter((m) => {
+                    if (!memberSearch) return true;
+                    const q = memberSearch.toLowerCase();
+                    return (m.name || '').toLowerCase().includes(q) || (m.email || '').toLowerCase().includes(q);
+                  })
+                  .map((m) => {
+                    const checked = !isAllMode && assignees.includes(m.id);
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => onToggleAssignee(m.id)}
+                        className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-[#252830] transition-colors ${checked ? 'text-indigo-400' : 'text-[#c8cadd]'}`}
+                      >
+                        <span className={`w-2.5 h-2.5 rounded border flex-shrink-0 flex items-center justify-center ${checked ? 'bg-indigo-500 border-indigo-500' : 'border-[#555b70]'}`}>
+                          {checked && <Check size={8} className="text-white" />}
+                        </span>
+                        <AssigneeChip member={m} size="sm" />
+                        <span className="truncate">{m.name || m.email}</span>
+                      </button>
+                    );
+                  })}
+              </div>
             </div>
           )}
         </div>

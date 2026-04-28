@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Plus, Users, LayoutGrid, ChevronRight, Camera, Pencil, Trash2 } from 'lucide-react';
 import { useWorkspaces } from '../hooks/useWorkspaces.js';
 import { Spinner } from '../components/UI/Spinner.jsx';
+import { NotificationBell } from '../components/UI/NotificationBell.jsx';
 import { api } from '../api/client.js';
 import agLayaIcon from '../assets/aglaya-favicon-rojo.svg';
 import agLayaLogo  from '../assets/aglaya-logo-blanco.svg';
@@ -561,6 +562,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                 Admin
               </button>
             )}
+            <NotificationBell user={user} />
             <div className="pl-2 border-l border-[#2a2d3a]">
               <UserMenu
                 user={user}

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings, Search, X, ArrowRight, LogOut, Mail, ChevronLeft, UserCog, Camera, SlidersHorizontal, Bell } from 'lucide-react';
+import { Settings, Search, X, ArrowRight, LogOut, Mail, ChevronLeft, UserCog, Camera, SlidersHorizontal } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { AvatarCropModal } from '../UI/AvatarCropModal.jsx';
+import { NotificationBell } from '../UI/NotificationBell.jsx';
 import { PRIORITY_LIST } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { CategorySettings } from './CategorySettings.jsx';
@@ -18,12 +19,6 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
   const [avatarCropSrc,   setAvatarCropSrc]   = useState(null);
   const avatarFileRef = useRef(null);
 
-  // Notifications
-  const [notifs,     setNotifs]     = useState([]);
-  const [notifOpen,  setNotifOpen]  = useState(false);
-  const notifRef     = useRef(null);
-  const pollingRef   = useRef(null);
-
   // Global search state
   const [globalQ,       setGlobalQ]       = useState('');
   const [globalResults, setGlobalResults] = useState([]);
@@ -33,40 +28,6 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
   const wrapRef   = useRef(null);
 
   useEscapeKey(() => setShowDigestConfirm(false), showDigestConfirm && digestState !== 'sending');
-  useEscapeKey(() => setNotifOpen(false), notifOpen);
-
-  // Notification polling
-  useEffect(() => {
-    if (!user) return;
-    async function fetchNotifs() {
-      try { setNotifs(await api.getNotifications()); } catch {}
-    }
-    fetchNotifs();
-    pollingRef.current = setInterval(fetchNotifs, 45_000);
-    return () => clearInterval(pollingRef.current);
-  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Close notification dropdown on outside click
-  useEffect(() => {
-    if (!notifOpen) return;
-    function handler(e) {
-      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
-    }
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [notifOpen]);
-
-  async function handleMarkRead(id) {
-    setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
-    api.markNotificationRead(id).catch(() => {});
-  }
-
-  async function handleMarkAllRead() {
-    setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
-    api.markAllNotificationsRead().catch(() => {});
-  }
-
-  const unreadCount = notifs.filter((n) => !n.read).length;
 
   // Debounced fetch
   useEffect(() => {
@@ -344,68 +305,7 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
         )}
 
         {/* Notification bell */}
-        {user && (
-          <div className="relative" ref={notifRef}>
-            <button
-              onClick={() => setNotifOpen((o) => !o)}
-              title="Notificaciones"
-              className={`relative p-1.5 rounded transition-colors ${
-                notifOpen
-                  ? 'text-[#e8eaf0] bg-[#2e3140]'
-                  : 'text-[#555b70] hover:text-[#e8eaf0] hover:bg-[#2e3140]'
-              }`}
-            >
-              <Bell size={15} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 px-0.5 flex items-center justify-center bg-indigo-500 text-white text-[9px] font-bold rounded-full leading-none">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-
-            {notifOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-80 bg-[#1e2028] border border-[#2e3140] rounded-xl shadow-2xl z-50 overflow-hidden">
-                <div className="px-3 py-2.5 border-b border-[#2e3140] flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#e8eaf0]">Notificaciones</span>
-                  {unreadCount > 0 && (
-                    <button
-                      onClick={handleMarkAllRead}
-                      className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
-                    >
-                      Marcar todas como leídas
-                    </button>
-                  )}
-                </div>
-                {notifs.length === 0 ? (
-                  <p className="text-xs text-[#555b70] text-center py-6">Sin notificaciones</p>
-                ) : (
-                  <ul className="max-h-72 overflow-y-auto divide-y divide-[#1e2130]">
-                    {notifs.map((n) => (
-                      <li key={n.id}>
-                        <button
-                          onClick={() => { handleMarkRead(n.id); setNotifOpen(false); }}
-                          className={`w-full text-left px-3 py-2.5 hover:bg-[#252830] transition-colors flex items-start gap-2 ${n.read ? 'opacity-50' : ''}`}
-                        >
-                          {!n.read && (
-                            <span className="mt-1.5 w-1.5 h-1.5 bg-indigo-500 rounded-full flex-shrink-0" />
-                          )}
-                          <div className={n.read ? 'w-full' : 'w-full pl-0'}>
-                            <p className="text-[11px] text-[#e8eaf0] line-clamp-2 leading-relaxed">
-                              {n.payload?.checklistText}
-                            </p>
-                            <p className="text-[10px] text-[#555b70] mt-0.5">
-                              en «{n.payload?.cardTitle}»
-                            </p>
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+        <NotificationBell user={user} />
 
         {/* Workspace digest button */}
         {workspace && (
