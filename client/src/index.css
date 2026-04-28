@@ -32,4 +32,13 @@
   .priority-medium { @apply border-l-[3px] border-l-amber-500; }
   .priority-high   { @apply border-l-[3px] border-l-red-500; }
   .priority-urgent { @apply border-l-[3px] border-l-purple-500; }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.25s ease-out both;
+  }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px) translateX(-50%); }
+  to   { opacity: 1; transform: translateY(0)   translateX(-50%); }
 }

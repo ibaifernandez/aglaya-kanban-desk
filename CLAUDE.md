@@ -46,9 +46,9 @@ Configuración en `.claude/launch.json`.
 Phase 1 (rebrand AGLAYA) completada en v1.1.0 — todas las fases A–D ejecutadas.
 
 Pendiente en Phase 4:
-- [ ] Página de ajustes de workspace (editar nombre, tipo, portada desde UI)
-- [ ] Verificación end-to-end flujo invite email → kanban.aglaya.biz *(bloqueante Phase 5)*
-- [ ] Mover tarjeta entre tableros (cross-board desde CardModal)
+- [x] Página de ajustes de workspace (editar nombre, tipo, portada desde UI)
+- [x] Verificación end-to-end flujo invite email → kanban.aglaya.biz
+- [x] Mover tarjeta entre tableros (cross-board y cross-workspace desde CardModal)
 - [ ] Tests actualizados (auth sin restricción de dominio + rutas workspaces)
 
 ---
@@ -58,10 +58,10 @@ Pendiente en Phase 4:
 | # | Feature | Prioridad | Estado |
 |---|---------|-----------|--------|
 | 1 | Movilidad de objetos — mover tableros entre workspaces | 🟡 MEDIA | ✅ v1.2.0 |
-| 1b | Movilidad de objetos — mover tarjetas cross-workspace | 🟡 MEDIA | ❌ Pendiente diseño |
+| 1b | Movilidad de objetos — mover tarjetas cross-workspace | 🟡 MEDIA | ✅ v1.2.x |
 | 2 | Tests actualizados — auth, workspaces (code viejo sistema) | 🟡 MEDIA | ❌ Pendiente |
 | 3 | Limpiar localStorage — remover `aglaya_token` (legacy nomenclature) | 🟢 BAJA | ✅ v1.2.0 |
-| 4 | Verificar flujo email invite — end-to-end kanban.aglaya.biz | 🔴 CRÍTICO | ❌ Bloqueante Phase 5 |
+| 4 | Verificar flujo email invite — end-to-end kanban.aglaya.biz | 🔴 CRÍTICO | ✅ v1.2.x |
 | 5 | Deprecación de prototipos legacy — archivar repos antiguos | 🟢 BAJA | ❌ Pendiente |
 
 ---

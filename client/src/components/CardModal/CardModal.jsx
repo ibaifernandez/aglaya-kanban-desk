@@ -313,12 +313,16 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
   function handleSubmit(e) {
     e.preventDefault();
     if (!form.title.trim()) return;
+    const isCrossBoard = selectedBoardId !== boardId;
     onSave({
       ...form,
       title:    form.title.trim(),
       dueDate:  form.dueDate || null,
       boardId:  selectedBoardId,
       columnId: form.columnId || columnId,
+      ...(isCrossBoard && {
+        targetBoardTitle: displayBoards.find((b) => b.id === selectedBoardId)?.title,
+      }),
     });
   }
 

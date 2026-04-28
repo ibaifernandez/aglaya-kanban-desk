@@ -28,6 +28,7 @@ export function Board({
   const [otherBoardCols, setOtherBoardCols] = useState({});   // { [boardId]: columns[] }
   const [editingColId,   setEditingColId]   = useState(null);
   const [pendingDelete,  setPendingDelete]  = useState(null); // { kind: 'card'|'column', id, label }
+  const [crossBoardMsg,  setCrossBoardMsg]  = useState(null); // string | null
 
   const { categories } = useCategoriesCtx();
   useEscapeKey(() => setPendingDelete(null), Boolean(pendingDelete));
@@ -86,7 +87,7 @@ export function Board({
 
   async function handleSave(formData) {
     if (modalState?.card?.id) {
-      const { columnId: newColId, boardId: newBoardId, ...rest } = formData;
+      const { columnId: newColId, boardId: newBoardId, targetBoardTitle, ...rest } = formData;
       const isCrossBoard   = newBoardId && newBoardId !== boardId;
       const isColumnChange = newColId !== modalState.card.columnId;
 
@@ -97,6 +98,12 @@ export function Board({
         await onMoveCard(modalState.card.id, newColId, destCards.length + 1);
       }
       await onUpdateCard(modalState.card.id, rest);
+
+      if (isCrossBoard) {
+        const label = targetBoardTitle ? `«${targetBoardTitle}»` : 'otro tablero';
+        setCrossBoardMsg(`Tarjeta movida a ${label}`);
+        setTimeout(() => setCrossBoardMsg(null), 3500);
+      }
     } else {
       await onCreateCard(formData);
     }
@@ -361,6 +368,16 @@ export function Board({
                 Eliminar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast: tarjeta movida a otro tablero */}
+      {crossBoardMsg && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none">
+          <div className="flex items-center gap-2 bg-[#1e2028] border border-indigo-500/40 text-indigo-300 text-sm px-4 py-2.5 rounded-xl shadow-2xl animate-fade-in-up">
+            <ArrowUpRight size={15} className="flex-shrink-0" />
+            {crossBoardMsg}
           </div>
         </div>
       )}
