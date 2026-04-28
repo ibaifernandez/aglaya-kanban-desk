@@ -19,6 +19,11 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 - **Cleanup de variables Railway**: eliminadas 6 variables SMTP obsoletas (`SMTP_HOST`, `SMTP_HOSTNAME`, `SMTP_PASS`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`). Variables activas: 13 de servicio + 8 de sistema Railway.
 - **Documentación movida a `docs/`**: archivos de testing e iteraciones reubicados desde `.claude/` a `docs/` donde corresponden.
 
+- **Flujo de invitación corregido** (`server/routes/admin.js`): sustituido `resetPasswordForEmail` por `generateLink({ type: 'invite' })` + envío vía Resend con la plantilla AGLAYA. El token llega como `type=invite` (no `type=recovery`), activa la pantalla "Configura tu contraseña" en el cliente, y el usuario queda logueado tras establecerla.
+- **Nombre del proyecto Supabase** cambiado de `MyBoardLFi` a `AGLAYA Kanban Desk` — corrije el remitente en emails enviados por Supabase directamente.
+- **`App.jsx` — detección de invitaciones**: detecta `type=invite` en el hash de URL y muestra `ResetPasswordPage` con `isInvite=true`. Tras configurar contraseña el usuario va al dashboard (no al login).
+- **`ResetPasswordPage`**: acepta prop `isInvite` para ajustar evento Supabase (`SIGNED_IN` vs `PASSWORD_RECOVERY`), título y mensaje post-configuración.
+
 ### Verified
 - **Tests Iteraciones 1 y 2 completados** (2026-04-28): todos los endpoints verificados contra el servidor local y producción Railway. Emails confirmados recibidos vía Resend desde `info@aglaya.biz`.
 

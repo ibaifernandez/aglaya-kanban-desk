@@ -173,19 +173,37 @@ Este documento resume los fallos relevantes encontrados durante la estabilizaci�
 
 ---
 
-## Incidencia operativa pendiente — Plantillas de Supabase Auth con branding legado
+## 2026-04-28 — Invitaciones enviaban email de "restablece contraseña" en vez de invitación
 
 **Síntoma**
-- Correos de reset/invitación todavía muestran la marca `MyBoardLFi`.
+- El email de invitación llegaba con asunto "Restablece tu contraseña" y `type=recovery` en el link.
+- El remitente mostraba "MyBoardLFi" en vez de "AGLAYA Kanban Desk".
+- El cliente no detectaba `type=invite` → mostraba el login, no la pantalla de configurar contraseña.
+
+**Causa raíz**
+- El backend usaba `resetPasswordForEmail()` para el flujo de invitación (decisión legada).
+- Supabase enviaba su plantilla de "reset password" en lugar de la de "invite user".
+- El nombre del proyecto Supabase era `MyBoardLFi` (legacy).
+- `App.jsx` solo detectaba `type=recovery`, ignoraba `type=invite`.
+
+**Solución aplicada**
+- Backend (`server/routes/admin.js`): sustituido `resetPasswordForEmail` por `generateLink({ type: 'invite' })` + envío vía Resend con la plantilla `docs/mails/supabase-email-invite.html`.
+- `App.jsx`: detecta `type=invite` en hash → muestra `ResetPasswordPage(isInvite=true)`.
+- `ResetPasswordPage`: escucha `SIGNED_IN` (invite) o `PASSWORD_RECOVERY` (reset) según `isInvite`.
+- Supabase Dashboard → Project Settings → General: nombre cambiado a `AGLAYA Kanban Desk`.
+
+---
+
+## Incidencia operativa resuelta — Plantillas de Supabase Auth con branding legado
+
+**Síntoma**
+- Correos de reset/invitación mostraban la marca `MyBoardLFi`.
 
 **Estado**
-- **Pendiente operativo**, no bloqueado por código.
+- ✅ **Resuelto** (2026-04-28).
 
-**Acción requerida**
-- Actualizar las plantillas en Supabase Dashboard → `Authentication -> Email Templates`.
-- Versiones correctas disponibles en:
-  - `docs/mails/supabase-email-reset-password.html`
-  - `docs/mails/supabase-email-invite.html`
-
-**Nota**
-- Hasta que no se apliquen estas plantillas en el panel de Supabase, el branding del correo seguirá mostrando texto heredado aunque la aplicación ya esté corregida.
+**Acciones aplicadas**
+- Plantilla "Invite user" aplicada en Supabase Dashboard → Authentication → Email Templates.
+- Plantilla "Reset password" disponible en `docs/mails/supabase-email-reset-password.html` (pendiente aplicar si aún no está).
+- Nombre del proyecto cambiado a `AGLAYA Kanban Desk` en Supabase → Project Settings → General.
+- Las invitaciones ya no dependen de Supabase email — se envían vía Resend con plantilla propia.

@@ -143,27 +143,29 @@ router.post('/users/invite', async (req, res) => {
     return res.status(409).json({ error: 'Ya existe un perfil con ese correo. Revisa la integridad del usuario antes de reinvitarlo.' });
   }
 
-  let userId = existingAuthUser?.id ?? null;
-  let createdAuthUser = false;
-
-  if (!userId) {
-    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-      email: rawEmail,
-      email_confirm: true,
+  // Case: auth user exists but no profile — inconsistent state, reject cleanly
+  if (existingAuthUser && !existingProfile) {
+    return res.status(409).json({
+      error: 'El email ya existe en el sistema de autenticación pero sin perfil. Elimina el usuario desde el panel de Supabase Auth antes de reinvitarlo.',
     });
-
-    if (authError) {
-      if (isDuplicateAuthError(authError)) {
-        return res.status(409).json({ error: 'Ya existe un usuario con ese correo' });
-      }
-      return res.status(400).json({ error: authError.message });
-    }
-
-    userId = authData.user.id;
-    createdAuthUser = true;
   }
 
-  // 1. Insert or recover profile in public.users
+  // Normal path: create user via inviteUserByEmail (atomic: creates auth user + sends invite email)
+  const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
+    rawEmail,
+    { redirectTo: SITE_URL }
+  );
+
+  if (inviteError) {
+    if (isDuplicateAuthError(inviteError)) {
+      return res.status(409).json({ error: 'Ya existe un usuario con ese correo' });
+    }
+    return res.status(400).json({ error: inviteError.message });
+  }
+
+  const userId = inviteData.user.id;
+
+  // 1. Insert profile in public.users
   const { error: profileError } = await adminClient
     .from('users')
     .insert({
@@ -175,9 +177,7 @@ router.post('/users/invite', async (req, res) => {
     });
 
   if (profileError) {
-    if (createdAuthUser) {
-      await adminClient.auth.admin.deleteUser(userId);
-    }
+    await adminClient.auth.admin.deleteUser(userId);
 
     if (isUniqueConstraintError(profileError)) {
       return res.status(409).json({ error: 'Ya existe un usuario con ese correo' });
@@ -186,37 +186,13 @@ router.post('/users/invite', async (req, res) => {
     console.error('[admin] POST /users/invite profile insert:', JSON.stringify({
       message: profileError.message,
       code: profileError.code,
-      details: profileError.details,
-      hint: profileError.hint,
-      requesterId: req.user.id,
-      requesterOrganizationId,
       inviteEmail: rawEmail,
-      recoveredAuthUser: Boolean(existingAuthUser),
     }));
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 
-  // 2. Generate invite link and send via Resend with AGLAYA template
-  let emailSent = false;
-  try {
-    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-      type: 'invite',
-      email: rawEmail,
-      options: { redirectTo: SITE_URL },
-    });
-
-    if (linkError) throw new Error(linkError.message);
-
-    const actionLink = linkData?.properties?.action_link;
-    const template = getInviteTemplate();
-    if (!actionLink || !template) throw new Error('No se pudo generar el link de invitación');
-
-    const html = template.replaceAll('{{ .ConfirmationURL }}', actionLink);
-    await sendEmail({ to: rawEmail, subject: 'Bienvenid@ a AGLAYA Kanban Desk', html });
-    emailSent = true;
-  } catch (emailErr) {
-    console.warn(`[admin/invite] Email not sent to ${rawEmail}:`, emailErr.message);
-  }
+  // Email was sent by Supabase via inviteUserByEmail
+  const emailSent = true;
 
   res.status(201).json({
     data: { id: userId, email: rawEmail, name: rawName, role },
