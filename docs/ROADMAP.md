@@ -102,6 +102,12 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 
 **Estado:** 📋 Por definir
 
+- Sandbox público de demostración — accesible desde `aglaya.biz/proof/kanban-desk/`
+  - Auto-login como usuario demo (sin registro)
+  - Datos precargados: workspace, tableros, tarjetas y checklists representativos
+  - Sin persistencia: token en `sessionStorage` → cerrar pestaña = sesión muerta
+  - Org/Supabase aislado exclusivamente para sandbox + cron de reset horario
+  - Deploy independiente (Railway + Supabase separados de producción)
 - Actividad / audit log por workspace
 - Límites freemium (máx. boards/cards en plan free)
 - Operaciones en lote sobre tarjetas
