@@ -41,7 +41,7 @@ jest.mock('../utils/supabase', () => ({
   },
 }));
 
-const app = require('../index');
+const app = require('../app');
 
 // Create a valid JWT for test requests
 function makeToken(overrides = {}) {

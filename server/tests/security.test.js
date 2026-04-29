@@ -16,7 +16,7 @@ jest.mock('../utils/supabase', () => ({
   },
 }));
 
-const app = require('../index');
+const app = require('../app');
 
 const PROTECTED_ROUTES = [
   { method: 'get',    path: '/api/boards' },

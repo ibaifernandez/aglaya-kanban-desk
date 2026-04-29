@@ -18,7 +18,7 @@ jest.mock('../utils/supabase', () => ({
 }));
 
 const { supabaseAdmin, createAdminClient, createPublicClient } = require('../utils/supabase');
-const app = require('../index');
+const app = require('../app');
 
 const TEST_PROFILE = {
   id: 'user-1',

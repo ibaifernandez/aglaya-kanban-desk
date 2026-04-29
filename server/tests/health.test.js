@@ -22,7 +22,7 @@ jest.mock('../utils/supabase', () => ({
   },
 }));
 
-const app = require('../index');
+const app = require('../app');
 
 describe('GET /api/health', () => {
   it('returns 200 with status ok', async () => {

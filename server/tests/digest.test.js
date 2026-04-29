@@ -18,7 +18,7 @@ jest.mock('../userDigest', () => ({
 
 const { createAdminClient, supabaseAdmin } = require('../utils/supabase');
 const { buildUserCards, sendUserDigest } = require('../userDigest');
-const app = require('../index');
+const app = require('../app');
 
 function makeToken(overrides = {}) {
   return jwt.sign(

@@ -24,7 +24,7 @@ jest.mock('../utils/supabase', () => ({
   createPublicClient: jest.fn(),
 }));
 
-const app = require('../index');
+const app = require('../app');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

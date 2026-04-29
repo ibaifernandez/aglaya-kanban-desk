@@ -14,7 +14,7 @@ jest.mock('../utils/supabase', () => ({
 }));
 
 const { supabaseAdmin } = require('../utils/supabase');
-const app = require('../index');
+const app = require('../app');
 
 function makeToken(overrides = {}) {
   return jwt.sign(

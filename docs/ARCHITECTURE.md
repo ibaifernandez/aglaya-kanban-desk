@@ -160,6 +160,13 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 **Decisión:** Unificar el comportamiento de overlays y acciones destructivas con tres reglas: toda eliminación estructural requiere confirmación explícita, los overlays principales deben cerrarse con `Escape`, y la navegación contextual tiene prioridad sobre filtros secundarios cuando el ancho disponible es limitado.
 **Consecuencias:** Se reduce el riesgo de borrados accidentales, la interfaz se vuelve más predecible para teclado y ratón, y la experiencia de workspace conserva legibilidad en pantallas estrechas sin comprometer la lógica de negocio.
 
+### ADR-024: Separación de app.js e index.js
+**Fecha:** 2026-04-29
+**Estado:** Aceptado
+**Contexto:** `server/index.js` contenía tanto la configuración completa de Express como el arranque del servidor TCP (`app.listen`). Al importar `index.js` en los tests, cualquier efecto secundario del módulo (inicialización de clientes, validaciones de startup) se ejecutaba en el contexto del test runner, lo que dificultaba el aislamiento y requería `--forceExit` como medida paliativa.
+**Decisión:** Separar en dos ficheros con responsabilidades únicas: `server/app.js` exporta la aplicación Express completamente configurada (middlewares, rutas, error handlers) sin llamar nunca a `listen()`; `server/index.js` es el punto de entrada que importa `app.js`, valida la configuración de arranque y llama a `listen()`. Los tests importan `../app` directamente. El flag `--forceExit` se mantiene en los scripts npm como salvaguarda ante handles externos (conexiones de red de supertest).
+**Consecuencias:** Separación de responsabilidades clara entre configuración de aplicación y arranque de proceso. Los tests importan únicamente la lógica que necesitan sin efectos secundarios de inicialización. Patrón estándar en proyectos Express de producción.
+
 ### ADR-023: Global Error Handler y 404 JSON en Express
 **Fecha:** 2026-04-28
 **Estado:** Aceptado
