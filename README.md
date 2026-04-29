@@ -1,7 +1,7 @@
 # AGLAYA Kanban Desk
 
-![Version](https://img.shields.io/badge/version-1.1.0-6366f1)
-![Tests](https://img.shields.io/badge/tests-26%20passing-brightgreen)
+![Version](https://img.shields.io/badge/version-1.3.1-6366f1)
+![Tests](https://img.shields.io/badge/tests-85%20passing-brightgreen)
 ![Client](https://img.shields.io/badge/client-Netlify-00C7B7?logo=netlify)
 ![Server](https://img.shields.io/badge/server-Railway-0B0D0E?logo=railway)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
@@ -36,9 +36,9 @@ Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo inter
 | Base de datos   | Supabase (PostgreSQL + RLS)                     |
 | Auth            | Supabase Auth + JWT middleware + bcryptjs       |
 | Storage         | Supabase Storage (adjuntos, avatares, portadas) |
-| Email           | Nodemailer + node-cron (digest diario)          |
+| Email           | Resend + node-cron (digests diarios)            |
 | Seguridad       | Helmet + express-rate-limit + CORS por entorno  |
-| Tests           | Jest + Supertest (26 tests)                     |
+| Tests           | Jest + Supertest (85 tests · 10 suites)         |
 | Deploy cliente  | Netlify (auto-deploy en push a `main`)          |
 | Deploy servidor | Railway (auto-deploy en push a `main`)          |
 
@@ -50,17 +50,20 @@ Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo inter
 client/  (React 18 + Vite · Netlify · puerto 5175)
 ├── src/
 │   ├── pages/          ← LoginPage, WorkspaceDashboard, ResetPasswordPage
-│   ├── components/     ← Board, Card, CardModal, Sidebar, Toolbar…
+│   ├── components/     ← Board, Card, CardModal, Sidebar, Toolbar, NotificationBell…
 │   ├── context/        ← AuthContext, CategoriesContext
 │   ├── hooks/          ← useBoardData, useWorkspaces, useBoards…
 │   └── api/client.js   ← interceptor JWT · todas las peticiones
 
 server/  (Express 4 · Railway · puerto 3003)
+├── app.js              ← Express config, rutas, middlewares, 404 y error handler
+├── index.js            ← Entry point: valida config y arranca listen()
 ├── routes/             ← auth, boards, cards, columns, categories,
-│                          workspaces, media, digest
+│                          workspaces, notifications, media, digest
 ├── middleware/         ← requireAuth, requireRole, requireWorkspaceMember
-├── digest.js           ← admin digest · estadísticas globales diarias
-└── utils/supabase.js   ← cliente admin (service_role) + anon
+├── digest.js           ← Admin digest · estadísticas globales diarias
+├── userDigest.js       ← User digest · tarjetas urgentes/vencidas por usuario
+└── utils/supabase.js   ← Cliente admin (service_role) + anon
 
          React ←──── JWT / HTTPS ────→ Express
                                            │
@@ -75,7 +78,7 @@ server/  (Express 4 · Railway · puerto 3003)
 
 ---
 
-## Características — v1.1.0
+## Características — v1.3.1
 
 ### Workspaces y roles
 
@@ -83,16 +86,27 @@ server/  (Express 4 · Railway · puerto 3003)
 - Dos roles de usuario: `colaborador` (acceso completo) y `cliente` (solo workspaces externos asignados)
 - Roles por workspace: `owner` / `admin` / `member` / `guest`
 - Creación automática de workspace personal al registrarse
+- Ajustes de workspace desde la UI: editar nombre, emoji, tipo, descripción y portada
+- Aviso al cambiar un workspace a tipo `externo` (visibilidad para clientes)
 
 ### Tableros y tarjetas
 
 - Drag & drop de columnas y tarjetas
 - Prioridades: urgente / alta / media / baja / ninguna
 - Fecha límite con indicador visual de urgencia
-- Checklist con progreso, reordenación y edición inline
+- Checklist con progreso, reordenación, edición inline y **asignaciones por ítem** (con buscador de miembros)
 - Responsable por tarjeta (con avatar)
 - Etiquetas y adjuntos
 - Búsqueda global y filtros por responsable / vencidas
+- Mover tarjeta entre tableros (cross-board, incluso cross-workspace)
+- Mover tablero entre workspaces
+
+### Notificaciones
+
+- **Campana in-app** con badge de no leídas (polling cada 45 s)
+- Visible en la lista de workspaces y dentro de los tableros
+- Notificaciones automáticas al ser mencionado en un ítem de checklist
+- Marcar como leída individualmente o todas a la vez
 
 ### Identidad visual y storage
 
@@ -100,11 +114,12 @@ server/  (Express 4 · Railway · puerto 3003)
 - Portada de workspace (imagen real o mini-kanban generativo)
 - Mini-kanban decorativo determinista en tarjetas de workspace
 
-### Email y notificaciones
+### Email y digests
 
-- Digest diario de administrador: estadísticas globales, tarjetas vencidas, huérfanas, top tableros, datos de usuarios Supabase
+- **Admin digest:** estadísticas globales, tarjetas vencidas, huérfanas, top tableros y datos de usuarios Supabase — enviado diariamente vía node-cron
+- **User digest:** email personal con tarjetas urgentes/vencidas y asignaciones pendientes, segmentado por workspace
 - Endpoint `POST /api/digest/send-me` para envío bajo demanda (admin)
-- SMTP via Resend
+- Email vía [Resend](https://resend.com)
 
 ### Seguridad
 
@@ -112,7 +127,9 @@ server/  (Express 4 · Railway · puerto 3003)
 - Rate limiting: 20 req / 15 min en rutas de auth
 - Helmet con CSP en producción
 - Validación de enums y tipos en todos los endpoints de mutación
-- JWT con expiración de 7 días; tokens en localStorage con keys propias (`aglaya_token`, `aglaya_user`)
+- JWT con expiración de 7 días; tokens en sessionStorage
+- Confirmación de borrado en tarjetas y columnas
+- Global error handler: todos los errores no capturados responden con JSON (nunca HTML)
 
 ---
 
@@ -122,13 +139,14 @@ server/  (Express 4 · Railway · puerto 3003)
 
 - Node.js 20+
 - Un proyecto [Supabase](https://supabase.com) (el plan free es suficiente para desarrollo)
+- Una cuenta [Resend](https://resend.com) para el envío de emails (plan free disponible)
 
 ### Instalación
 
 ```bash
 # Clonar
-git clone https://github.com/ibaifernandez/aglaya-board.git
-cd aglaya-board
+git clone https://github.com/ibaifernandez/aglaya-kanban-desk.git
+cd aglaya-kanban-desk
 
 # Dependencias del servidor
 npm install
@@ -138,7 +156,7 @@ cd client && npm install && cd ..
 
 # Variables de entorno
 cp .env.example .env
-# Rellena SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, JWT_SECRET y SMTP
+# Rellena las variables según la sección siguiente
 ```
 
 ### Ejecutar en local
@@ -162,15 +180,18 @@ SUPABASE_ANON_KEY=
 # JWT
 JWT_SECRET=
 
-# Email digest
-SMTP_HOST=
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=
-SMTP_PASS=
-SMTP_FROM=
-DIGEST_TO=
+# Email (Resend)
+RESEND_API_KEY=
+SMTP_FROM=noreply@tudominio.com
+
+# Admin digest (cron diario)
+DIGEST_TO=admin@tudominio.com
 DIGEST_HOUR=6
+DIGEST_MINUTE=0
+
+# User digest (cron diario)
+USER_DIGEST_HOUR=7
+USER_DIGEST_MINUTE=0
 
 # App
 PORT=3003
@@ -193,28 +214,33 @@ npm test          # Suite Jest + Supertest (desde /server)
 
 ## Migraciones SQL
 
-```bash
-# Ejecutar en Supabase → SQL Editor
+El schema completo está en `docs/schema/supabase-schema.sql`. Ejecutar en **Supabase → SQL Editor**.
 
-# Schema inicial (Phase 1)
-docs/supabase-schema.sql
-
-# Workspace types (v1.1.0 — solo si actualizas desde una versión anterior)
-docs/migrations/002-workspace-types-aglaya.sql
-```
+Incluye:
+- Jerarquía completa: organizations → workspaces → boards → columns → cards
+- Tabla `notifications` con índices parciales (`WHERE read = false`)
+- `cards.category` como UUID FK con `ON DELETE SET NULL`
+- 7 índices de rendimiento en columnas de alta frecuencia
+- RLS activado en todas las tablas con funciones `SECURITY DEFINER`
 
 ---
 
 ## Tests
 
-26 tests en 4 suites — todos en verde.
+85 tests en 10 suites — todos en verde.
 
-| Suite          | Tests |
-| -------------- | ----- |
-| Auth API       | 8     |
-| Boards API     | 7     |
-| Cards API      | 6     |
-| Workspaces API | 5     |
+| Suite                | Tests | Descripción                                          |
+| -------------------- | ----- | ---------------------------------------------------- |
+| `auth`               | 9     | Registro, login, restricción de dominio              |
+| `workspaces`         | 13    | Tipos personal/interno/externo, permisos por rol     |
+| `notifications`      | 16    | GET, PATCH /read-all, PATCH /:id/read, aislamiento   |
+| `security`           | 15    | 401 en rutas protegidas, 200 en públicas, 404 JSON   |
+| `cards-validation`   | 7     | Validación de enums y tipos en mutaciones            |
+| `smtpConfig`         | 10    | Validación de variables de entorno de email          |
+| `admin`              | 5     | Rutas de administración                              |
+| `digest`             | 5     | Lógica de digest                                     |
+| `digestLogging`      | 4     | Registro de intentos de envío                        |
+| `health`             | 1     | Endpoint `/api/health`                               |
 
 ```bash
 cd server && npm test
@@ -230,15 +256,15 @@ cd server && npm test
 
 ## Documentación
 
-| Documento                                   | Descripción                            |
-| ------------------------------------------- | -------------------------------------- |
-| [ARCHITECTURE.md](./docs/ARCHITECTURE.md)   | Arquitectura técnica detallada         |
-| [ROADMAP.md](./docs/ROADMAP.md)             | Fases completadas y próximos pasos     |
-| [CHANGELOG.md](./docs/CHANGELOG.md)         | Historial de versiones                 |
-| [BACKLOG.md](./docs/BACKLOG.md)             | Features en cola                       |
-| [DECISIONS.md](./docs/DECISIONS.md)         | Registro de decisiones técnicas (ADRs) |
-| [README-deploy.md](./docs/README-deploy.md) | Guía de deploy paso a paso             |
-| [SECURITY.md](./docs/SECURITY.md)           | Modelo de seguridad y RLS              |
+| Documento                                            | Descripción                            |
+| ---------------------------------------------------- | -------------------------------------- |
+| [ARCHITECTURE.md](./docs/ARCHITECTURE.md)            | Arquitectura técnica detallada + ADRs  |
+| [ROADMAP.md](./docs/ROADMAP.md)                      | Fases completadas y próximos pasos     |
+| [CHANGELOG.md](./docs/CHANGELOG.md)                  | Historial de versiones                 |
+| [BACKLOG.md](./docs/BACKLOG.md)                      | Features en cola                       |
+| [README-deploy.md](./docs/README-deploy.md)          | Guía de deploy paso a paso             |
+| [SECURITY.md](./docs/SECURITY.md)                    | Modelo de seguridad y RLS              |
+| [supabase-schema.sql](./docs/schema/supabase-schema.sql) | Schema SQL completo                |
 
 ---
 
