@@ -124,6 +124,22 @@ app.get('/api/health', (_req, res) =>
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 );
 
+// ── 404 — ruta no encontrada ──────────────────────────────
+app.use((_req, res) => {
+  res.status(404).json({ error: 'Ruta no encontrada' });
+});
+
+// ── Global error handler ──────────────────────────────────
+// Captura cualquier error no manejado en rutas y middlewares.
+// Sin esto, Express devuelve HTML en lugar de JSON al cliente.
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error('[unhandled error]', err?.message ?? err);
+  res.status(err?.status ?? 500).json({
+    error: isProd ? 'Error interno del servidor' : (err?.message ?? 'Error desconocido'),
+  });
+});
+
 // ── Startup ───────────────────────────────────────────────
 const { validateSmtpConfig, validateDigestSchedules } = require('./utils/smtpConfig');
 

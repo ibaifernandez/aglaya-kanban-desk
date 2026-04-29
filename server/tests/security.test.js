@@ -52,3 +52,18 @@ describe('Public routes are accessible', () => {
     expect(res.status).toBe(400); // validation error, not auth error
   });
 });
+
+describe('404 handler — rutas inexistentes devuelven JSON', () => {
+  it('GET /api/ruta-que-no-existe → 404 con JSON', async () => {
+    const res = await request(app).get('/api/ruta-que-no-existe');
+    expect(res.status).toBe(404);
+    expect(res.headers['content-type']).toMatch(/json/);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('POST /api/ruta-que-no-existe → 404 con JSON', async () => {
+    const res = await request(app).post('/api/ruta-que-no-existe').send({});
+    expect(res.status).toBe(404);
+    expect(res.headers['content-type']).toMatch(/json/);
+  });
+});

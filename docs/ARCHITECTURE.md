@@ -160,6 +160,13 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 **Decisión:** Unificar el comportamiento de overlays y acciones destructivas con tres reglas: toda eliminación estructural requiere confirmación explícita, los overlays principales deben cerrarse con `Escape`, y la navegación contextual tiene prioridad sobre filtros secundarios cuando el ancho disponible es limitado.
 **Consecuencias:** Se reduce el riesgo de borrados accidentales, la interfaz se vuelve más predecible para teclado y ratón, y la experiencia de workspace conserva legibilidad en pantallas estrechas sin comprometer la lógica de negocio.
 
+### ADR-023: Global Error Handler y 404 JSON en Express
+**Fecha:** 2026-04-28
+**Estado:** Aceptado
+**Contexto:** Sin middleware de error global, cualquier excepción no capturada en una ruta hacía que Express devolviera su página de error HTML por defecto. El cliente React no sabe procesar HTML donde espera JSON, lo que producía errores opacos difíciles de diagnosticar. Además, las rutas no registradas tampoco devolvían JSON consistente.
+**Decisión:** Añadir dos middlewares al final de `server/index.js`, después de todas las rutas: (1) un handler 404 que devuelve `{ error: 'Ruta no encontrada' }` en JSON, y (2) un error handler de cuatro parámetros `(err, req, res, next)` que captura cualquier `throw` no manejado, lo loguea con `[unhandled error]` y responde con JSON — mensaje genérico en producción, mensaje real en desarrollo. El campo `err.status` permite que los middlewares propaguen códigos HTTP específicos.
+**Consecuencias:** El cliente siempre recibe JSON, independientemente de qué falle en el servidor. Los errores inesperados quedan registrados en los logs de Railway con contexto suficiente para diagnosticarlos. El comportamiento en producción no expone stack traces ni mensajes internos.
+
 ### ADR-022: Índices de Rendimiento en Columnas de Alta Frecuencia
 **Fecha:** 2026-04-28
 **Estado:** Aceptado
