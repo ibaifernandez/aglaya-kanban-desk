@@ -1,6 +1,6 @@
 # ROADMAP — AGLAYA Kanban Desk
 
-**Última actualización:** 2026-04-14
+**Última actualización:** 2026-04-29
 
 ---
 
@@ -59,7 +59,7 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 
 ## Phase 4 — Calidad de producto y UX completa
 
-**Estado:** 🔵 En curso · v1.0.0 (Lanzamiento)
+**Estado:** ✅ Completada · 2026-04-28/29 · **v1.3.x**
 
 ### Workspace settings
 - [x] Botón editar visible al hover + preservación del tipo real al editar — `bbd0b8a`
@@ -72,18 +72,29 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 - [x] Confirmación al borrar columnas (modal en Board) — `7a4e504`
 - [x] **Estabilización de RLS**: Blindaje de backend con `freshAdmin` para evitar colisiones de identidad en workspaces — `v1.1.5`
 
-### Email
+### Email y notificaciones
 - [x] User digest: email diario personal con tarjetas urgentes/vencidas, segmentado por workspace — `a6d45ee`
-- [ ] Verificación end-to-end del flujo de invitación (email → registro → acceso a workspace)
+- [x] Verificación end-to-end del flujo de invitación (email → registro → acceso a workspace)
+- [x] Asignaciones por ítem de checklist con selector de miembros y opción "Todos"
+- [x] Notificaciones in-app: tabla `notifications`, rutas GET/PATCH, campana con polling 45 s y badge
+- [x] Campana global: visible en lista de workspaces y dentro de tableros (`NotificationBell` componente)
+- [x] Sección "Tus asignaciones pendientes" en el user digest
 
 ### Movilidad de objetos
 - [x] Mover tablero entre workspaces (BoardMoveModal + backend) — `90f4c4f`
 - [x] Mover tarjeta entre tableros (cross-board desde el modal) — opción "Mover a tablero"
 
 ### Tests
-- [x] Reimplementar restricción de dominio corporativo en backend para registro (`v1.1.0.0`)
-- [ ] Actualizar suite `auth.test.js` para cubrir restricción de dominio en registro y no restricción en login
-- [ ] Tests para rutas de workspaces con tipos `personal/interno/externo`
+- [x] Suite `auth.test.js`: restricción de dominio en registro, no restricción en login
+- [x] Suite `workspaces.test.js`: tipos `personal/interno/externo` y permisos por rol
+- [x] Suite `notifications.test.js`: 16 tests cubriendo los tres endpoints
+
+### Ingeniería y calidad de código
+- [x] `cards.category` migrada de TEXT a UUID FK con `ON DELETE SET NULL` (ADR-021)
+- [x] 7 índices de BD en columnas de alta frecuencia (ADR-022)
+- [x] Global error handler + 404 JSON en Express (ADR-023)
+- [x] Separación `server/app.js` / `server/index.js` (ADR-024)
+- [x] ADR-020: single-tenant intencional con roadmap de multi-org documentado
 
 ---
 
@@ -91,9 +102,8 @@ Aplicación Kanban personal, single-user, basada en JSON. Punto de partida del p
 
 **Estado:** 📋 Por definir
 
-- Notificaciones in-app (cambios en tarjetas asignadas)
 - Actividad / audit log por workspace
 - Límites freemium (máx. boards/cards en plan free)
-- Búsqueda global unificada (cross-workspace)
 - Operaciones en lote sobre tarjetas
+- Multi-organización: GUI de gestión de orgs para superadmin (fontanería en BD ya lista — ver ADR-020)
 - Deprecación definitiva del prototipo legacy (apagar servidor, archivar repo)

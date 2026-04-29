@@ -4,6 +4,29 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [Unreleased] - 2026-04-28/29 (v1.3.1)
+
+### Added
+- **`NotificationBell` como componente independiente**: campana extraída de `Toolbar` a `components/UI/NotificationBell.jsx` con su propio polling (45 s). Reutilizada en `WorkspaceDashboard` y `Toolbar` — ahora visible desde la lista de espacios de trabajo, no solo dentro de un tablero.
+- **Buscador typeahead en «Añadir miembro»**: el `<select>` del modal de invitación reemplazado por `UserSearchInput` — campo de texto libre con filtrado en tiempo real por nombre o email y chip de confirmación al seleccionar.
+- **Búsqueda en selector de asignación de checklist**: campo `autoFocus` siempre visible en el panel de asignación por ítem, filtra la lista de miembros del workspace en tiempo real.
+- **`server/tests/notifications.test.js`** (suite nº 10): 16 tests cubriendo GET, PATCH /read-all y PATCH /:id/read — autenticación, aislamiento por `user_id`, formato, degradación a 500 JSON y verificación de que la ruta estática no es capturada por la dinámica.
+- **Tests de 404 JSON** en `security.test.js`: rutas inexistentes devuelven `application/json`, no HTML.
+- **Global error handler + 404 handler** en `server/app.js` (ADR-023): cualquier excepción no capturada responde con JSON; en producción el mensaje es genérico.
+- **ADR-020 a ADR-024** en `ARCHITECTURE.md`: single-tenant intencional, FK de categoría, índices de rendimiento, error handler, separación app/index.
+
+### Fixed
+- **`cards.category` migrada de TEXT a UUID FK** (ADR-021): limpieza de strings vacíos y huérfanos, cast a UUID, FK con `ON DELETE SET NULL`. El `updateCard` del backend normaliza `category || null` para no enviar strings vacíos a la columna UUID.
+- **Chips de asignación siempre visibles**: cuando un ítem tiene asignados, los avatares se muestran sin necesidad de hover; tamaño aumentado de 16 px a 24 px.
+
+### Performance
+- **7 índices de BD** (ADR-022): `workspace_members(user_id)`, `notifications(user_id)`, partial index `notifications WHERE read = false`, `cards(board_id)`, `columns(board_id)`, `boards(workspace_id)`, `users(organization_id)`.
+
+### Refactor
+- **Separación `server/app.js` / `server/index.js`** (ADR-024): `app.js` exporta la aplicación Express sin `listen()`; `index.js` es el punto de entrada puro. Los 10 ficheros de tests usan `require('../app')`.
+
+---
+
 ## [Unreleased] - 2026-04-28 (v1.3.0)
 
 ### Added
