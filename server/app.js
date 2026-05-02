@@ -33,6 +33,7 @@ const adminRouter             = require('./routes/admin');
 const workspacesRouter        = require('./routes/workspaces');
 const mediaRouter             = require('./routes/media');
 const notificationsRouter     = require('./routes/notifications');
+const internalRouter          = require('./routes/internalRoute');
 const { requireAuth }         = require('./middleware/auth');
 const { requireWorkspaceMember } = require('./middleware/workspace');
 
@@ -124,6 +125,9 @@ app.get('/api/categories',        requireAuth, getCategories);
 app.post('/api/categories',       requireAuth, createCategory);
 app.put('/api/categories/:id',    requireAuth, updateCategory);
 app.delete('/api/categories/:id', requireAuth, deleteCategory);
+
+// ── Internal (secret-authenticated, no JWT) ───────────────
+app.use('/api/internal', internalRouter);
 
 // ── Health ────────────────────────────────────────────────
 app.get('/api/health', (_req, res) =>
