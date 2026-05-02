@@ -39,27 +39,29 @@ router.post('/create-card', verifySecret, async (req, res) => {
 
   const safePriority = VALID_PRIORITIES.has(priority) ? priority : 'medium';
 
-  // 1. Workspace por nombre
-  const { data: workspace, error: wsError } = await supabaseAdmin
+  // 1. Workspace por nombre (partial match para tolerar emojis en el título)
+  const { data: workspaces, error: wsError } = await supabaseAdmin
     .from('workspaces')
-    .select('id, organization_id')
-    .ilike('name', workspaceName)
-    .single();
+    .select('id, organization_id, name')
+    .ilike('name', `%${workspaceName}%`);
 
-  if (wsError || !workspace) {
+  if (wsError || !workspaces?.length) {
     return res.status(404).json({ error: `Workspace "${workspaceName}" no encontrado.` });
   }
+  const workspace = workspaces[0];
 
-  // 2. Tablero por nombre dentro del workspace
-  const { data: board, error: boardError } = await supabaseAdmin
+  // 2. Tablero por nombre dentro del workspace (partial match para tolerar emojis)
+  const { data: boards, error: boardError } = await supabaseAdmin
     .from('boards')
     .select('id, title')
     .eq('workspace_id', workspace.id)
-    .ilike('title', boardName)
-    .single();
+    .ilike('title', `%${boardName}%`);
 
-  if (boardError || !board) {
-    return res.status(404).json({ error: `Tablero "${boardName}" no encontrado en workspace "${workspaceName}".` });
+  const board = boards?.[0];
+  const boardError2 = boardError || !board;
+
+  if (boardError2) {
+    return res.status(404).json({ error: `Tablero "${boardName}" no encontrado en workspace "${workspace.name}".` });
   }
 
   // 3. Columna Backlog (o primera columna del tablero)
