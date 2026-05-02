@@ -116,7 +116,7 @@ server/  (Express 4 · Railway · puerto 3003)
 
 ### Email y digests
 
-- **Admin digest:** estadísticas globales, tarjetas vencidas, huérfanas, top tableros y datos de usuarios Supabase — enviado diariamente vía node-cron
+- **Admin digest:** estadísticas globales, tarjetas vencidas, huérfanas, top tableros y datos de usuarios Supabase — enviado diariamente vía GitHub Actions
 - **User digest:** email personal con tarjetas urgentes/vencidas y asignaciones pendientes, segmentado por workspace
 - Endpoint `POST /api/digest/send-me` para envío bajo demanda (admin)
 - Email vía [Resend](https://resend.com)
@@ -192,6 +192,9 @@ DIGEST_MINUTE=0
 # User digest (cron diario)
 USER_DIGEST_HOUR=7
 USER_DIGEST_MINUTE=0
+
+# GitHub Actions cron trigger (necesario en Railway + GH Secrets)
+DIGEST_CRON_SECRET=genera-un-secreto-largo-aqui
 
 # App
 PORT=3003

@@ -8,6 +8,37 @@ const { queryDigestLogs }                       = require('../utils/digestLoggin
 
 const router = express.Router();
 
+// ── POST /api/digest/cron-trigger ─────────────────────────────────────────────
+// Endpoint para GitHub Actions. Autentica con DIGEST_CRON_SECRET en header.
+// No requiere JWT — el secreto es la autenticación.
+
+router.post('/cron-trigger', async (req, res) => {
+  const secret = process.env.DIGEST_CRON_SECRET;
+  if (!secret) {
+    return res.status(500).json({ error: 'DIGEST_CRON_SECRET no configurado.' });
+  }
+
+  const provided = req.headers['x-cron-secret'];
+  if (!provided || provided !== secret) {
+    return res.status(401).json({ error: 'No autorizado.' });
+  }
+
+  // Responde inmediatamente — los envíos pueden tardar varios minutos
+  res.json({ ok: true, message: 'Digest cron iniciado. Revisa los logs del servidor.' });
+
+  sendAllUserDigests()
+    .then(results => {
+      console.log(`✅ [cron-trigger] Completado: ${results.sent} enviados, ${results.skipped} omitidos, ${results.errors} errores`);
+    })
+    .catch(err => {
+      console.error(`❌ [cron-trigger] Error fatal: ${err.message}`);
+    });
+
+  sendDigest().catch(err => {
+    console.error(`❌ [cron-trigger] Admin digest error: ${err.message}`);
+  });
+});
+
 // ── POST /api/digest/send-me ──────────────────────────────────────────────────
 // Sends the admin usage digest to DIGEST_TO (superadmin/admin only).
 

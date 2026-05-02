@@ -1,0 +1,28 @@
+name: Digest diario
+
+on:
+  schedule:
+    # 07:00 UTC (09:00 España, 04:00 ARG) — ajusta si necesitas otro horario
+    - cron: '0 7 * * *'
+  workflow_dispatch: # permite lanzarlo manualmente desde GitHub UI
+
+jobs:
+  trigger-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar digest en Railway
+        run: |
+          HTTP_STATUS=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST "${{ secrets.RAILWAY_SERVER_URL }}/api/digest/cron-trigger" \
+            -H "x-cron-secret: ${{ secrets.DIGEST_CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+
+          echo "HTTP status: $HTTP_STATUS"
+          echo "Response: $(cat /tmp/response.json)"
+
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "❌ El servidor respondió con código $HTTP_STATUS"
+            exit 1
+          fi
+
+          echo "✅ Digest iniciado correctamente"
