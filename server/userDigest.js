@@ -453,10 +453,6 @@ function buildSubject(workspaceName = null) {
  * Returns { ok: true, sent: boolean, total: number }.
  */
 async function sendUserDigest({ id, name, email, sections: prebuiltSections = null, workspaceName = null, workspaceId = null }) {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
-    throw new Error('SMTP no configurado en el servidor.');
-  }
-
   try {
     const sections = prebuiltSections ?? await buildUserCards(id, { workspaceId });
 

@@ -400,10 +400,6 @@ async function sendDigest(to) {
     console.warn('[digest] No recipient — skipping.');
     return;
   }
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
-    throw new Error('SMTP no configurado en el servidor.');
-  }
-
   try {
     const stats   = await buildStats();
     const html    = buildHtml(stats);
