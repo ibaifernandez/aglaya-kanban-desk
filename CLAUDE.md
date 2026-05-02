@@ -67,6 +67,31 @@ Pendiente en Phase 4:
 
 ---
 
+## Endpoint interno — crear cards sin UI
+
+`POST /api/internal/create-card` — autenticado con `x-task-secret` (ver `TASK_SECRET` en `.env`).
+URL producción: `https://web-production-099a0.up.railway.app`
+
+```bash
+curl -s -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
+  -H "x-task-secret: $TASK_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title":      "Título de la tarea",
+    "boardName":  "Nombre del tablero",
+    "priority":   "high",
+    "workspaceName": "Ibai Fernández"
+  }'
+```
+
+- `priority`: `urgent` | `high` | `medium` (default) | `low` | `none`
+- `workspaceName`: default `"Ibai Fernández"` — omitir si es personal
+- `boardName`: nombre exacto del tablero (case-insensitive)
+- La card va al **Backlog** (o primera columna si no existe)
+- `description` y `dueDate` (ISO 8601) son opcionales
+
+---
+
 ## Reglas críticas
 
 - No matar procesos en puertos 3003/5175 sin verificar que son de AGLAYA Kanban Desk.
