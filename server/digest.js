@@ -7,7 +7,6 @@
 
 'use strict';
 
-const cron              = require('node-cron');
 const { sendEmail }     = require('./utils/mailer');
 const { supabaseAdmin } = require('./utils/supabase');
 const { logDigestAttempt } = require('./utils/digestLogging');
@@ -430,19 +429,4 @@ async function sendDigest(to) {
   }
 }
 
-// ── Scheduler ─────────────────────────────────────────────────────────────────
-
-function startDigestScheduler() {
-  const hour   = Number.isFinite(DIGEST_HOUR) ? DIGEST_HOUR : 6;
-  const minute = Number.isFinite(DIGEST_MINUTE) ? DIGEST_MINUTE : 0;
-  const expr   = `${minute} ${hour} * * *`;
-
-  cron.schedule(expr, () => {
-    console.log(`[digest] Running scheduled admin digest (${new Date().toISOString()})`);
-    sendDigest().catch(err => console.error('[digest] Scheduled send failed:', err.message));
-  });
-
-  console.log(`[digest] Scheduler started — daily at ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')} local time`);
-}
-
-module.exports = { startDigestScheduler, sendDigest };
+module.exports = { sendDigest };

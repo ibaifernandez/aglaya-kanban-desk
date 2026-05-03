@@ -20,6 +20,4 @@ try {
 
 app.listen(PORT, () => {
   console.log(`AGLAYA Kanban Desk server → http://localhost:${PORT}`);
-  require('./digest').startDigestScheduler();
-  require('./userDigest').startUserDigestScheduler();
 });
