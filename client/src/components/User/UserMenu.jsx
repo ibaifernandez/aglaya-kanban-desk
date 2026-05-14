@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Camera, LogOut, UserCircle } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { AvatarCropModal } from '../UI/AvatarCropModal.jsx';
+import { DigestPreferences } from './DigestPreferences.jsx';
 
-function ProfileDropdown({ user, onAvatarChange, onLogout, onClose }) {
+function ProfileDropdown({ user, onAvatarChange, onLogout, onClose, onPreferencesChange }) {
   const menuRef = useRef(null);
   const fileRef = useRef(null);
   const cropSrcRef = useRef(null);
@@ -105,6 +106,8 @@ function ProfileDropdown({ user, onAvatarChange, onLogout, onClose }) {
           Cambiar foto de perfil
         </button>
 
+        <DigestPreferences user={user} onChange={onPreferencesChange} />
+
         <button
           onClick={() => { onClose(); onLogout(); }}
           className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors border-t border-[#2e3140]"
@@ -126,7 +129,7 @@ function ProfileDropdown({ user, onAvatarChange, onLogout, onClose }) {
   );
 }
 
-export function UserMenu({ user, onAvatarChange, onLogout, className = '', showName = true }) {
+export function UserMenu({ user, onAvatarChange, onLogout, onPreferencesChange, className = '', showName = true }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -153,6 +156,7 @@ export function UserMenu({ user, onAvatarChange, onLogout, className = '', showN
           user={user}
           onAvatarChange={onAvatarChange}
           onLogout={onLogout}
+          onPreferencesChange={onPreferencesChange}
           onClose={() => setOpen(false)}
         />
       )}

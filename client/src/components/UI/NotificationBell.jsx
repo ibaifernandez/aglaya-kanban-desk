@@ -3,11 +3,32 @@ import { Bell } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
+// Render-friendly summary of each notification type.
+function formatNotification(n) {
+  const p = n.payload ?? {};
+  if (n.type === 'card_assignment') {
+    return {
+      primary:   `Te han asignado «${p.cardTitle ?? 'una tarjeta'}»`,
+      secondary: 'Asignación de responsable',
+    };
+  }
+  // Default: checklist_mention (legacy)
+  return {
+    primary:   p.checklistText ?? 'Te han mencionado',
+    secondary: p.cardTitle ? `en «${p.cardTitle}»` : '',
+  };
+}
+
 /**
  * Self-contained notification bell with polling.
  * Can be dropped into any header/toolbar.
+ *
+ * Props:
+ *   user        — current user object (must have `id`).
+ *   onNavigate  — optional. Called when the user clicks a notification with
+ *                 a navigable payload. Receives the full notification object.
  */
-export function NotificationBell({ user }) {
+export function NotificationBell({ user, onNavigate }) {
   const [notifs,    setNotifs]    = useState([]);
   const [open,      setOpen]      = useState(false);
   const wrapRef    = useRef(null);
@@ -86,26 +107,37 @@ export function NotificationBell({ user }) {
             <p className="text-xs text-[#555b70] text-center py-6">Sin notificaciones</p>
           ) : (
             <ul className="max-h-72 overflow-y-auto divide-y divide-[#1e2130]">
-              {notifs.map((n) => (
-                <li key={n.id}>
-                  <button
-                    onClick={() => { handleMarkRead(n.id); setOpen(false); }}
-                    className={`w-full text-left px-3 py-2.5 hover:bg-[#252830] transition-colors flex items-start gap-2 ${n.read ? 'opacity-50' : ''}`}
-                  >
-                    {!n.read && (
-                      <span className="mt-1.5 w-1.5 h-1.5 bg-indigo-500 rounded-full flex-shrink-0" />
-                    )}
-                    <div className="w-full">
-                      <p className="text-[11px] text-[#e8eaf0] line-clamp-2 leading-relaxed">
-                        {n.payload?.checklistText}
-                      </p>
-                      <p className="text-[10px] text-[#555b70] mt-0.5">
-                        en «{n.payload?.cardTitle}»
-                      </p>
-                    </div>
-                  </button>
-                </li>
-              ))}
+              {notifs.map((n) => {
+                const { primary, secondary } = formatNotification(n);
+                const canNavigate = Boolean(onNavigate && n.payload?.workspaceId && n.payload?.cardId);
+                return (
+                  <li key={n.id}>
+                    <button
+                      onClick={() => {
+                        handleMarkRead(n.id);
+                        setOpen(false);
+                        if (canNavigate) onNavigate(n);
+                      }}
+                      className={`w-full text-left px-3 py-2.5 hover:bg-[#252830] transition-colors flex items-start gap-2 ${n.read ? 'opacity-50' : ''} ${canNavigate ? 'cursor-pointer' : 'cursor-default'}`}
+                      title={canNavigate ? 'Ir a la tarjeta' : undefined}
+                    >
+                      {!n.read && (
+                        <span className="mt-1.5 w-1.5 h-1.5 bg-indigo-500 rounded-full flex-shrink-0" />
+                      )}
+                      <div className="w-full">
+                        <p className="text-[11px] text-[#e8eaf0] line-clamp-2 leading-relaxed">
+                          {primary}
+                        </p>
+                        {secondary && (
+                          <p className="text-[10px] text-[#555b70] mt-0.5">
+                            {secondary}
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

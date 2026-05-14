@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { isOverdue } from '../../utils/dates.js';
 import {
   SortableContext,
@@ -17,6 +17,7 @@ const PRIORITY_SORT_ORDER = { urgent: 0, high: 1, medium: 2, low: 3, none: 4 };
 
 export function Board({
   columns, cards, loading, filters, boardId, boards = [], workspaceMembers = [],
+  pendingOpenCardId = null, onPendingOpenCardConsumed,
   onCreateColumn, onRenameColumn, onUpdateColumn, onDeleteColumn, onReorderColumns,
   onCreateCard, onUpdateCard, onMoveCard, onDeleteCard,
 }) {
@@ -32,6 +33,16 @@ export function Board({
 
   const { categories } = useCategoriesCtx();
   useEscapeKey(() => setPendingDelete(null), Boolean(pendingDelete));
+
+  // Open card modal when a pending cardId arrives (e.g. from a notification
+  // click). Waits until the card appears in `cards` (after board fetch).
+  useEffect(() => {
+    if (!pendingOpenCardId) return;
+    const card = cards.find((c) => c.id === pendingOpenCardId);
+    if (!card) return;
+    setModalState({ card, columnId: card.columnId });
+    onPendingOpenCardConsumed?.();
+  }, [pendingOpenCardId, cards, onPendingOpenCardConsumed]);
 
   // ── Filters ───────────────────────────────────────────────
   const visibleCards = cards.filter((c) => {

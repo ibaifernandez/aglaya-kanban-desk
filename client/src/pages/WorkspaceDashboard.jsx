@@ -504,7 +504,7 @@ function WorkspaceSection({ title, icon, workspaces, coverOverrides, onEnter, on
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, onOpenAdmin, onAvatarChange }) {
+export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, onOpenAdmin, onAvatarChange, onPreferencesChange, onNotificationNavigate }) {
   const { workspaces, loading, createWorkspace, updateWorkspace, deleteWorkspace } = useWorkspaces();
   const [showNew,       setShowNew]       = useState(false);
   const [editTarget,    setEditTarget]    = useState(null);
@@ -562,12 +562,13 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                 Admin
               </button>
             )}
-            <NotificationBell user={user} />
+            <NotificationBell user={user} onNavigate={onNotificationNavigate} />
             <div className="pl-2 border-l border-[#2a2d3a]">
               <UserMenu
                 user={user}
                 onAvatarChange={onAvatarChange}
                 onLogout={onLogout}
+                onPreferencesChange={onPreferencesChange}
               />
             </div>
           </div>
