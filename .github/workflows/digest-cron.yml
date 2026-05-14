@@ -1,9 +1,10 @@
-name: Digest diario
+name: Digest horario
 
 on:
   schedule:
-    # 07:00 UTC (09:00 España, 04:00 ARG) — ajusta si necesitas otro horario
-    - cron: '0 7 * * *'
+    # Cada hora UTC en punto. El server filtra qué usuarios reciben digest
+    # según su preferencia `users.digest_hour` (0-23 UTC).
+    - cron: '0 * * * *'
   workflow_dispatch: # permite lanzarlo manualmente desde GitHub UI
 
 jobs:

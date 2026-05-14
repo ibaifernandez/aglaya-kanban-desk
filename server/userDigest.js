@@ -491,26 +491,41 @@ async function sendUserDigest({ id, name, email, sections: prebuiltSections = nu
 }
 
 /**
- * Sends the personal digest to ALL users in the platform.
- * Skips users without email. Skips users with no actionable cards (silently).
- * Returns summary: { sent: number, skipped: number, errors: number }.
+ * Sends the personal digest to users whose `digest_hour` matches the current UTC hour.
+ * Skips users without email, disabled digest, or no actionable cards (silently).
+ *
+ * Designed to be invoked hourly by the GitHub Actions cron. If `targetHour`
+ * is omitted, the current UTC hour is used. Pass `force=true` to bypass the
+ * hour filter and send to every user (legacy behaviour, used by send-all-digests).
+ *
+ * Returns summary: { sent: number, skipped: number, errors: number, hour: number }.
  */
-async function sendAllUserDigests() {
-  // Fetch all users from the `users` table (platform users, not auth.users)
-  const { data: users, error } = await supabaseAdmin
+async function sendAllUserDigests({ targetHour = null, force = false } = {}) {
+  const hour = targetHour !== null ? targetHour : new Date().getUTCHours();
+
+  let query = supabaseAdmin
     .from('users')
-    .select('id, name, email');
+    .select('id, name, email, digest_hour, digest_enabled');
+
+  if (!force) {
+    // Match users opted-in for this UTC hour. `digest_hour` defaults to 7 in schema,
+    // `digest_enabled` defaults to true.
+    query = query.eq('digest_hour', hour).neq('digest_enabled', false);
+  }
+
+  const { data: users, error } = await query;
 
   if (error) {
     console.error('[userDigest] sendAllUserDigests — error fetching users:', error.message);
     throw error;
   }
 
-  const results = { sent: 0, skipped: 0, errors: 0 };
+  const results = { sent: 0, skipped: 0, errors: 0, hour };
 
   // Sequential to avoid hammering SMTP concurrently
   for (const user of (users ?? [])) {
     if (!user.email) { results.skipped++; continue; }
+    if (user.digest_enabled === false) { results.skipped++; continue; }
     try {
       const result = await sendUserDigest({ id: user.id, name: user.name, email: user.email });
       if (result.sent) results.sent++;
@@ -521,7 +536,7 @@ async function sendAllUserDigests() {
     }
   }
 
-  console.log(`[userDigest] Done — sent: ${results.sent}, skipped: ${results.skipped}, errors: ${results.errors}`);
+  console.log(`[userDigest] Done (UTC hour ${hour}${force ? ', forced' : ''}) — sent: ${results.sent}, skipped: ${results.skipped}, errors: ${results.errors}`);
   return results;
 }
 

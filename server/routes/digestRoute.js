@@ -23,20 +23,29 @@ router.post('/cron-trigger', async (req, res) => {
     return res.status(401).json({ error: 'No autorizado.' });
   }
 
+  const currentHourUtc = new Date().getUTCHours();
+  const adminDigestHour = parseInt(process.env.ADMIN_DIGEST_HOUR ?? '7', 10);
+
   // Responde inmediatamente — los envíos pueden tardar varios minutos
-  res.json({ ok: true, message: 'Digest cron iniciado. Revisa los logs del servidor.' });
+  res.json({
+    ok: true,
+    message: `Digest cron iniciado para hora UTC ${currentHourUtc}. Revisa los logs del servidor.`,
+  });
 
   sendAllUserDigests()
     .then(results => {
-      console.log(`✅ [cron-trigger] Completado: ${results.sent} enviados, ${results.skipped} omitidos, ${results.errors} errores`);
+      console.log(`✅ [cron-trigger] Completado (UTC ${results.hour}): ${results.sent} enviados, ${results.skipped} omitidos, ${results.errors} errores`);
     })
     .catch(err => {
       console.error(`❌ [cron-trigger] Error fatal: ${err.message}`);
     });
 
-  sendDigest().catch(err => {
-    console.error(`❌ [cron-trigger] Admin digest error: ${err.message}`);
-  });
+  // Admin digest se envía solo una vez al día, a la hora configurada
+  if (currentHourUtc === adminDigestHour) {
+    sendDigest().catch(err => {
+      console.error(`❌ [cron-trigger] Admin digest error: ${err.message}`);
+    });
+  }
 });
 
 // ── POST /api/digest/send-me ──────────────────────────────────────────────────
@@ -154,10 +163,10 @@ router.post('/send-all-digests', requireAuth, requireRole('admin', 'superadmin')
   // Respond immediately — can take several minutes for large user bases
   res.json({
     ok: true,
-    message: 'Enviando digests a todos los usuarios. Monitorea los logs del servidor para resultados.',
+    message: 'Enviando digests a todos los usuarios (modo forzado, sin filtro horario). Monitorea los logs del servidor para resultados.',
   });
 
-  sendAllUserDigests()
+  sendAllUserDigests({ force: true })
     .then((results) => {
       console.log(`✅ [digest/send-all-digests] Completado: ${results.sent} enviados, ${results.skipped} omitidos, ${results.errors} errores`);
     })

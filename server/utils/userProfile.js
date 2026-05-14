@@ -3,7 +3,7 @@
 async function getSyncedUserProfile(adminClient, userId) {
   const { data: profile, error: profileError } = await adminClient
     .from('users')
-    .select('id, email, name, role, organization_id, avatar_url')
+    .select('id, email, name, role, organization_id, avatar_url, digest_hour, digest_enabled')
     .eq('id', userId)
     .single();
 
