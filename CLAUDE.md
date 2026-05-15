@@ -92,6 +92,28 @@ curl -s -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
 
 ---
 
+## Acceso a Supabase desde Claude (DDL y queries directas)
+
+`.env` (gitignored) contiene credenciales para que Claude ejecute migraciones y queries sin intervención manual:
+
+- `SUPABASE_DATABASE_PASSWORD` — password del rol `postgres`. Habilita `psql`.
+- `SUPABASE_PAT` — Personal Access Token. Habilita `supabase` CLI.
+
+Patrón para aplicar DDL/migraciones:
+
+```bash
+set -a; source .env; set +a
+export PGPASSWORD="$SUPABASE_DATABASE_PASSWORD"
+psql "postgresql://postgres@db.jowtasxhnluqqcgkeoll.supabase.co:5432/postgres" -f docs/schema/migration-<nombre>.sql
+```
+
+Para queries puntuales: `psql ... -c "SELECT ..."`.
+
+Reglas:
+- Toda migración va a `docs/schema/migration-<descripcion>.sql` con `ALTER TABLE ... IF NOT EXISTS` para idempotencia.
+- Tras aplicar, actualizar `docs/schema/supabase-schema.sql` (fuente de verdad).
+- No commitear `.env`. Verificar `.gitignore` antes de cualquier `git add`.
+
 ## Reglas críticas
 
 - No matar procesos en puertos 3003/5175 sin verificar que son de AGLAYA Kanban Desk.

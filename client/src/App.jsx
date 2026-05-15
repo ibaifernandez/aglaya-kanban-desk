@@ -73,6 +73,7 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   const [activeBoardId, setActiveBoardId] = useState(saved?.boardId ?? null);
   const [filters, setFilters] = useState({ category: '', priority: '', tag: '', search: '', assignee: '', overdue: false });
   const [workspaceMembers, setWorkspaceMembers] = useState([]);
+  const [pendingOpenCardId, setPendingOpenCardId] = useState(null);
 
   // Derive active boardId — explicit selection wins, otherwise first board
   const boardId = activeBoardId ?? boards[0]?.id ?? null;
@@ -145,6 +146,28 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   function handleEnterWorkspace(ws) {
     setActiveBoardId(null);
     navigate('board', ws);
+  }
+
+  // Navigate from a notification: switch to the target workspace + board and
+  // open the card modal once Board.jsx has the card in state.
+  async function handleNotificationNavigate(notif) {
+    const { workspaceId, boardId: targetBoardId, cardId } = notif.payload ?? {};
+    if (!workspaceId || !cardId) return;
+
+    try {
+      let workspace = activeWorkspace?.id === workspaceId ? activeWorkspace : null;
+      if (!workspace) {
+        const all = await api.getWorkspaces();
+        workspace = all.find((w) => w.id === workspaceId) ?? null;
+      }
+      if (!workspace) return; // user is not (or no longer) member
+
+      navigate('board', workspace);
+      if (targetBoardId) setActiveBoardId(targetBoardId);
+      setPendingOpenCardId(cardId);
+    } catch (err) {
+      console.error('[notifications] navigate failed:', err);
+    }
   }
 
   function handleWorkspaceSettingsSave(updatedWs) {
@@ -272,6 +295,8 @@ function AuthenticatedApp({ user, logout, updateUser }) {
         onLogout={logout}
         onOpenAdmin={() => navigate('admin')}
         onAvatarChange={(url) => updateUser({ avatarUrl: url })}
+        onPreferencesChange={(prefs) => updateUser(prefs)}
+        onNotificationNavigate={handleNotificationNavigate}
       />
     );
   }
@@ -283,6 +308,7 @@ function AuthenticatedApp({ user, logout, updateUser }) {
         onBack={() => navigate('workspaces')}
         onLogout={logout}
         onAvatarChange={(url) => updateUser({ avatarUrl: url })}
+        onPreferencesChange={(prefs) => updateUser(prefs)}
       />
     );
   }
@@ -336,6 +362,7 @@ function AuthenticatedApp({ user, logout, updateUser }) {
               onOpenMembers={() => setShowMembers(true)}
               onOpenWsSettings={() => setShowWsSettings(true)}
               onAvatarChange={(url) => updateUser({ avatarUrl: url })}
+              onNotificationNavigate={handleNotificationNavigate}
             />
 
             {boardId ? (
@@ -347,6 +374,8 @@ function AuthenticatedApp({ user, logout, updateUser }) {
                 loading={loadingBoard}
                 filters={filters}
                 workspaceMembers={workspaceMembers}
+                pendingOpenCardId={pendingOpenCardId}
+                onPendingOpenCardConsumed={() => setPendingOpenCardId(null)}
                 onCreateColumn={createColumn}
                 onRenameColumn={(id, title) => updateColumn(id, { title })}
             onUpdateColumn={updateColumn}

@@ -119,6 +119,8 @@ router.post('/login', async (req, res) => {
       role: profile.role,
       organizationId: profile.organization_id,
       avatarUrl: profile.avatar_url ?? null,
+      digestHour: profile.digest_hour ?? 7,
+      digestEnabled: profile.digest_enabled !== false,
     },
   });
 });
@@ -138,6 +140,53 @@ router.get('/me', requireAuth, async (req, res) => {
       role:           profile.role,
       organizationId: profile.organization_id,
       avatarUrl:      profile.avatar_url ?? null,
+      digestHour:     profile.digest_hour ?? 7,
+      digestEnabled:  profile.digest_enabled !== false,
+    },
+  });
+});
+
+// ── PATCH /api/auth/me/preferences ────────────────────────────────────────────
+// Update user preferences (digest hour, digest enabled).
+router.patch('/me/preferences', requireAuth, async (req, res) => {
+  const adminClient = createAdminClient();
+  const { digestHour, digestEnabled } = req.body ?? {};
+
+  const update = {};
+  if (digestHour !== undefined) {
+    const h = Number(digestHour);
+    if (!Number.isInteger(h) || h < 0 || h > 23) {
+      return res.status(400).json({ error: 'digestHour debe ser un entero entre 0 y 23' });
+    }
+    update.digest_hour = h;
+  }
+  if (digestEnabled !== undefined) {
+    if (typeof digestEnabled !== 'boolean') {
+      return res.status(400).json({ error: 'digestEnabled debe ser booleano' });
+    }
+    update.digest_enabled = digestEnabled;
+  }
+
+  if (!Object.keys(update).length) {
+    return res.status(400).json({ error: 'Nada que actualizar' });
+  }
+
+  const { data, error } = await adminClient
+    .from('users')
+    .update(update)
+    .eq('id', req.user.id)
+    .select('digest_hour, digest_enabled')
+    .single();
+
+  if (error) {
+    console.error('[auth] update preferences:', error.message);
+    return res.status(500).json({ error: 'Error al actualizar preferencias' });
+  }
+
+  return res.json({
+    data: {
+      digestHour:    data.digest_hour ?? 7,
+      digestEnabled: data.digest_enabled !== false,
     },
   });
 });

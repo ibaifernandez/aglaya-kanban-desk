@@ -20,6 +20,7 @@ import { PRIORITY_LIST } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { api } from '../../api/client.js';
 import { useEscapeKey } from '../../hooks/useEscapeKey.js';
+import { MARKDOWN_LINK_COMPONENTS } from '../../utils/markdownComponents.jsx';
 
 const EMPTY = {
   title: '', description: '', category: '',
@@ -585,7 +586,7 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
                 title="Editar descripción"
               >
                 {form.description
-                  ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.description}</ReactMarkdown>
+                  ? <ReactMarkdown remarkPlugins={[remarkGfm]} components={MARKDOWN_LINK_COMPONENTS}>{form.description}</ReactMarkdown>
                   : <span className="text-[#555b70] italic text-xs">Sin descripción. Haz clic para escribir…</span>
                 }
                 {/* Lápiz flotante */}

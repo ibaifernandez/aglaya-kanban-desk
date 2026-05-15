@@ -140,6 +140,9 @@ export const api = {
   markNotificationRead:     (id)  => request(`/notifications/${id}/read`, { method: 'PATCH' }),
   markAllNotificationsRead: ()    => request('/notifications/read-all', { method: 'PATCH' }),
 
+  // User preferences (digest hour, digest enabled)
+  updatePreferences: (body) => request('/auth/me/preferences', { method: 'PATCH', body: JSON.stringify(body) }),
+
   sendPersonalDigest: (body = {}) => {
     const token = getToken();
     const headers = { 'Content-Type': 'application/json' };

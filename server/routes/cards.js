@@ -46,6 +46,25 @@ async function createChecklistNotifications(cardId, boardId, cardTitle, oldCheck
   }
 }
 
+// ── Card-level assignee notification helper ───────────────────────────────────
+
+async function createAssigneeNotification(cardId, boardId, cardTitle, assigneeUserId, authorId) {
+  const { data: board } = await supabaseAdmin
+    .from('boards')
+    .select('workspace_id')
+    .eq('id', boardId)
+    .single();
+
+  if (!board?.workspace_id) return;
+
+  const payload = { cardId, cardTitle, boardId, workspaceId: board.workspace_id, assignedBy: authorId };
+  const { error } = await supabaseAdmin
+    .from('notifications')
+    .insert([{ user_id: assigneeUserId, type: 'card_assignment', payload, read: false }]);
+
+  if (error) console.error('[notifications] assignee insert:', error.message);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 const toCard = (row) => ({
@@ -60,6 +79,7 @@ const toCard = (row) => ({
   tags:           row.tags           || [],
   checklist:      row.checklist      || [],
   checklistTitle: row.checklist_title || '',
+  attachments:    row.attachments    || [],
   assigneeId:     row.assignee_id    || null,
   assignee:       row.assignee       || null,
   order:          row.order,
@@ -90,7 +110,7 @@ const getCardsByColumn = async (req, res) => {
 };
 
 const createCard = async (req, res) => {
-  const { columnId, boardId, title, description, category, priority, dueDate, tags, checklist, checklistTitle, assigneeId } = req.body;
+  const { columnId, boardId, title, description, category, priority, dueDate, tags, checklist, checklistTitle, attachments, assigneeId } = req.body;
   if (!columnId || !boardId || !title?.trim()) {
     return res.status(400).json({ error: 'columnId, boardId and title are required' });
   }
@@ -115,9 +135,10 @@ const createCard = async (req, res) => {
       category:        category        || null,
       priority:        priority        || 'medium',
       due_date:        dueDate         || null,
-      tags:            Array.isArray(tags)      ? tags      : [],
-      checklist:       Array.isArray(checklist) ? checklist : [],
+      tags:            Array.isArray(tags)        ? tags        : [],
+      checklist:       Array.isArray(checklist)   ? checklist   : [],
       checklist_title: checklistTitle  || '',
+      attachments:     Array.isArray(attachments) ? attachments : [],
       assignee_id:     assigneeId      || null,
       order:           maxOrder + 1,
     })
@@ -131,7 +152,7 @@ const createCard = async (req, res) => {
 const VALID_PRIORITIES = new Set(['urgent', 'high', 'medium', 'low', 'none']);
 
 const updateCard = async (req, res) => {
-  const { title, description, category, priority, dueDate, tags, checklist, checklistTitle, assigneeId } = req.body;
+  const { title, description, category, priority, dueDate, tags, checklist, checklistTitle, attachments, assigneeId } = req.body;
 
   // Input validation
   if (priority !== undefined && !VALID_PRIORITIES.has(priority)) {
@@ -144,12 +165,12 @@ const updateCard = async (req, res) => {
     return res.status(400).json({ error: 'dueDate must be a valid date string' });
   }
 
-  // Fetch previous state for notification diff when checklist is being updated
+  // Fetch previous state for notification diff (checklist mentions + assignee change)
   let prevCard = null;
-  if (checklist !== undefined) {
+  if (checklist !== undefined || assigneeId !== undefined) {
     const { data: prev } = await supabaseAdmin
       .from('cards')
-      .select('checklist, board_id, title')
+      .select('checklist, board_id, title, assignee_id')
       .eq('id', req.params.id)
       .single();
     prevCard = prev;
@@ -164,6 +185,7 @@ const updateCard = async (req, res) => {
   if (tags           !== undefined) update.tags            = Array.isArray(tags) ? tags : [];
   if (checklist      !== undefined) update.checklist       = Array.isArray(checklist) ? checklist : [];
   if (checklistTitle !== undefined) update.checklist_title = checklistTitle;
+  if (attachments    !== undefined) update.attachments     = Array.isArray(attachments) ? attachments : [];
   if (assigneeId     !== undefined) update.assignee_id     = assigneeId || null;
 
   const { data, error } = await supabaseAdmin
@@ -175,7 +197,7 @@ const updateCard = async (req, res) => {
 
   if (error) { console.error('[cards] updateCard:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
-  // Fire-and-forget: create notifications for newly assigned checklist users
+  // Fire-and-forget: notifications for checklist mentions + assignee change
   if (checklist !== undefined && prevCard) {
     createChecklistNotifications(
       req.params.id,
@@ -185,6 +207,20 @@ const updateCard = async (req, res) => {
       checklist,
       req.user.id,
     ).catch((err) => console.error('[notifications] diff failed:', err.message));
+  }
+
+  if (assigneeId !== undefined && prevCard) {
+    const newAssignee = assigneeId || null;
+    const oldAssignee = prevCard.assignee_id || null;
+    if (newAssignee && newAssignee !== oldAssignee && newAssignee !== req.user.id) {
+      createAssigneeNotification(
+        req.params.id,
+        prevCard.board_id,
+        data.title,
+        newAssignee,
+        req.user.id,
+      ).catch((err) => console.error('[notifications] assignee failed:', err.message));
+    }
   }
 
   res.json({ data: toCard(data) });

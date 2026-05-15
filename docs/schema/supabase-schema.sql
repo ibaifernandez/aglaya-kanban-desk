@@ -33,11 +33,20 @@ CREATE TABLE IF NOT EXISTS public.users (
   -- roles macro: superadmin | admin | colaborador | cliente
   -- nota: 'guest' queda reservado al ambito micro (`workspace_members.role`)
   organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
+  digest_hour     SMALLINT NOT NULL DEFAULT 7 CHECK (digest_hour BETWEEN 0 AND 23),
+  digest_enabled  BOOLEAN NOT NULL DEFAULT true,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 GRANT SELECT, INSERT, UPDATE ON public.users TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.users TO service_role;
+
+-- Para entornos ya inicializados sin estas columnas:
+ALTER TABLE public.users
+  ADD COLUMN IF NOT EXISTS digest_hour SMALLINT NOT NULL DEFAULT 7
+    CHECK (digest_hour BETWEEN 0 AND 23);
+ALTER TABLE public.users
+  ADD COLUMN IF NOT EXISTS digest_enabled BOOLEAN NOT NULL DEFAULT true;
 
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
@@ -207,8 +216,8 @@ CREATE POLICY "Ver categorías de la organización"
 CREATE TABLE IF NOT EXISTS public.notifications (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  type        TEXT NOT NULL,                  -- 'checklist_mention' | ...
-  payload     JSONB NOT NULL DEFAULT '{}',    -- { cardId, cardTitle, boardId, workspaceId, checklistText, mentionedBy }
+  type        TEXT NOT NULL,                  -- 'checklist_mention' | 'card_assignment'
+  payload     JSONB NOT NULL DEFAULT '{}',    -- { cardId, cardTitle, boardId, workspaceId, checklistText?, mentionedBy?, assignedBy? }
   read        BOOLEAN NOT NULL DEFAULT false,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );

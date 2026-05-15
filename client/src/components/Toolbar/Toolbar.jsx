@@ -8,7 +8,7 @@ import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { CategorySettings } from './CategorySettings.jsx';
 import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
-export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], workspaceMembers = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces, onOpenMembers, onOpenWsSettings, onAvatarChange }) {
+export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [], workspaceMembers = [], onSelectBoard, user, onLogout, onOpenAdmin, workspace, onBackToWorkspaces, onOpenMembers, onOpenWsSettings, onAvatarChange, onNotificationNavigate }) {
   const { category, priority, tag, search = '', assignee = '', overdue = false } = filters;
   const { categories } = useCategoriesCtx();
   const [showSettings,  setShowSettings]  = useState(false);
@@ -305,7 +305,7 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
         )}
 
         {/* Notification bell */}
-        <NotificationBell user={user} />
+        <NotificationBell user={user} onNavigate={onNotificationNavigate} />
 
         {/* Workspace digest button */}
         {workspace && (
