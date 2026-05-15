@@ -99,3 +99,10 @@ curl -s -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
 - Al mover una tarjeta a una columna de tipo "hecho/entregado/completado": establecer `priority` a `"none"` automáticamente.
 - Idioma del código: inglés. Idioma de documentación y commits: español.
 - Antes de implementar features, leer siempre `docs/ARCHITECTURE.md`.
+- **Supabase GRANTs (deadline Oct 30, 2026):** toda migración SQL que cree tabla nueva en `public` debe incluir GRANTs explícitos + RLS, o fallará vía supabase-js. Patrón obligatorio:
+  ```sql
+  GRANT SELECT, INSERT, UPDATE, DELETE ON public.<tabla> TO authenticated;
+  GRANT SELECT, INSERT, UPDATE, DELETE ON public.<tabla> TO service_role;
+  ALTER TABLE public.<tabla> ENABLE ROW LEVEL SECURITY;
+  ```
+  Migración de referencia: `migrations/add_explicit_grants.sql`. Schema actualizado: `docs/schema/supabase-schema.sql`.

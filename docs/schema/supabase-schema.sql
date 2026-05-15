@@ -22,6 +22,9 @@ CREATE TABLE IF NOT EXISTS public.organizations (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+GRANT SELECT ON public.organizations TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.organizations TO service_role;
+
 CREATE TABLE IF NOT EXISTS public.users (
   id              UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email           TEXT NOT NULL UNIQUE,
@@ -32,6 +35,9 @@ CREATE TABLE IF NOT EXISTS public.users (
   organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+GRANT SELECT, INSERT, UPDATE ON public.users TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.users TO service_role;
 
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
@@ -79,6 +85,12 @@ CREATE OR REPLACE FUNCTION public.is_workspace_member(ws_id UUID)
 RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE AS $$
   SELECT EXISTS (SELECT 1 FROM public.workspace_members WHERE workspace_id = ws_id AND user_id = auth.uid());
 $$;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.workspaces TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.workspaces TO service_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.workspace_members TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.workspace_members TO service_role;
 
 ALTER TABLE public.workspaces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workspace_members ENABLE ROW LEVEL SECURITY;
@@ -150,6 +162,18 @@ CREATE TABLE IF NOT EXISTS public.categories (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.boards TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.boards TO service_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.columns TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.columns TO service_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.cards TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.cards TO service_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.categories TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.categories TO service_role;
+
 -- RLS para Kanban (Aislamiento por Workspace)
 ALTER TABLE public.boards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.columns ENABLE ROW LEVEL SECURITY;
@@ -188,6 +212,9 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   read        BOOLEAN NOT NULL DEFAULT false,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.notifications TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.notifications TO service_role;
 
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 

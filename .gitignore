@@ -31,3 +31,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# ── Supabase CLI temp data ────────────────────────────────
+supabase/.temp/
+supabase/.branches/
