@@ -32,18 +32,12 @@ jobs:
           echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
           /usr/lib/postgresql/17/bin/pg_dump --version
 
-      - name: Setup Python + boto3
-        run: |
-          python3 -m pip install --quiet --upgrade pip
-          python3 -m pip install --quiet boto3
-
-      - name: pg_dump + upload to R2 via boto3
+      - name: pg_dump + upload via Cloudflare R2 native API
         env:
-          R2_ACCESS_KEY_ID:     ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_ENDPOINT:          ${{ secrets.R2_ENDPOINT }}
-          R2_BUCKET:            ${{ secrets.R2_BUCKET }}
-          DATABASE_URL:         ${{ secrets.DATABASE_URL }}
+          CF_API_TOKEN:  ${{ secrets.R2_ACCESS_KEY_ID }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          R2_BUCKET:     ${{ secrets.R2_BUCKET }}
+          DATABASE_URL:  ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
           TS=$(date -u +%Y%m%dT%H%M%SZ)
@@ -52,48 +46,56 @@ jobs:
             --no-owner --no-acl --clean --if-exists \
             | gzip -9 > "${DUMP_FILE}"
           ls -lh "${DUMP_FILE}"
-          python3 <<PY
-          import os, boto3
-          from botocore.config import Config
-          s3 = boto3.client('s3',
-            endpoint_url=os.environ['R2_ENDPOINT'],
-            aws_access_key_id=os.environ['R2_ACCESS_KEY_ID'],
-            aws_secret_access_key=os.environ['R2_SECRET_ACCESS_KEY'],
-            region_name='auto',
-            config=Config(signature_version='s3v4'),
-          )
-          s3.upload_file('${DUMP_FILE}', os.environ['R2_BUCKET'], '${DUMP_FILE}')
-          print(f"Uploaded {os.environ['R2_BUCKET']}/${DUMP_FILE}")
-          PY
+          # Upload via R2 native API (NOT S3-compatible). Token type: cfut_/cfat_.
+          HTTP_CODE=$(curl -sS -o /tmp/upload_resp.txt -w "%{http_code}" \
+            -X PUT \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/gzip" \
+            --data-binary "@${DUMP_FILE}" \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/r2/buckets/${R2_BUCKET}/objects/${DUMP_FILE}")
+          echo "HTTP $HTTP_CODE"
+          cat /tmp/upload_resp.txt
+          echo ""
+          [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ] || exit 1
 
       - name: Retention — keep last 30 days
         env:
-          R2_ACCESS_KEY_ID:     ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_ENDPOINT:          ${{ secrets.R2_ENDPOINT }}
-          R2_BUCKET:            ${{ secrets.R2_BUCKET }}
+          CF_API_TOKEN:  ${{ secrets.R2_ACCESS_KEY_ID }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          R2_BUCKET:     ${{ secrets.R2_BUCKET }}
         run: |
-          python3 <<'PY'
-          import os, boto3, datetime
-          from botocore.config import Config
-          s3 = boto3.client('s3',
-            endpoint_url=os.environ['R2_ENDPOINT'],
-            aws_access_key_id=os.environ['R2_ACCESS_KEY_ID'],
-            aws_secret_access_key=os.environ['R2_SECRET_ACCESS_KEY'],
-            region_name='auto',
-            config=Config(signature_version='s3v4'),
-          )
-          cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)
-          paginator = s3.get_paginator('list_objects_v2')
-          deleted = 0
-          for page in paginator.paginate(Bucket=os.environ['R2_BUCKET']):
-              for obj in page.get('Contents', []):
-                  if obj['LastModified'] < cutoff:
-                      print(f"Pruning {obj['Key']}")
-                      s3.delete_object(Bucket=os.environ['R2_BUCKET'], Key=obj['Key'])
-                      deleted += 1
-          print(f"Pruned {deleted} object(s) older than 30 days")
-          PY
+          set -euo pipefail
+          # List + prune objects older than 30 days via R2 native API
+          CUTOFF=$(date -u -d "30 days ago" +%s)
+          NEXT_CURSOR=""
+          deleted=0
+          while true; do
+            URL="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/r2/buckets/${R2_BUCKET}/objects?per_page=1000"
+            [ -n "$NEXT_CURSOR" ] && URL="${URL}&cursor=${NEXT_CURSOR}"
+            RESP=$(curl -sS -H "Authorization: Bearer ${CF_API_TOKEN}" "$URL")
+            echo "$RESP" | python3 -c "
+          import json, sys, datetime
+          d = json.load(sys.stdin)
+          cutoff = $CUTOFF
+          for o in d.get('result', []):
+              # last_modified format: 2026-05-27T20:24:11.760Z
+              ts = datetime.datetime.fromisoformat(o['last_modified'].replace('Z','+00:00')).timestamp()
+              if ts < cutoff:
+                  print(o['key'])
+          " > /tmp/to_prune.txt
+            while IFS= read -r KEY; do
+              [ -z "$KEY" ] && continue
+              echo "Pruning $KEY"
+              curl -sS -X DELETE \
+                -H "Authorization: Bearer ${CF_API_TOKEN}" \
+                "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/r2/buckets/${R2_BUCKET}/objects/${KEY}" \
+                >/dev/null
+              deleted=$((deleted+1))
+            done < /tmp/to_prune.txt
+            NEXT_CURSOR=$(echo "$RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('result_info',{}).get('cursor') or '')")
+            [ -z "$NEXT_CURSOR" ] && break
+          done
+          echo "Pruned $deleted object(s) older than 30 days"
 
       - name: Notify on failure
         if: failure()
