@@ -15,8 +15,8 @@
 - **URL del proyecto:** https://supabase.com/dashboard/project/jowtasxhnluqqcgkeoll
 - **Región datos:** sa-east-1 (São Paulo, Brasil)
 - **DPA template oficial:** https://supabase.com/legal/dpa
-- **Estado DPA:** 🟠 **PENDIENTE confirmación operador** — verificar si aceptado en dashboard
-- **Acción:** ir a Supabase → Organization Settings → Legal → DPA → click-through accept + descargar copia firmada
+- **Estado DPA:** 🟡 **EN TRÁNSITO** — Request enviado 2026-05-27 via Supabase dashboard. PandaDoc link llegará a `info@ibaifernandez.com` en ≤24h. Una vez firmado, archivar PDF en `docs/legal/dpas/supabase-dpa-YYYY-MM-DD.pdf` y actualizar este registro a ✅.
+- **TIA archivado:** ✅ `docs/legal/dpas/supabase-tia-2025-03-14.pdf` (descargado 2026-05-27 — Transfer Impact Assessment Supabase oficial fechado 2025-03-14, sirve para flujo Brasil↔EU↔US).
 - **Sub-procesadores Supabase:** AWS (infra), ver https://supabase.com/legal/subprocessors
 - **Transferencia internacional:** Brasil (sa-east-1) — no es transferencia desde Brasil. Desde UE → Brasil requiere garantías adicionales (Brasil tiene LGPD pero NO está en lista RGPD países adecuados → SCCs requeridos)
 
@@ -72,7 +72,7 @@
 
 | Procesador | DPA aceptado | Declarado en política | Sub-procesadores doc | Transferencia |
 |---|---|---|---|---|
-| Supabase | 🟠 verificar | ❌ NO | ✅ Supabase doc | Brasil |
+| Supabase | 🟡 request enviado 2026-05-27 (PandaDoc pending) + TIA archivado ✅ | ✅ kanban-policy v1.0 | ✅ Supabase doc | Brasil |
 | Resend | 🟠 verificar | ✅ SÍ (aglaya.biz) | ✅ Resend doc | US |
 | Railway | 🟠 verificar | ✅ SÍ (CRM only) | ✅ Railway doc | US |
 | Netlify | 🟠 verificar | ✅ SÍ (aglaya.biz) | ✅ Netlify doc | Global |
@@ -104,7 +104,7 @@ Cuando aceptes un DPA en dashboard del procesador:
 
 ## Acciones pendientes (operador)
 
-- [ ] Verificar/aceptar DPA Supabase (15 min)
+- [x] Verificar/aceptar DPA Supabase (2026-05-27 request sent, awaiting PandaDoc) + TIA archivado en `docs/legal/dpas/supabase-tia-2025-03-14.pdf`
 - [ ] Verificar/aceptar DPA Resend (5 min)
 - [ ] Verificar/aceptar DPA Railway (10 min)
 - [ ] Verificar/aceptar DPA Netlify (5 min)
