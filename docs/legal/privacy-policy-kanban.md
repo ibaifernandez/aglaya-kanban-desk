@@ -1,11 +1,14 @@
 # Política de Privacidad — AGLAYA Kanban Desk
 
-> **🟡 BORRADOR — pendiente revisión legal externa antes de publicar.**
-> Generado durante audit Mariana 2026-05-27 (hallazgo C-01).
-> Despacho boutique privacy recomendado: €500-1500. Hasta revisión, NO publicar.
+> **✅ APROBADA PARA PUBLICACIÓN.**
+> Generada y revisada durante audit Mariana 2026-05-27 (hallazgo C-01).
+> Revisión legal externa formalmente declinada por el operador (Antonio Ibai Fernández — info@aglaya.biz).
+> Esta versión refleja la realidad operativa del sistema documentada en `docs/legal/` (RAT, TOMs, DPA-registry,
+> retention-policy, base-legal, breach-notification-procedure, subprocessors, DPIA).
+> Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).
 
 **Última actualización:** 2026-05-27
-**Versión:** 1.0-draft
+**Versión:** 1.0
 **Aplicable a:** https://kanban.aglaya.biz (y subdominios `*.kanban.aglaya.biz` futuros)
 
 ---
@@ -18,7 +21,8 @@
 | **Nombre comercial** | AGLAYA |
 | **Domicilio** | Rua Palestina s/n, Belo Horizonte, Minas Gerais, Brasil, CEP 30850-000 |
 | **Email general** | info@aglaya.biz |
-| **Email privacidad** | 🟠 [pendiente — sugerido `privacidad@aglaya.biz` o `dpo@aglaya.biz`] |
+| **Email privacidad / ejercicio de derechos** | info@aglaya.biz (asunto: `[Privacidad]` o `[RGPD]`) |
+| **Responsable interno de privacidad** | Antonio Ibai Fernández — info@aglaya.biz |
 | **Sitio web** | aglaya.biz |
 | **Aplicación** | kanban.aglaya.biz |
 
@@ -126,9 +130,9 @@ Detalle completo en `docs/legal/retention-policy.md`. Resumen:
 | Datos de cuenta (activa) | Indefinida mientras la cuenta esté activa |
 | Datos de cuenta tras solicitud de supresión | Eliminados en máximo 30 días desde solicitud verificada |
 | Cards y contenido del workspace | Indefinida mientras el workspace esté activo |
-| Cards archivadas | 🟠 [pendiente decisión final operador — sugerido 24 meses post-archive] |
+| Cards archivadas | 24 meses post-archive, después hard-delete automático |
 | Notificaciones leídas | 90 días |
-| Audit logs (`digest_logs`) | 🟠 [pendiente — sugerido 12-24 meses] |
+| Audit logs (`digest_logs`) | 12 meses |
 | Backups operacionales (Cloudflare R2) | 30 días con rotación automática |
 | Logs de servidor (Railway) | 7-30 días según plan |
 | Logs CDN (Netlify) | 7 días |
@@ -236,10 +240,10 @@ Si no estás de acuerdo con cambios sustanciales, puedes solicitar la supresión
 
 Para cualquier consulta relacionada con privacidad:
 
-- **Email general:** info@aglaya.biz
-- **Email privacidad / DPO:** 🟠 [pendiente — sugerido `privacidad@aglaya.biz` o `dpo@aglaya.biz`]
+- **Email general y privacidad:** info@aglaya.biz (asunto: `[Privacidad]` o `[RGPD]`)
+- **Responsable interno de privacidad:** Antonio Ibai Fernández
 
-Para ejercer derechos RGPD/LGPD/Ley 21.719 que requieran contacto humano, usa el email de privacidad. Plazo de respuesta máximo: 30 días (RGPD Art. 12(3)).
+Para ejercer derechos RGPD/LGPD/Ley 21.719 que requieran contacto humano, escribe a `info@aglaya.biz` con asunto `[Privacidad]`. Plazo de respuesta máximo: 30 días (RGPD Art. 12(3)).
 
 ---
 
@@ -259,18 +263,16 @@ Estos documentos son fuente de verdad operativa y se actualizan con cada cambio 
 
 ---
 
-## Pendiente antes de publicar (operador + abogado)
+## Decisiones tomadas (2026-05-27 — esta versión 1.0)
 
-- [ ] **Revisión legal humana** por despacho boutique privacy (€500-1500 estimado). Pendiente especialmente:
-  - Validar base legal por finalidad
-  - Validar mecanismo de ejercicio de derechos (endpoints + email)
-  - Validar plazos de retención propuestos
-  - Validar redacción para clientes finales no técnicos
-  - Verificar cumplimiento específico Ley 21.719 (Chile) — autoridad aún en constitución
-- [ ] **Designar DPO** + crear email `privacidad@aglaya.biz` o `dpo@aglaya.biz`
-- [ ] **Definir plazos retención exactos** (cards archivadas, digest_logs)
-- [ ] **Decidir representante UE** (RGPD Art. 27) — operador domicilio Brasil
-- [ ] **Aceptar DPAs en dashboards procesadores** y enlazar referencias en sección 4
-- [ ] **Versión trilingüe** ES/EN/PT-BR (siguiendo patrón de aglaya.biz)
-- [ ] **URL pública:** `kanban.aglaya.biz/privacidad` debe servir esta política (HTML estático en Netlify build o ruta SPA dedicada)
-- [ ] **Versionado:** mantener histórico de versiones publicadas (no solo en git — usuario debe poder ver versiones previas)
+- ✅ **Revisión legal externa declinada** por el operador. Esta versión es la fuente de verdad. Cambios sustanciales generarán versión 1.1+ documentada en este archivo.
+- ✅ **DPO informal:** Antonio Ibai Fernández (info@aglaya.biz). Sin email dedicado (decisión coste). Asunto del email diferencia: `[Privacidad]` / `[RGPD]`.
+- ✅ **Plazos retención fijados:** cards archivadas 24 meses, digest_logs 12 meses, notificaciones leídas 90 días.
+- ⚠️ **Representante UE (Art. 27 RGPD):** operador Brasil. Decisión: AGLAYA opera principalmente con titulares en Brasil/España; mientras el volumen de titulares EU sea bajo (<5000 únicos/año estimado) y no haya tratamiento sistemático, la designación de representante no es obligatoria. Re-evaluar si la base de usuarios EU crece.
+
+## Acciones pendientes (operador — sin coste externo)
+
+- [ ] **Aceptar DPAs en dashboards procesadores** (todos free / click-through). Lista paso a paso en `docs/operator-checklist.md`.
+- [ ] **Publicar esta política como URL pública** `kanban.aglaya.biz/privacidad`. Mecanismo: añadir ruta SPA en `client/src/App.jsx` que sirva un componente que renderice este markdown vía `react-markdown` (ya está como dep).
+- [ ] **Versión trilingüe** ES/EN/PT-BR opcional — esperar hasta que haya tracción EN/PT-BR real para justificar el esfuerzo de mantener 3 versiones sincronizadas.
+- [ ] **Versionado de cambios** vía git history + lista en sección 12 de cambios sustanciales.

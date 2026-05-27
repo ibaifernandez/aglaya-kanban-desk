@@ -20,7 +20,7 @@ Esta carpeta agrega la documentación de cumplimiento en privacidad y protecció
 | [`breach-notification-procedure.md`](breach-notification-procedure.md) | Procedimiento notificación brechas (72h) | RGPD Art. 33/34 | 🟡 borrador inicial |
 | [`DPIA-template.md`](DPIA-template.md) | Data Protection Impact Assessment plantilla | RGPD Art. 35 | 🔴 sin completar |
 | [`subprocessors.md`](subprocessors.md) | Lista actualizada de sub-procesadores | RGPD Art. 28(2) | 🟢 completo (base audit) |
-| [`privacy-policy-kanban.draft.md`](privacy-policy-kanban.draft.md) | Borrador política privacidad kanban.aglaya.biz | RGPD Art. 13/14 | 🟡 borrador — **revisión legal externa requerida antes de publicar** |
+| [`privacy-policy-kanban.md`](privacy-policy-kanban.md) | Política privacidad kanban.aglaya.biz | RGPD Art. 13/14 | ✅ v1.0 aprobada por operador — pendiente publicación pública en `/privacidad` |
 
 ---
 
@@ -33,20 +33,19 @@ Esta carpeta agrega la documentación de cumplimiento en privacidad y protecció
 
 ---
 
-## Decisiones de negocio pendientes (operador)
+## Decisiones tomadas (2026-05-27)
 
-Sister NO puede tomar estas decisiones — requieren input del operador:
-
-- [ ] **DPO designación.** ¿Ibai inicial? Crear `privacidad@aglaya.biz` o `dpo@aglaya.biz`?
-- [ ] **Retention exacta:**
-  - ¿Cards activas? ¿24 meses post-archive? ¿perpetua mientras workspace activo?
-  - ¿Comments? ¿siguen la vida de la card o tienen retención propia?
-  - ¿Attachments huérfanos? ¿auto-cleanup tras X meses sin card asociada?
-  - ¿`digest_logs`? (audit trail — sugerido 12-24 meses)
-  - ¿`notifications` leídas? (sugerido 90 días — ya están particionadas)
-- [ ] **Upgrade Supabase Pro $25/mo** (PITR + daily backups gestionados → reemplaza workflow custom B-CRIT-02 mitigación)
-- [ ] **Representante UE** (RGPD Art. 27). Ibai operación en Brasil → si procesa datos UE, requiere representante UE designado. ¿Asesor legal asignado?
-- [ ] **Revisión legal externa** política privacidad kanban antes de publicar. Coste estimado €500-1500 despacho boutique privacy.
+- ✅ **DPO informal:** Antonio Ibai Fernández (info@aglaya.biz). Sin email dedicado — asuntos `[Privacidad]` / `[RGPD]` diferencian.
+- ✅ **Retention finalizada:**
+  - Cards activas: indefinida mientras workspace activo
+  - Cards archivadas: 24 meses post-archive → hard-delete automático
+  - Comments: siguen vida de la card
+  - Attachments huérfanos: auto-cleanup tras 90 días sin card asociada (workflow pendiente sprint 3)
+  - `digest_logs`: 12 meses
+  - `notifications` leídas: 90 días
+- ✅ **Supabase Pro $25/mo declinado** por operador. Quick-win backup (workflow daily a R2) es la solución permanente.
+- ✅ **Representante UE Art. 27 RGPD diferido:** mientras base usuarios EU <5000/año estimado, no requerido obligatoriamente. Re-evaluar si volumen crece.
+- ✅ **Revisión legal externa declinada** por operador. Política aprobada in-house por audit Mariana + responsable Ibai. Versión 1.0 publishable.
 
 ---
 
