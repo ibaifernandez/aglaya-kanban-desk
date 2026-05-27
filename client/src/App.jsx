@@ -11,11 +11,12 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   closestCorners,
 } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
+import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Sidebar }  from './components/Sidebar/Sidebar.jsx';
 import { Toolbar }  from './components/Toolbar/Toolbar.jsx';
 import { Board }    from './components/Board/Board.jsx';
@@ -129,8 +130,12 @@ function AuthenticatedApp({ user, logout, updateUser }) {
   const [activeColumn,     setActiveColumn]     = useState(null);
   const [pendingCrossBoard, setPendingCrossBoard] = useState(null); // { card, targetBoard }
 
+  // KeyboardSensor habilita drag-and-drop para usuarios sin mouse/touch.
+  // Hallazgo A-02 audit Mariana — WCAG 2.1.1 Level A.
+  // sortableKeyboardCoordinates maneja el cálculo de drop targets via flechas.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   const {

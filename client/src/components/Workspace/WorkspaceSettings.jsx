@@ -3,6 +3,7 @@ import { X, Camera } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { Spinner } from '../UI/Spinner.jsx';
 import { useEscapeKey } from '../../hooks/useEscapeKey.js';
+import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 
 const EMOJIS = ['📋', '🚀', '⭐', '🎯', '💡', '🏢', '📊', '🛠', '🎨', '📣', '🤝', '💼'];
 
@@ -27,6 +28,7 @@ export function WorkspaceSettings({ workspace, onSave, onClose }) {
   const [coverUploading, setCoverUploading] = useState(false);
   const [error,          setError]          = useState('');
   const coverFileRef = useRef(null);
+  const modalRef = useFocusTrap(true);
   useEscapeKey(onClose, !saving && !coverUploading);
 
   const showExternoWarning = type === 'externo' && workspace.type !== 'externo';
@@ -72,10 +74,16 @@ export function WorkspaceSettings({ workspace, onSave, onClose }) {
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       {/* Panel */}
-      <div className="relative w-80 bg-[#1a1d26] border-l border-[#2a2d3a] flex flex-col h-full shadow-2xl">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="workspace-settings-title"
+        className="relative w-80 bg-[#1a1d26] border-l border-[#2a2d3a] flex flex-col h-full shadow-2xl"
+      >
         {/* Header */}
         <div className="px-5 py-4 border-b border-[#2a2d3a] flex items-center justify-between shrink-0">
-          <h2 className="text-sm font-semibold text-[#e8eaf0]">Ajustes del espacio</h2>
+          <h2 id="workspace-settings-title" className="text-sm font-semibold text-[#e8eaf0]">Ajustes del espacio</h2>
           <button
             onClick={onClose}
             aria-label="Cerrar"
@@ -110,22 +118,28 @@ export function WorkspaceSettings({ workspace, onSave, onClose }) {
 
           {/* Name */}
           <div>
-            <label className="block text-xs font-medium text-[#8b92a5] mb-1.5">Nombre *</label>
+            <label htmlFor="ws-settings-name" className="block text-xs font-medium text-[#8b92a5] mb-1.5">Nombre *</label>
             <input
+              id="ws-settings-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+              required
+              aria-required="true"
+              aria-invalid={error && !name.trim() ? 'true' : 'false'}
+              aria-describedby={error ? 'ws-settings-error' : undefined}
               className="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2.5 text-sm text-[#e8eaf0] placeholder-[#3a3f50] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-medium text-[#8b92a5] mb-1.5">
+            <label htmlFor="ws-settings-desc" className="block text-xs font-medium text-[#8b92a5] mb-1.5">
               Descripción <span className="text-[#3a3f50]">(opcional)</span>
             </label>
             <textarea
+              id="ws-settings-desc"
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
               rows={2}
@@ -195,7 +209,7 @@ export function WorkspaceSettings({ workspace, onSave, onClose }) {
           </div>
 
           {error && (
-            <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            <p id="ws-settings-error" role="alert" aria-live="assertive" className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
               {error}
             </p>
           )}

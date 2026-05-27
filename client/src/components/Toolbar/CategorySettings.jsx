@@ -3,6 +3,7 @@ import { X, Trash2, Plus } from 'lucide-react';
 import { COLOR_OPTIONS } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { useEscapeKey } from '../../hooks/useEscapeKey.js';
+import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 
 // ── Color picker ──────────────────────────────────────────────────────────────
 function ColorPicker({ selected, onChange }) {
@@ -104,6 +105,7 @@ export function CategorySettings({ onClose }) {
   const [newColorId, setNewColorId] = useState('blue');
 
   useEscapeKey(onClose);
+  const modalRef = useFocusTrap(true);
 
   async function handleAdd(e) {
     e.preventDefault();
@@ -123,11 +125,17 @@ export function CategorySettings({ onClose }) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
       onClick={handleBackdrop}
     >
-      <div className="w-full max-w-sm bg-[#1e2028] rounded-xl border border-[#2e3140] shadow-2xl flex flex-col max-h-[80vh]">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="category-settings-title"
+        className="w-full max-w-sm bg-[#1e2028] rounded-xl border border-[#2e3140] shadow-2xl flex flex-col max-h-[80vh]"
+      >
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#2e3140]">
-          <h2 className="text-sm font-semibold text-[#e8eaf0]">Categorías</h2>
+          <h2 id="category-settings-title" className="text-sm font-semibold text-[#e8eaf0]">Categorías</h2>
           <button
             type="button"
             onClick={onClose}

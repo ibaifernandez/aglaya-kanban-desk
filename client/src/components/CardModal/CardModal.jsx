@@ -20,6 +20,7 @@ import { PRIORITY_LIST } from '../../utils/constants.js';
 import { useCategoriesCtx } from '../../context/CategoriesContext.jsx';
 import { api } from '../../api/client.js';
 import { useEscapeKey } from '../../hooks/useEscapeKey.js';
+import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 import { MARKDOWN_LINK_COMPONENTS } from '../../utils/markdownComponents.jsx';
 
 const EMPTY = {
@@ -282,6 +283,7 @@ function SortableCheckItem({
 export function CardModal({ card, columnId, boardId, boards = [], columns, workspaceMembers = [], onSave, onDelete, onClose }) {
   const isNew = !card?.id;
   const { categories } = useCategoriesCtx();
+  const modalRef = useFocusTrap(true);
   const [form, setForm]                 = useState(EMPTY);
   const [tagInput, setTagInput]             = useState('');
   const [descPreview, setDescPreview]       = useState(false);
@@ -484,11 +486,17 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
       onClick={handleBackdrop}
     >
-      <div className="w-full max-w-lg bg-[#1e2028] rounded-xl border border-[#2e3140] shadow-2xl flex flex-col max-h-[90vh]">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="card-modal-title"
+        className="w-full max-w-lg bg-[#1e2028] rounded-xl border border-[#2e3140] shadow-2xl flex flex-col max-h-[90vh]"
+      >
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#2e3140]">
-          <h2 className="text-sm font-semibold text-[#e8eaf0]">
+          <h2 id="card-modal-title" className="text-sm font-semibold text-[#e8eaf0]">
             {isNew ? 'Nueva tarea' : 'Editar tarea'}
           </h2>
           <div className="flex items-center gap-1">

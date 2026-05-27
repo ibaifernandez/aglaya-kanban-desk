@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { api } from '../../api/client.js';
+import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 
 export function ColumnPickerModal({ board, card, onSelect, onClose }) {
   const [cols, setCols] = useState(null); // null = loading
+  const modalRef = useFocusTrap(true);
 
   useEffect(() => {
     api.getColumns(board.id).then(setCols).catch(() => setCols([]));
@@ -21,6 +23,10 @@ export function ColumnPickerModal({ board, card, onSelect, onClose }) {
       onClick={onClose}
     >
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="column-picker-modal-title"
         className="bg-[#1e2028] border border-[#2e3140] rounded-xl shadow-2xl p-4 w-64"
         onClick={(e) => e.stopPropagation()}
       >
@@ -30,7 +36,7 @@ export function ColumnPickerModal({ board, card, onSelect, onClose }) {
             <p className="text-[10px] font-semibold uppercase tracking-widest text-[#555b70] mb-0.5">
               Mover tarjeta a
             </p>
-            <p className="text-sm font-semibold text-[#e8eaf0] truncate">{board.title}</p>
+            <p id="column-picker-modal-title" className="text-sm font-semibold text-[#e8eaf0] truncate">{board.title}</p>
             {card && (
               <p className="text-xs text-[#555b70] truncate mt-0.5">«{card.title}»</p>
             )}

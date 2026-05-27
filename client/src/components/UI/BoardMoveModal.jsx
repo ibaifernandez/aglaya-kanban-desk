@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { api } from '../../api/client.js';
+import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 
 export function BoardMoveModal({ board, currentWorkspaceId, onMove, onClose }) {
   const [workspaces, setWorkspaces] = useState(null); // null = loading
+  const modalRef = useFocusTrap(true);
 
   useEffect(() => {
     api.getWorkspaces()
@@ -23,6 +25,10 @@ export function BoardMoveModal({ board, currentWorkspaceId, onMove, onClose }) {
       onClick={onClose}
     >
       <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="board-move-modal-title"
         className="bg-[#1e2028] border border-[#2e3140] rounded-xl shadow-2xl p-4 w-64"
         onClick={(e) => e.stopPropagation()}
       >
@@ -32,7 +38,7 @@ export function BoardMoveModal({ board, currentWorkspaceId, onMove, onClose }) {
             <p className="text-[10px] font-semibold uppercase tracking-widest text-[#555b70] mb-0.5">
               Mover tablero a
             </p>
-            <p className="text-sm font-semibold text-[#e8eaf0] truncate">{board.title}</p>
+            <p id="board-move-modal-title" className="text-sm font-semibold text-[#e8eaf0] truncate">{board.title}</p>
           </div>
           <button
             onClick={onClose}

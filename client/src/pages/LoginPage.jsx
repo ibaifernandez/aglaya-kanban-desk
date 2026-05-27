@@ -40,19 +40,26 @@ export default function LoginPage() {
           <p className="text-sm text-[#555b70] mt-1">Kanban Desk</p>
         </div>
 
+        {/* H1 landmark — A-20 audit Mariana */}
+        <h1 className="sr-only">Iniciar sesión en AGLAYA Kanban Desk</h1>
+
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="bg-[#1a1d26] border border-[#2a2d3a] rounded-2xl p-6 space-y-4">
+        <form onSubmit={handleSubmit} aria-label="Formulario de inicio de sesión" className="bg-[#1a1d26] border border-[#2a2d3a] rounded-2xl p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-[#8b92a5] mb-1.5 uppercase tracking-wider">
+            <label htmlFor="login-email" className="block text-xs font-medium text-[#8b92a5] mb-1.5 uppercase tracking-wider">
               Email
             </label>
             <input
+              id="login-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               autoFocus
+              autoComplete="email"
               placeholder="tu@empresa.com"
+              aria-invalid={error ? 'true' : 'false'}
+              aria-describedby={error ? 'login-error' : undefined}
               className="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2.5
                          text-[#e8eaf0] text-sm placeholder-[#3a3f50]
                          focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50
@@ -61,16 +68,20 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[#8b92a5] mb-1.5 uppercase tracking-wider">
+            <label htmlFor="login-password" className="block text-xs font-medium text-[#8b92a5] mb-1.5 uppercase tracking-wider">
               Contraseña
             </label>
             <div className="relative">
               <input
+                id="login-password"
                 type={showPass ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 placeholder="••••••••"
+                aria-invalid={error ? 'true' : 'false'}
+                aria-describedby={error ? 'login-error' : undefined}
                 className="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2.5 pr-10
                            text-[#e8eaf0] text-sm placeholder-[#3a3f50]
                            focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50
@@ -79,6 +90,8 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPass(v => !v)}
+                aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                aria-pressed={showPass}
                 className="absolute inset-y-0 right-3 flex items-center text-[#555b70] hover:text-[#8b92a5] transition-colors"
                 tabIndex={-1}
               >
@@ -92,7 +105,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
+            <div id="login-error" role="alert" aria-live="assertive" className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
               <p className="text-red-400 text-sm">{error}</p>
             </div>
           )}
@@ -171,22 +184,27 @@ function ForgotPassword({ initialEmail, onBack }) {
   );
 
   return (
-    <form onSubmit={handleSubmit} className="bg-[#1a1d26] border border-[#2a2d3a] rounded-2xl p-6 space-y-4 mt-[-1rem]">
-      <p className="text-[#8b92a5] text-sm">
+    <form onSubmit={handleSubmit} aria-label="Recuperar contraseña" className="bg-[#1a1d26] border border-[#2a2d3a] rounded-2xl p-6 space-y-4 mt-[-1rem]">
+      <p className="text-[#8b92a5] text-sm" id="forgot-help">
         Introduce tu email corporativo y te enviaremos un enlace para restablecer tu contraseña.
       </p>
+      <label htmlFor="forgot-email" className="sr-only">Email corporativo</label>
       <input
+        id="forgot-email"
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
         autoFocus
+        autoComplete="email"
         placeholder="tu@empresa.com"
+        aria-invalid={error ? 'true' : 'false'}
+        aria-describedby={error ? 'forgot-error' : 'forgot-help'}
         className="w-full bg-[#0f1117] border border-[#2a2d3a] rounded-lg px-3 py-2.5
                    text-[#e8eaf0] text-sm placeholder-[#3a3f50]
                    focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-colors"
       />
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p id="forgot-error" role="alert" aria-live="assertive" className="text-red-400 text-sm">{error}</p>}
       <button
         type="submit"
         disabled={loading}

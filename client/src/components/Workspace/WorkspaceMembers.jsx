@@ -3,6 +3,7 @@ import { X, UserPlus, Trash2, Users, ChevronDown, Search } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { Spinner } from '../UI/Spinner.jsx';
 import { useEscapeKey } from '../../hooks/useEscapeKey.js';
+import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 
 const WS_ROLES = ['admin', 'member', 'guest'];
 
@@ -134,6 +135,7 @@ function AddMemberModal({ workspaceId, existingIds, onClose, onAdded }) {
   const [role,          setRole]          = useState('member');
   const [saving,        setSaving]        = useState(false);
   const [error,         setError]         = useState('');
+  const modalRef = useFocusTrap(true);
 
   useEscapeKey(onClose, !saving);
 
@@ -165,9 +167,15 @@ function AddMemberModal({ workspaceId, existingIds, onClose, onAdded }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#1a1d26] border border-[#2a2d3a] rounded-xl w-full max-w-sm shadow-2xl">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-member-modal-title"
+        className="bg-[#1a1d26] border border-[#2a2d3a] rounded-xl w-full max-w-sm shadow-2xl"
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#2a2d3a]">
-          <h3 className="text-sm font-semibold text-[#e8eaf0] flex items-center gap-2">
+          <h3 id="add-member-modal-title" className="text-sm font-semibold text-[#e8eaf0] flex items-center gap-2">
             <UserPlus size={14} className="text-indigo-400" />
             Añadir miembro
           </h3>
@@ -237,6 +245,7 @@ export function WorkspaceMembers({ workspace, currentUser, onClose }) {
   const [loading,  setLoading]  = useState(true);
   const [showAdd,  setShowAdd]  = useState(false);
   const [toast,    setToast]    = useState('');
+  const panelRef = useFocusTrap(!showAdd); // trap solo cuando AddMember NO está abierto
 
   useEscapeKey(onClose, !showAdd);
 
@@ -288,11 +297,17 @@ export function WorkspaceMembers({ workspace, currentUser, onClose }) {
   return (
     <>
       {/* Panel */}
-      <div className="fixed inset-y-0 right-0 z-40 w-full max-w-md bg-[#13151e] border-l border-[#2a2d3a] shadow-2xl flex flex-col">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="workspace-members-title"
+        className="fixed inset-y-0 right-0 z-40 w-full max-w-md bg-[#13151e] border-l border-[#2a2d3a] shadow-2xl flex flex-col"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-[#2a2d3a]">
           <div>
-            <h2 className="text-sm font-semibold text-[#e8eaf0] flex items-center gap-2">
+            <h2 id="workspace-members-title" className="text-sm font-semibold text-[#e8eaf0] flex items-center gap-2">
               <Users size={15} className="text-indigo-400" />
               Miembros del espacio de trabajo
             </h2>
