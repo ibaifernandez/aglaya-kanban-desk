@@ -191,4 +191,165 @@ router.patch('/me/preferences', requireAuth, async (req, res) => {
   });
 });
 
+// ── GET /api/auth/me/export ───────────────────────────────────────────────────
+// Self-service data export (RGPD Art. 20 portabilidad + LGPD Art. 18(V) + Ley 21.719 Art. 13).
+// Returns JSON con todos los datos personales del usuario solicitante.
+// Hallazgo audit Mariana C-05.
+router.get('/me/export', requireAuth, async (req, res) => {
+  const adminClient = createAdminClient();
+  const userId = req.user.id;
+
+  try {
+    // 1. Profile completo
+    const { data: profile, error: profileErr } = await adminClient
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (profileErr || !profile) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // 2. Workspaces a los que pertenece (vía workspace_members)
+    const { data: memberships } = await adminClient
+      .from('workspace_members')
+      .select('workspace_id, role, invited_by, created_at, workspaces(id, name, emoji, type)')
+      .eq('user_id', userId);
+
+    // 3. Cards de las que es owner
+    const { data: ownedCards } = await adminClient
+      .from('cards')
+      .select('id, title, description, priority, due_date, board_id, column_id, tags, checklist, created_at, updated_at')
+      .eq('owner_id', userId);
+
+    // 4. Notifications dirigidas al usuario
+    const { data: notifications } = await adminClient
+      .from('notifications')
+      .select('id, type, payload, read_at, created_at')
+      .eq('user_id', userId);
+
+    // 5. Cards donde aparece en checklist como asignado
+    const { data: allCardsWithChecklist } = await adminClient
+      .from('cards')
+      .select('id, title, board_id, checklist')
+      .not('checklist', 'is', null);
+
+    const assignedChecklistItems = (allCardsWithChecklist ?? [])
+      .flatMap((card) => {
+        const items = Array.isArray(card.checklist) ? card.checklist : [];
+        return items
+          .filter((item) => Array.isArray(item.assignees) && item.assignees.includes(userId))
+          .map((item) => ({
+            card_id: card.id,
+            card_title: card.title,
+            board_id: card.board_id,
+            item_text: item.text,
+            item_done: item.done,
+          }));
+      });
+
+    // 6. Digest logs (audit trail de envíos al usuario)
+    const { data: digestLogs } = await adminClient
+      .from('digest_logs')
+      .select('id, type, recipient, status, error_msg, created_at')
+      .eq('user_id', userId);
+
+    // 7. Auth user metadata (last_sign_in, created_at, etc.)
+    let authMeta = null;
+    try {
+      const { data: authData } = await adminClient.auth.admin.getUserById(userId);
+      if (authData?.user) {
+        authMeta = {
+          id: authData.user.id,
+          email: authData.user.email,
+          email_confirmed_at: authData.user.email_confirmed_at,
+          last_sign_in_at: authData.user.last_sign_in_at,
+          created_at: authData.user.created_at,
+          updated_at: authData.user.updated_at,
+        };
+      }
+    } catch (_) {
+      // Si falla auth admin, exportamos sin metadata
+    }
+
+    const exportData = {
+      _meta: {
+        export_date: new Date().toISOString(),
+        export_subject: 'AGLAYA Kanban Desk — Personal data export (RGPD Art. 20 portabilidad)',
+        user_id: userId,
+        notice: 'Este export contiene todos los datos personales asociados a tu cuenta en el sistema. Si tienes preguntas, contacta info@aglaya.biz.',
+      },
+      auth: authMeta,
+      profile,
+      memberships: memberships ?? [],
+      owned_cards: ownedCards ?? [],
+      assigned_checklist_items: assignedChecklistItems,
+      notifications: notifications ?? [],
+      digest_logs: digestLogs ?? [],
+    };
+
+    const filename = `aglaya-kanban-export-${userId}-${new Date().toISOString().slice(0, 10)}.json`;
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    return res.status(200).send(JSON.stringify(exportData, null, 2));
+  } catch (err) {
+    console.error('[auth] export error:', err.message);
+    return res.status(500).json({ error: 'Error al generar export' });
+  }
+});
+
+// ── DELETE /api/auth/me ───────────────────────────────────────────────────────
+// Self-service account deletion (RGPD Art. 17 supresión + LGPD Art. 18(VI) +
+// Ley 21.719 Art. 12).
+// Hallazgo audit Mariana C-04.
+//
+// Body opcional: { confirm_email: string } — email del propio usuario como confirmación.
+// FK cascading:
+//   - auth.users → public.users: ON DELETE CASCADE (id FK)
+//   - public.users → workspace_members: ON DELETE CASCADE
+//   - public.users → cards (owner_id): ON DELETE SET NULL (cards permanecen, ownerless)
+//   - public.users → notifications: ON DELETE CASCADE
+//   - public.users → boards.created_by: ON DELETE SET NULL
+router.delete('/me', requireAuth, async (req, res) => {
+  const adminClient = createAdminClient();
+  const userId = req.user.id;
+  const userEmail = req.user.email;
+
+  // Confirmación opcional pero recomendada: email match
+  const { confirm_email: confirmEmail } = req.body ?? {};
+  if (confirmEmail && confirmEmail !== userEmail) {
+    return res.status(400).json({
+      error: 'CONFIRMATION_MISMATCH',
+      message: 'El email de confirmación no coincide con tu cuenta',
+    });
+  }
+
+  try {
+    // 1. Snapshot pre-delete para log (audit trail)
+    console.warn(`[auth] self-delete iniciado userId=${userId} email=${userEmail} at=${new Date().toISOString()}`);
+
+    // 2. Eliminar de Supabase Auth — cascade automático a public.users vía FK
+    const { error: authErr } = await adminClient.auth.admin.deleteUser(userId);
+
+    if (authErr) {
+      console.error('[auth] self-delete auth.users error:', authErr.message);
+      return res.status(500).json({ error: 'Error al eliminar cuenta' });
+    }
+
+    // 3. Limpieza defensiva: public.users (debería estar cascadeado pero por si acaso)
+    await adminClient.from('users').delete().eq('id', userId);
+
+    console.warn(`[auth] self-delete completado userId=${userId} email=${userEmail}`);
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Cuenta eliminada. Las cards de las que eras owner permanecen accesibles a los workspaces correspondientes (sin owner asignado). Los workspaces que pertenecían solo a ti han sido eliminados en cascada.',
+    });
+  } catch (err) {
+    console.error('[auth] self-delete error:', err.message);
+    return res.status(500).json({ error: 'Error al eliminar cuenta' });
+  }
+});
+
 module.exports = router;

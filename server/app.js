@@ -156,10 +156,17 @@ app.use((_req, res) => {
 // ── Global error handler ──────────────────────────────────
 // Captura cualquier error no manejado en rutas y middlewares.
 // Sin esto, Express devuelve HTML en lugar de JSON al cliente.
+// Sentry captura errores 500+ para observabilidad (D-01 audit Mariana).
+const { Sentry, enabled: sentryEnabled } = require('./utils/sentry');
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   console.error('[unhandled error]', err?.message ?? err);
-  res.status(err?.status ?? 500).json({
+  const status = err?.status ?? 500;
+  // Solo reportar 5xx + 4xx críticos a Sentry (no 4xx triviales)
+  if (sentryEnabled && status >= 500) {
+    Sentry.captureException(err);
+  }
+  res.status(status).json({
     error: isProd ? 'Error interno del servidor' : (err?.message ?? 'Error desconocido'),
   });
 });
