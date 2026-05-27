@@ -1,41 +1,24 @@
 /**
- * digest.js — Admin digest email for AGLAYA Kanban Desk
+ * admin.js — Admin digest email for AGLAYA Kanban Desk
  *
  * Sends a usage statistics report to the superadmin (DIGEST_TO).
  * Also triggered on-demand via POST /api/digest/send-me (restricted to admins).
+ *
+ * Previously: server/digest.js. Moved to server/services/digest/admin.js
+ * during the digest sub-refactor (shared helpers extracted to ./shared.js).
  */
 
 'use strict';
 
-const { sendEmail }     = require('./utils/mailer');
-const { supabaseAdmin } = require('./utils/supabase');
-const { logDigestAttempt } = require('./utils/digestLogging');
+const { sendEmail }        = require('../../utils/mailer');
+const { supabaseAdmin }    = require('../../utils/supabase');
+const { logDigestAttempt } = require('../../utils/digestLogging');
+const { escHtml, dateLabel, todayStr, DONE_COLUMN_RE } = require('./shared');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
 const DIGEST_HOUR   = parseInt(process.env.DIGEST_HOUR ?? '7', 10);
 const DIGEST_MINUTE = parseInt(process.env.DIGEST_MINUTE ?? '0', 10);
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function escHtml(str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function dateLabel() {
-  return new Date().toLocaleDateString('es-ES', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-  });
-}
-
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
 
 // ── Stats builder ─────────────────────────────────────────────────────────────
 
@@ -55,7 +38,7 @@ async function buildStats() {
 
   // Column IDs marked as "done"
   const doneColumnIds = new Set(
-    columns.filter(c => c.title && /✅|hecho|done|entregado|completado/i.test(c.title)).map(c => c.id)
+    columns.filter(c => c.title && DONE_COLUMN_RE.test(c.title)).map(c => c.id)
   );
 
   const totalBoards   = boards.length;

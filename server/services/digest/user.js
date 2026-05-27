@@ -1,17 +1,21 @@
 /**
- * userDigest.js — Personal task digest for AGLAYA Kanban Desk users
+ * user.js — Personal task digest for AGLAYA Kanban Desk users
  *
  * Sends each user a daily summary of their urgent, high-priority,
  * and overdue cards — grouped by workspace type (personal/interno/externo).
  *
- * Distinct from the admin digest (digest.js), which is a platform health check.
+ * Distinct from the admin digest (./admin.js), which is a platform health check.
+ *
+ * Previously: server/userDigest.js. Moved to server/services/digest/user.js
+ * during the digest sub-refactor (shared helpers extracted to ./shared.js).
  */
 
 'use strict';
 
-const { sendEmail }     = require('./utils/mailer');
-const { supabaseAdmin } = require('./utils/supabase');
-const { logDigestAttempt } = require('./utils/digestLogging');
+const { sendEmail }        = require('../../utils/mailer');
+const { supabaseAdmin }    = require('../../utils/supabase');
+const { logDigestAttempt } = require('../../utils/digestLogging');
+const { escHtml, dateLabel, todayStr, isOverdue, DONE_COLUMN_RE } = require('./shared');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -20,36 +24,10 @@ const USER_DIGEST_MINUTE = parseInt(process.env.USER_DIGEST_MINUTE ?? '0', 10);
 
 const SITE_URL = process.env.SITE_URL ?? 'https://kanban.aglaya.biz';
 
-// Column titles that indicate a card is "done" — excluded from digest
-const DONE_RE = /✅|hecho|done|entregado|completado/i;
-
 // Priorities that always appear in the digest (regardless of due date)
 const URGENT_PRIORITIES = new Set(['urgent', 'high']);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function escHtml(str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function dateLabel() {
-  return new Date().toLocaleDateString('es-ES', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-  });
-}
-
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function isOverdue(dueDate) {
-  return !!dueDate && dueDate.slice(0, 10) < todayStr();
-}
 
 function formatDueDate(dueDate) {
   if (!dueDate) return null;
@@ -125,7 +103,7 @@ async function buildUserCards(userId, options = {}) {
     .in('board_id', boardIds);
 
   const doneColumnIds = new Set(
-    (columns || []).filter((c) => DONE_RE.test(c.title ?? '')).map((c) => c.id)
+    (columns || []).filter((c) => DONE_COLUMN_RE.test(c.title ?? '')).map((c) => c.id)
   );
 
   // 4. Actionable cards: urgent/high priority OR overdue, not in done columns

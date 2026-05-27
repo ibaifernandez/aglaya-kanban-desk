@@ -1,6 +1,6 @@
 const express = require('express');
-const { sendDigest }                            = require('../digest');
-const { buildUserCards, sendUserDigest, sendAllUserDigests } = require('../userDigest');
+const { sendDigest }                            = require('../services/digest/admin');
+const { buildUserCards, sendUserDigest, sendAllUserDigests } = require('../services/digest/user');
 const { requireAuth, requireRole }              = require('../middleware/auth');
 const { createAdminClient, supabaseAdmin }      = require('../utils/supabase');
 const { getSyncedUserProfile }                  = require('../utils/userProfile');

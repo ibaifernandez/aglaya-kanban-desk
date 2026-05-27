@@ -10,14 +10,14 @@ jest.mock('../utils/supabase', () => ({
   createAdminClient: jest.fn(),
 }));
 
-jest.mock('../userDigest', () => ({
+jest.mock('../services/digest/user', () => ({
   buildUserCards: jest.fn(),
   sendUserDigest: jest.fn(),
   sendAllUserDigests: jest.fn(),
 }));
 
 const { createAdminClient, supabaseAdmin } = require('../utils/supabase');
-const { buildUserCards, sendUserDigest } = require('../userDigest');
+const { buildUserCards, sendUserDigest } = require('../services/digest/user');
 const app = require('../app');
 
 function makeToken(overrides = {}) {
