@@ -59,10 +59,10 @@ function SortableBoardItem({
             onChange={(e) => setEditTitle(e.target.value)}
             className="flex-1 bg-[#252830] border border-[#3d4155] rounded px-1.5 py-0.5 text-xs text-[#e8eaf0] outline-none focus:border-indigo-500"
           />
-          <button type="submit" className="text-indigo-400 hover:text-indigo-300">
+          <button type="submit" aria-label="Guardar nombre" className="text-indigo-400 hover:text-indigo-300">
             <Check size={13} />
           </button>
-          <button type="button" onClick={onCancelEdit} className="text-[#555b70] hover:text-[#8b90a0]">
+          <button type="button" onClick={onCancelEdit} aria-label="Cancelar edición" className="text-[#555b70] hover:text-[#8b90a0]">
             <X size={13} />
           </button>
         </form>

@@ -266,6 +266,7 @@ function SortableCheckItem({
           <button
             type="button"
             onClick={() => onRemove(item.id)}
+            aria-label="Eliminar ítem"
             className="opacity-0 group-hover/item:opacity-100 p-0.5 text-[#555b70] hover:text-red-400 transition-all flex-shrink-0"
             title="Eliminar"
           >
@@ -523,6 +524,7 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
             <button
               type="button"
               onClick={onClose}
+              aria-label="Cerrar tarjeta"
               className="p-1.5 rounded text-[#555b70] hover:text-[#e8eaf0] hover:bg-[#2e3140] transition-colors"
             >
               <X size={15} />
@@ -835,10 +837,10 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
                             >
                               <img src={att.url} alt={att.name} className="w-full h-full object-cover" />
                               <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover/img:opacity-100">
-                                <button type="button" onClick={() => setLightboxSrc(att.url)} className="p-1 rounded-full bg-black/60 text-white hover:bg-white/20 transition-colors" title="Ver a tamaño completo">
+                                <button type="button" onClick={() => setLightboxSrc(att.url)} aria-label="Ver imagen a tamaño completo" className="p-1 rounded-full bg-black/60 text-white hover:bg-white/20 transition-colors" title="Ver a tamaño completo">
                                   <ZoomIn size={13} />
                                 </button>
-                                <button type="button" onClick={() => removeAttachment(att.url)} className="p-1 rounded-full bg-black/60 text-white hover:bg-red-500/80 transition-colors" title="Eliminar">
+                                <button type="button" onClick={() => removeAttachment(att.url)} aria-label="Eliminar adjunto" className="p-1 rounded-full bg-black/60 text-white hover:bg-red-500/80 transition-colors" title="Eliminar">
                                   <X size={13} />
                                 </button>
                               </div>
@@ -860,7 +862,7 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
                           >
                             <Download size={12} />
                           </a>
-                          <button type="button" onClick={() => removeAttachment(att.url)} className="opacity-0 group-hover/doc:opacity-100 p-1 text-[#555b70] hover:text-red-400 transition-all flex-shrink-0" title="Eliminar">
+                          <button type="button" onClick={() => removeAttachment(att.url)} aria-label="Eliminar adjunto" className="opacity-0 group-hover/doc:opacity-100 p-1 text-[#555b70] hover:text-red-400 transition-all flex-shrink-0" title="Eliminar">
                             <X size={12} />
                           </button>
                         </div>
@@ -879,7 +881,7 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
               {form.tags.map((tag) => (
                 <span key={tag} className="flex items-center gap-1 bg-[#252830] border border-[#2e3140] text-[#8b90a0] text-xs px-2 py-0.5 rounded-full">
                   #{tag}
-                  <button type="button" onClick={() => removeTag(tag)} className="text-[#555b70] hover:text-red-400">
+                  <button type="button" onClick={() => removeTag(tag)} aria-label={`Quitar etiqueta ${tag}`} className="text-[#555b70] hover:text-red-400">
                     <X size={10} />
                   </button>
                 </span>
@@ -927,6 +929,7 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
           <button
             className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white hover:bg-white/20 transition-colors"
             onClick={() => setLightboxSrc(null)}
+            aria-label="Cerrar vista ampliada"
           >
             <X size={18} />
           </button>

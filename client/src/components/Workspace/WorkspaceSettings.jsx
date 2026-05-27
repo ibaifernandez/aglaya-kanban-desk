@@ -78,6 +78,7 @@ export function WorkspaceSettings({ workspace, onSave, onClose }) {
           <h2 className="text-sm font-semibold text-[#e8eaf0]">Ajustes del espacio</h2>
           <button
             onClick={onClose}
+            aria-label="Cerrar"
             className="p-1 rounded text-[#555b70] hover:text-[#e8eaf0] hover:bg-[#2a2d3a] transition-colors"
           >
             <X size={15} />

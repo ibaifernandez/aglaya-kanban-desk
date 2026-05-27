@@ -74,7 +74,7 @@ function UserSearchInput({ users, selectedUser, onSelect }) {
           <p className="text-sm text-[#e8eaf0] truncate">{selectedUser.name}</p>
           <p className="text-[11px] text-[#555b70] truncate">{selectedUser.email}</p>
         </div>
-        <button type="button" onClick={handleClear} className="text-[#555b70] hover:text-[#e8eaf0] transition-colors shrink-0">
+        <button type="button" onClick={handleClear} aria-label="Limpiar selección" className="text-[#555b70] hover:text-[#e8eaf0] transition-colors shrink-0">
           <X size={13} />
         </button>
       </div>
@@ -171,7 +171,7 @@ function AddMemberModal({ workspaceId, existingIds, onClose, onAdded }) {
             <UserPlus size={14} className="text-indigo-400" />
             Añadir miembro
           </h3>
-          <button onClick={onClose} className="text-[#555b70] hover:text-[#e8eaf0] transition-colors">
+          <button onClick={onClose} aria-label="Cerrar" className="text-[#555b70] hover:text-[#e8eaf0] transition-colors">
             <X size={15} />
           </button>
         </div>
@@ -298,7 +298,7 @@ export function WorkspaceMembers({ workspace, currentUser, onClose }) {
             </h2>
             <p className="text-xs text-[#555b70] mt-0.5">{workspace.emoji} {workspace.name}</p>
           </div>
-          <button onClick={onClose} className="text-[#555b70] hover:text-[#e8eaf0] transition-colors p-1">
+          <button onClick={onClose} aria-label="Cerrar" className="text-[#555b70] hover:text-[#e8eaf0] transition-colors p-1">
             <X size={16} />
           </button>
         </div>

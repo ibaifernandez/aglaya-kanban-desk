@@ -330,6 +330,16 @@ function AuthenticatedApp({ user, logout, updateUser }) {
         onDragEnd={handleDragEnd}
       >
         <div className="flex h-screen bg-[#0f1117] overflow-hidden">
+          {/* Skip-to-content link (A-19 audit Mariana — WCAG 2.4.1 Level A).
+              Oculto hasta focus por teclado; permite saltar Sidebar+Toolbar
+              y aterrizar directo en el contenido. */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          >
+            Saltar al contenido principal
+          </a>
+
           <Sidebar
             boards={boards}
             activeBoardId={boardId}
@@ -346,7 +356,7 @@ function AuthenticatedApp({ user, logout, updateUser }) {
             canMoveBoards={canMoveBoards}
           />
 
-          <div className="flex flex-col flex-1 min-w-0">
+          <main id="main-content" tabIndex={-1} className="flex flex-col flex-1 min-w-0">
             <Toolbar
               boardTitle={activeBoard?.title ?? '—'}
               filters={filters}
@@ -391,7 +401,7 @@ function AuthenticatedApp({ user, logout, updateUser }) {
                 Crea tu primer tablero en la barra lateral.
               </div>
             )}
-          </div>
+          </main>
         </div>
 
         {/* Drag overlays */}

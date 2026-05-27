@@ -25,6 +25,21 @@ CREATE TABLE IF NOT EXISTS public.organizations (
 GRANT SELECT ON public.organizations TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.organizations TO service_role;
 
+-- RLS habilitada (audit Mariana 2026-05-27, B-04/B-11)
+ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
+
+-- Usuarios autenticados ven SOLO su propia organización (auth.uid() match)
+CREATE POLICY "Users see their own organization"
+  ON public.organizations
+  FOR SELECT
+  USING (
+    id IN (
+      SELECT organization_id
+      FROM public.users
+      WHERE id = auth.uid()
+    )
+  );
+
 CREATE TABLE IF NOT EXISTS public.users (
   id              UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email           TEXT NOT NULL UNIQUE,

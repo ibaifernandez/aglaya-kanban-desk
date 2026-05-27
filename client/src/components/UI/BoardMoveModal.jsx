@@ -36,6 +36,7 @@ export function BoardMoveModal({ board, currentWorkspaceId, onMove, onClose }) {
           </div>
           <button
             onClick={onClose}
+            aria-label="Cerrar"
             className="text-[#555b70] hover:text-[#8b90a0] shrink-0 mt-0.5 transition-colors"
           >
             <X size={15} />

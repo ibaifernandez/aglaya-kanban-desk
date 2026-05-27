@@ -150,6 +150,7 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
           {globalQ && (
             <button
               onClick={() => { setGlobalQ(''); setGlobalOpen(false); }}
+              aria-label="Limpiar búsqueda global"
               className="absolute right-1.5 text-[#555b70] hover:text-[#8b90a0]"
             >
               <X size={11} />
@@ -202,6 +203,7 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
           {search && (
             <button
               onClick={() => onFilterChange('search', '')}
+              aria-label="Limpiar filtro de búsqueda"
               className="absolute right-1.5 text-[#555b70] hover:text-[#8b90a0]"
             >
               <X size={11} />

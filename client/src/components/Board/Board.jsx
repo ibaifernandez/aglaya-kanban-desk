@@ -298,6 +298,7 @@ export function Board({
               <button
                 type="button"
                 onClick={() => { setAddingColumn(false); setNewColTitle(''); }}
+                aria-label="Cancelar añadir columna"
                 className="px-2 bg-[#252830] hover:bg-[#2e3140] text-[#8b90a0] rounded-lg transition-colors"
               >
                 <X size={14} />

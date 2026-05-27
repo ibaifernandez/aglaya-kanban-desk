@@ -131,6 +131,7 @@ export function CategorySettings({ onClose }) {
           <button
             type="button"
             onClick={onClose}
+            aria-label="Cerrar"
             className="p-1.5 rounded text-[#555b70] hover:text-[#e8eaf0] hover:bg-[#2e3140] transition-colors"
           >
             <X size={15} />

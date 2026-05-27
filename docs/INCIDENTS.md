@@ -1,8 +1,112 @@
 # INCIDENTS.md — Registro de Incidencias y Correctivos
 
-**Última actualización:** 2026-04-28
+**Última actualización:** 2026-05-27
 
 Este documento resume los fallos relevantes encontrados durante la estabilización de AGLAYA Kanban Desk, su causa raíz, la solución aplicada y cualquier nota operativa pendiente.
+
+---
+
+## 2026-05-27 — Audit Mariana Trench: 2 críticos detectados y mitigados
+
+### B-CRIT-01: XSS explotable vía upload SVG (CVSS 8.0 HIGH)
+
+**Síntoma**
+- No reportado externamente — descubierto durante audit Fase B.
+
+**Causa raíz**
+- `server/routes/uploads.js`: multer aceptaba cualquier MIME (sin `fileFilter`).
+- `server/app.js:77`: `app.use('/uploads', express.static(...))` público sin auth.
+- `netlify.toml`: proxy `/uploads/*` → Railway desde origen `kanban.aglaya.biz`.
+- Resultado: SVG con `<script>` embebido se ejecutaba same-origin al navegarse directo, exfiltrando JWT desde localStorage (vigente 7 días).
+
+**Cadena de explotación**
+- Authed user sube `evil.svg` → URL `/uploads/<uuid>.svg` → pega en card description → víctima abre en pestaña nueva → script ejecuta same-origin → JWT robado → atacante usa sesión 7 días.
+
+**Solución aplicada (`402b0d7`)**
+- 4 capas de defensa en `server/routes/uploads.js`:
+  1. Extension blocklist (`svg|html?|js|mjs|swf|exe|bat|cmd|sh|ps1|vbs`)
+  2. MIME blocklist (`image/svg+xml`, `text/html`, `application/xhtml+xml`, `application/javascript`, etc.)
+  3. MIME allowlist (png/jpeg/webp/gif/pdf/csv/txt)
+  4. Magic-bytes validation via `file-type@16.5.4`
+- Error middleware en `app.js` con códigos `FILE_TYPE_FORBIDDEN` (400) + `FILE_MAGIC_MISMATCH` (400) + `FILE_TOO_LARGE` (413)
+- Tests regresión `server/tests/uploads.test.js` (5 casos verde)
+
+**Nota operativa**
+- Hardening futuro pendiente (Sprint backlog): mover uploads a subdominio sandbox `uploads.kanban.aglaya.biz` (origen distinto). Estándar industria (GitHub `githubusercontent.com`).
+
+---
+
+### B-CRIT-02: Backup ausente + Supabase plan Free (sin PITR ni daily backups)
+
+**Síntoma**
+- No reportado externamente — descubierto durante audit Fase B + confirmación plan = Free por operador.
+
+**Causa raíz**
+- Plan Supabase Free no incluye backups gestionados ni PITR.
+- 0 documentación interna de procedimiento backup en `docs/RUNBOOK.md`, `docs/SECURITY.md`, `docs/INCIDENTS.md`.
+- RPO = ∞: cualquier DROP TABLE accidental, migration buggy o corruption = pérdida total no recuperable.
+
+**Solución aplicada (`3ae6541` final tras 7 commits incrementales)**
+- Workflow `.github/workflows/db-backup.yml` con cron `17 3 * * *` UTC daily + `workflow_dispatch`.
+- pg_dump 17 client (server PG 17.6) via Session Pooler IPv4 (`aws-1-sa-east-1.pooler.supabase.com:5432`) — GH runners no soportan IPv6.
+- Upload a Cloudflare R2 bucket `aglaya-kanban-backups-prod` (WEUR) via R2 **native API** (cfut_ Bearer token).
+- Retention 30 días automática.
+- Runbook `docs/runbooks/db-restore.md` con procedimientos local + prod.
+
+**Smoke test verde**
+- 10/10 tablas core preservadas, 561 filas, 37 RLS policies, 43 FK constraints.
+
+**Notas operativas**
+- 🔴 Token `aglaya-kanban-r2-bootstrap` **expira Jun 2 2026** — rotación documentada en `docs/runbooks/key-rotation.md` (D-18).
+- 🟡 Sin notificación push on failure (D-08 abierto). Solo `::error::` en GH Actions log.
+- 📋 Estructural pendiente: upgrade Supabase Pro $25/mo (PITR 7d + daily gestionados).
+
+**Lecciones aprendidas**
+- Cloudflare R2 tiene 2 APIs distintas:
+  - **Native API:** `/accounts/{id}/r2/buckets/{b}/objects/{key}` con Bearer auth — acepta tokens `cfut_*`/`cfat_*`.
+  - **S3-compatible API:** `https://<account>.r2.cloudflarestorage.com/...` con AWS Signature V4 — requiere 32-char access key. **Rechaza tokens cfut_/cfat_** con error literal "Credential access key has length 53, should be 32".
+- Audit pivotó de rclone → aws-cli → boto3 → R2 native API por esta incompatibilidad.
+
+---
+
+### B-04 / B-11: RLS faltante en organizations table
+
+**Síntoma**
+- Latente. No explotable hoy (cliente NUNCA toca tablas Supabase directamente, verificado en audit).
+
+**Causa raíz**
+- `docs/schema/supabase-schema.sql` creaba tabla `public.organizations` sin `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`. Defense-in-depth violado.
+
+**Solución aplicada**
+- Migration `docs/schema/migration-organizations-rls.sql` aplicada en prod via psql:
+  ```sql
+  ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Users see their own organization"
+    ON public.organizations FOR SELECT
+    USING (id IN (SELECT organization_id FROM public.users WHERE id = auth.uid()));
+  ```
+- `supabase-schema.sql` sincronizado como fuente de verdad.
+
+---
+
+### D-05: SECURITY.md documentaba estado FALSO (descubierto en Fase D)
+
+**Síntoma**
+- Versiones previas de `docs/SECURITY.md` afirmaban:
+  - "Rate limiting ✅ activo" (realidad: solo en `/api/auth` — B-06).
+  - "RLS activo en DB ✅" (realidad: `organizations` sin RLS — B-04).
+  - "Persistencia de sesión... sessionStorage" (realidad: localStorage).
+
+**Causa raíz**
+- Documento creado 2026-04-14 cuando estado era diferente, sin sync periódica contra realidad.
+
+**Solución aplicada**
+- `docs/SECURITY.md` reescrito post-audit Mariana con marcadores explícitos por hallazgo + IDs cross-ref a `audit-B.md`.
+- Sección "Hallazgos abiertos referenciados" añadida con IDs y acciones pendientes.
+
+**Lecciones aprendidas**
+- Documentación verde sobre estado amarillo es PEOR que ausencia. Induce falsa confianza.
+- Process improvement: validar `SECURITY.md` cada Q + tras cualquier audit/refactor.
 
 ---
 

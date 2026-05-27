@@ -53,10 +53,11 @@ export function Column({ column, cards, sortBy = '', onSortChange = () => {}, on
               onBlur={submitRename}
               className="flex-1 bg-[#252830] border border-[#3d4155] rounded px-2 py-0.5 text-sm text-[#e8eaf0] outline-none focus:border-indigo-500"
             />
-            <button type="submit" className="text-indigo-400 shrink-0"><Check size={14} /></button>
+            <button type="submit" aria-label="Guardar nombre de columna" className="text-indigo-400 shrink-0"><Check size={14} /></button>
             <button
               type="button"
               onClick={() => { setEditingTitle(false); setTitleDraft(column.title); }}
+              aria-label="Cancelar edición de columna"
               className="text-[#555b70] shrink-0"
             >
               <X size={14} />
@@ -143,6 +144,7 @@ export function Column({ column, cards, sortBy = '', onSortChange = () => {}, on
                 Añadir
               </button>
               <button type="button" onClick={() => setAddingCard(false)}
+                aria-label="Cancelar añadir tarjeta"
                 className="px-2 bg-[#252830] hover:bg-[#2e3140] text-[#8b90a0] text-xs rounded-md transition-colors">
                 <X size={13} />
               </button>
