@@ -32,46 +32,68 @@ jobs:
           echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
           /usr/lib/postgresql/17/bin/pg_dump --version
 
-      - name: Install AWS CLI v2
+      - name: Setup Python + boto3
         run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip -q awscliv2.zip
-          sudo ./aws/install --update
-          aws --version
+          python3 -m pip install --quiet --upgrade pip
+          python3 -m pip install --quiet boto3
 
-      - name: pg_dump + upload to R2
+      - name: pg_dump + upload to R2 via boto3
         env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    auto
-          AWS_ENDPOINT_URL_S3:   ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID:     ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT:          ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET:            ${{ secrets.R2_BUCKET }}
+          DATABASE_URL:         ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
           TS=$(date -u +%Y%m%dT%H%M%SZ)
           DUMP_FILE="kanban_${TS}.sql.gz"
-          pg_dump "${{ secrets.DATABASE_URL }}" \
+          pg_dump "${DATABASE_URL}" \
             --no-owner --no-acl --clean --if-exists \
             | gzip -9 > "${DUMP_FILE}"
           ls -lh "${DUMP_FILE}"
-          aws s3 cp "${DUMP_FILE}" "s3://${{ secrets.R2_BUCKET }}/${DUMP_FILE}"
+          python3 <<PY
+          import os, boto3
+          from botocore.config import Config
+          s3 = boto3.client('s3',
+            endpoint_url=os.environ['R2_ENDPOINT'],
+            aws_access_key_id=os.environ['R2_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['R2_SECRET_ACCESS_KEY'],
+            region_name='auto',
+            config=Config(signature_version='s3v4'),
+          )
+          s3.upload_file('${DUMP_FILE}', os.environ['R2_BUCKET'], '${DUMP_FILE}')
+          print(f"Uploaded {os.environ['R2_BUCKET']}/${DUMP_FILE}")
+          PY
 
       - name: Retention — keep last 30 days
         env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    auto
-          AWS_ENDPOINT_URL_S3:   ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID:     ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT:          ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET:            ${{ secrets.R2_BUCKET }}
         run: |
-          set -euo pipefail
-          CUTOFF=$(date -u -d "30 days ago" +%s)
-          aws s3 ls "s3://${{ secrets.R2_BUCKET }}/" | while read -r DATE TIME SIZE KEY; do
-            [ -z "${KEY:-}" ] && continue
-            FILE_TS=$(date -u -d "${DATE} ${TIME}" +%s)
-            if [ "${FILE_TS}" -lt "${CUTOFF}" ]; then
-              echo "Pruning ${KEY}"
-              aws s3 rm "s3://${{ secrets.R2_BUCKET }}/${KEY}"
-            fi
-          done
+          python3 <<'PY'
+          import os, boto3, datetime
+          from botocore.config import Config
+          s3 = boto3.client('s3',
+            endpoint_url=os.environ['R2_ENDPOINT'],
+            aws_access_key_id=os.environ['R2_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['R2_SECRET_ACCESS_KEY'],
+            region_name='auto',
+            config=Config(signature_version='s3v4'),
+          )
+          cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)
+          paginator = s3.get_paginator('list_objects_v2')
+          deleted = 0
+          for page in paginator.paginate(Bucket=os.environ['R2_BUCKET']):
+              for obj in page.get('Contents', []):
+                  if obj['LastModified'] < cutoff:
+                      print(f"Pruning {obj['Key']}")
+                      s3.delete_object(Bucket=os.environ['R2_BUCKET'], Key=obj['Key'])
+                      deleted += 1
+          print(f"Pruned {deleted} object(s) older than 30 days")
+          PY
 
       - name: Notify on failure
         if: failure()
