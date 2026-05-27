@@ -545,10 +545,12 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
 
           {/* Title */}
           <div>
-            <label className="block text-xs text-[#8b90a0] mb-1">Título *</label>
+            <label htmlFor="card-title" className="block text-xs text-[#8b90a0] mb-1">Título *</label>
             <input
+              id="card-title"
               autoFocus
               required
+              aria-required="true"
               value={form.title}
               onChange={(e) => set('title', e.target.value)}
               placeholder="¿Qué hay que hacer?"
@@ -559,7 +561,7 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
           {/* Description */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs text-[#8b90a0]">Descripción</label>
+              <label htmlFor="card-description" className="text-xs text-[#8b90a0]">Descripción</label>
               {!descPreview && (
                 <button
                   type="button"
@@ -606,6 +608,7 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
               </div>
             ) : (
               <textarea
+                id="card-description"
                 autoFocus
                 rows={4}
                 value={form.description}
@@ -710,8 +713,9 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
           {/* Responsable */}
           {workspaceMembers.length > 0 && (
             <div>
-              <label className="block text-xs text-[#8b90a0] mb-1">Responsable</label>
+              <label htmlFor="card-assignee" className="block text-xs text-[#8b90a0] mb-1">Responsable</label>
               <select
+                id="card-assignee"
                 value={form.assigneeId ?? ''}
                 onChange={(e) => set('assigneeId', e.target.value || null)}
                 className="w-full bg-[#252830] border border-[#2e3140] rounded-lg px-2.5 py-2 text-sm text-[#e8eaf0] outline-none focus:border-indigo-500"
@@ -727,8 +731,9 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
           {/* Row: category + priority */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-[#8b90a0] mb-1">Categoría</label>
+              <label htmlFor="card-category" className="block text-xs text-[#8b90a0] mb-1">Categoría</label>
               <select
+                id="card-category"
                 value={form.category}
                 onChange={(e) => set('category', e.target.value)}
                 className="w-full bg-[#252830] border border-[#2e3140] rounded-lg px-2.5 py-2 text-sm text-[#e8eaf0] outline-none focus:border-indigo-500"
@@ -737,8 +742,9 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
               </select>
             </div>
             <div>
-              <label className="block text-xs text-[#8b90a0] mb-1">Prioridad</label>
+              <label htmlFor="card-priority" className="block text-xs text-[#8b90a0] mb-1">Prioridad</label>
               <select
+                id="card-priority"
                 value={form.priority}
                 onChange={(e) => set('priority', e.target.value)}
                 className="w-full bg-[#252830] border border-[#2e3140] rounded-lg px-2.5 py-2 text-sm text-[#e8eaf0] outline-none focus:border-indigo-500"
@@ -751,8 +757,9 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
           {/* Row: due date + column */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-[#8b90a0] mb-1">Fecha límite</label>
+              <label htmlFor="card-due-date" className="block text-xs text-[#8b90a0] mb-1">Fecha límite</label>
               <input
+                id="card-due-date"
                 type="date"
                 value={form.dueDate}
                 onChange={(e) => set('dueDate', e.target.value)}
@@ -761,8 +768,9 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
             </div>
             {!isNew && availableColumns?.length > 0 && (
               <div>
-                <label className="block text-xs text-[#8b90a0] mb-1">Columna</label>
+                <label htmlFor="card-column" className="block text-xs text-[#8b90a0] mb-1">Columna</label>
                 <select
+                  id="card-column"
                   value={form.columnId}
                   onChange={(e) => set('columnId', e.target.value)}
                   className="w-full bg-[#252830] border border-[#2e3140] rounded-lg px-2.5 py-2 text-sm text-[#e8eaf0] outline-none focus:border-indigo-500"
@@ -776,8 +784,9 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
           {/* Selector de tablero — mismo workspace de inmediato, cross-workspace al cargar */}
           {showBoardPicker && (
             <div>
-              <label className="block text-xs text-[#8b90a0] mb-1">Mover a tablero</label>
+              <label htmlFor="card-board-move" className="block text-xs text-[#8b90a0] mb-1">Mover a tablero</label>
               <select
+                id="card-board-move"
                 value={selectedBoardId}
                 onChange={(e) => handleBoardChange(e.target.value)}
                 className="w-full bg-[#252830] border border-[#2e3140] rounded-lg px-2.5 py-2 text-sm text-[#e8eaf0] outline-none focus:border-indigo-500"

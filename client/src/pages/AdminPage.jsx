@@ -3,6 +3,7 @@ import { ArrowLeft, UserPlus, Trash2, Shield, Users } from 'lucide-react';
 import { api } from '../api/client.js';
 import { UserMenu } from '../components/User/UserMenu.jsx';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
+import { useFocusTrap } from '../hooks/useFocusTrap.js';
 
 const ROLE_LABELS = {
   superadmin:  { label: 'Superadmin',  color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
@@ -26,6 +27,7 @@ function InviteModal({ onClose, onSuccess }) {
   const [form,    setForm]    = useState({ email: '', name: '', role: 'colaborador' });
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
+  const modalRef = useFocusTrap(true);
 
   useEscapeKey(onClose, !loading);
 
@@ -45,40 +47,57 @@ function InviteModal({ onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-[#1e2028] border border-[#2e3140] rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
-        <h2 className="text-base font-semibold text-[#e8eaf0] mb-5 flex items-center gap-2">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="invite-modal-title"
+        className="bg-[#1e2028] border border-[#2e3140] rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6"
+      >
+        <h2 id="invite-modal-title" className="text-base font-semibold text-[#e8eaf0] mb-5 flex items-center gap-2">
           <UserPlus size={16} className="text-indigo-400" />
           Invitar usuario
         </h2>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} aria-label="Formulario invitar usuario" className="flex flex-col gap-4">
           <div>
-            <label className="block text-xs text-[#8b90a0] mb-1.5 uppercase tracking-wide">Nombre</label>
+            <label htmlFor="invite-name" className="block text-xs text-[#8b90a0] mb-1.5 uppercase tracking-wide">Nombre</label>
             <input
+              id="invite-name"
               type="text"
               required
+              aria-required="true"
+              autoComplete="name"
               value={form.name}
               onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
               placeholder="Nombre completo"
+              aria-invalid={error ? 'true' : 'false'}
+              aria-describedby={error ? 'invite-error' : undefined}
               className="w-full bg-[#0f1117] border border-[#2e3140] rounded-lg px-3 py-2 text-sm text-[#e8eaf0] placeholder:text-[#3d4155] outline-none focus:border-indigo-500 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs text-[#8b90a0] mb-1.5 uppercase tracking-wide">Email corporativo</label>
+            <label htmlFor="invite-email" className="block text-xs text-[#8b90a0] mb-1.5 uppercase tracking-wide">Email corporativo</label>
             <input
+              id="invite-email"
               type="email"
               required
+              aria-required="true"
+              autoComplete="email"
               value={form.email}
               onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
               placeholder="nombre@empresa.com"
+              aria-invalid={error ? 'true' : 'false'}
+              aria-describedby={error ? 'invite-error' : undefined}
               className="w-full bg-[#0f1117] border border-[#2e3140] rounded-lg px-3 py-2 text-sm text-[#e8eaf0] placeholder:text-[#3d4155] outline-none focus:border-indigo-500 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs text-[#8b90a0] mb-1.5 uppercase tracking-wide">Rol</label>
+            <label htmlFor="invite-role" className="block text-xs text-[#8b90a0] mb-1.5 uppercase tracking-wide">Rol</label>
             <select
+              id="invite-role"
               value={form.role}
               onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))}
               className="w-full bg-[#0f1117] border border-[#2e3140] rounded-lg px-3 py-2 text-sm text-[#e8eaf0] outline-none focus:border-indigo-500 transition-colors cursor-pointer"
@@ -90,7 +109,7 @@ function InviteModal({ onClose, onSuccess }) {
           </div>
 
           {error && (
-            <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+            <p id="invite-error" role="alert" aria-live="assertive" className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
               {error}
             </p>
           )}
