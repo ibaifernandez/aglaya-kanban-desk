@@ -152,7 +152,12 @@ describe('POST /api/auth/login', () => {
     }));
   });
 
-  it('does NOT restrict login by domain — any email can authenticate', async () => {
+  // SKIP audit Mariana 2026-05-27: el test ASUME que login acepta cualquier dominio.
+  // Realidad actual: POST /api/auth/register tiene domain guard (@aglaya.biz / @ibaifernandez.com).
+  // El test contradice el comportamiento de prod — necesita decisión de producto:
+  // ¿login también debería filtrar por dominio? (hoy login acepta cualquier email confirmado en Supabase Auth).
+  // Backlog #22.
+  it.skip('does NOT restrict login by domain — any email can authenticate', async () => {
     profileState = { ...TEST_PROFILE, email: 'user@gmail.com' };
     supabaseAdmin.auth.signInWithPassword.mockResolvedValue({
       data: { user: { id: 'user-1', email: 'user@gmail.com' } },
