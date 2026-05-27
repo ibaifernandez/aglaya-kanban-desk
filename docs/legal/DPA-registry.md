@@ -24,10 +24,10 @@
 
 - **Función:** Envío de emails transaccionales (digest + notificaciones + welcome)
 - **DPA template oficial:** https://resend.com/legal/dpa
-- **Estado DPA:** 🟠 **PENDIENTE** — política aglaya.biz menciona Resend pero DPA específico no archivado
-- **Acción:** Resend dashboard → Settings → Legal → accept DPA
+- **Estado DPA:** ✅ **ARCHIVADO 2026-05-27** — auto-firmado al signup (modelo Resend). PDF en `docs/legal/dpas/resend-dpa-2026-05-27.pdf` (197 KB).
+- **Acción:** completada. Re-descargar si Resend actualiza versión.
 - **Sub-procesadores Resend:** AWS, ver https://resend.com/legal/subprocessors
-- **Transferencia internacional:** US — SCCs requeridas para datos UE
+- **Transferencia internacional:** US — SCCs incluidas en el DPA descargado
 
 ### 3. Railway
 
@@ -73,7 +73,7 @@
 | Procesador | DPA aceptado | Declarado en política | Sub-procesadores doc | Transferencia |
 |---|---|---|---|---|
 | Supabase | 🟡 request enviado 2026-05-27 (PandaDoc pending) + TIA archivado ✅ | ✅ kanban-policy v1.0 | ✅ Supabase doc | Brasil |
-| Resend | 🟠 verificar | ✅ SÍ (aglaya.biz) | ✅ Resend doc | US |
+| Resend | ✅ archivado 2026-05-27 | ✅ kanban-policy v1.0 | ✅ Resend doc | US |
 | Railway | 🟠 verificar | ✅ SÍ (CRM only) | ✅ Railway doc | US |
 | Netlify | 🟠 verificar | ✅ SÍ (aglaya.biz) | ✅ Netlify doc | Global |
 | Cloudflare | 🔴 NUEVO post-audit | ❌ NO | ✅ Cloudflare doc | EU (WEUR) |
@@ -105,7 +105,7 @@ Cuando aceptes un DPA en dashboard del procesador:
 ## Acciones pendientes (operador)
 
 - [x] Verificar/aceptar DPA Supabase (2026-05-27 request sent, awaiting PandaDoc) + TIA archivado en `docs/legal/dpas/supabase-tia-2025-03-14.pdf`
-- [ ] Verificar/aceptar DPA Resend (5 min)
+- [x] Verificar/aceptar DPA Resend (2026-05-27 archivado en `docs/legal/dpas/resend-dpa-2026-05-27.pdf`)
 - [ ] Verificar/aceptar DPA Railway (10 min)
 - [ ] Verificar/aceptar DPA Netlify (5 min)
 - [ ] **🔴 PRIORITARIO:** aceptar DPA Cloudflare (procesador nuevo desde audit Mariana — backup diario)
