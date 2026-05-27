@@ -32,25 +32,19 @@ jobs:
           echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
           /usr/lib/postgresql/17/bin/pg_dump --version
 
-      - name: Install rclone
+      - name: Install AWS CLI v2
         run: |
-          curl https://rclone.org/install.sh | sudo bash
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip -q awscliv2.zip
+          sudo ./aws/install --update
+          aws --version
 
-      - name: Configure rclone for Cloudflare R2
-        run: |
-          mkdir -p ~/.config/rclone
-          cat > ~/.config/rclone/rclone.conf <<EOF
-          [r2]
-          type = s3
-          provider = Cloudflare
-          access_key_id = ${{ secrets.R2_ACCESS_KEY_ID }}
-          secret_access_key = ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          endpoint = ${{ secrets.R2_ENDPOINT }}
-          region = auto
-          no_check_bucket = true
-          EOF
-
-      - name: pg_dump + upload
+      - name: pg_dump + upload to R2
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION:    auto
+          AWS_ENDPOINT_URL_S3:   ${{ secrets.R2_ENDPOINT }}
         run: |
           set -euo pipefail
           TS=$(date -u +%Y%m%dT%H%M%SZ)
@@ -59,17 +53,23 @@ jobs:
             --no-owner --no-acl --clean --if-exists \
             | gzip -9 > "${DUMP_FILE}"
           ls -lh "${DUMP_FILE}"
-          rclone copy "${DUMP_FILE}" "r2:${{ secrets.R2_BUCKET }}/" --progress
+          aws s3 cp "${DUMP_FILE}" "s3://${{ secrets.R2_BUCKET }}/${DUMP_FILE}"
 
       - name: Retention — keep last 30 days
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION:    auto
+          AWS_ENDPOINT_URL_S3:   ${{ secrets.R2_ENDPOINT }}
         run: |
           set -euo pipefail
           CUTOFF=$(date -u -d "30 days ago" +%s)
-          rclone lsl "r2:${{ secrets.R2_BUCKET }}/" | while read -r SIZE DATE TIME FILEPATH; do
+          aws s3 ls "s3://${{ secrets.R2_BUCKET }}/" | while read -r DATE TIME SIZE KEY; do
+            [ -z "${KEY:-}" ] && continue
             FILE_TS=$(date -u -d "${DATE} ${TIME}" +%s)
             if [ "${FILE_TS}" -lt "${CUTOFF}" ]; then
-              echo "Pruning ${FILEPATH}"
-              rclone delete "r2:${{ secrets.R2_BUCKET }}/${FILEPATH}"
+              echo "Pruning ${KEY}"
+              aws s3 rm "s3://${{ secrets.R2_BUCKET }}/${KEY}"
             fi
           done
 
