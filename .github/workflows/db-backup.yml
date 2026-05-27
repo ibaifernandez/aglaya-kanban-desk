@@ -1,0 +1,67 @@
+name: db-backup
+
+# Mitigación de B-CRIT-02 (audit Mariana 2026-05-27):
+#   Supabase plan = Free → sin daily backups ni PITR.
+#   pg_dump diario a Cloudflare R2 (10 GB free, S3-compatible, sin egress fees).
+#   Retención 30 días. Procedimiento de restore en docs/runbooks/db-restore.md.
+
+on:
+  schedule:
+    - cron: '17 3 * * *'   # 03:17 UTC daily (off-peak Madrid/Santiago)
+  workflow_dispatch:        # trigger manual desde Actions UI
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Install postgresql-client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Install rclone
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
+
+      - name: Configure rclone for Cloudflare R2
+        run: |
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf <<EOF
+          [r2]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${{ secrets.R2_ACCESS_KEY_ID }}
+          secret_access_key = ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          endpoint = ${{ secrets.R2_ENDPOINT }}
+          acl = private
+          EOF
+
+      - name: pg_dump + upload
+        run: |
+          set -euo pipefail
+          TS=$(date -u +%Y%m%dT%H%M%SZ)
+          DUMP_FILE="kanban_${TS}.sql.gz"
+          pg_dump "${{ secrets.DATABASE_URL }}" \
+            --no-owner --no-acl --clean --if-exists \
+            | gzip -9 > "${DUMP_FILE}"
+          ls -lh "${DUMP_FILE}"
+          rclone copy "${DUMP_FILE}" "r2:${{ secrets.R2_BUCKET }}/" --progress
+
+      - name: Retention — keep last 30 days
+        run: |
+          set -euo pipefail
+          CUTOFF=$(date -u -d "30 days ago" +%s)
+          rclone lsl "r2:${{ secrets.R2_BUCKET }}/" | while read -r SIZE DATE TIME FILEPATH; do
+            FILE_TS=$(date -u -d "${DATE} ${TIME}" +%s)
+            if [ "${FILE_TS}" -lt "${CUTOFF}" ]; then
+              echo "Pruning ${FILEPATH}"
+              rclone delete "r2:${{ secrets.R2_BUCKET }}/${FILEPATH}"
+            fi
+          done
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::DB backup failed — manual investigation required"
+          # TODO: integrar Sentry/Slack webhook cuando exista observabilidad
