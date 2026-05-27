@@ -7,8 +7,8 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node server/index.js",
     "client": "cd client && npm run dev",
-    "test": "jest server/tests --forceExit --detectOpenHandles",
-    "test:watch": "jest server/tests --watch --forceExit --detectOpenHandles"
+    "test": "jest server/tests --runInBand --no-watchman --forceExit --detectOpenHandles",
+    "test:watch": "jest server/tests --watch --no-watchman --forceExit --detectOpenHandles"
   },
   "jest": {
     "testEnvironment": "node",
