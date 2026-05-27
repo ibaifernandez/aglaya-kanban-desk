@@ -35,3 +35,15 @@ Thumbs.db
 # ── Supabase CLI temp data ────────────────────────────────
 supabase/.temp/
 supabase/.branches/
+
+# ── Claude Code runtime (local-only) ──────────────────────
+.claude/scheduled_tasks.lock
+.claude/settings.local.json
+.claude/worktrees/
+
+# ── Graphify output (commit graph + report only) ──────────
+graphify-out/*
+!graphify-out/graph.json
+!graphify-out/REPORT.md
+!graphify-out/graph.html
+!graphify-out/.graphify_analysis.json
