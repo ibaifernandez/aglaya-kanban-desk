@@ -61,10 +61,11 @@
 
 - **Función:** Cron triggers para digest (`digest-cron.yml`) + backup daily (`db-backup.yml`)
 - **DPA template:** GitHub está cubierto por Microsoft Online Services DPA — https://www.microsoft.com/licensing/docs/view/Microsoft-Products-and-Services-Data-Protection-Addendum-DPA
-- **Estado DPA:** 🟠 **VERIFICAR** — si AGLAYA tiene cuenta GitHub Business/Enterprise, el DPA Microsoft aplica
-- **Acción:** verificar tipo de cuenta GitHub + descargar DPA si aplica
+- **Estado DPA:** ✅ **ARCHIVADO 2026-05-27** — Microsoft Products and Services DPA (WW) versión May 2026 (CR). DOCX en `docs/legal/dpas/microsoft-dpa-2026-05.docx`.
+- **Tipo de cuenta GitHub verificado:** `ibaifernandez` cuenta personal free (plan: None). DPA Microsoft aplica automáticamente al uso del servicio.
+- **Acción:** completada. Re-descargar si Microsoft publica versión nueva.
 - **Sub-procesadores:** Microsoft Azure (infra GitHub)
-- **Transferencia internacional:** US
+- **Transferencia internacional:** US — SCCs incluidas en el DPA Microsoft
 
 ---
 
@@ -77,7 +78,7 @@
 | Railway | ✅ archivado 2026-05-27 | ✅ kanban-policy v1.0 | ✅ Railway doc | US |
 | Netlify | ✅ archivado 2026-05-27 | ✅ kanban-policy v1.0 | ✅ Netlify doc | Global |
 | Cloudflare | ✅ archivado 2026-05-27 (v6.4) | ✅ kanban-policy v1.0 | ✅ Cloudflare doc | EU (WEUR) |
-| GitHub Actions | 🟠 verificar | ❌ NO | Microsoft Azure | US |
+| GitHub Actions | ✅ archivado 2026-05-27 (Microsoft DPA WW May 2026) | ✅ kanban-policy v1.0 | Microsoft Azure | US |
 
 ---
 
@@ -109,6 +110,6 @@ Cuando aceptes un DPA en dashboard del procesador:
 - [x] Verificar/aceptar DPA Railway (2026-05-27 archivado en `docs/legal/dpas/railway-dpa-2026-05-27.pdf`)
 - [x] Verificar/aceptar DPA Netlify (2026-05-27 archivado en `docs/legal/dpas/netlify-dpa-2026-05-27.pdf`)
 - [x] **🔴 PRIORITARIO:** aceptar DPA Cloudflare (2026-05-27 archivado en `docs/legal/dpas/cloudflare-dpa-v6.4-2026-04-03.pdf`)
-- [ ] Verificar status GitHub DPA (Microsoft Online Services DPA cubre)
+- [x] Verificar status GitHub DPA (2026-05-27 Microsoft Products and Services DPA WW May 2026 archivado en `docs/legal/dpas/microsoft-dpa-2026-05.docx`; cuenta GitHub personal free → DPA Microsoft aplica)
 - [ ] Crear carpeta `docs/legal/dpas/` cuando empiecen a archivarse PDFs
 - [ ] Documentar cada aceptación en este archivo con fecha + path a copia archivada
