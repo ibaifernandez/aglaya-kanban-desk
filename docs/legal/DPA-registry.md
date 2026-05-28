@@ -53,8 +53,8 @@
 - **Función:** R2 bucket para backups diarios DB completa + DNS para `aglaya.biz`/`kanban.aglaya.biz`
 - **Bucket:** `aglaya-kanban-backups-prod` (WEUR — Western Europe)
 - **DPA template oficial:** https://www.cloudflare.com/cloudflare-customer-dpa/
-- **Estado DPA:** 🔴 **PENDIENTE — más urgente** — Cloudflare se añadió como procesador en este audit (2026-05-27) para almacenar dumps completos DB. NUNCA declarado en política aglaya.biz para kanban
-- **Acción:** Cloudflare dashboard → Profile → Legal → DPA (puede ser self-serve)
+- **Estado DPA:** ✅ **ARCHIVADO 2026-05-27** — DPA v6.4 fechado April 3 2026 descargado. PDF en `docs/legal/dpas/cloudflare-dpa-v6.4-2026-04-03.pdf`.
+- **Acción:** completada. Re-descargar si Cloudflare publica v6.5+.
 - **Transferencia internacional:** WEUR mantiene datos en EU (preferible para UE/Brasil/Chile)
 
 ### 6. GitHub Actions
@@ -76,7 +76,7 @@
 | Resend | ✅ archivado 2026-05-27 | ✅ kanban-policy v1.0 | ✅ Resend doc | US |
 | Railway | ✅ archivado 2026-05-27 | ✅ kanban-policy v1.0 | ✅ Railway doc | US |
 | Netlify | ✅ archivado 2026-05-27 | ✅ kanban-policy v1.0 | ✅ Netlify doc | Global |
-| Cloudflare | 🔴 NUEVO post-audit | ❌ NO | ✅ Cloudflare doc | EU (WEUR) |
+| Cloudflare | ✅ archivado 2026-05-27 (v6.4) | ✅ kanban-policy v1.0 | ✅ Cloudflare doc | EU (WEUR) |
 | GitHub Actions | 🟠 verificar | ❌ NO | Microsoft Azure | US |
 
 ---
@@ -108,7 +108,7 @@ Cuando aceptes un DPA en dashboard del procesador:
 - [x] Verificar/aceptar DPA Resend (2026-05-27 archivado en `docs/legal/dpas/resend-dpa-2026-05-27.pdf`)
 - [x] Verificar/aceptar DPA Railway (2026-05-27 archivado en `docs/legal/dpas/railway-dpa-2026-05-27.pdf`)
 - [x] Verificar/aceptar DPA Netlify (2026-05-27 archivado en `docs/legal/dpas/netlify-dpa-2026-05-27.pdf`)
-- [ ] **🔴 PRIORITARIO:** aceptar DPA Cloudflare (procesador nuevo desde audit Mariana — backup diario)
+- [x] **🔴 PRIORITARIO:** aceptar DPA Cloudflare (2026-05-27 archivado en `docs/legal/dpas/cloudflare-dpa-v6.4-2026-04-03.pdf`)
 - [ ] Verificar status GitHub DPA (Microsoft Online Services DPA cubre)
 - [ ] Crear carpeta `docs/legal/dpas/` cuando empiecen a archivarse PDFs
 - [ ] Documentar cada aceptación en este archivo con fecha + path a copia archivada
