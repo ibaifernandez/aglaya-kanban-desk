@@ -67,13 +67,15 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: client/package-lock.json
+
+      - name: Install root dependencies (for build:legal prebuild)
+        run: npm ci
 
       - name: Install client dependencies
         working-directory: ./client
         run: npm ci
 
-      - name: Build
+      - name: Build (incluye prebuild legal → privacidad.html)
         working-directory: ./client
         run: npm run build
 
@@ -81,6 +83,7 @@ jobs:
         working-directory: ./client
         run: |
           test -f dist/index.html
+          test -f dist/privacidad.html
           test -d dist/assets
           ls -lh dist/
 

@@ -17,6 +17,29 @@
   status = 200
   force  = true
 
+# Páginas legales estáticas (generadas por scripts/build-legal-pages.js)
+# Deben ir ANTES del SPA fallback para que /privacidad no caiga en index.html
+[[redirects]]
+  from   = "/privacidad"
+  to     = "/privacidad.html"
+  status = 200
+[[redirects]]
+  from   = "/privacy"
+  to     = "/privacidad.html"
+  status = 200
+
+# Headers de seguridad (B-05 audit Mariana — WCAG/RGPD Art. 32)
+# CSP + X-Frame + X-Content + Referrer + Permissions-Policy en HTML servido por Netlify
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer-when-downgrade"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    # CSP estricto pero compatible con Vite assets + Sentry browser SDK (futuro)
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://*.supabase.com wss://*.supabase.co https://*.sentry.io https://web-production-099a0.up.railway.app; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+
 # SPA fallback — todas las rutas van a index.html
 [[redirects]]
   from   = "/*"

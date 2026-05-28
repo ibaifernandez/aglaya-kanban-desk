@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "cd .. && npm run build:legal",
     "build": "vite build",
     "preview": "vite preview"
   },
