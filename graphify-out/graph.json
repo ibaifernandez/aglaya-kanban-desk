@@ -4,283 +4,256 @@
   "graph": {},
   "nodes": [
     {
-      "label": "package.json",
-      "file_type": "code",
-      "source_file": "client/package.json",
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "README.md",
       "source_location": "L1",
-      "id": "client_package_json",
-      "community": 7,
-      "norm_label": "package.json"
+      "id": "readme_md",
+      "community": 43,
+      "norm_label": "readme.md"
     },
     {
-      "label": "name",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L2",
-      "id": "client_package_name",
-      "community": 7,
-      "norm_label": "name"
+      "label": "AGLAYA Kanban Desk",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "id": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "community": 43,
+      "norm_label": "aglaya kanban desk"
     },
     {
-      "label": "private",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L3",
-      "id": "client_package_private",
-      "community": 7,
-      "norm_label": "private"
+      "label": "Por qu\u00e9 existe esto",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L15",
+      "id": "aglaya_kanban_desk_readme_por_qu\u00e9_existe_esto",
+      "community": 43,
+      "norm_label": "por que existe esto"
     },
     {
-      "label": "version",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L4",
-      "id": "client_package_version",
-      "community": 7,
-      "norm_label": "version"
+      "label": "Stack",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L29",
+      "id": "aglaya_kanban_desk_readme_stack",
+      "community": 43,
+      "norm_label": "stack"
     },
     {
-      "label": "type",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L5",
-      "id": "client_package_type",
-      "community": 7,
-      "norm_label": "type"
+      "label": "Arquitectura",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L47",
+      "id": "aglaya_kanban_desk_readme_arquitectura",
+      "community": 43,
+      "norm_label": "arquitectura"
     },
     {
-      "label": "scripts",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L6",
-      "id": "client_package_scripts",
-      "community": 7,
+      "label": "code:block1 (client/  (React 18 + Vite \u00b7 Netlify \u00b7 puerto 5175))",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L49",
+      "id": "aglaya_kanban_desk_readme_codeblock_1",
+      "community": 43,
+      "norm_label": "code:block1 (client/  (react 18 + vite \u00b7 netlify \u00b7 puerto 5175))"
+    },
+    {
+      "label": "Caracter\u00edsticas \u2014 v1.3.1",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L81",
+      "id": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
+      "community": 43,
+      "norm_label": "caracteristicas \u2014 v1.3.1"
+    },
+    {
+      "label": "Workspaces y roles",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L83",
+      "id": "aglaya_kanban_desk_readme_workspaces_y_roles",
+      "community": 43,
+      "norm_label": "workspaces y roles"
+    },
+    {
+      "label": "Tableros y tarjetas",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L92",
+      "id": "aglaya_kanban_desk_readme_tableros_y_tarjetas",
+      "community": 43,
+      "norm_label": "tableros y tarjetas"
+    },
+    {
+      "label": "Notificaciones",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L104",
+      "id": "aglaya_kanban_desk_readme_notificaciones",
+      "community": 43,
+      "norm_label": "notificaciones"
+    },
+    {
+      "label": "Identidad visual y storage",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L111",
+      "id": "aglaya_kanban_desk_readme_identidad_visual_y_storage",
+      "community": 43,
+      "norm_label": "identidad visual y storage"
+    },
+    {
+      "label": "Email y digests",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L117",
+      "id": "aglaya_kanban_desk_readme_email_y_digests",
+      "community": 43,
+      "norm_label": "email y digests"
+    },
+    {
+      "label": "Seguridad",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L124",
+      "id": "aglaya_kanban_desk_readme_seguridad",
+      "community": 43,
+      "norm_label": "seguridad"
+    },
+    {
+      "label": "Primeros pasos",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L136",
+      "id": "aglaya_kanban_desk_readme_primeros_pasos",
+      "community": 43,
+      "norm_label": "primeros pasos"
+    },
+    {
+      "label": "Requisitos",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L138",
+      "id": "aglaya_kanban_desk_readme_requisitos",
+      "community": 43,
+      "norm_label": "requisitos"
+    },
+    {
+      "label": "Instalaci\u00f3n",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L144",
+      "id": "aglaya_kanban_desk_readme_instalaci\u00f3n",
+      "community": 43,
+      "norm_label": "instalacion"
+    },
+    {
+      "label": "code:bash (# Clonar)",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L146",
+      "id": "aglaya_kanban_desk_readme_codeblock_2",
+      "community": 43,
+      "norm_label": "code:bash (# clonar)"
+    },
+    {
+      "label": "Ejecutar en local",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L162",
+      "id": "aglaya_kanban_desk_readme_ejecutar_en_local",
+      "community": 43,
+      "norm_label": "ejecutar en local"
+    },
+    {
+      "label": "code:bash (npm run dev)",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L164",
+      "id": "aglaya_kanban_desk_readme_codeblock_3",
+      "community": 43,
+      "norm_label": "code:bash (npm run dev)"
+    },
+    {
+      "label": "Variables de entorno",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L172",
+      "id": "aglaya_kanban_desk_readme_variables_de_entorno",
+      "community": 43,
+      "norm_label": "variables de entorno"
+    },
+    {
+      "label": "code:env (# Supabase)",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L174",
+      "id": "aglaya_kanban_desk_readme_codeblock_4",
+      "community": 43,
+      "norm_label": "code:env (# supabase)"
+    },
+    {
+      "label": "Scripts",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L207",
+      "id": "aglaya_kanban_desk_readme_scripts",
+      "community": 43,
       "norm_label": "scripts"
     },
     {
-      "label": "dev",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L7",
-      "id": "client_package_scripts_dev",
-      "community": 7,
-      "norm_label": "dev"
+      "label": "code:bash (npm run dev       # Servidor + cliente en paralelo (concurre)",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L209",
+      "id": "aglaya_kanban_desk_readme_codeblock_5",
+      "community": 43,
+      "norm_label": "code:bash (npm run dev       # servidor + cliente en paralelo (concurre)"
     },
     {
-      "label": "prebuild",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L8",
-      "id": "client_package_scripts_prebuild",
-      "community": 7,
-      "norm_label": "prebuild"
+      "label": "Migraciones SQL",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L218",
+      "id": "aglaya_kanban_desk_readme_migraciones_sql",
+      "community": 43,
+      "norm_label": "migraciones sql"
     },
     {
-      "label": "build",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L9",
-      "id": "client_package_scripts_build",
-      "community": 7,
-      "norm_label": "build"
+      "label": "Tests",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L231",
+      "id": "aglaya_kanban_desk_readme_tests",
+      "community": 43,
+      "norm_label": "tests"
     },
     {
-      "label": "build:legal",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L10",
-      "id": "client_package_scripts_build_legal",
-      "community": 7,
-      "norm_label": "build:legal"
+      "label": "code:bash (cd server && npm test)",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L248",
+      "id": "aglaya_kanban_desk_readme_codeblock_6",
+      "community": 43,
+      "norm_label": "code:bash (cd server && npm test)"
     },
     {
-      "label": "preview",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L11",
-      "id": "client_package_scripts_preview",
-      "community": 7,
-      "norm_label": "preview"
+      "label": "Estrategia de ramas",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L254",
+      "id": "aglaya_kanban_desk_readme_estrategia_de_ramas",
+      "community": 43,
+      "norm_label": "estrategia de ramas"
     },
     {
-      "label": "dependencies",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L13",
-      "id": "client_package_dependencies",
-      "community": 7,
-      "norm_label": "dependencies"
-    },
-    {
-      "label": "@dnd-kit/core",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L14",
-      "id": "client_package_dependencies_dnd_kit_core",
-      "community": 7,
-      "norm_label": "@dnd-kit/core"
-    },
-    {
-      "label": "@dnd-kit/sortable",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L15",
-      "id": "client_package_dependencies_dnd_kit_sortable",
-      "community": 7,
-      "norm_label": "@dnd-kit/sortable"
-    },
-    {
-      "label": "@dnd-kit/utilities",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L16",
-      "id": "client_package_dependencies_dnd_kit_utilities",
-      "community": 7,
-      "norm_label": "@dnd-kit/utilities"
-    },
-    {
-      "label": "@supabase/supabase-js",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L17",
-      "id": "client_package_dependencies_supabase_supabase_js",
-      "community": 7,
-      "norm_label": "@supabase/supabase-js"
-    },
-    {
-      "label": "lucide-react",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L18",
-      "id": "client_package_dependencies_lucide_react",
-      "community": 7,
-      "norm_label": "lucide-react"
-    },
-    {
-      "label": "react",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L19",
-      "id": "client_package_dependencies_react",
-      "community": 7,
-      "norm_label": "react"
-    },
-    {
-      "label": "react-dom",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L20",
-      "id": "client_package_dependencies_react_dom",
-      "community": 7,
-      "norm_label": "react-dom"
-    },
-    {
-      "label": "react-easy-crop",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L21",
-      "id": "client_package_dependencies_react_easy_crop",
-      "community": 7,
-      "norm_label": "react-easy-crop"
-    },
-    {
-      "label": "react-markdown",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L22",
-      "id": "client_package_dependencies_react_markdown",
-      "community": 7,
-      "norm_label": "react-markdown"
-    },
-    {
-      "label": "remark-gfm",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L23",
-      "id": "client_package_dependencies_remark_gfm",
-      "community": 7,
-      "norm_label": "remark-gfm"
-    },
-    {
-      "label": "devDependencies",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L25",
-      "id": "client_package_devdependencies",
-      "community": 7,
-      "norm_label": "devdependencies"
-    },
-    {
-      "label": "@types/react",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L26",
-      "id": "client_package_devdependencies_types_react",
-      "community": 7,
-      "norm_label": "@types/react"
-    },
-    {
-      "label": "@types/react-dom",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L27",
-      "id": "client_package_devdependencies_types_react_dom",
-      "community": 7,
-      "norm_label": "@types/react-dom"
-    },
-    {
-      "label": "@vitejs/plugin-react",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L28",
-      "id": "client_package_devdependencies_vitejs_plugin_react",
-      "community": 7,
-      "norm_label": "@vitejs/plugin-react"
-    },
-    {
-      "label": "autoprefixer",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L29",
-      "id": "client_package_devdependencies_autoprefixer",
-      "community": 7,
-      "norm_label": "autoprefixer"
-    },
-    {
-      "label": "marked",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L30",
-      "id": "client_package_devdependencies_marked",
-      "community": 7,
-      "norm_label": "marked"
-    },
-    {
-      "label": "postcss",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L31",
-      "id": "client_package_devdependencies_postcss",
-      "community": 7,
-      "norm_label": "postcss"
-    },
-    {
-      "label": "tailwindcss",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L32",
-      "id": "client_package_devdependencies_tailwindcss",
-      "community": 7,
-      "norm_label": "tailwindcss"
-    },
-    {
-      "label": "vite",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L33",
-      "id": "client_package_devdependencies_vite",
-      "community": 7,
-      "norm_label": "vite"
+      "label": "Documentaci\u00f3n",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L260",
+      "id": "aglaya_kanban_desk_readme_documentaci\u00f3n",
+      "community": 43,
+      "norm_label": "documentacion"
     },
     {
       "label": "package.json",
@@ -445,19 +418,10 @@
       "norm_label": "@supabase/supabase-js"
     },
     {
-      "label": "bcryptjs",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L21",
-      "id": "aglaya_kanban_desk_package_dependencies_bcryptjs",
-      "community": 6,
-      "norm_label": "bcryptjs"
-    },
-    {
       "label": "cors",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L22",
+      "source_location": "L21",
       "id": "aglaya_kanban_desk_package_dependencies_cors",
       "community": 6,
       "norm_label": "cors"
@@ -466,7 +430,7 @@
       "label": "dotenv",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L23",
+      "source_location": "L22",
       "id": "aglaya_kanban_desk_package_dependencies_dotenv",
       "community": 6,
       "norm_label": "dotenv"
@@ -475,7 +439,7 @@
       "label": "express",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L24",
+      "source_location": "L23",
       "id": "aglaya_kanban_desk_package_dependencies_express",
       "community": 6,
       "norm_label": "express"
@@ -484,7 +448,7 @@
       "label": "express-rate-limit",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L25",
+      "source_location": "L24",
       "id": "aglaya_kanban_desk_package_dependencies_express_rate_limit",
       "community": 6,
       "norm_label": "express-rate-limit"
@@ -493,7 +457,7 @@
       "label": "file-type",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L26",
+      "source_location": "L25",
       "id": "aglaya_kanban_desk_package_dependencies_file_type",
       "community": 6,
       "norm_label": "file-type"
@@ -502,7 +466,7 @@
       "label": "helmet",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L27",
+      "source_location": "L26",
       "id": "aglaya_kanban_desk_package_dependencies_helmet",
       "community": 6,
       "norm_label": "helmet"
@@ -511,7 +475,7 @@
       "label": "jsonwebtoken",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L28",
+      "source_location": "L27",
       "id": "aglaya_kanban_desk_package_dependencies_jsonwebtoken",
       "community": 6,
       "norm_label": "jsonwebtoken"
@@ -520,7 +484,7 @@
       "label": "multer",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L29",
+      "source_location": "L28",
       "id": "aglaya_kanban_desk_package_dependencies_multer",
       "community": 6,
       "norm_label": "multer"
@@ -529,7 +493,7 @@
       "label": "node-cron",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L30",
+      "source_location": "L29",
       "id": "aglaya_kanban_desk_package_dependencies_node_cron",
       "community": 6,
       "norm_label": "node-cron"
@@ -538,7 +502,7 @@
       "label": "nodemailer",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L31",
+      "source_location": "L30",
       "id": "aglaya_kanban_desk_package_dependencies_nodemailer",
       "community": 6,
       "norm_label": "nodemailer"
@@ -547,7 +511,7 @@
       "label": "resend",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L32",
+      "source_location": "L31",
       "id": "aglaya_kanban_desk_package_dependencies_resend",
       "community": 6,
       "norm_label": "resend"
@@ -556,7 +520,7 @@
       "label": "uuid",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L33",
+      "source_location": "L32",
       "id": "aglaya_kanban_desk_package_dependencies_uuid",
       "community": 6,
       "norm_label": "uuid"
@@ -565,7 +529,7 @@
       "label": "devDependencies",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L35",
+      "source_location": "L34",
       "id": "aglaya_kanban_desk_package_devdependencies",
       "community": 6,
       "norm_label": "devdependencies"
@@ -574,7 +538,7 @@
       "label": "concurrently",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L36",
+      "source_location": "L35",
       "id": "aglaya_kanban_desk_package_devdependencies_concurrently",
       "community": 6,
       "norm_label": "concurrently"
@@ -583,7 +547,7 @@
       "label": "jest",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L37",
+      "source_location": "L36",
       "id": "aglaya_kanban_desk_package_devdependencies_jest",
       "community": 6,
       "norm_label": "jest"
@@ -592,10 +556,424 @@
       "label": "supertest",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L38",
+      "source_location": "L37",
       "id": "aglaya_kanban_desk_package_devdependencies_supertest",
       "community": 6,
       "norm_label": "supertest"
+    },
+    {
+      "label": "auth.js",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L1",
+      "id": "server_routes_auth_js",
+      "community": 36,
+      "norm_label": "auth.js"
+    },
+    {
+      "label": "express",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L1",
+      "id": "routes_auth_express",
+      "community": 36,
+      "norm_label": "express"
+    },
+    {
+      "label": "jwt",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L2",
+      "id": "routes_auth_jwt",
+      "community": 36,
+      "norm_label": "jwt"
+    },
+    {
+      "label": "{ createAdminClient, createPublicClient }",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L3",
+      "id": "routes_auth_createadminclient_createpublicclient",
+      "community": 36,
+      "norm_label": "{ createadminclient, createpublicclient }"
+    },
+    {
+      "label": "{ requireAuth }",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "id": "routes_auth_requireauth",
+      "community": 36,
+      "norm_label": "{ requireauth }"
+    },
+    {
+      "label": "{ getSyncedUserProfile }",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L5",
+      "id": "routes_auth_getsynceduserprofile",
+      "community": 36,
+      "norm_label": "{ getsynceduserprofile }"
+    },
+    {
+      "label": "router",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L7",
+      "id": "routes_auth_router",
+      "community": 36,
+      "norm_label": "router"
+    },
+    {
+      "label": "adminClient",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L11",
+      "id": "routes_auth_adminclient",
+      "community": 36,
+      "norm_label": "adminclient"
+    },
+    {
+      "label": "allowedDomains",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L19",
+      "id": "routes_auth_alloweddomains",
+      "community": 36,
+      "norm_label": "alloweddomains"
+    },
+    {
+      "label": "token",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L61",
+      "id": "routes_auth_token",
+      "community": 36,
+      "norm_label": "token"
+    },
+    {
+      "label": "authClient",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L72",
+      "id": "routes_auth_authclient",
+      "community": 36,
+      "norm_label": "authclient"
+    },
+    {
+      "label": "update",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L154",
+      "id": "routes_auth_update",
+      "community": 36,
+      "norm_label": "update"
+    },
+    {
+      "label": "h",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L156",
+      "id": "routes_auth_h",
+      "community": 36,
+      "norm_label": "h"
+    },
+    {
+      "label": "assignedChecklistItems",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L237",
+      "id": "routes_auth_assignedchecklistitems",
+      "community": 36,
+      "norm_label": "assignedchecklistitems"
+    },
+    {
+      "label": "exportData",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L275",
+      "id": "routes_auth_exportdata",
+      "community": 36,
+      "norm_label": "exportdata"
+    },
+    {
+      "label": "package.json",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L1",
+      "community": 7,
+      "norm_label": "package.json",
+      "id": "client_package_json"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L2",
+      "community": 7,
+      "norm_label": "name",
+      "id": "client_package_name"
+    },
+    {
+      "label": "private",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L3",
+      "community": 7,
+      "norm_label": "private",
+      "id": "client_package_private"
+    },
+    {
+      "label": "version",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L4",
+      "community": 7,
+      "norm_label": "version",
+      "id": "client_package_version"
+    },
+    {
+      "label": "type",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L5",
+      "community": 7,
+      "norm_label": "type",
+      "id": "client_package_type"
+    },
+    {
+      "label": "scripts",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L6",
+      "community": 7,
+      "norm_label": "scripts",
+      "id": "client_package_scripts"
+    },
+    {
+      "label": "dev",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L7",
+      "community": 7,
+      "norm_label": "dev",
+      "id": "client_package_scripts_dev"
+    },
+    {
+      "label": "prebuild",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L8",
+      "community": 7,
+      "norm_label": "prebuild",
+      "id": "client_package_scripts_prebuild"
+    },
+    {
+      "label": "build",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L9",
+      "community": 7,
+      "norm_label": "build",
+      "id": "client_package_scripts_build"
+    },
+    {
+      "label": "build:legal",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L10",
+      "community": 7,
+      "norm_label": "build:legal",
+      "id": "client_package_scripts_build_legal"
+    },
+    {
+      "label": "preview",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L11",
+      "community": 7,
+      "norm_label": "preview",
+      "id": "client_package_scripts_preview"
+    },
+    {
+      "label": "dependencies",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L13",
+      "community": 7,
+      "norm_label": "dependencies",
+      "id": "client_package_dependencies"
+    },
+    {
+      "label": "@dnd-kit/core",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L14",
+      "community": 7,
+      "norm_label": "@dnd-kit/core",
+      "id": "client_package_dependencies_dnd_kit_core"
+    },
+    {
+      "label": "@dnd-kit/sortable",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L15",
+      "community": 7,
+      "norm_label": "@dnd-kit/sortable",
+      "id": "client_package_dependencies_dnd_kit_sortable"
+    },
+    {
+      "label": "@dnd-kit/utilities",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L16",
+      "community": 7,
+      "norm_label": "@dnd-kit/utilities",
+      "id": "client_package_dependencies_dnd_kit_utilities"
+    },
+    {
+      "label": "@supabase/supabase-js",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L17",
+      "community": 7,
+      "norm_label": "@supabase/supabase-js",
+      "id": "client_package_dependencies_supabase_supabase_js"
+    },
+    {
+      "label": "lucide-react",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L18",
+      "community": 7,
+      "norm_label": "lucide-react",
+      "id": "client_package_dependencies_lucide_react"
+    },
+    {
+      "label": "react",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L19",
+      "community": 7,
+      "norm_label": "react",
+      "id": "client_package_dependencies_react"
+    },
+    {
+      "label": "react-dom",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L20",
+      "community": 7,
+      "norm_label": "react-dom",
+      "id": "client_package_dependencies_react_dom"
+    },
+    {
+      "label": "react-easy-crop",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L21",
+      "community": 7,
+      "norm_label": "react-easy-crop",
+      "id": "client_package_dependencies_react_easy_crop"
+    },
+    {
+      "label": "react-markdown",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L22",
+      "community": 7,
+      "norm_label": "react-markdown",
+      "id": "client_package_dependencies_react_markdown"
+    },
+    {
+      "label": "remark-gfm",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L23",
+      "community": 7,
+      "norm_label": "remark-gfm",
+      "id": "client_package_dependencies_remark_gfm"
+    },
+    {
+      "label": "devDependencies",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L25",
+      "community": 7,
+      "norm_label": "devdependencies",
+      "id": "client_package_devdependencies"
+    },
+    {
+      "label": "@types/react",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L26",
+      "community": 7,
+      "norm_label": "@types/react",
+      "id": "client_package_devdependencies_types_react"
+    },
+    {
+      "label": "@types/react-dom",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L27",
+      "community": 7,
+      "norm_label": "@types/react-dom",
+      "id": "client_package_devdependencies_types_react_dom"
+    },
+    {
+      "label": "@vitejs/plugin-react",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L28",
+      "community": 7,
+      "norm_label": "@vitejs/plugin-react",
+      "id": "client_package_devdependencies_vitejs_plugin_react"
+    },
+    {
+      "label": "autoprefixer",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L29",
+      "community": 7,
+      "norm_label": "autoprefixer",
+      "id": "client_package_devdependencies_autoprefixer"
+    },
+    {
+      "label": "marked",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L30",
+      "community": 7,
+      "norm_label": "marked",
+      "id": "client_package_devdependencies_marked"
+    },
+    {
+      "label": "postcss",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L31",
+      "community": 7,
+      "norm_label": "postcss",
+      "id": "client_package_devdependencies_postcss"
+    },
+    {
+      "label": "tailwindcss",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L32",
+      "community": 7,
+      "norm_label": "tailwindcss",
+      "id": "client_package_devdependencies_tailwindcss"
+    },
+    {
+      "label": "vite",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L33",
+      "community": 7,
+      "norm_label": "vite",
+      "id": "client_package_devdependencies_vite"
     },
     {
       "label": "build-legal-pages.js",
@@ -3131,7 +3509,7 @@
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L36",
-      "community": 2,
+      "community": 113,
       "norm_label": "internalrouter",
       "id": "server_app_internalrouter"
     },
@@ -3224,150 +3602,6 @@
       "community": 16,
       "norm_label": "{ validatesmtpconfig, validatedigestschedules }",
       "id": "server_index_validatesmtpconfig_validatedigestschedules"
-    },
-    {
-      "label": "auth.js",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L1",
-      "community": 36,
-      "norm_label": "auth.js",
-      "id": "server_routes_auth_js"
-    },
-    {
-      "label": "express",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L1",
-      "community": 36,
-      "norm_label": "express",
-      "id": "routes_auth_express"
-    },
-    {
-      "label": "jwt",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L2",
-      "community": 36,
-      "norm_label": "jwt",
-      "id": "routes_auth_jwt"
-    },
-    {
-      "label": "bcrypt",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L3",
-      "community": 36,
-      "norm_label": "bcrypt",
-      "id": "routes_auth_bcrypt"
-    },
-    {
-      "label": "{ createAdminClient, createPublicClient }",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "community": 36,
-      "norm_label": "{ createadminclient, createpublicclient }",
-      "id": "routes_auth_createadminclient_createpublicclient"
-    },
-    {
-      "label": "{ requireAuth }",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L5",
-      "community": 36,
-      "norm_label": "{ requireauth }",
-      "id": "routes_auth_requireauth"
-    },
-    {
-      "label": "{ getSyncedUserProfile }",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L6",
-      "community": 36,
-      "norm_label": "{ getsynceduserprofile }",
-      "id": "routes_auth_getsynceduserprofile"
-    },
-    {
-      "label": "router",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L8",
-      "community": 36,
-      "norm_label": "router",
-      "id": "routes_auth_router"
-    },
-    {
-      "label": "adminClient",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L12",
-      "community": 36,
-      "norm_label": "adminclient",
-      "id": "routes_auth_adminclient"
-    },
-    {
-      "label": "allowedDomains",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L20",
-      "community": 36,
-      "norm_label": "alloweddomains",
-      "id": "routes_auth_alloweddomains"
-    },
-    {
-      "label": "token",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L62",
-      "community": 36,
-      "norm_label": "token",
-      "id": "routes_auth_token"
-    },
-    {
-      "label": "authClient",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L73",
-      "community": 36,
-      "norm_label": "authclient",
-      "id": "routes_auth_authclient"
-    },
-    {
-      "label": "update",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L155",
-      "community": 36,
-      "norm_label": "update",
-      "id": "routes_auth_update"
-    },
-    {
-      "label": "h",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L157",
-      "community": 36,
-      "norm_label": "h",
-      "id": "routes_auth_h"
-    },
-    {
-      "label": "assignedChecklistItems",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L238",
-      "community": 36,
-      "norm_label": "assignedchecklistitems",
-      "id": "routes_auth_assignedchecklistitems"
-    },
-    {
-      "label": "exportData",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L276",
-      "community": 36,
-      "norm_label": "exportdata",
-      "id": "routes_auth_exportdata"
     },
     {
       "label": "auth-self-service.test.js",
@@ -6614,7 +6848,7 @@
       "file_type": "code",
       "source_file": "server/services/digest/shared.js",
       "source_location": "L1",
-      "community": 10,
+      "community": 98,
       "norm_label": "shared.js",
       "id": "server_services_digest_shared_js"
     },
@@ -6623,7 +6857,7 @@
       "file_type": "code",
       "source_file": "server/services/digest/shared.js",
       "source_location": "L13",
-      "community": 10,
+      "community": 98,
       "norm_label": "eschtml()",
       "id": "digest_shared_eschtml"
     },
@@ -6641,7 +6875,7 @@
       "file_type": "code",
       "source_file": "server/services/digest/shared.js",
       "source_location": "L29",
-      "community": 10,
+      "community": 98,
       "norm_label": "todaystr()",
       "id": "digest_shared_todaystr"
     },
@@ -7019,7 +7253,7 @@
       "file_type": "code",
       "source_file": "server/middleware/auth.js",
       "source_location": "L1",
-      "community": 42,
+      "community": 114,
       "norm_label": "auth.js",
       "id": "server_middleware_auth_js"
     },
@@ -7028,7 +7262,7 @@
       "file_type": "code",
       "source_file": "server/middleware/auth.js",
       "source_location": "L1",
-      "community": 42,
+      "community": 114,
       "norm_label": "jwt",
       "id": "middleware_auth_jwt"
     },
@@ -7037,7 +7271,7 @@
       "file_type": "code",
       "source_file": "server/middleware/auth.js",
       "source_location": "L2",
-      "community": 42,
+      "community": 114,
       "norm_label": "{ supabaseadmin }",
       "id": "middleware_auth_supabaseadmin"
     },
@@ -7046,7 +7280,7 @@
       "file_type": "code",
       "source_file": "server/middleware/auth.js",
       "source_location": "L8",
-      "community": 42,
+      "community": 114,
       "norm_label": "requireauth()",
       "id": "middleware_auth_requireauth"
     },
@@ -7055,7 +7289,7 @@
       "file_type": "code",
       "source_file": "server/middleware/auth.js",
       "source_location": "L29",
-      "community": 42,
+      "community": 114,
       "norm_label": "requirerole()",
       "id": "middleware_auth_requirerole"
     },
@@ -7064,7 +7298,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L1",
-      "community": 5,
+      "community": 112,
       "norm_label": "workspace.js",
       "id": "server_middleware_workspace_js"
     },
@@ -7073,7 +7307,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L1",
-      "community": 5,
+      "community": 112,
       "norm_label": "{ supabaseadmin }",
       "id": "middleware_workspace_supabaseadmin"
     },
@@ -7082,7 +7316,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L3",
-      "community": 5,
+      "community": 112,
       "norm_label": "resolveworkspaceidfromboard()",
       "id": "middleware_workspace_resolveworkspaceidfromboard"
     },
@@ -7091,7 +7325,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L15",
-      "community": 5,
+      "community": 112,
       "norm_label": "resolveworkspaceidfromcolumn()",
       "id": "middleware_workspace_resolveworkspaceidfromcolumn"
     },
@@ -7100,7 +7334,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L27",
-      "community": 5,
+      "community": 112,
       "norm_label": "resolveworkspaceidfromcard()",
       "id": "middleware_workspace_resolveworkspaceidfromcard"
     },
@@ -7109,7 +7343,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L48",
-      "community": 5,
+      "community": 112,
       "norm_label": "requireworkspacemember()",
       "id": "middleware_workspace_requireworkspacemember"
     },
@@ -7118,7 +7352,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L119",
-      "community": 5,
+      "community": 112,
       "norm_label": "requireworkspacerole()",
       "id": "middleware_workspace_requireworkspacerole"
     },
@@ -7451,7 +7685,7 @@
       "file_type": "code",
       "source_file": "server/tests/digestLogging.test.js",
       "source_location": "L1",
-      "community": 98,
+      "community": 115,
       "norm_label": "digestlogging.test.js",
       "id": "server_tests_digestlogging_test_js"
     },
@@ -7460,7 +7694,7 @@
       "file_type": "code",
       "source_file": "server/tests/digestLogging.test.js",
       "source_location": "L1",
-      "community": 98,
+      "community": 115,
       "norm_label": "{ logdigestattempt, querydigestlogs }",
       "id": "tests_digestlogging_test_logdigestattempt_querydigestlogs"
     },
@@ -7469,7 +7703,7 @@
       "file_type": "code",
       "source_file": "server/tests/digestLogging.test.js",
       "source_location": "L9",
-      "community": 98,
+      "community": 115,
       "norm_label": "{ supabaseadmin }",
       "id": "tests_digestlogging_test_supabaseadmin"
     },
@@ -7478,7 +7712,7 @@
       "file_type": "code",
       "source_file": "server/tests/digestLogging.test.js",
       "source_location": "L109",
-      "community": 98,
+      "community": 115,
       "norm_label": "mocklogs",
       "id": "tests_digestlogging_test_mocklogs"
     },
@@ -7739,7 +7973,7 @@
       "file_type": "code",
       "source_file": "server/utils/supabase.js",
       "source_location": "L28",
-      "community": 2,
+      "community": 113,
       "norm_label": "supabaseadmin",
       "id": "utils_supabase_supabaseadmin"
     },
@@ -7757,7 +7991,7 @@
       "file_type": "code",
       "source_file": "server/utils/digestLogging.js",
       "source_location": "L1",
-      "community": 98,
+      "community": 115,
       "norm_label": "digestlogging.js",
       "id": "server_utils_digestlogging_js"
     },
@@ -7766,7 +8000,7 @@
       "file_type": "code",
       "source_file": "server/utils/digestLogging.js",
       "source_location": "L6",
-      "community": 98,
+      "community": 115,
       "norm_label": "{ supabaseadmin }",
       "id": "utils_digestlogging_supabaseadmin"
     },
@@ -7775,7 +8009,7 @@
       "file_type": "code",
       "source_file": "server/utils/digestLogging.js",
       "source_location": "L18",
-      "community": 98,
+      "community": 115,
       "norm_label": "logdigestattempt()",
       "id": "utils_digestlogging_logdigestattempt"
     },
@@ -7784,7 +8018,7 @@
       "file_type": "code",
       "source_file": "server/utils/digestLogging.js",
       "source_location": "L64",
-      "community": 98,
+      "community": 115,
       "norm_label": "querydigestlogs()",
       "id": "utils_digestlogging_querydigestlogs"
     },
@@ -8207,7 +8441,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L1",
-      "community": 5,
+      "community": 112,
       "norm_label": "media.js",
       "id": "server_routes_media_js"
     },
@@ -8216,7 +8450,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L1",
-      "community": 5,
+      "community": 112,
       "norm_label": "express",
       "id": "routes_media_express"
     },
@@ -8225,7 +8459,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L2",
-      "community": 5,
+      "community": 112,
       "norm_label": "multer",
       "id": "routes_media_multer"
     },
@@ -8234,7 +8468,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L3",
-      "community": 5,
+      "community": 112,
       "norm_label": "path",
       "id": "routes_media_path"
     },
@@ -8243,7 +8477,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L4",
-      "community": 5,
+      "community": 112,
       "norm_label": "{ supabaseadmin }",
       "id": "routes_media_supabaseadmin"
     },
@@ -8252,7 +8486,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L5",
-      "community": 5,
+      "community": 112,
       "norm_label": "{ requireauth }",
       "id": "routes_media_requireauth"
     },
@@ -8261,7 +8495,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L6",
-      "community": 5,
+      "community": 112,
       "norm_label": "{ requireworkspacemember, requireworkspacerole }",
       "id": "routes_media_requireworkspacemember_requireworkspacerole"
     },
@@ -8270,7 +8504,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L8",
-      "community": 5,
+      "community": 112,
       "norm_label": "router",
       "id": "routes_media_router"
     },
@@ -8279,7 +8513,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L11",
-      "community": 5,
+      "community": 112,
       "norm_label": "upload",
       "id": "routes_media_upload"
     },
@@ -8288,7 +8522,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L31",
-      "community": 5,
+      "community": 112,
       "norm_label": "ext",
       "id": "routes_media_ext"
     },
@@ -8297,7 +8531,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L43",
-      "community": 5,
+      "community": 112,
       "norm_label": "{ data: { publicurl } }",
       "id": "routes_media_data_publicurl"
     },
@@ -8306,7 +8540,7 @@
       "file_type": "code",
       "source_file": "server/routes/internalRoute.js",
       "source_location": "L1",
-      "community": 2,
+      "community": 113,
       "norm_label": "internalroute.js",
       "id": "server_routes_internalroute_js"
     },
@@ -8315,7 +8549,7 @@
       "file_type": "code",
       "source_file": "server/routes/internalRoute.js",
       "source_location": "L1",
-      "community": 2,
+      "community": 113,
       "norm_label": "express",
       "id": "routes_internalroute_express"
     },
@@ -8324,7 +8558,7 @@
       "file_type": "code",
       "source_file": "server/routes/internalRoute.js",
       "source_location": "L2",
-      "community": 2,
+      "community": 113,
       "norm_label": "{ supabaseadmin }",
       "id": "routes_internalroute_supabaseadmin"
     },
@@ -8333,7 +8567,7 @@
       "file_type": "code",
       "source_file": "server/routes/internalRoute.js",
       "source_location": "L4",
-      "community": 2,
+      "community": 113,
       "norm_label": "router",
       "id": "routes_internalroute_router"
     },
@@ -8342,7 +8576,7 @@
       "file_type": "code",
       "source_file": "server/routes/internalRoute.js",
       "source_location": "L6",
-      "community": 2,
+      "community": 113,
       "norm_label": "valid_priorities",
       "id": "routes_internalroute_valid_priorities"
     },
@@ -8351,7 +8585,7 @@
       "file_type": "code",
       "source_file": "server/routes/internalRoute.js",
       "source_location": "L8",
-      "community": 2,
+      "community": 113,
       "norm_label": "verifysecret()",
       "id": "routes_internalroute_verifysecret"
     },
@@ -8891,7 +9125,7 @@
       "file_type": "code",
       "source_file": "server/routes/notifications.js",
       "source_location": "L1",
-      "community": 42,
+      "community": 114,
       "norm_label": "notifications.js",
       "id": "server_routes_notifications_js"
     },
@@ -8900,7 +9134,7 @@
       "file_type": "code",
       "source_file": "server/routes/notifications.js",
       "source_location": "L1",
-      "community": 42,
+      "community": 114,
       "norm_label": "express",
       "id": "routes_notifications_express"
     },
@@ -8909,7 +9143,7 @@
       "file_type": "code",
       "source_file": "server/routes/notifications.js",
       "source_location": "L2",
-      "community": 42,
+      "community": 114,
       "norm_label": "{ supabaseadmin }",
       "id": "routes_notifications_supabaseadmin"
     },
@@ -8918,7 +9152,7 @@
       "file_type": "code",
       "source_file": "server/routes/notifications.js",
       "source_location": "L3",
-      "community": 42,
+      "community": 114,
       "norm_label": "{ requireauth }",
       "id": "routes_notifications_requireauth"
     },
@@ -8927,7 +9161,7 @@
       "file_type": "code",
       "source_file": "server/routes/notifications.js",
       "source_location": "L5",
-      "community": 42,
+      "community": 114,
       "norm_label": "router",
       "id": "routes_notifications_router"
     },
@@ -8999,7 +9233,7 @@
       "file_type": "code",
       "source_file": "scratch/fix_rls.js",
       "source_location": "L1",
-      "community": 2,
+      "community": 113,
       "norm_label": "fix_rls.js",
       "id": "scratch_fix_rls_js"
     },
@@ -9008,7 +9242,7 @@
       "file_type": "code",
       "source_file": "scratch/fix_rls.js",
       "source_location": "L2",
-      "community": 2,
+      "community": 113,
       "norm_label": "{ supabaseadmin }",
       "id": "scratch_fix_rls_supabaseadmin"
     },
@@ -9017,7 +9251,7 @@
       "file_type": "code",
       "source_file": "scratch/fix_rls.js",
       "source_location": "L4",
-      "community": 2,
+      "community": 113,
       "norm_label": "fixrls()",
       "id": "scratch_fix_rls_fixrls"
     },
@@ -9377,7 +9611,7 @@
       "file_type": "code",
       "source_file": "client/src/utils/session.js",
       "source_location": "L61",
-      "community": 76,
+      "community": 49,
       "norm_label": "readuistate()",
       "id": "utils_session_readuistate"
     },
@@ -9386,7 +9620,7 @@
       "file_type": "code",
       "source_file": "client/src/utils/session.js",
       "source_location": "L75",
-      "community": 76,
+      "community": 49,
       "norm_label": "writeuistate()",
       "id": "utils_session_writeuistate"
     },
@@ -9530,7 +9764,7 @@
       "file_type": "code",
       "source_file": "client/src/components/UI/IconButton.jsx",
       "source_location": "L1",
-      "community": 41,
+      "community": 81,
       "norm_label": "iconbutton.jsx",
       "id": "client_src_components_ui_iconbutton_jsx"
     },
@@ -9539,7 +9773,7 @@
       "file_type": "code",
       "source_file": "client/src/components/UI/IconButton.jsx",
       "source_location": "L1",
-      "community": 41,
+      "community": 81,
       "norm_label": "iconbutton()",
       "id": "ui_iconbutton_iconbutton"
     },
@@ -10019,258 +10253,6 @@
       "community": 73,
       "norm_label": "resetpasswordpage()",
       "id": "pages_resetpasswordpage_resetpasswordpage"
-    },
-    {
-      "label": "README.md",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L1",
-      "community": 43,
-      "norm_label": "readme.md",
-      "id": "readme_md"
-    },
-    {
-      "label": "AGLAYA Kanban Desk",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L1",
-      "community": 43,
-      "norm_label": "aglaya kanban desk",
-      "id": "aglaya_kanban_desk_readme_aglaya_kanban_desk"
-    },
-    {
-      "label": "Por qu\u00e9 existe esto",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L15",
-      "community": 43,
-      "norm_label": "por que existe esto",
-      "id": "aglaya_kanban_desk_readme_por_qu\u00e9_existe_esto"
-    },
-    {
-      "label": "Stack",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L29",
-      "community": 43,
-      "norm_label": "stack",
-      "id": "aglaya_kanban_desk_readme_stack"
-    },
-    {
-      "label": "Arquitectura",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L47",
-      "community": 43,
-      "norm_label": "arquitectura",
-      "id": "aglaya_kanban_desk_readme_arquitectura"
-    },
-    {
-      "label": "code:block1 (client/  (React 18 + Vite \u00b7 Netlify \u00b7 puerto 5175))",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L49",
-      "community": 43,
-      "norm_label": "code:block1 (client/  (react 18 + vite \u00b7 netlify \u00b7 puerto 5175))",
-      "id": "aglaya_kanban_desk_readme_codeblock_1"
-    },
-    {
-      "label": "Caracter\u00edsticas \u2014 v1.3.1",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L81",
-      "community": 43,
-      "norm_label": "caracteristicas \u2014 v1.3.1",
-      "id": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1"
-    },
-    {
-      "label": "Workspaces y roles",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L83",
-      "community": 43,
-      "norm_label": "workspaces y roles",
-      "id": "aglaya_kanban_desk_readme_workspaces_y_roles"
-    },
-    {
-      "label": "Tableros y tarjetas",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L92",
-      "community": 43,
-      "norm_label": "tableros y tarjetas",
-      "id": "aglaya_kanban_desk_readme_tableros_y_tarjetas"
-    },
-    {
-      "label": "Notificaciones",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L104",
-      "community": 43,
-      "norm_label": "notificaciones",
-      "id": "aglaya_kanban_desk_readme_notificaciones"
-    },
-    {
-      "label": "Identidad visual y storage",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L111",
-      "community": 43,
-      "norm_label": "identidad visual y storage",
-      "id": "aglaya_kanban_desk_readme_identidad_visual_y_storage"
-    },
-    {
-      "label": "Email y digests",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L117",
-      "community": 43,
-      "norm_label": "email y digests",
-      "id": "aglaya_kanban_desk_readme_email_y_digests"
-    },
-    {
-      "label": "Seguridad",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L124",
-      "community": 43,
-      "norm_label": "seguridad",
-      "id": "aglaya_kanban_desk_readme_seguridad"
-    },
-    {
-      "label": "Primeros pasos",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L136",
-      "community": 43,
-      "norm_label": "primeros pasos",
-      "id": "aglaya_kanban_desk_readme_primeros_pasos"
-    },
-    {
-      "label": "Requisitos",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L138",
-      "community": 43,
-      "norm_label": "requisitos",
-      "id": "aglaya_kanban_desk_readme_requisitos"
-    },
-    {
-      "label": "Instalaci\u00f3n",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L144",
-      "community": 43,
-      "norm_label": "instalacion",
-      "id": "aglaya_kanban_desk_readme_instalaci\u00f3n"
-    },
-    {
-      "label": "code:bash (# Clonar)",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L146",
-      "community": 43,
-      "norm_label": "code:bash (# clonar)",
-      "id": "aglaya_kanban_desk_readme_codeblock_2"
-    },
-    {
-      "label": "Ejecutar en local",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L162",
-      "community": 43,
-      "norm_label": "ejecutar en local",
-      "id": "aglaya_kanban_desk_readme_ejecutar_en_local"
-    },
-    {
-      "label": "code:bash (npm run dev)",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L164",
-      "community": 43,
-      "norm_label": "code:bash (npm run dev)",
-      "id": "aglaya_kanban_desk_readme_codeblock_3"
-    },
-    {
-      "label": "Variables de entorno",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L172",
-      "community": 43,
-      "norm_label": "variables de entorno",
-      "id": "aglaya_kanban_desk_readme_variables_de_entorno"
-    },
-    {
-      "label": "code:env (# Supabase)",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L174",
-      "community": 43,
-      "norm_label": "code:env (# supabase)",
-      "id": "aglaya_kanban_desk_readme_codeblock_4"
-    },
-    {
-      "label": "Scripts",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L207",
-      "community": 43,
-      "norm_label": "scripts",
-      "id": "aglaya_kanban_desk_readme_scripts"
-    },
-    {
-      "label": "code:bash (npm run dev       # Servidor + cliente en paralelo (concurre)",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L209",
-      "community": 43,
-      "norm_label": "code:bash (npm run dev       # servidor + cliente en paralelo (concurre)",
-      "id": "aglaya_kanban_desk_readme_codeblock_5"
-    },
-    {
-      "label": "Migraciones SQL",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L218",
-      "community": 43,
-      "norm_label": "migraciones sql",
-      "id": "aglaya_kanban_desk_readme_migraciones_sql"
-    },
-    {
-      "label": "Tests",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L231",
-      "community": 43,
-      "norm_label": "tests",
-      "id": "aglaya_kanban_desk_readme_tests"
-    },
-    {
-      "label": "code:bash (cd server && npm test)",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L248",
-      "community": 43,
-      "norm_label": "code:bash (cd server && npm test)",
-      "id": "aglaya_kanban_desk_readme_codeblock_6"
-    },
-    {
-      "label": "Estrategia de ramas",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L254",
-      "community": 43,
-      "norm_label": "estrategia de ramas",
-      "id": "aglaya_kanban_desk_readme_estrategia_de_ramas"
-    },
-    {
-      "label": "Documentaci\u00f3n",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": "L260",
-      "community": 43,
-      "norm_label": "documentacion",
-      "id": "aglaya_kanban_desk_readme_documentaci\u00f3n"
     },
     {
       "label": "AGENTS.md",
@@ -11771,7 +11753,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L178",
-      "community": 50,
+      "community": 118,
       "norm_label": "[1.1.1] \u2014 2026-04-08 \u2014 fixes post-migracion + herramientas de migracion",
       "id": "docs_changelog_1_1_1_2026_04_08_fixes_post_migraci\u00f3n_herramientas_de_migraci\u00f3n"
     },
@@ -11780,7 +11762,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L180",
-      "community": 50,
+      "community": 118,
       "norm_label": "fixed",
       "id": "docs_changelog_fixed_180"
     },
@@ -11789,7 +11771,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L184",
-      "community": 50,
+      "community": 118,
       "norm_label": "added",
       "id": "docs_changelog_added_184"
     },
@@ -14179,19 +14161,6 @@
       "id": "server_userdigest_sendalluserdigests"
     },
     {
-      "label": "README \u2014 AGLAYA Kanban Desk",
-      "file_type": "document",
-      "source_file": "README.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null,
-      "community": 8,
-      "norm_label": "readme \u2014 aglaya kanban desk",
-      "id": "readme_aglaya_kanban_desk"
-    },
-    {
       "label": "GitHub Actions \u2014 Digest horario",
       "file_type": "code",
       "source_file": ".github/workflows/digest-cron.yml",
@@ -14508,302 +14477,272 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L2",
+      "source_file": "README.md",
+      "source_location": "L1",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_name"
+      "source": "readme_md",
+      "target": "aglaya_kanban_desk_readme_aglaya_kanban_desk"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_private"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_version"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_type"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_scripts"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L11",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_dependencies"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L23",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_devdependencies"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_scripts",
-      "target": "client_package_scripts_dev"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_scripts",
-      "target": "client_package_scripts_prebuild"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_scripts",
-      "target": "client_package_scripts_build"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L10",
-      "weight": 1.0,
-      "source": "client_package_scripts",
-      "target": "client_package_scripts_build_legal",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_scripts",
-      "target": "client_package_scripts_preview"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L12",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_dnd_kit_core"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L13",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_dnd_kit_sortable"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L14",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_dnd_kit_utilities"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
+      "source_file": "README.md",
       "source_location": "L15",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_supabase_supabase_js"
+      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "target": "aglaya_kanban_desk_readme_por_qu\u00e9_existe_esto"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L16",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_lucide_react"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_react"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_react_dom"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_react_easy_crop"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_react_markdown"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L21",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_remark_gfm"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L25",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_types_react"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L25",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_types_react_dom"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L26",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_vitejs_plugin_react"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L27",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_autoprefixer"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L30",
-      "weight": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_marked",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_postcss"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
+      "source_file": "README.md",
       "source_location": "L29",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_tailwindcss"
+      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "target": "aglaya_kanban_desk_readme_stack"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L30",
+      "source_file": "README.md",
+      "source_location": "L47",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_vite"
+      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "target": "aglaya_kanban_desk_readme_arquitectura"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L81",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "target": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L136",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "target": "aglaya_kanban_desk_readme_primeros_pasos"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L172",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "target": "aglaya_kanban_desk_readme_variables_de_entorno"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L207",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "target": "aglaya_kanban_desk_readme_scripts"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L218",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "target": "aglaya_kanban_desk_readme_migraciones_sql"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L231",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "target": "aglaya_kanban_desk_readme_tests"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L254",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "target": "aglaya_kanban_desk_readme_estrategia_de_ramas"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L260",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
+      "target": "aglaya_kanban_desk_readme_documentaci\u00f3n"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L49",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_arquitectura",
+      "target": "aglaya_kanban_desk_readme_codeblock_1"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L83",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
+      "target": "aglaya_kanban_desk_readme_workspaces_y_roles"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L92",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
+      "target": "aglaya_kanban_desk_readme_tableros_y_tarjetas"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L104",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
+      "target": "aglaya_kanban_desk_readme_notificaciones"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L111",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
+      "target": "aglaya_kanban_desk_readme_identidad_visual_y_storage"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L117",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
+      "target": "aglaya_kanban_desk_readme_email_y_digests"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L124",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
+      "target": "aglaya_kanban_desk_readme_seguridad"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L138",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_primeros_pasos",
+      "target": "aglaya_kanban_desk_readme_requisitos"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L144",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_primeros_pasos",
+      "target": "aglaya_kanban_desk_readme_instalaci\u00f3n"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L162",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_primeros_pasos",
+      "target": "aglaya_kanban_desk_readme_ejecutar_en_local"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L146",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_instalaci\u00f3n",
+      "target": "aglaya_kanban_desk_readme_codeblock_2"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L164",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_ejecutar_en_local",
+      "target": "aglaya_kanban_desk_readme_codeblock_3"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L174",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_variables_de_entorno",
+      "target": "aglaya_kanban_desk_readme_codeblock_4"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L209",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_scripts",
+      "target": "aglaya_kanban_desk_readme_codeblock_5"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L248",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_readme_tests",
+      "target": "aglaya_kanban_desk_readme_codeblock_6"
     },
     {
       "relation": "contains",
@@ -14999,16 +14938,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_bcryptjs"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
       "source_location": "L20",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -15154,6 +15083,534 @@
       "confidence_score": 1.0,
       "source": "aglaya_kanban_desk_package_devdependencies",
       "target": "aglaya_kanban_desk_package_devdependencies_supertest"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_express"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_jwt"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "utils_supabase_createadminclient"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "utils_supabase_createpublicclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_createadminclient_createpublicclient"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "middleware_auth_requireauth"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_requireauth"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "utils_userprofile_getsynceduserprofile"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_getsynceduserprofile"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_router"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L152",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_adminclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_alloweddomains"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L101",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_token"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L73",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_authclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L155",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_update"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L157",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_h"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L238",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_assignedchecklistitems"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L276",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_exportdata"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_auth_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "server_middleware_auth_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "server_utils_userprofile_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "server_utils_supabase_js"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_name"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_private"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_version"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_type"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_scripts"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_dependencies"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L23",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_devdependencies"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_scripts",
+      "target": "client_package_scripts_dev"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_scripts",
+      "target": "client_package_scripts_prebuild"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_scripts",
+      "target": "client_package_scripts_build"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_scripts",
+      "target": "client_package_scripts_build_legal"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_scripts",
+      "target": "client_package_scripts_preview"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_dnd_kit_core"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_dnd_kit_sortable"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_dnd_kit_utilities"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_supabase_supabase_js"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L16",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_lucide_react"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_react"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_react_dom"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_react_easy_crop"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_react_markdown"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_remark_gfm"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L25",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_types_react"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L25",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_types_react_dom"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L26",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_vitejs_plugin_react"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_autoprefixer"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_marked"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_postcss"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_tailwindcss"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_vite"
     },
     {
       "relation": "contains",
@@ -19654,17 +20111,6 @@
       "target": "server_app_uploadimage_deleteimage"
     },
     {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_auth_js"
-    },
-    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server/app.js",
@@ -20534,233 +20980,6 @@
       "confidence_score": 1.0,
       "source": "server_index_js",
       "target": "server_utils_smtpconfig_js"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_express"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_jwt"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_bcrypt"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "utils_supabase_createadminclient"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "utils_supabase_createpublicclient"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_createadminclient_createpublicclient"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_requireauth"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "utils_userprofile_getsynceduserprofile"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_getsynceduserprofile"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_router"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L152",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_adminclient"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_alloweddomains"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L101",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_token"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L73",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_authclient"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L155",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_update"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L157",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_h"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L238",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_assignedchecklistitems"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L276",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_exportdata"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "server_middleware_auth_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "server_utils_userprofile_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "server_utils_supabase_js"
     },
     {
       "relation": "contains",
@@ -30947,276 +31166,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_md",
-      "target": "aglaya_kanban_desk_readme_aglaya_kanban_desk"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
-      "target": "aglaya_kanban_desk_readme_por_qu\u00e9_existe_esto"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
-      "target": "aglaya_kanban_desk_readme_stack"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L47",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
-      "target": "aglaya_kanban_desk_readme_arquitectura"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L81",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
-      "target": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L136",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
-      "target": "aglaya_kanban_desk_readme_primeros_pasos"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L172",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
-      "target": "aglaya_kanban_desk_readme_variables_de_entorno"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L207",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
-      "target": "aglaya_kanban_desk_readme_scripts"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L218",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
-      "target": "aglaya_kanban_desk_readme_migraciones_sql"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L231",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
-      "target": "aglaya_kanban_desk_readme_tests"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L254",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
-      "target": "aglaya_kanban_desk_readme_estrategia_de_ramas"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L260",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
-      "target": "aglaya_kanban_desk_readme_documentaci\u00f3n"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L49",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_arquitectura",
-      "target": "aglaya_kanban_desk_readme_codeblock_1"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L83",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
-      "target": "aglaya_kanban_desk_readme_workspaces_y_roles"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L92",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
-      "target": "aglaya_kanban_desk_readme_tableros_y_tarjetas"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L104",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
-      "target": "aglaya_kanban_desk_readme_notificaciones"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L111",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
-      "target": "aglaya_kanban_desk_readme_identidad_visual_y_storage"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L117",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
-      "target": "aglaya_kanban_desk_readme_email_y_digests"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L124",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
-      "target": "aglaya_kanban_desk_readme_seguridad"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L138",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_primeros_pasos",
-      "target": "aglaya_kanban_desk_readme_requisitos"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L144",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_primeros_pasos",
-      "target": "aglaya_kanban_desk_readme_instalaci\u00f3n"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L162",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_primeros_pasos",
-      "target": "aglaya_kanban_desk_readme_ejecutar_en_local"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L146",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_instalaci\u00f3n",
-      "target": "aglaya_kanban_desk_readme_codeblock_2"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L164",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_ejecutar_en_local",
-      "target": "aglaya_kanban_desk_readme_codeblock_3"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L174",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_variables_de_entorno",
-      "target": "aglaya_kanban_desk_readme_codeblock_4"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L209",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_scripts",
-      "target": "aglaya_kanban_desk_readme_codeblock_5"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L248",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_readme_tests",
-      "target": "aglaya_kanban_desk_readme_codeblock_6"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "AGENTS.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -35708,46 +35657,6 @@
     {
       "relation": "references",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "readme_aglaya_kanban_desk",
-      "target": "architecture_technical_doc"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "readme_aglaya_kanban_desk",
-      "target": "roadmap_phases"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "readme_aglaya_kanban_desk",
-      "target": "changelog_versions"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "readme_aglaya_kanban_desk",
-      "target": "backlog_tasks"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
       "confidence_score": 0.9,
       "source_file": ".github/workflows/digest-cron.yml",
       "source_location": null,
@@ -35967,5 +35876,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "56523f578241f59be9d19184f66baff7e7ed6d81"
+  "built_at_commit": "eb2699175fe2b7f24b13f99e02e99d0c599d4b4d"
 }

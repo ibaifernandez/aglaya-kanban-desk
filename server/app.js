@@ -53,11 +53,35 @@ const allowedOrigins = isProd
 
 app.use(cors({ origin: allowedOrigins }));
 
-// ── Rate limiting ──────────────────────────────────────────
+// ── Rate limiting (B-06 audit Mariana) ─────────────────────
+//
+// 3 limiters por tipo de endpoint, todos por IP:
+//   - globalLimiter: baseline para todos los /api/* (anti-DoS, generous)
+//   - authLimiter: estricto en /api/auth (anti-brute-force, vs. login spam)
+//   - internalLimiter: muy estricto en /api/internal (token guessing — B-09)
+
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,         // 15 min
+  max: 300,                          // 300 req per IP per 15min → 20 req/min sostenido
+  message: { error: 'Demasiadas peticiones. Espera unos minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip rate limit en healthcheck (uptime monitors) y workflow_dispatch internos
+  skip: (req) => req.path === '/api/health',
+});
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
   max: 20,
   message: { error: 'Demasiados intentos. Espera 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const internalLimiter = rateLimit({
+  windowMs: 60 * 1000,              // 1 min ventana
+  max: 10,                          // 10 req/min absolute — secret-guess detection
+  message: { error: 'Internal route rate limit exceeded.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -76,7 +100,12 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '2mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ── Auth (rate-limited) ────────────────────────────────────
+// ── Global rate limit baseline (B-06 audit Mariana) ────────
+// Aplica a TODAS las rutas /api/* salvo /api/health.
+// Más estricto sobre /api/auth (authLimiter) y /api/internal (internalLimiter).
+app.use('/api', globalLimiter);
+
+// ── Auth (rate-limited extra) ──────────────────────────────
 app.use('/api/auth', authLimiter, authRouter);
 
 // ── Digest ────────────────────────────────────────────────
@@ -127,7 +156,8 @@ app.put('/api/categories/:id',    requireAuth, updateCategory);
 app.delete('/api/categories/:id', requireAuth, deleteCategory);
 
 // ── Internal (secret-authenticated, no JWT) ───────────────
-app.use('/api/internal', internalRouter);
+// internalLimiter es ADICIONAL al globalLimiter (more strict) — anti-secret-guessing (B-09).
+app.use('/api/internal', internalLimiter, internalRouter);
 
 // ── Health ────────────────────────────────────────────────
 app.get('/api/health', (_req, res) =>
