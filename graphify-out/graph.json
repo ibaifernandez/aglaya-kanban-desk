@@ -4,121 +4,778 @@
   "graph": {},
   "nodes": [
     {
+      "label": "package.json",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L1",
+      "id": "client_package_json",
+      "community": 7,
+      "norm_label": "package.json"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L2",
+      "id": "client_package_name",
+      "community": 7,
+      "norm_label": "name"
+    },
+    {
+      "label": "private",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L3",
+      "id": "client_package_private",
+      "community": 7,
+      "norm_label": "private"
+    },
+    {
+      "label": "version",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L4",
+      "id": "client_package_version",
+      "community": 7,
+      "norm_label": "version"
+    },
+    {
+      "label": "type",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L5",
+      "id": "client_package_type",
+      "community": 7,
+      "norm_label": "type"
+    },
+    {
+      "label": "scripts",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L6",
+      "id": "client_package_scripts",
+      "community": 7,
+      "norm_label": "scripts"
+    },
+    {
+      "label": "dev",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L7",
+      "id": "client_package_scripts_dev",
+      "community": 7,
+      "norm_label": "dev"
+    },
+    {
+      "label": "prebuild",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L8",
+      "id": "client_package_scripts_prebuild",
+      "community": 7,
+      "norm_label": "prebuild"
+    },
+    {
+      "label": "build",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L9",
+      "id": "client_package_scripts_build",
+      "community": 7,
+      "norm_label": "build"
+    },
+    {
+      "label": "preview",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L10",
+      "id": "client_package_scripts_preview",
+      "community": 7,
+      "norm_label": "preview"
+    },
+    {
+      "label": "dependencies",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L12",
+      "id": "client_package_dependencies",
+      "community": 7,
+      "norm_label": "dependencies"
+    },
+    {
+      "label": "@dnd-kit/core",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L13",
+      "id": "client_package_dependencies_dnd_kit_core",
+      "community": 7,
+      "norm_label": "@dnd-kit/core"
+    },
+    {
+      "label": "@dnd-kit/sortable",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L14",
+      "id": "client_package_dependencies_dnd_kit_sortable",
+      "community": 7,
+      "norm_label": "@dnd-kit/sortable"
+    },
+    {
+      "label": "@dnd-kit/utilities",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L15",
+      "id": "client_package_dependencies_dnd_kit_utilities",
+      "community": 7,
+      "norm_label": "@dnd-kit/utilities"
+    },
+    {
+      "label": "@supabase/supabase-js",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L16",
+      "id": "client_package_dependencies_supabase_supabase_js",
+      "community": 7,
+      "norm_label": "@supabase/supabase-js"
+    },
+    {
+      "label": "lucide-react",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L17",
+      "id": "client_package_dependencies_lucide_react",
+      "community": 7,
+      "norm_label": "lucide-react"
+    },
+    {
+      "label": "react",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L18",
+      "id": "client_package_dependencies_react",
+      "community": 7,
+      "norm_label": "react"
+    },
+    {
+      "label": "react-dom",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L19",
+      "id": "client_package_dependencies_react_dom",
+      "community": 7,
+      "norm_label": "react-dom"
+    },
+    {
+      "label": "react-easy-crop",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L20",
+      "id": "client_package_dependencies_react_easy_crop",
+      "community": 7,
+      "norm_label": "react-easy-crop"
+    },
+    {
+      "label": "react-markdown",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L21",
+      "id": "client_package_dependencies_react_markdown",
+      "community": 7,
+      "norm_label": "react-markdown"
+    },
+    {
+      "label": "remark-gfm",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L22",
+      "id": "client_package_dependencies_remark_gfm",
+      "community": 7,
+      "norm_label": "remark-gfm"
+    },
+    {
+      "label": "devDependencies",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L24",
+      "id": "client_package_devdependencies",
+      "community": 7,
+      "norm_label": "devdependencies"
+    },
+    {
+      "label": "@types/react",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L25",
+      "id": "client_package_devdependencies_types_react",
+      "community": 7,
+      "norm_label": "@types/react"
+    },
+    {
+      "label": "@types/react-dom",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L26",
+      "id": "client_package_devdependencies_types_react_dom",
+      "community": 7,
+      "norm_label": "@types/react-dom"
+    },
+    {
+      "label": "@vitejs/plugin-react",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L27",
+      "id": "client_package_devdependencies_vitejs_plugin_react",
+      "community": 7,
+      "norm_label": "@vitejs/plugin-react"
+    },
+    {
+      "label": "autoprefixer",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L28",
+      "id": "client_package_devdependencies_autoprefixer",
+      "community": 7,
+      "norm_label": "autoprefixer"
+    },
+    {
+      "label": "postcss",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L29",
+      "id": "client_package_devdependencies_postcss",
+      "community": 7,
+      "norm_label": "postcss"
+    },
+    {
+      "label": "tailwindcss",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L30",
+      "id": "client_package_devdependencies_tailwindcss",
+      "community": 7,
+      "norm_label": "tailwindcss"
+    },
+    {
+      "label": "vite",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L31",
+      "id": "client_package_devdependencies_vite",
+      "community": 7,
+      "norm_label": "vite"
+    },
+    {
+      "label": "package.json",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L1",
+      "id": "package_json",
+      "community": 6,
+      "norm_label": "package.json"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "id": "aglaya_kanban_desk_package_name",
+      "community": 6,
+      "norm_label": "name"
+    },
+    {
+      "label": "version",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "id": "aglaya_kanban_desk_package_version",
+      "community": 6,
+      "norm_label": "version"
+    },
+    {
+      "label": "description",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "id": "aglaya_kanban_desk_package_description",
+      "community": 6,
+      "norm_label": "description"
+    },
+    {
+      "label": "private",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "id": "aglaya_kanban_desk_package_private",
+      "community": 6,
+      "norm_label": "private"
+    },
+    {
+      "label": "scripts",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "id": "aglaya_kanban_desk_package_scripts",
+      "community": 6,
+      "norm_label": "scripts"
+    },
+    {
+      "label": "dev",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "id": "aglaya_kanban_desk_package_scripts_dev",
+      "community": 6,
+      "norm_label": "dev"
+    },
+    {
+      "label": "server",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "id": "aglaya_kanban_desk_package_scripts_server",
+      "community": 6,
+      "norm_label": "server"
+    },
+    {
+      "label": "client",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L9",
+      "id": "aglaya_kanban_desk_package_scripts_client",
+      "community": 6,
+      "norm_label": "client"
+    },
+    {
+      "label": "build:legal",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L10",
+      "id": "aglaya_kanban_desk_package_scripts_build_legal",
+      "community": 6,
+      "norm_label": "build:legal"
+    },
+    {
+      "label": "test",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "id": "aglaya_kanban_desk_package_scripts_test",
+      "community": 6,
+      "norm_label": "test"
+    },
+    {
+      "label": "test:watch",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L12",
+      "id": "aglaya_kanban_desk_package_scripts_test_watch",
+      "community": 6,
+      "norm_label": "test:watch"
+    },
+    {
+      "label": "jest",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L14",
+      "id": "aglaya_kanban_desk_package_jest",
+      "community": 6,
+      "norm_label": "jest"
+    },
+    {
+      "label": "testEnvironment",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L15",
+      "id": "aglaya_kanban_desk_package_jest_testenvironment",
+      "community": 6,
+      "norm_label": "testenvironment"
+    },
+    {
+      "label": "testTimeout",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L16",
+      "id": "aglaya_kanban_desk_package_jest_testtimeout",
+      "community": 6,
+      "norm_label": "testtimeout"
+    },
+    {
+      "label": "dependencies",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L18",
+      "id": "aglaya_kanban_desk_package_dependencies",
+      "community": 6,
+      "norm_label": "dependencies"
+    },
+    {
+      "label": "@sentry/node",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L19",
+      "id": "aglaya_kanban_desk_package_dependencies_sentry_node",
+      "community": 6,
+      "norm_label": "@sentry/node"
+    },
+    {
+      "label": "@supabase/supabase-js",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L20",
+      "id": "aglaya_kanban_desk_package_dependencies_supabase_supabase_js",
+      "community": 6,
+      "norm_label": "@supabase/supabase-js"
+    },
+    {
+      "label": "bcryptjs",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L21",
+      "id": "aglaya_kanban_desk_package_dependencies_bcryptjs",
+      "community": 6,
+      "norm_label": "bcryptjs"
+    },
+    {
+      "label": "cors",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L22",
+      "id": "aglaya_kanban_desk_package_dependencies_cors",
+      "community": 6,
+      "norm_label": "cors"
+    },
+    {
+      "label": "dotenv",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L23",
+      "id": "aglaya_kanban_desk_package_dependencies_dotenv",
+      "community": 6,
+      "norm_label": "dotenv"
+    },
+    {
+      "label": "express",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L24",
+      "id": "aglaya_kanban_desk_package_dependencies_express",
+      "community": 6,
+      "norm_label": "express"
+    },
+    {
+      "label": "express-rate-limit",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L25",
+      "id": "aglaya_kanban_desk_package_dependencies_express_rate_limit",
+      "community": 6,
+      "norm_label": "express-rate-limit"
+    },
+    {
+      "label": "file-type",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L26",
+      "id": "aglaya_kanban_desk_package_dependencies_file_type",
+      "community": 6,
+      "norm_label": "file-type"
+    },
+    {
+      "label": "helmet",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L27",
+      "id": "aglaya_kanban_desk_package_dependencies_helmet",
+      "community": 6,
+      "norm_label": "helmet"
+    },
+    {
+      "label": "jsonwebtoken",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L28",
+      "id": "aglaya_kanban_desk_package_dependencies_jsonwebtoken",
+      "community": 6,
+      "norm_label": "jsonwebtoken"
+    },
+    {
+      "label": "multer",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L29",
+      "id": "aglaya_kanban_desk_package_dependencies_multer",
+      "community": 6,
+      "norm_label": "multer"
+    },
+    {
+      "label": "node-cron",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L30",
+      "id": "aglaya_kanban_desk_package_dependencies_node_cron",
+      "community": 6,
+      "norm_label": "node-cron"
+    },
+    {
+      "label": "nodemailer",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L31",
+      "id": "aglaya_kanban_desk_package_dependencies_nodemailer",
+      "community": 6,
+      "norm_label": "nodemailer"
+    },
+    {
+      "label": "resend",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L32",
+      "id": "aglaya_kanban_desk_package_dependencies_resend",
+      "community": 6,
+      "norm_label": "resend"
+    },
+    {
+      "label": "uuid",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L33",
+      "id": "aglaya_kanban_desk_package_dependencies_uuid",
+      "community": 6,
+      "norm_label": "uuid"
+    },
+    {
+      "label": "devDependencies",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L35",
+      "id": "aglaya_kanban_desk_package_devdependencies",
+      "community": 6,
+      "norm_label": "devdependencies"
+    },
+    {
+      "label": "concurrently",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L36",
+      "id": "aglaya_kanban_desk_package_devdependencies_concurrently",
+      "community": 6,
+      "norm_label": "concurrently"
+    },
+    {
+      "label": "jest",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L37",
+      "id": "aglaya_kanban_desk_package_devdependencies_jest",
+      "community": 6,
+      "norm_label": "jest"
+    },
+    {
+      "label": "marked",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L38",
+      "id": "aglaya_kanban_desk_package_devdependencies_marked",
+      "community": 6,
+      "norm_label": "marked"
+    },
+    {
+      "label": "supertest",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L39",
+      "id": "aglaya_kanban_desk_package_devdependencies_supertest",
+      "community": 6,
+      "norm_label": "supertest"
+    },
+    {
+      "label": "build-legal-pages.js",
+      "file_type": "code",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L1",
+      "id": "scripts_build_legal_pages_js",
+      "community": 108,
+      "norm_label": "build-legal-pages.js"
+    },
+    {
+      "label": "fs",
+      "file_type": "code",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L16",
+      "id": "scripts_build_legal_pages_fs",
+      "community": 108,
+      "norm_label": "fs"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L17",
+      "id": "scripts_build_legal_pages_path",
+      "community": 108,
+      "norm_label": "path"
+    },
+    {
+      "label": "{ marked }",
+      "file_type": "code",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L18",
+      "id": "scripts_build_legal_pages_marked",
+      "community": 108,
+      "norm_label": "{ marked }"
+    },
+    {
+      "label": "ROOT",
+      "file_type": "code",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L20",
+      "id": "scripts_build_legal_pages_root",
+      "community": 108,
+      "norm_label": "root"
+    },
+    {
+      "label": "PAGES",
+      "file_type": "code",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L23",
+      "id": "scripts_build_legal_pages_pages",
+      "community": 108,
+      "norm_label": "pages"
+    },
+    {
+      "label": "wrap()",
+      "file_type": "code",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L34",
+      "id": "scripts_build_legal_pages_wrap",
+      "community": 108,
+      "norm_label": "wrap()"
+    },
+    {
+      "label": "buildPage()",
+      "file_type": "code",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L158",
+      "id": "scripts_build_legal_pages_buildpage",
+      "community": 108,
+      "norm_label": "buildpage()"
+    },
+    {
       "label": "DPA-registry.md",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L1",
-      "id": "docs_legal_dpa_registry_md",
       "community": 106,
-      "norm_label": "dpa-registry.md"
+      "norm_label": "dpa-registry.md",
+      "id": "docs_legal_dpa_registry_md"
     },
     {
       "label": "Registro de DPAs (Data Processing Agreements)",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L1",
-      "id": "legal_dpa_registry_registro_de_dpas_data_processing_agreements",
       "community": 106,
-      "norm_label": "registro de dpas (data processing agreements)"
+      "norm_label": "registro de dpas (data processing agreements)",
+      "id": "legal_dpa_registry_registro_de_dpas_data_processing_agreements"
     },
     {
       "label": "Procesadores activos",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L10",
-      "id": "legal_dpa_registry_procesadores_activos",
       "community": 106,
-      "norm_label": "procesadores activos"
+      "norm_label": "procesadores activos",
+      "id": "legal_dpa_registry_procesadores_activos"
     },
     {
       "label": "1. Supabase",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L12",
-      "id": "legal_dpa_registry_1_supabase",
       "community": 106,
-      "norm_label": "1. supabase"
+      "norm_label": "1. supabase",
+      "id": "legal_dpa_registry_1_supabase"
     },
     {
       "label": "2. Resend",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L23",
-      "id": "legal_dpa_registry_2_resend",
       "community": 106,
-      "norm_label": "2. resend"
+      "norm_label": "2. resend",
+      "id": "legal_dpa_registry_2_resend"
     },
     {
       "label": "3. Railway",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L32",
-      "id": "legal_dpa_registry_3_railway",
       "community": 106,
-      "norm_label": "3. railway"
+      "norm_label": "3. railway",
+      "id": "legal_dpa_registry_3_railway"
     },
     {
       "label": "4. Netlify",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L42",
-      "id": "legal_dpa_registry_4_netlify",
       "community": 106,
-      "norm_label": "4. netlify"
+      "norm_label": "4. netlify",
+      "id": "legal_dpa_registry_4_netlify"
     },
     {
       "label": "5. Cloudflare (post audit Mariana B-CRIT-02)",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L51",
-      "id": "legal_dpa_registry_5_cloudflare_post_audit_mariana_b_crit_02",
       "community": 106,
-      "norm_label": "5. cloudflare (post audit mariana b-crit-02)"
+      "norm_label": "5. cloudflare (post audit mariana b-crit-02)",
+      "id": "legal_dpa_registry_5_cloudflare_post_audit_mariana_b_crit_02"
     },
     {
       "label": "6. GitHub Actions",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L60",
-      "id": "legal_dpa_registry_6_github_actions",
       "community": 106,
-      "norm_label": "6. github actions"
+      "norm_label": "6. github actions",
+      "id": "legal_dpa_registry_6_github_actions"
     },
     {
       "label": "Resumen del estado",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L72",
-      "id": "legal_dpa_registry_resumen_del_estado",
       "community": 106,
-      "norm_label": "resumen del estado"
+      "norm_label": "resumen del estado",
+      "id": "legal_dpa_registry_resumen_del_estado"
     },
     {
       "label": "Procesadores DESCARTADOS / no usados en kanban",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L85",
-      "id": "legal_dpa_registry_procesadores_descartados_no_usados_en_kanban",
       "community": 106,
-      "norm_label": "procesadores descartados / no usados en kanban"
+      "norm_label": "procesadores descartados / no usados en kanban",
+      "id": "legal_dpa_registry_procesadores_descartados_no_usados_en_kanban"
     },
     {
       "label": "Plantilla para aceptar DPA",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L95",
-      "id": "legal_dpa_registry_plantilla_para_aceptar_dpa",
       "community": 106,
-      "norm_label": "plantilla para aceptar dpa"
+      "norm_label": "plantilla para aceptar dpa",
+      "id": "legal_dpa_registry_plantilla_para_aceptar_dpa"
     },
     {
       "label": "Acciones pendientes (operador)",
       "file_type": "document",
       "source_file": "docs/legal/DPA-registry.md",
       "source_location": "L106",
-      "id": "legal_dpa_registry_acciones_pendientes_operador",
       "community": 106,
-      "norm_label": "acciones pendientes (operador)"
+      "norm_label": "acciones pendientes (operador)",
+      "id": "legal_dpa_registry_acciones_pendientes_operador"
     },
     {
       "label": "README.md",
@@ -2306,312 +2963,6 @@
       "community": 107,
       "norm_label": "procedimiento de adicion nuevo procesador",
       "id": "legal_subprocessors_procedimiento_de_adici\u00f3n_nuevo_procesador"
-    },
-    {
-      "label": "package.json",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L1",
-      "community": 6,
-      "norm_label": "package.json",
-      "id": "package_json"
-    },
-    {
-      "label": "name",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L2",
-      "community": 6,
-      "norm_label": "name",
-      "id": "aglaya_kanban_desk_package_name"
-    },
-    {
-      "label": "version",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L3",
-      "community": 6,
-      "norm_label": "version",
-      "id": "aglaya_kanban_desk_package_version"
-    },
-    {
-      "label": "description",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L4",
-      "community": 6,
-      "norm_label": "description",
-      "id": "aglaya_kanban_desk_package_description"
-    },
-    {
-      "label": "private",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L5",
-      "community": 6,
-      "norm_label": "private",
-      "id": "aglaya_kanban_desk_package_private"
-    },
-    {
-      "label": "scripts",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L6",
-      "community": 6,
-      "norm_label": "scripts",
-      "id": "aglaya_kanban_desk_package_scripts"
-    },
-    {
-      "label": "dev",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L7",
-      "community": 6,
-      "norm_label": "dev",
-      "id": "aglaya_kanban_desk_package_scripts_dev"
-    },
-    {
-      "label": "server",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L8",
-      "community": 6,
-      "norm_label": "server",
-      "id": "aglaya_kanban_desk_package_scripts_server"
-    },
-    {
-      "label": "client",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L9",
-      "community": 6,
-      "norm_label": "client",
-      "id": "aglaya_kanban_desk_package_scripts_client"
-    },
-    {
-      "label": "test",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L10",
-      "community": 6,
-      "norm_label": "test",
-      "id": "aglaya_kanban_desk_package_scripts_test"
-    },
-    {
-      "label": "test:watch",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L11",
-      "community": 6,
-      "norm_label": "test:watch",
-      "id": "aglaya_kanban_desk_package_scripts_test_watch"
-    },
-    {
-      "label": "jest",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L13",
-      "community": 6,
-      "norm_label": "jest",
-      "id": "aglaya_kanban_desk_package_jest"
-    },
-    {
-      "label": "testEnvironment",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L14",
-      "community": 6,
-      "norm_label": "testenvironment",
-      "id": "aglaya_kanban_desk_package_jest_testenvironment"
-    },
-    {
-      "label": "testTimeout",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L15",
-      "community": 6,
-      "norm_label": "testtimeout",
-      "id": "aglaya_kanban_desk_package_jest_testtimeout"
-    },
-    {
-      "label": "dependencies",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L17",
-      "community": 6,
-      "norm_label": "dependencies",
-      "id": "aglaya_kanban_desk_package_dependencies"
-    },
-    {
-      "label": "@sentry/node",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L18",
-      "community": 6,
-      "norm_label": "@sentry/node",
-      "id": "aglaya_kanban_desk_package_dependencies_sentry_node"
-    },
-    {
-      "label": "@supabase/supabase-js",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L19",
-      "community": 6,
-      "norm_label": "@supabase/supabase-js",
-      "id": "aglaya_kanban_desk_package_dependencies_supabase_supabase_js"
-    },
-    {
-      "label": "bcryptjs",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L20",
-      "community": 6,
-      "norm_label": "bcryptjs",
-      "id": "aglaya_kanban_desk_package_dependencies_bcryptjs"
-    },
-    {
-      "label": "cors",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L21",
-      "community": 6,
-      "norm_label": "cors",
-      "id": "aglaya_kanban_desk_package_dependencies_cors"
-    },
-    {
-      "label": "dotenv",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L22",
-      "community": 6,
-      "norm_label": "dotenv",
-      "id": "aglaya_kanban_desk_package_dependencies_dotenv"
-    },
-    {
-      "label": "express",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L23",
-      "community": 6,
-      "norm_label": "express",
-      "id": "aglaya_kanban_desk_package_dependencies_express"
-    },
-    {
-      "label": "express-rate-limit",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L24",
-      "community": 6,
-      "norm_label": "express-rate-limit",
-      "id": "aglaya_kanban_desk_package_dependencies_express_rate_limit"
-    },
-    {
-      "label": "file-type",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L25",
-      "community": 6,
-      "norm_label": "file-type",
-      "id": "aglaya_kanban_desk_package_dependencies_file_type"
-    },
-    {
-      "label": "helmet",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L26",
-      "community": 6,
-      "norm_label": "helmet",
-      "id": "aglaya_kanban_desk_package_dependencies_helmet"
-    },
-    {
-      "label": "jsonwebtoken",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L27",
-      "community": 6,
-      "norm_label": "jsonwebtoken",
-      "id": "aglaya_kanban_desk_package_dependencies_jsonwebtoken"
-    },
-    {
-      "label": "multer",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L28",
-      "community": 6,
-      "norm_label": "multer",
-      "id": "aglaya_kanban_desk_package_dependencies_multer"
-    },
-    {
-      "label": "node-cron",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L29",
-      "community": 6,
-      "norm_label": "node-cron",
-      "id": "aglaya_kanban_desk_package_dependencies_node_cron"
-    },
-    {
-      "label": "nodemailer",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L30",
-      "community": 6,
-      "norm_label": "nodemailer",
-      "id": "aglaya_kanban_desk_package_dependencies_nodemailer"
-    },
-    {
-      "label": "resend",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L31",
-      "community": 6,
-      "norm_label": "resend",
-      "id": "aglaya_kanban_desk_package_dependencies_resend"
-    },
-    {
-      "label": "uuid",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L32",
-      "community": 6,
-      "norm_label": "uuid",
-      "id": "aglaya_kanban_desk_package_dependencies_uuid"
-    },
-    {
-      "label": "devDependencies",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L34",
-      "community": 6,
-      "norm_label": "devdependencies",
-      "id": "aglaya_kanban_desk_package_devdependencies"
-    },
-    {
-      "label": "concurrently",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L35",
-      "community": 6,
-      "norm_label": "concurrently",
-      "id": "aglaya_kanban_desk_package_devdependencies_concurrently"
-    },
-    {
-      "label": "jest",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L36",
-      "community": 6,
-      "norm_label": "jest",
-      "id": "aglaya_kanban_desk_package_devdependencies_jest"
-    },
-    {
-      "label": "supertest",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L37",
-      "community": 6,
-      "norm_label": "supertest",
-      "id": "aglaya_kanban_desk_package_devdependencies_supertest"
     },
     {
       "label": "app.js",
@@ -8797,258 +9148,6 @@
       "id": "client_vite_config_js"
     },
     {
-      "label": "package.json",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L1",
-      "community": 7,
-      "norm_label": "package.json",
-      "id": "client_package_json"
-    },
-    {
-      "label": "name",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L2",
-      "community": 7,
-      "norm_label": "name",
-      "id": "client_package_name"
-    },
-    {
-      "label": "private",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L3",
-      "community": 7,
-      "norm_label": "private",
-      "id": "client_package_private"
-    },
-    {
-      "label": "version",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L4",
-      "community": 7,
-      "norm_label": "version",
-      "id": "client_package_version"
-    },
-    {
-      "label": "type",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L5",
-      "community": 7,
-      "norm_label": "type",
-      "id": "client_package_type"
-    },
-    {
-      "label": "scripts",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L6",
-      "community": 7,
-      "norm_label": "scripts",
-      "id": "client_package_scripts"
-    },
-    {
-      "label": "dev",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L7",
-      "community": 7,
-      "norm_label": "dev",
-      "id": "client_package_scripts_dev"
-    },
-    {
-      "label": "build",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L8",
-      "community": 7,
-      "norm_label": "build",
-      "id": "client_package_scripts_build"
-    },
-    {
-      "label": "preview",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L9",
-      "community": 7,
-      "norm_label": "preview",
-      "id": "client_package_scripts_preview"
-    },
-    {
-      "label": "dependencies",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L11",
-      "community": 7,
-      "norm_label": "dependencies",
-      "id": "client_package_dependencies"
-    },
-    {
-      "label": "@dnd-kit/core",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L12",
-      "community": 7,
-      "norm_label": "@dnd-kit/core",
-      "id": "client_package_dependencies_dnd_kit_core"
-    },
-    {
-      "label": "@dnd-kit/sortable",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L13",
-      "community": 7,
-      "norm_label": "@dnd-kit/sortable",
-      "id": "client_package_dependencies_dnd_kit_sortable"
-    },
-    {
-      "label": "@dnd-kit/utilities",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L14",
-      "community": 7,
-      "norm_label": "@dnd-kit/utilities",
-      "id": "client_package_dependencies_dnd_kit_utilities"
-    },
-    {
-      "label": "@supabase/supabase-js",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L15",
-      "community": 7,
-      "norm_label": "@supabase/supabase-js",
-      "id": "client_package_dependencies_supabase_supabase_js"
-    },
-    {
-      "label": "lucide-react",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L16",
-      "community": 7,
-      "norm_label": "lucide-react",
-      "id": "client_package_dependencies_lucide_react"
-    },
-    {
-      "label": "react",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L17",
-      "community": 7,
-      "norm_label": "react",
-      "id": "client_package_dependencies_react"
-    },
-    {
-      "label": "react-dom",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L18",
-      "community": 7,
-      "norm_label": "react-dom",
-      "id": "client_package_dependencies_react_dom"
-    },
-    {
-      "label": "react-easy-crop",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L19",
-      "community": 7,
-      "norm_label": "react-easy-crop",
-      "id": "client_package_dependencies_react_easy_crop"
-    },
-    {
-      "label": "react-markdown",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L20",
-      "community": 7,
-      "norm_label": "react-markdown",
-      "id": "client_package_dependencies_react_markdown"
-    },
-    {
-      "label": "remark-gfm",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L21",
-      "community": 7,
-      "norm_label": "remark-gfm",
-      "id": "client_package_dependencies_remark_gfm"
-    },
-    {
-      "label": "devDependencies",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L23",
-      "community": 7,
-      "norm_label": "devdependencies",
-      "id": "client_package_devdependencies"
-    },
-    {
-      "label": "@types/react",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L24",
-      "community": 7,
-      "norm_label": "@types/react",
-      "id": "client_package_devdependencies_types_react"
-    },
-    {
-      "label": "@types/react-dom",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L25",
-      "community": 7,
-      "norm_label": "@types/react-dom",
-      "id": "client_package_devdependencies_types_react_dom"
-    },
-    {
-      "label": "@vitejs/plugin-react",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L26",
-      "community": 7,
-      "norm_label": "@vitejs/plugin-react",
-      "id": "client_package_devdependencies_vitejs_plugin_react"
-    },
-    {
-      "label": "autoprefixer",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L27",
-      "community": 7,
-      "norm_label": "autoprefixer",
-      "id": "client_package_devdependencies_autoprefixer"
-    },
-    {
-      "label": "postcss",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L28",
-      "community": 7,
-      "norm_label": "postcss",
-      "id": "client_package_devdependencies_postcss"
-    },
-    {
-      "label": "tailwindcss",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L29",
-      "community": 7,
-      "norm_label": "tailwindcss",
-      "id": "client_package_devdependencies_tailwindcss"
-    },
-    {
-      "label": "vite",
-      "file_type": "code",
-      "source_file": "client/package.json",
-      "source_location": "L30",
-      "community": 7,
-      "norm_label": "vite",
-      "id": "client_package_devdependencies_vite"
-    },
-    {
       "label": "postcss.config.js",
       "file_type": "code",
       "source_file": "client/postcss.config.js",
@@ -11420,7 +11519,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L30",
-      "community": 118,
+      "community": 50,
       "norm_label": "[unreleased] - 2026-04-28 (v1.3.0)",
       "id": "docs_changelog_unreleased_2026_04_28_v1_3_0"
     },
@@ -11429,7 +11528,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L32",
-      "community": 118,
+      "community": 50,
       "norm_label": "added",
       "id": "docs_changelog_added_32"
     },
@@ -11438,7 +11537,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L41",
-      "community": 118,
+      "community": 50,
       "norm_label": "fixed",
       "id": "docs_changelog_fixed_41"
     },
@@ -11573,7 +11672,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L129",
-      "community": 50,
+      "community": 111,
       "norm_label": "[0.9.0.0] \u2014 2026-04-11 \u2014 estabilizacion aglaya \u00b7 fix avatar \u00b7 jest downgrade",
       "id": "docs_changelog_0_9_0_0_2026_04_11_estabilizaci\u00f3n_aglaya_fix_avatar_jest_downgrade"
     },
@@ -11582,7 +11681,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L133",
-      "community": 50,
+      "community": 111,
       "norm_label": "fixed",
       "id": "docs_changelog_fixed_133"
     },
@@ -11591,7 +11690,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L138",
-      "community": 50,
+      "community": 111,
       "norm_label": "infrastructure",
       "id": "docs_changelog_infrastructure"
     },
@@ -11600,7 +11699,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L142",
-      "community": 50,
+      "community": 111,
       "norm_label": "known issues",
       "id": "docs_changelog_known_issues"
     },
@@ -11663,7 +11762,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L178",
-      "community": 108,
+      "community": 50,
       "norm_label": "[1.1.1] \u2014 2026-04-08 \u2014 fixes post-migracion + herramientas de migracion",
       "id": "docs_changelog_1_1_1_2026_04_08_fixes_post_migraci\u00f3n_herramientas_de_migraci\u00f3n"
     },
@@ -11672,7 +11771,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L180",
-      "community": 108,
+      "community": 50,
       "norm_label": "fixed",
       "id": "docs_changelog_fixed_180"
     },
@@ -11681,7 +11780,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L184",
-      "community": 108,
+      "community": 50,
       "norm_label": "added",
       "id": "docs_changelog_added_184"
     },
@@ -14397,6 +14496,727 @@
     }
   ],
   "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_name"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_private"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_version"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_type"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_scripts"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_dependencies"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L23",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_json",
+      "target": "client_package_devdependencies"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_scripts",
+      "target": "client_package_scripts_dev"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "client_package_scripts",
+      "target": "client_package_scripts_prebuild",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_scripts",
+      "target": "client_package_scripts_build"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_scripts",
+      "target": "client_package_scripts_preview"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_dnd_kit_core"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_dnd_kit_sortable"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_dnd_kit_utilities"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_supabase_supabase_js"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L16",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_lucide_react"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_react"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_react_dom"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_react_easy_crop"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_react_markdown"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_dependencies",
+      "target": "client_package_dependencies_remark_gfm"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L25",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_types_react"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L25",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_types_react_dom"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L26",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_vitejs_plugin_react"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_autoprefixer"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_postcss"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_tailwindcss"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_vite"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_json",
+      "target": "aglaya_kanban_desk_package_name"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_json",
+      "target": "aglaya_kanban_desk_package_version"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_json",
+      "target": "aglaya_kanban_desk_package_description"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_json",
+      "target": "aglaya_kanban_desk_package_private"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_json",
+      "target": "aglaya_kanban_desk_package_scripts"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_json",
+      "target": "aglaya_kanban_desk_package_jest"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_json",
+      "target": "aglaya_kanban_desk_package_dependencies"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L32",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "package_json",
+      "target": "aglaya_kanban_desk_package_devdependencies"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_scripts",
+      "target": "aglaya_kanban_desk_package_scripts_dev"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_scripts",
+      "target": "aglaya_kanban_desk_package_scripts_server"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_scripts",
+      "target": "aglaya_kanban_desk_package_scripts_client"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "aglaya_kanban_desk_package_scripts",
+      "target": "aglaya_kanban_desk_package_scripts_build_legal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_scripts",
+      "target": "aglaya_kanban_desk_package_scripts_test"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_scripts",
+      "target": "aglaya_kanban_desk_package_scripts_test_watch"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_jest",
+      "target": "aglaya_kanban_desk_package_jest_testenvironment"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_jest",
+      "target": "aglaya_kanban_desk_package_jest_testtimeout"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L34",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_devdependencies",
+      "target": "aglaya_kanban_desk_package_jest"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_sentry_node"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_supabase_supabase_js"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_bcryptjs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_cors"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_dotenv"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L22",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_express"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L23",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_express_rate_limit"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L24",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_file_type"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L24",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_helmet"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L25",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_jsonwebtoken"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L26",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_multer"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_node_cron"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_nodemailer"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_resend"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_dependencies",
+      "target": "aglaya_kanban_desk_package_dependencies_uuid"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L33",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_devdependencies",
+      "target": "aglaya_kanban_desk_package_devdependencies_concurrently"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L34",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_devdependencies",
+      "target": "aglaya_kanban_desk_package_devdependencies_jest"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "aglaya_kanban_desk_package_devdependencies",
+      "target": "aglaya_kanban_desk_package_devdependencies_marked",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L35",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "aglaya_kanban_desk_package_devdependencies",
+      "target": "aglaya_kanban_desk_package_devdependencies_supertest"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "scripts_build_legal_pages_js",
+      "target": "scripts_build_legal_pages_fs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "scripts_build_legal_pages_js",
+      "target": "scripts_build_legal_pages_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "scripts_build_legal_pages_js",
+      "target": "scripts_build_legal_pages_marked",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "scripts_build_legal_pages_js",
+      "target": "scripts_build_legal_pages_root",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "scripts_build_legal_pages_js",
+      "target": "scripts_build_legal_pages_pages",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "scripts_build_legal_pages_js",
+      "target": "scripts_build_legal_pages_wrap",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L158",
+      "weight": 1.0,
+      "source": "scripts_build_legal_pages_js",
+      "target": "scripts_build_legal_pages_buildpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/build-legal-pages.js",
+      "source_location": "L178",
+      "weight": 1.0,
+      "source": "scripts_build_legal_pages_buildpage",
+      "target": "scripts_build_legal_pages_wrap",
+      "confidence_score": 1.0
+    },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -18493,346 +19313,6 @@
       "confidence_score": 1.0,
       "source": "legal_subprocessors_transferencias_internacionales",
       "target": "legal_subprocessors_sccs_aplicables"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "package_json",
-      "target": "aglaya_kanban_desk_package_name"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "package_json",
-      "target": "aglaya_kanban_desk_package_version"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "package_json",
-      "target": "aglaya_kanban_desk_package_description"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "package_json",
-      "target": "aglaya_kanban_desk_package_private"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "package_json",
-      "target": "aglaya_kanban_desk_package_scripts"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L13",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "package_json",
-      "target": "aglaya_kanban_desk_package_jest"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "package_json",
-      "target": "aglaya_kanban_desk_package_dependencies"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L32",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "package_json",
-      "target": "aglaya_kanban_desk_package_devdependencies"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_scripts",
-      "target": "aglaya_kanban_desk_package_scripts_dev"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_scripts",
-      "target": "aglaya_kanban_desk_package_scripts_server"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_scripts",
-      "target": "aglaya_kanban_desk_package_scripts_client"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L10",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_scripts",
-      "target": "aglaya_kanban_desk_package_scripts_test"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L11",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_scripts",
-      "target": "aglaya_kanban_desk_package_scripts_test_watch"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L14",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_jest",
-      "target": "aglaya_kanban_desk_package_jest_testenvironment"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_jest",
-      "target": "aglaya_kanban_desk_package_jest_testtimeout"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L34",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_devdependencies",
-      "target": "aglaya_kanban_desk_package_jest"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_sentry_node"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_supabase_supabase_js"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_bcryptjs"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_cors"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L21",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_dotenv"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L22",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_express"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L23",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_express_rate_limit"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L24",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_file_type"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L24",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_helmet"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L25",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_jsonwebtoken"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L26",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_multer"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L27",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_node_cron"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_nodemailer"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_resend"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_dependencies",
-      "target": "aglaya_kanban_desk_package_dependencies_uuid"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L33",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_devdependencies",
-      "target": "aglaya_kanban_desk_package_devdependencies_concurrently"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L34",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_devdependencies",
-      "target": "aglaya_kanban_desk_package_devdependencies_jest"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L35",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "aglaya_kanban_desk_package_devdependencies",
-      "target": "aglaya_kanban_desk_package_devdependencies_supertest"
     },
     {
       "relation": "contains",
@@ -28683,276 +29163,6 @@
       "target": "scripts_seed_launch_kanban_createcards"
     },
     {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_name"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_private"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_version"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_type"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_scripts"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L11",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_dependencies"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L23",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_json",
-      "target": "client_package_devdependencies"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_scripts",
-      "target": "client_package_scripts_dev"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_scripts",
-      "target": "client_package_scripts_build"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_scripts",
-      "target": "client_package_scripts_preview"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L12",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_dnd_kit_core"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L13",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_dnd_kit_sortable"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L14",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_dnd_kit_utilities"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_supabase_supabase_js"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L16",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_lucide_react"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_react"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_react_dom"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_react_easy_crop"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_react_markdown"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L21",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_dependencies",
-      "target": "client_package_dependencies_remark_gfm"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L25",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_types_react"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L25",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_types_react_dom"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L26",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_vitejs_plugin_react"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L27",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_autoprefixer"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_postcss"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_tailwindcss"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "client/package.json",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "client_package_devdependencies",
-      "target": "client_package_devdependencies_vite"
-    },
-    {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -35738,5 +35948,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "c75f0aa4600c188906610628083385e062ee7ec1"
+  "built_at_commit": "f61a4d9a060b9d9ead914fd59fd5a5a0f01e00da"
 }

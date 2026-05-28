@@ -47,3 +47,6 @@ graphify-out/*
 !graphify-out/REPORT.md
 !graphify-out/graph.html
 !graphify-out/.graphify_analysis.json
+
+# Local Netlify folder
+.netlify

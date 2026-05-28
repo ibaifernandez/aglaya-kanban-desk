@@ -7,7 +7,7 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node server/index.js",
     "client": "cd client && npm run dev",
-    "build:legal": "node scripts/build-legal-pages.js",
+    "build:legal": "cd client && npm run build:legal",
     "test": "jest server/tests --runInBand --no-watchman --forceExit --detectOpenHandles",
     "test:watch": "jest server/tests --watch --no-watchman --forceExit --detectOpenHandles"
   },
@@ -35,7 +35,6 @@
   "devDependencies": {
     "concurrently": "^8.2.2",
     "jest": "^29.7.0",
-    "marked": "^18.0.4",
     "supertest": "^7.2.2"
   }
 }

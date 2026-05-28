@@ -17,7 +17,8 @@ const fs = require('fs');
 const path = require('path');
 const { marked } = require('marked');
 
-const ROOT = path.resolve(__dirname, '..');
+// Script vive en client/scripts/. ROOT del repo es 2 levels arriba.
+const ROOT = path.resolve(__dirname, '..', '..');
 
 // Mapa de páginas legales públicas: { source markdown → output HTML }
 const PAGES = [
