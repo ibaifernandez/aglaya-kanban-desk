@@ -4,697 +4,931 @@
   "graph": {},
   "nodes": [
     {
+      "label": "app.js",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L1",
+      "id": "server_app_js",
+      "community": 9,
+      "norm_label": "app.js"
+    },
+    {
+      "label": "express",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L8",
+      "id": "server_app_express",
+      "community": 9,
+      "norm_label": "express"
+    },
+    {
+      "label": "cors",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L9",
+      "id": "server_app_cors",
+      "community": 9,
+      "norm_label": "cors"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L10",
+      "id": "server_app_path",
+      "community": 9,
+      "norm_label": "path"
+    },
+    {
+      "label": "helmet",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L11",
+      "id": "server_app_helmet",
+      "community": 9,
+      "norm_label": "helmet"
+    },
+    {
+      "label": "rateLimit",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L12",
+      "id": "server_app_ratelimit",
+      "community": 9,
+      "norm_label": "ratelimit"
+    },
+    {
+      "label": "{ getBoards, createBoard, updateBoard, deleteBoard, reorderBoards }",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L17",
+      "id": "server_app_getboards_createboard_updateboard_deleteboard_reorderboards",
+      "community": 9,
+      "norm_label": "{ getboards, createboard, updateboard, deleteboard, reorderboards }"
+    },
+    {
+      "label": "{ getColumns, createColumn, updateColumn, deleteColumn }",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L18",
+      "id": "server_app_getcolumns_createcolumn_updatecolumn_deletecolumn",
+      "community": 9,
+      "norm_label": "{ getcolumns, createcolumn, updatecolumn, deletecolumn }"
+    },
+    {
+      "label": "{\n  getCardsByBoard,\n  getCardsByColumn,\n  createCard,\n  updateCard,\n  moveCard,\n  deleteCard,\n  searchCards,\n}",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L19",
+      "id": "server_app_getcardsbyboard_getcardsbycolumn_createcard_updatecard_movecard_deletecard_searchcards",
+      "community": 9,
+      "norm_label": "{\n  getcardsbyboard,\n  getcardsbycolumn,\n  createcard,\n  updatecard,\n  movecard,\n  deletecard,\n  searchcards,\n}"
+    },
+    {
+      "label": "{ getCategories, createCategory, updateCategory, deleteCategory }",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L28",
+      "id": "server_app_getcategories_createcategory_updatecategory_deletecategory",
+      "community": 9,
+      "norm_label": "{ getcategories, createcategory, updatecategory, deletecategory }"
+    },
+    {
+      "label": "{ uploadImage, deleteImage }",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L29",
+      "id": "server_app_uploadimage_deleteimage",
+      "community": 9,
+      "norm_label": "{ uploadimage, deleteimage }"
+    },
+    {
+      "label": "authRouter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L30",
+      "id": "server_app_authrouter",
+      "community": 9,
+      "norm_label": "authrouter"
+    },
+    {
+      "label": "digestRouter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L31",
+      "id": "server_app_digestrouter",
+      "community": 42,
+      "norm_label": "digestrouter"
+    },
+    {
+      "label": "adminRouter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L32",
+      "id": "server_app_adminrouter",
+      "community": 9,
+      "norm_label": "adminrouter"
+    },
+    {
+      "label": "workspacesRouter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L33",
+      "id": "server_app_workspacesrouter",
+      "community": 9,
+      "norm_label": "workspacesrouter"
+    },
+    {
+      "label": "mediaRouter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L34",
+      "id": "server_app_mediarouter",
+      "community": 9,
+      "norm_label": "mediarouter"
+    },
+    {
+      "label": "notificationsRouter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L35",
+      "id": "server_app_notificationsrouter",
+      "community": 9,
+      "norm_label": "notificationsrouter"
+    },
+    {
+      "label": "internalRouter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L36",
+      "id": "server_app_internalrouter",
+      "community": 113,
+      "norm_label": "internalrouter"
+    },
+    {
+      "label": "{ requireAuth }",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L37",
+      "id": "server_app_requireauth",
+      "community": 9,
+      "norm_label": "{ requireauth }"
+    },
+    {
+      "label": "{ requireWorkspaceMember }",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L38",
+      "id": "server_app_requireworkspacemember",
+      "community": 9,
+      "norm_label": "{ requireworkspacemember }"
+    },
+    {
+      "label": "app",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L40",
+      "id": "server_app_app",
+      "community": 9,
+      "norm_label": "app"
+    },
+    {
+      "label": "globalLimiter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L63",
+      "id": "server_app_globallimiter",
+      "community": 9,
+      "norm_label": "globallimiter"
+    },
+    {
+      "label": "authLimiter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L73",
+      "id": "server_app_authlimiter",
+      "community": 9,
+      "norm_label": "authlimiter"
+    },
+    {
+      "label": "internalLimiter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L81",
+      "id": "server_app_internallimiter",
+      "community": 9,
+      "norm_label": "internallimiter"
+    },
+    {
+      "label": "start",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L91",
+      "id": "server_app_start",
+      "community": 9,
+      "norm_label": "start"
+    },
+    {
+      "label": "{ Sentry, enabled: sentryEnabled }",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L190",
+      "id": "server_app_sentry_enabled_sentryenabled",
+      "community": 9,
+      "norm_label": "{ sentry, enabled: sentryenabled }"
+    },
+    {
       "label": "README.md",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L1",
-      "id": "readme_md",
       "community": 43,
-      "norm_label": "readme.md"
+      "norm_label": "readme.md",
+      "id": "readme_md"
     },
     {
       "label": "AGLAYA Kanban Desk",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L1",
-      "id": "aglaya_kanban_desk_readme_aglaya_kanban_desk",
       "community": 43,
-      "norm_label": "aglaya kanban desk"
+      "norm_label": "aglaya kanban desk",
+      "id": "aglaya_kanban_desk_readme_aglaya_kanban_desk"
     },
     {
       "label": "Por qu\u00e9 existe esto",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L15",
-      "id": "aglaya_kanban_desk_readme_por_qu\u00e9_existe_esto",
       "community": 43,
-      "norm_label": "por que existe esto"
+      "norm_label": "por que existe esto",
+      "id": "aglaya_kanban_desk_readme_por_qu\u00e9_existe_esto"
     },
     {
       "label": "Stack",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L29",
-      "id": "aglaya_kanban_desk_readme_stack",
       "community": 43,
-      "norm_label": "stack"
+      "norm_label": "stack",
+      "id": "aglaya_kanban_desk_readme_stack"
     },
     {
       "label": "Arquitectura",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L47",
-      "id": "aglaya_kanban_desk_readme_arquitectura",
       "community": 43,
-      "norm_label": "arquitectura"
+      "norm_label": "arquitectura",
+      "id": "aglaya_kanban_desk_readme_arquitectura"
     },
     {
       "label": "code:block1 (client/  (React 18 + Vite \u00b7 Netlify \u00b7 puerto 5175))",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L49",
-      "id": "aglaya_kanban_desk_readme_codeblock_1",
       "community": 43,
-      "norm_label": "code:block1 (client/  (react 18 + vite \u00b7 netlify \u00b7 puerto 5175))"
+      "norm_label": "code:block1 (client/  (react 18 + vite \u00b7 netlify \u00b7 puerto 5175))",
+      "id": "aglaya_kanban_desk_readme_codeblock_1"
     },
     {
       "label": "Caracter\u00edsticas \u2014 v1.3.1",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L81",
-      "id": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1",
       "community": 43,
-      "norm_label": "caracteristicas \u2014 v1.3.1"
+      "norm_label": "caracteristicas \u2014 v1.3.1",
+      "id": "aglaya_kanban_desk_readme_caracter\u00edsticas_v1_3_1"
     },
     {
       "label": "Workspaces y roles",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L83",
-      "id": "aglaya_kanban_desk_readme_workspaces_y_roles",
       "community": 43,
-      "norm_label": "workspaces y roles"
+      "norm_label": "workspaces y roles",
+      "id": "aglaya_kanban_desk_readme_workspaces_y_roles"
     },
     {
       "label": "Tableros y tarjetas",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L92",
-      "id": "aglaya_kanban_desk_readme_tableros_y_tarjetas",
       "community": 43,
-      "norm_label": "tableros y tarjetas"
+      "norm_label": "tableros y tarjetas",
+      "id": "aglaya_kanban_desk_readme_tableros_y_tarjetas"
     },
     {
       "label": "Notificaciones",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L104",
-      "id": "aglaya_kanban_desk_readme_notificaciones",
       "community": 43,
-      "norm_label": "notificaciones"
+      "norm_label": "notificaciones",
+      "id": "aglaya_kanban_desk_readme_notificaciones"
     },
     {
       "label": "Identidad visual y storage",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L111",
-      "id": "aglaya_kanban_desk_readme_identidad_visual_y_storage",
       "community": 43,
-      "norm_label": "identidad visual y storage"
+      "norm_label": "identidad visual y storage",
+      "id": "aglaya_kanban_desk_readme_identidad_visual_y_storage"
     },
     {
       "label": "Email y digests",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L117",
-      "id": "aglaya_kanban_desk_readme_email_y_digests",
       "community": 43,
-      "norm_label": "email y digests"
+      "norm_label": "email y digests",
+      "id": "aglaya_kanban_desk_readme_email_y_digests"
     },
     {
       "label": "Seguridad",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L124",
-      "id": "aglaya_kanban_desk_readme_seguridad",
       "community": 43,
-      "norm_label": "seguridad"
+      "norm_label": "seguridad",
+      "id": "aglaya_kanban_desk_readme_seguridad"
     },
     {
       "label": "Primeros pasos",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L136",
-      "id": "aglaya_kanban_desk_readme_primeros_pasos",
       "community": 43,
-      "norm_label": "primeros pasos"
+      "norm_label": "primeros pasos",
+      "id": "aglaya_kanban_desk_readme_primeros_pasos"
     },
     {
       "label": "Requisitos",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L138",
-      "id": "aglaya_kanban_desk_readme_requisitos",
       "community": 43,
-      "norm_label": "requisitos"
+      "norm_label": "requisitos",
+      "id": "aglaya_kanban_desk_readme_requisitos"
     },
     {
       "label": "Instalaci\u00f3n",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L144",
-      "id": "aglaya_kanban_desk_readme_instalaci\u00f3n",
       "community": 43,
-      "norm_label": "instalacion"
+      "norm_label": "instalacion",
+      "id": "aglaya_kanban_desk_readme_instalaci\u00f3n"
     },
     {
       "label": "code:bash (# Clonar)",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L146",
-      "id": "aglaya_kanban_desk_readme_codeblock_2",
       "community": 43,
-      "norm_label": "code:bash (# clonar)"
+      "norm_label": "code:bash (# clonar)",
+      "id": "aglaya_kanban_desk_readme_codeblock_2"
     },
     {
       "label": "Ejecutar en local",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L162",
-      "id": "aglaya_kanban_desk_readme_ejecutar_en_local",
       "community": 43,
-      "norm_label": "ejecutar en local"
+      "norm_label": "ejecutar en local",
+      "id": "aglaya_kanban_desk_readme_ejecutar_en_local"
     },
     {
       "label": "code:bash (npm run dev)",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L164",
-      "id": "aglaya_kanban_desk_readme_codeblock_3",
       "community": 43,
-      "norm_label": "code:bash (npm run dev)"
+      "norm_label": "code:bash (npm run dev)",
+      "id": "aglaya_kanban_desk_readme_codeblock_3"
     },
     {
       "label": "Variables de entorno",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L172",
-      "id": "aglaya_kanban_desk_readme_variables_de_entorno",
       "community": 43,
-      "norm_label": "variables de entorno"
+      "norm_label": "variables de entorno",
+      "id": "aglaya_kanban_desk_readme_variables_de_entorno"
     },
     {
       "label": "code:env (# Supabase)",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L174",
-      "id": "aglaya_kanban_desk_readme_codeblock_4",
       "community": 43,
-      "norm_label": "code:env (# supabase)"
+      "norm_label": "code:env (# supabase)",
+      "id": "aglaya_kanban_desk_readme_codeblock_4"
     },
     {
       "label": "Scripts",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L207",
-      "id": "aglaya_kanban_desk_readme_scripts",
       "community": 43,
-      "norm_label": "scripts"
+      "norm_label": "scripts",
+      "id": "aglaya_kanban_desk_readme_scripts"
     },
     {
       "label": "code:bash (npm run dev       # Servidor + cliente en paralelo (concurre)",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L209",
-      "id": "aglaya_kanban_desk_readme_codeblock_5",
       "community": 43,
-      "norm_label": "code:bash (npm run dev       # servidor + cliente en paralelo (concurre)"
+      "norm_label": "code:bash (npm run dev       # servidor + cliente en paralelo (concurre)",
+      "id": "aglaya_kanban_desk_readme_codeblock_5"
     },
     {
       "label": "Migraciones SQL",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L218",
-      "id": "aglaya_kanban_desk_readme_migraciones_sql",
       "community": 43,
-      "norm_label": "migraciones sql"
+      "norm_label": "migraciones sql",
+      "id": "aglaya_kanban_desk_readme_migraciones_sql"
     },
     {
       "label": "Tests",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L231",
-      "id": "aglaya_kanban_desk_readme_tests",
       "community": 43,
-      "norm_label": "tests"
+      "norm_label": "tests",
+      "id": "aglaya_kanban_desk_readme_tests"
     },
     {
       "label": "code:bash (cd server && npm test)",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L248",
-      "id": "aglaya_kanban_desk_readme_codeblock_6",
       "community": 43,
-      "norm_label": "code:bash (cd server && npm test)"
+      "norm_label": "code:bash (cd server && npm test)",
+      "id": "aglaya_kanban_desk_readme_codeblock_6"
     },
     {
       "label": "Estrategia de ramas",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L254",
-      "id": "aglaya_kanban_desk_readme_estrategia_de_ramas",
       "community": 43,
-      "norm_label": "estrategia de ramas"
+      "norm_label": "estrategia de ramas",
+      "id": "aglaya_kanban_desk_readme_estrategia_de_ramas"
     },
     {
       "label": "Documentaci\u00f3n",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L260",
-      "id": "aglaya_kanban_desk_readme_documentaci\u00f3n",
       "community": 43,
-      "norm_label": "documentacion"
+      "norm_label": "documentacion",
+      "id": "aglaya_kanban_desk_readme_documentaci\u00f3n"
     },
     {
       "label": "package.json",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L1",
-      "id": "package_json",
       "community": 6,
-      "norm_label": "package.json"
+      "norm_label": "package.json",
+      "id": "package_json"
     },
     {
       "label": "name",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L2",
-      "id": "aglaya_kanban_desk_package_name",
       "community": 6,
-      "norm_label": "name"
+      "norm_label": "name",
+      "id": "aglaya_kanban_desk_package_name"
     },
     {
       "label": "version",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L3",
-      "id": "aglaya_kanban_desk_package_version",
       "community": 6,
-      "norm_label": "version"
+      "norm_label": "version",
+      "id": "aglaya_kanban_desk_package_version"
     },
     {
       "label": "description",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L4",
-      "id": "aglaya_kanban_desk_package_description",
       "community": 6,
-      "norm_label": "description"
+      "norm_label": "description",
+      "id": "aglaya_kanban_desk_package_description"
     },
     {
       "label": "private",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L5",
-      "id": "aglaya_kanban_desk_package_private",
       "community": 6,
-      "norm_label": "private"
+      "norm_label": "private",
+      "id": "aglaya_kanban_desk_package_private"
     },
     {
       "label": "scripts",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L6",
-      "id": "aglaya_kanban_desk_package_scripts",
       "community": 6,
-      "norm_label": "scripts"
+      "norm_label": "scripts",
+      "id": "aglaya_kanban_desk_package_scripts"
     },
     {
       "label": "dev",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L7",
-      "id": "aglaya_kanban_desk_package_scripts_dev",
       "community": 6,
-      "norm_label": "dev"
+      "norm_label": "dev",
+      "id": "aglaya_kanban_desk_package_scripts_dev"
     },
     {
       "label": "server",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L8",
-      "id": "aglaya_kanban_desk_package_scripts_server",
       "community": 6,
-      "norm_label": "server"
+      "norm_label": "server",
+      "id": "aglaya_kanban_desk_package_scripts_server"
     },
     {
       "label": "client",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L9",
-      "id": "aglaya_kanban_desk_package_scripts_client",
       "community": 6,
-      "norm_label": "client"
+      "norm_label": "client",
+      "id": "aglaya_kanban_desk_package_scripts_client"
     },
     {
       "label": "build:legal",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L10",
-      "id": "aglaya_kanban_desk_package_scripts_build_legal",
       "community": 6,
-      "norm_label": "build:legal"
+      "norm_label": "build:legal",
+      "id": "aglaya_kanban_desk_package_scripts_build_legal"
     },
     {
       "label": "test",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L11",
-      "id": "aglaya_kanban_desk_package_scripts_test",
       "community": 6,
-      "norm_label": "test"
+      "norm_label": "test",
+      "id": "aglaya_kanban_desk_package_scripts_test"
     },
     {
       "label": "test:watch",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L12",
-      "id": "aglaya_kanban_desk_package_scripts_test_watch",
       "community": 6,
-      "norm_label": "test:watch"
+      "norm_label": "test:watch",
+      "id": "aglaya_kanban_desk_package_scripts_test_watch"
     },
     {
       "label": "jest",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L14",
-      "id": "aglaya_kanban_desk_package_jest",
       "community": 6,
-      "norm_label": "jest"
+      "norm_label": "jest",
+      "id": "aglaya_kanban_desk_package_jest"
     },
     {
       "label": "testEnvironment",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L15",
-      "id": "aglaya_kanban_desk_package_jest_testenvironment",
       "community": 6,
-      "norm_label": "testenvironment"
+      "norm_label": "testenvironment",
+      "id": "aglaya_kanban_desk_package_jest_testenvironment"
     },
     {
       "label": "testTimeout",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L16",
-      "id": "aglaya_kanban_desk_package_jest_testtimeout",
       "community": 6,
-      "norm_label": "testtimeout"
+      "norm_label": "testtimeout",
+      "id": "aglaya_kanban_desk_package_jest_testtimeout"
     },
     {
       "label": "dependencies",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L18",
-      "id": "aglaya_kanban_desk_package_dependencies",
       "community": 6,
-      "norm_label": "dependencies"
+      "norm_label": "dependencies",
+      "id": "aglaya_kanban_desk_package_dependencies"
     },
     {
       "label": "@sentry/node",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L19",
-      "id": "aglaya_kanban_desk_package_dependencies_sentry_node",
       "community": 6,
-      "norm_label": "@sentry/node"
+      "norm_label": "@sentry/node",
+      "id": "aglaya_kanban_desk_package_dependencies_sentry_node"
     },
     {
       "label": "@supabase/supabase-js",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L20",
-      "id": "aglaya_kanban_desk_package_dependencies_supabase_supabase_js",
       "community": 6,
-      "norm_label": "@supabase/supabase-js"
+      "norm_label": "@supabase/supabase-js",
+      "id": "aglaya_kanban_desk_package_dependencies_supabase_supabase_js"
     },
     {
       "label": "cors",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L21",
-      "id": "aglaya_kanban_desk_package_dependencies_cors",
       "community": 6,
-      "norm_label": "cors"
+      "norm_label": "cors",
+      "id": "aglaya_kanban_desk_package_dependencies_cors"
     },
     {
       "label": "dotenv",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L22",
-      "id": "aglaya_kanban_desk_package_dependencies_dotenv",
       "community": 6,
-      "norm_label": "dotenv"
+      "norm_label": "dotenv",
+      "id": "aglaya_kanban_desk_package_dependencies_dotenv"
     },
     {
       "label": "express",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L23",
-      "id": "aglaya_kanban_desk_package_dependencies_express",
       "community": 6,
-      "norm_label": "express"
+      "norm_label": "express",
+      "id": "aglaya_kanban_desk_package_dependencies_express"
     },
     {
       "label": "express-rate-limit",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L24",
-      "id": "aglaya_kanban_desk_package_dependencies_express_rate_limit",
       "community": 6,
-      "norm_label": "express-rate-limit"
+      "norm_label": "express-rate-limit",
+      "id": "aglaya_kanban_desk_package_dependencies_express_rate_limit"
     },
     {
       "label": "file-type",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L25",
-      "id": "aglaya_kanban_desk_package_dependencies_file_type",
       "community": 6,
-      "norm_label": "file-type"
+      "norm_label": "file-type",
+      "id": "aglaya_kanban_desk_package_dependencies_file_type"
     },
     {
       "label": "helmet",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L26",
-      "id": "aglaya_kanban_desk_package_dependencies_helmet",
       "community": 6,
-      "norm_label": "helmet"
+      "norm_label": "helmet",
+      "id": "aglaya_kanban_desk_package_dependencies_helmet"
     },
     {
       "label": "jsonwebtoken",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L27",
-      "id": "aglaya_kanban_desk_package_dependencies_jsonwebtoken",
       "community": 6,
-      "norm_label": "jsonwebtoken"
+      "norm_label": "jsonwebtoken",
+      "id": "aglaya_kanban_desk_package_dependencies_jsonwebtoken"
     },
     {
       "label": "multer",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L28",
-      "id": "aglaya_kanban_desk_package_dependencies_multer",
       "community": 6,
-      "norm_label": "multer"
+      "norm_label": "multer",
+      "id": "aglaya_kanban_desk_package_dependencies_multer"
     },
     {
       "label": "node-cron",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L29",
-      "id": "aglaya_kanban_desk_package_dependencies_node_cron",
       "community": 6,
-      "norm_label": "node-cron"
+      "norm_label": "node-cron",
+      "id": "aglaya_kanban_desk_package_dependencies_node_cron"
     },
     {
       "label": "nodemailer",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L30",
-      "id": "aglaya_kanban_desk_package_dependencies_nodemailer",
       "community": 6,
-      "norm_label": "nodemailer"
+      "norm_label": "nodemailer",
+      "id": "aglaya_kanban_desk_package_dependencies_nodemailer"
     },
     {
       "label": "resend",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L31",
-      "id": "aglaya_kanban_desk_package_dependencies_resend",
       "community": 6,
-      "norm_label": "resend"
+      "norm_label": "resend",
+      "id": "aglaya_kanban_desk_package_dependencies_resend"
     },
     {
       "label": "uuid",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L32",
-      "id": "aglaya_kanban_desk_package_dependencies_uuid",
       "community": 6,
-      "norm_label": "uuid"
+      "norm_label": "uuid",
+      "id": "aglaya_kanban_desk_package_dependencies_uuid"
     },
     {
       "label": "devDependencies",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L34",
-      "id": "aglaya_kanban_desk_package_devdependencies",
       "community": 6,
-      "norm_label": "devdependencies"
+      "norm_label": "devdependencies",
+      "id": "aglaya_kanban_desk_package_devdependencies"
     },
     {
       "label": "concurrently",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L35",
-      "id": "aglaya_kanban_desk_package_devdependencies_concurrently",
       "community": 6,
-      "norm_label": "concurrently"
+      "norm_label": "concurrently",
+      "id": "aglaya_kanban_desk_package_devdependencies_concurrently"
     },
     {
       "label": "jest",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L36",
-      "id": "aglaya_kanban_desk_package_devdependencies_jest",
       "community": 6,
-      "norm_label": "jest"
+      "norm_label": "jest",
+      "id": "aglaya_kanban_desk_package_devdependencies_jest"
     },
     {
       "label": "supertest",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L37",
-      "id": "aglaya_kanban_desk_package_devdependencies_supertest",
       "community": 6,
-      "norm_label": "supertest"
+      "norm_label": "supertest",
+      "id": "aglaya_kanban_desk_package_devdependencies_supertest"
     },
     {
       "label": "auth.js",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L1",
-      "id": "server_routes_auth_js",
       "community": 36,
-      "norm_label": "auth.js"
+      "norm_label": "auth.js",
+      "id": "server_routes_auth_js"
     },
     {
       "label": "express",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L1",
-      "id": "routes_auth_express",
       "community": 36,
-      "norm_label": "express"
+      "norm_label": "express",
+      "id": "routes_auth_express"
     },
     {
       "label": "jwt",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L2",
-      "id": "routes_auth_jwt",
       "community": 36,
-      "norm_label": "jwt"
+      "norm_label": "jwt",
+      "id": "routes_auth_jwt"
     },
     {
       "label": "{ createAdminClient, createPublicClient }",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L3",
-      "id": "routes_auth_createadminclient_createpublicclient",
       "community": 36,
-      "norm_label": "{ createadminclient, createpublicclient }"
+      "norm_label": "{ createadminclient, createpublicclient }",
+      "id": "routes_auth_createadminclient_createpublicclient"
     },
     {
       "label": "{ requireAuth }",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L4",
-      "id": "routes_auth_requireauth",
       "community": 36,
-      "norm_label": "{ requireauth }"
+      "norm_label": "{ requireauth }",
+      "id": "routes_auth_requireauth"
     },
     {
       "label": "{ getSyncedUserProfile }",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L5",
-      "id": "routes_auth_getsynceduserprofile",
       "community": 36,
-      "norm_label": "{ getsynceduserprofile }"
+      "norm_label": "{ getsynceduserprofile }",
+      "id": "routes_auth_getsynceduserprofile"
     },
     {
       "label": "router",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L7",
-      "id": "routes_auth_router",
       "community": 36,
-      "norm_label": "router"
+      "norm_label": "router",
+      "id": "routes_auth_router"
     },
     {
       "label": "adminClient",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L11",
-      "id": "routes_auth_adminclient",
       "community": 36,
-      "norm_label": "adminclient"
+      "norm_label": "adminclient",
+      "id": "routes_auth_adminclient"
     },
     {
       "label": "allowedDomains",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L19",
-      "id": "routes_auth_alloweddomains",
       "community": 36,
-      "norm_label": "alloweddomains"
+      "norm_label": "alloweddomains",
+      "id": "routes_auth_alloweddomains"
     },
     {
       "label": "token",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L61",
-      "id": "routes_auth_token",
       "community": 36,
-      "norm_label": "token"
+      "norm_label": "token",
+      "id": "routes_auth_token"
     },
     {
       "label": "authClient",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L72",
-      "id": "routes_auth_authclient",
       "community": 36,
-      "norm_label": "authclient"
+      "norm_label": "authclient",
+      "id": "routes_auth_authclient"
     },
     {
       "label": "update",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L154",
-      "id": "routes_auth_update",
       "community": 36,
-      "norm_label": "update"
+      "norm_label": "update",
+      "id": "routes_auth_update"
     },
     {
       "label": "h",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L156",
-      "id": "routes_auth_h",
       "community": 36,
-      "norm_label": "h"
+      "norm_label": "h",
+      "id": "routes_auth_h"
     },
     {
       "label": "assignedChecklistItems",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L237",
-      "id": "routes_auth_assignedchecklistitems",
       "community": 36,
-      "norm_label": "assignedchecklistitems"
+      "norm_label": "assignedchecklistitems",
+      "id": "routes_auth_assignedchecklistitems"
     },
     {
       "label": "exportData",
       "file_type": "code",
       "source_file": "server/routes/auth.js",
       "source_location": "L275",
-      "id": "routes_auth_exportdata",
       "community": 36,
-      "norm_label": "exportdata"
+      "norm_label": "exportdata",
+      "id": "routes_auth_exportdata"
     },
     {
       "label": "package.json",
@@ -2366,7 +2600,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceMembers.jsx",
       "source_location": "L1",
-      "community": 41,
+      "community": 73,
       "norm_label": "workspacemembers.jsx",
       "id": "client_src_components_workspace_workspacemembers_jsx"
     },
@@ -2375,7 +2609,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceMembers.jsx",
       "source_location": "L8",
-      "community": 41,
+      "community": 73,
       "norm_label": "ws_roles",
       "id": "workspace_workspacemembers_ws_roles"
     },
@@ -2384,7 +2618,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceMembers.jsx",
       "source_location": "L10",
-      "community": 41,
+      "community": 73,
       "norm_label": "role_labels",
       "id": "workspace_workspacemembers_role_labels"
     },
@@ -2393,7 +2627,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceMembers.jsx",
       "source_location": "L17",
-      "community": 41,
+      "community": 73,
       "norm_label": "rolebadge()",
       "id": "workspace_workspacemembers_rolebadge"
     },
@@ -2402,7 +2636,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceMembers.jsx",
       "source_location": "L26",
-      "community": 41,
+      "community": 73,
       "norm_label": "avatar()",
       "id": "workspace_workspacemembers_avatar"
     },
@@ -2411,7 +2645,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceMembers.jsx",
       "source_location": "L34",
-      "community": 41,
+      "community": 73,
       "norm_label": "usersearchinput()",
       "id": "workspace_workspacemembers_usersearchinput"
     },
@@ -2420,7 +2654,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceMembers.jsx",
       "source_location": "L131",
-      "community": 41,
+      "community": 73,
       "norm_label": "addmembermodal()",
       "id": "workspace_workspacemembers_addmembermodal"
     },
@@ -2429,7 +2663,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceMembers.jsx",
       "source_location": "L243",
-      "community": 41,
+      "community": 73,
       "norm_label": "workspacemembers()",
       "id": "workspace_workspacemembers_workspacemembers"
     },
@@ -2438,7 +2672,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceSettings.jsx",
       "source_location": "L1",
-      "community": 73,
+      "community": 41,
       "norm_label": "workspacesettings.jsx",
       "id": "client_src_components_workspace_workspacesettings_jsx"
     },
@@ -2447,7 +2681,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceSettings.jsx",
       "source_location": "L8",
-      "community": 73,
+      "community": 41,
       "norm_label": "emojis",
       "id": "workspace_workspacesettings_emojis"
     },
@@ -2456,7 +2690,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceSettings.jsx",
       "source_location": "L10",
-      "community": 73,
+      "community": 41,
       "norm_label": "type_opts",
       "id": "workspace_workspacesettings_type_opts"
     },
@@ -2465,7 +2699,7 @@
       "file_type": "code",
       "source_file": "client/src/components/Workspace/WorkspaceSettings.jsx",
       "source_location": "L21",
-      "community": 73,
+      "community": 41,
       "norm_label": "workspacesettings()",
       "id": "workspace_workspacesettings_workspacesettings"
     },
@@ -3350,222 +3584,6 @@
       "community": 107,
       "norm_label": "procedimiento de adicion nuevo procesador",
       "id": "legal_subprocessors_procedimiento_de_adici\u00f3n_nuevo_procesador"
-    },
-    {
-      "label": "app.js",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L1",
-      "community": 9,
-      "norm_label": "app.js",
-      "id": "server_app_js"
-    },
-    {
-      "label": "express",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L8",
-      "community": 9,
-      "norm_label": "express",
-      "id": "server_app_express"
-    },
-    {
-      "label": "cors",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L9",
-      "community": 9,
-      "norm_label": "cors",
-      "id": "server_app_cors"
-    },
-    {
-      "label": "path",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L10",
-      "community": 9,
-      "norm_label": "path",
-      "id": "server_app_path"
-    },
-    {
-      "label": "helmet",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L11",
-      "community": 9,
-      "norm_label": "helmet",
-      "id": "server_app_helmet"
-    },
-    {
-      "label": "rateLimit",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L12",
-      "community": 9,
-      "norm_label": "ratelimit",
-      "id": "server_app_ratelimit"
-    },
-    {
-      "label": "{ getBoards, createBoard, updateBoard, deleteBoard, reorderBoards }",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L17",
-      "community": 9,
-      "norm_label": "{ getboards, createboard, updateboard, deleteboard, reorderboards }",
-      "id": "server_app_getboards_createboard_updateboard_deleteboard_reorderboards"
-    },
-    {
-      "label": "{ getColumns, createColumn, updateColumn, deleteColumn }",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L18",
-      "community": 9,
-      "norm_label": "{ getcolumns, createcolumn, updatecolumn, deletecolumn }",
-      "id": "server_app_getcolumns_createcolumn_updatecolumn_deletecolumn"
-    },
-    {
-      "label": "{\n  getCardsByBoard,\n  getCardsByColumn,\n  createCard,\n  updateCard,\n  moveCard,\n  deleteCard,\n  searchCards,\n}",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L19",
-      "community": 9,
-      "norm_label": "{\n  getcardsbyboard,\n  getcardsbycolumn,\n  createcard,\n  updatecard,\n  movecard,\n  deletecard,\n  searchcards,\n}",
-      "id": "server_app_getcardsbyboard_getcardsbycolumn_createcard_updatecard_movecard_deletecard_searchcards"
-    },
-    {
-      "label": "{ getCategories, createCategory, updateCategory, deleteCategory }",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L28",
-      "community": 9,
-      "norm_label": "{ getcategories, createcategory, updatecategory, deletecategory }",
-      "id": "server_app_getcategories_createcategory_updatecategory_deletecategory"
-    },
-    {
-      "label": "{ uploadImage, deleteImage }",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L29",
-      "community": 9,
-      "norm_label": "{ uploadimage, deleteimage }",
-      "id": "server_app_uploadimage_deleteimage"
-    },
-    {
-      "label": "authRouter",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L30",
-      "community": 9,
-      "norm_label": "authrouter",
-      "id": "server_app_authrouter"
-    },
-    {
-      "label": "digestRouter",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L31",
-      "community": 42,
-      "norm_label": "digestrouter",
-      "id": "server_app_digestrouter"
-    },
-    {
-      "label": "adminRouter",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L32",
-      "community": 9,
-      "norm_label": "adminrouter",
-      "id": "server_app_adminrouter"
-    },
-    {
-      "label": "workspacesRouter",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L33",
-      "community": 9,
-      "norm_label": "workspacesrouter",
-      "id": "server_app_workspacesrouter"
-    },
-    {
-      "label": "mediaRouter",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L34",
-      "community": 9,
-      "norm_label": "mediarouter",
-      "id": "server_app_mediarouter"
-    },
-    {
-      "label": "notificationsRouter",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L35",
-      "community": 9,
-      "norm_label": "notificationsrouter",
-      "id": "server_app_notificationsrouter"
-    },
-    {
-      "label": "internalRouter",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L36",
-      "community": 113,
-      "norm_label": "internalrouter",
-      "id": "server_app_internalrouter"
-    },
-    {
-      "label": "{ requireAuth }",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L37",
-      "community": 9,
-      "norm_label": "{ requireauth }",
-      "id": "server_app_requireauth"
-    },
-    {
-      "label": "{ requireWorkspaceMember }",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L38",
-      "community": 9,
-      "norm_label": "{ requireworkspacemember }",
-      "id": "server_app_requireworkspacemember"
-    },
-    {
-      "label": "app",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L40",
-      "community": 9,
-      "norm_label": "app",
-      "id": "server_app_app"
-    },
-    {
-      "label": "authLimiter",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L57",
-      "community": 9,
-      "norm_label": "authlimiter",
-      "id": "server_app_authlimiter"
-    },
-    {
-      "label": "start",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L67",
-      "community": 9,
-      "norm_label": "start",
-      "id": "server_app_start"
-    },
-    {
-      "label": "{ Sentry, enabled: sentryEnabled }",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L160",
-      "community": 9,
-      "norm_label": "{ sentry, enabled: sentryenabled }",
-      "id": "server_app_sentry_enabled_sentryenabled"
     },
     {
       "label": "index.js",
@@ -11753,7 +11771,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L178",
-      "community": 118,
+      "community": 50,
       "norm_label": "[1.1.1] \u2014 2026-04-08 \u2014 fixes post-migracion + herramientas de migracion",
       "id": "docs_changelog_1_1_1_2026_04_08_fixes_post_migraci\u00f3n_herramientas_de_migraci\u00f3n"
     },
@@ -11762,7 +11780,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L180",
-      "community": 118,
+      "community": 50,
       "norm_label": "fixed",
       "id": "docs_changelog_fixed_180"
     },
@@ -11771,7 +11789,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L184",
-      "community": 118,
+      "community": 50,
       "norm_label": "added",
       "id": "docs_changelog_added_184"
     },
@@ -14477,6 +14495,1154 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_express"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_cors"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_path"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_helmet"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_ratelimit"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_boards_getboards"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_boards_createboard"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_boards_updateboard"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_boards_deleteboard"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_boards_reorderboards"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_getboards_createboard_updateboard_deleteboard_reorderboards"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_columns_getcolumns"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_columns_createcolumn"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_columns_updatecolumn"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_columns_deletecolumn"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_getcolumns_createcolumn_updatecolumn_deletecolumn"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_cards_getcardsbyboard"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_cards_getcardsbycolumn"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_cards_createcard"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_cards_updatecard"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_cards_movecard"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_cards_deletecard"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_cards_searchcards"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_getcardsbyboard_getcardsbycolumn_createcard_updatecard_movecard_deletecard_searchcards"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_categories_getcategories"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_categories_createcategory"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_categories_updatecategory"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "routes_categories_deletecategory"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_getcategories_createcategory_updatecategory_deletecategory"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_uploadimage_deleteimage"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_authrouter"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L31",
+      "weight": 1.0,
+      "context": "import",
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_digestrouter"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L32",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_adminrouter"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L33",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_workspacesrouter"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L34",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_mediarouter"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L35",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_notificationsrouter"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L36",
+      "weight": 1.0,
+      "context": "import",
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_internalrouter"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L37",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "middleware_auth_requireauth"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L37",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_requireauth"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L38",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "middleware_workspace_requireworkspacemember"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L38",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_requireworkspacemember"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L40",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_app"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L63",
+      "weight": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_globallimiter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L57",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_authlimiter"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L81",
+      "weight": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_internallimiter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L67",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_start"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L160",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_sentry_enabled_sentryenabled"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_auth_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L160",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_utils_sentry_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/index.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_index_js",
+      "target": "server_app_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/tests/auth-self-service.test.js",
+      "source_location": "L91",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_tests_auth_self_service_test_js",
+      "target": "server_app_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_uploads_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/tests/uploads.test.js",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_tests_uploads_test_js",
+      "target": "server_app_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_digestroute_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/tests/digest.test.js",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_tests_digest_test_js",
+      "target": "server_app_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_boards_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_columns_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_cards_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_categories_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L32",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_admin_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L38",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_workspaces_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L34",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_media_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L35",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_notifications_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L36",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_internalroute_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L37",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_middleware_auth_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L38",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_middleware_workspace_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/tests/cards-validation.test.js",
+      "source_location": "L44",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_tests_cards_validation_test_js",
+      "target": "server_app_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/tests/health.test.js",
+      "source_location": "L25",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_tests_health_test_js",
+      "target": "server_app_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/tests/auth.test.js",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_tests_auth_test_js",
+      "target": "server_app_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/tests/notifications.test.js",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_tests_notifications_test_js",
+      "target": "server_app_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/tests/security.test.js",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_tests_security_test_js",
+      "target": "server_app_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/tests/admin.test.js",
+      "source_location": "L22",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_tests_admin_test_js",
+      "target": "server_app_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/tests/workspaces.test.js",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_tests_workspaces_test_js",
+      "target": "server_app_js"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "routes_digestroute_express"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "routes_digestroute_senddigest"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "routes_digestroute_requireauth_requirerole"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "routes_digestroute_createadminclient_supabaseadmin"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "routes_digestroute_getsynceduserprofile"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "routes_digestroute_querydigestlogs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "routes_digestroute_router"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L26",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "routes_digestroute_currenthourutc"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "routes_digestroute_admindigesthour"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L130",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "routes_digestroute_timeoutpromise"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L80",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "routes_digestroute_adminclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "tests_digest_test_buildusercards_senduserdigest"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "server_digest_js"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "server_digest_senddigest"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "server_userdigest_js"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "server_userdigest_buildusercards"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "server_userdigest_senduserdigest"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "server_userdigest_sendalluserdigests"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "server_middleware_auth_js"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "middleware_auth_requireauth"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "middleware_auth_requirerole"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "server_utils_supabase_js"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "utils_supabase_createadminclient"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "utils_supabase_supabaseadmin"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "server_utils_userprofile_js"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "utils_userprofile_getsynceduserprofile"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "server_utils_digestlogging_js"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "utils_digestlogging_querydigestlogs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/internalRoute.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_internalrouter",
+      "target": "routes_internalroute_express"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/internalRoute.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_internalrouter",
+      "target": "server_utils_supabase_js"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/internalRoute.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_internalrouter",
+      "target": "utils_supabase_supabaseadmin"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/internalRoute.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_internalrouter",
+      "target": "routes_internalroute_supabaseadmin"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/internalRoute.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_internalrouter",
+      "target": "routes_internalroute_router"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/internalRoute.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_internalrouter",
+      "target": "routes_internalroute_valid_priorities"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/internalRoute.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_internalrouter",
+      "target": "routes_internalroute_verifysecret"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "README.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -15267,17 +16433,6 @@
       "confidence_score": 1.0,
       "source": "server_routes_auth_js",
       "target": "routes_auth_exportdata"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_auth_js"
     },
     {
       "relation": "imports_from",
@@ -19789,1123 +20944,6 @@
       "confidence_score": 1.0,
       "source": "legal_subprocessors_transferencias_internacionales",
       "target": "legal_subprocessors_sccs_aplicables"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_express"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_cors"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L10",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_path"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L11",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_helmet"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L12",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_ratelimit"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_boards_getboards"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_boards_createboard"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_boards_updateboard"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_boards_deleteboard"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_boards_reorderboards"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_getboards_createboard_updateboard_deleteboard_reorderboards"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_columns_getcolumns"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_columns_createcolumn"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_columns_updatecolumn"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_columns_deletecolumn"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_getcolumns_createcolumn_updatecolumn_deletecolumn"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_cards_getcardsbyboard"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_cards_getcardsbycolumn"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_cards_createcard"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_cards_updatecard"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_cards_movecard"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_cards_deletecard"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_cards_searchcards"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_getcardsbyboard_getcardsbycolumn_createcard_updatecard_movecard_deletecard_searchcards"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_categories_getcategories"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_categories_createcategory"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_categories_updatecategory"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "routes_categories_deletecategory"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_getcategories_createcategory_updatecategory_deletecategory"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_uploadimage_deleteimage"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_authrouter"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L31",
-      "weight": 1.0,
-      "context": "import",
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_digestrouter"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L32",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_adminrouter"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L33",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_workspacesrouter"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L34",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_mediarouter"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L35",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_notificationsrouter"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L36",
-      "weight": 1.0,
-      "context": "import",
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_internalrouter"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L37",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L37",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_requireauth"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L38",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "middleware_workspace_requireworkspacemember"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L38",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_requireworkspacemember"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L40",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_app"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L57",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_authlimiter"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L67",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_start"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L160",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_utils_sentry_js"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L160",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_app_sentry_enabled_sentryenabled"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/index.js",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_index_js",
-      "target": "server_app_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/tests/auth-self-service.test.js",
-      "source_location": "L91",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_tests_auth_self_service_test_js",
-      "target": "server_app_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_uploads_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/tests/uploads.test.js",
-      "source_location": "L21",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_tests_uploads_test_js",
-      "target": "server_app_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L31",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_digestroute_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/tests/digest.test.js",
-      "source_location": "L21",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_tests_digest_test_js",
-      "target": "server_app_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_boards_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_columns_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_cards_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_categories_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L32",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_admin_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L38",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_workspaces_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L34",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_media_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L35",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_notifications_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L36",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_internalroute_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L37",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_middleware_auth_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L38",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_middleware_workspace_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/tests/cards-validation.test.js",
-      "source_location": "L44",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_tests_cards_validation_test_js",
-      "target": "server_app_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/tests/health.test.js",
-      "source_location": "L25",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_tests_health_test_js",
-      "target": "server_app_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/tests/auth.test.js",
-      "source_location": "L21",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_tests_auth_test_js",
-      "target": "server_app_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/tests/notifications.test.js",
-      "source_location": "L27",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_tests_notifications_test_js",
-      "target": "server_app_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/tests/security.test.js",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_tests_security_test_js",
-      "target": "server_app_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/tests/admin.test.js",
-      "source_location": "L22",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_tests_admin_test_js",
-      "target": "server_app_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/tests/workspaces.test.js",
-      "source_location": "L17",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_tests_workspaces_test_js",
-      "target": "server_app_js"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "routes_digestroute_express"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "routes_digestroute_senddigest"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "routes_digestroute_requireauth_requirerole"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "routes_digestroute_createadminclient_supabaseadmin"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "routes_digestroute_getsynceduserprofile"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "routes_digestroute_querydigestlogs"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "routes_digestroute_router"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L26",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "routes_digestroute_currenthourutc"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L27",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "routes_digestroute_admindigesthour"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L130",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "routes_digestroute_timeoutpromise"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L80",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "routes_digestroute_adminclient"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "tests_digest_test_buildusercards_senduserdigest"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "server_digest_js"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "server_digest_senddigest"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "server_userdigest_js"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "server_userdigest_buildusercards"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "server_userdigest_senduserdigest"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "server_userdigest_sendalluserdigests"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "server_middleware_auth_js"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "middleware_auth_requirerole"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "server_utils_supabase_js"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "utils_supabase_createadminclient"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "utils_supabase_supabaseadmin"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "server_utils_userprofile_js"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "utils_userprofile_getsynceduserprofile"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "server_utils_digestlogging_js"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "utils_digestlogging_querydigestlogs"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/internalRoute.js",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_internalrouter",
-      "target": "routes_internalroute_express"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/internalRoute.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_internalrouter",
-      "target": "server_utils_supabase_js"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/internalRoute.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_internalrouter",
-      "target": "utils_supabase_supabaseadmin"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/internalRoute.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_internalrouter",
-      "target": "routes_internalroute_supabaseadmin"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/internalRoute.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_internalrouter",
-      "target": "routes_internalroute_router"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/internalRoute.js",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_internalrouter",
-      "target": "routes_internalroute_valid_priorities"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/internalRoute.js",
-      "source_location": "L8",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_internalrouter",
-      "target": "routes_internalroute_verifysecret"
     },
     {
       "relation": "imports_from",
@@ -35876,5 +35914,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "eb2699175fe2b7f24b13f99e02e99d0c599d4b4d"
+  "built_at_commit": "6c316702f7b1bcadbb0edec2d4ed9bde8554df0a"
 }

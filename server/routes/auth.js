@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { createAdminClient, createPublicClient } = require('../utils/supabase');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, invalidateUserCache } = require('../middleware/auth');
 const { getSyncedUserProfile } = require('../utils/userProfile');
 
 const router = express.Router();
@@ -338,6 +338,9 @@ router.delete('/me', requireAuth, async (req, res) => {
 
     // 3. Limpieza defensiva: public.users (debería estar cascadeado pero por si acaso)
     await adminClient.from('users').delete().eq('id', userId);
+
+    // 4. B-07: invalidar cache para que future requests con este JWT retornen 401
+    invalidateUserCache(userId);
 
     console.warn(`[auth] self-delete completado userId=${userId} email=${userEmail}`);
 

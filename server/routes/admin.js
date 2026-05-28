@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const { createAdminClient } = require('../utils/supabase');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const { requireAuth, requireRole, invalidateUserCache } = require('../middleware/auth');
 const { sendEmail } = require('../utils/mailer');
 
 const INVITE_TEMPLATE_PATH = path.join(__dirname, '../../docs/mails/supabase-email-invite.html');
@@ -261,6 +261,10 @@ router.patch('/users/:id/role', async (req, res) => {
     return res.status(500).json({ error: `Error al actualizar: ${updateError.message}` });
   }
 
+  // B-07 audit Mariana: invalidar cache para que próximo request del usuario
+  // refleje el nuevo role sin esperar al TTL de 30s.
+  invalidateUserCache(targetId);
+
   res.json({ data });
 });
 
@@ -344,6 +348,9 @@ router.delete('/users/:id', async (req, res) => {
     console.error('[admin] DELETE /users/:id auth delete:', authError.message);
     // Note: profile is already gone, which is slightly inconsistent but safer than leaving it orphaned
   }
+
+  // B-07: invalidate cache para que JWT del user borrado retorne 401 inmediato
+  invalidateUserCache(targetId);
 
   res.json({ success: true });
 });
