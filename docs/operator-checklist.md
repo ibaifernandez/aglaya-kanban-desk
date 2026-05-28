@@ -1,8 +1,9 @@
-# Operator Checklist — Acciones pendientes post audit Mariana
+# Operator Checklist — Acciones post audit Mariana
 
-**Última actualización:** 2026-05-27
+**Última actualización:** 2026-05-28 (cierre formal audit)
 **Owner:** Antonio Ibai Fernández (info@aglaya.biz)
 **Origen:** audit Mariana Trench (`docs/audits/2026-05-27-mariana/REPORT.md`)
+**Status global:** Items 1-8 completados durante sesión cierre. Items 9-11 nice-to-have pendientes.
 
 > Esta lista es paso a paso. Está priorizada por urgencia. Cero coste externo. Sin pagos a Supabase Pro ni a abogados externos (declinado).
 
@@ -10,7 +11,7 @@
 
 ## 🔴 URGENTE — antes Jun 2 2026 (4 días desde audit)
 
-### 1. Rotar/extender token Cloudflare `aglaya-kanban-r2-bootstrap`
+### 1. ✅ Rotar/extender token Cloudflare `aglaya-kanban-r2-bootstrap`
 
 **Por qué:** workflow `db-backup.yml` usa este token. Expira **Jun 2 2026**. Si pasa, backup falla silenciosamente.
 
@@ -47,7 +48,7 @@
 
 ## 🟠 ALTA — esta semana
 
-### 2. Aceptar DPAs en dashboards procesadores (~25 min total)
+### 2. ✅ Aceptar DPAs en dashboards procesadores (~25 min total)
 
 Todos free / click-through. No requieren tarjeta de crédito.
 
@@ -99,7 +100,7 @@ Confirmar tipo cuenta + archivar referencia al Microsoft DPA en `DPA-registry.md
 
 ---
 
-### 3. Crear proyecto Sentry + setear `SENTRY_DSN` (10 min)
+### 3. ✅ Crear proyecto Sentry + setear `SENTRY_DSN` (10 min)
 
 **Por qué:** Sentry está instalado (`@sentry/node` ya en `package.json`), pero inactivo sin DSN. Cierra D-01 (vuelo a ciegas operativo).
 
@@ -121,7 +122,7 @@ Confirmar tipo cuenta + archivar referencia al Microsoft DPA en `DPA-registry.md
 
 ---
 
-### 4. Publicar política de privacidad en `kanban.aglaya.biz/privacidad` (1-2h)
+### 4. ✅ Publicar política de privacidad en `kanban.aglaya.biz/privacidad` (1-2h)
 
 **Por qué:** RGPD Art. 13/14 obliga a que la política sea accesible al titular. Hoy `kanban.aglaya.biz/privacidad` retorna SPA shell sin contenido.
 
@@ -161,14 +162,14 @@ Generar HTML estático a mano + colocar en `client/public/privacidad.html`. Netl
 
 ## 🟡 MEDIA — próximas 2 semanas
 
-### 5. Borrar token Cloudflare huérfano `kanban-backup-prod-v2`
+### 5. ✅ Borrar token Cloudflare huérfano `kanban-backup-prod-v2`
 
 Creado durante audit en R2 Manage tokens (formato cfut_) pero no usado en workflow final (workflow usa native API token del bootstrap).
 
 1. https://dash.cloudflare.com → R2 → Manage R2 API Tokens
 2. Sección **User API Tokens** → `kanban-backup-prod-v2` → menú `…` → **Delete**
 
-### 6. Limpiar GitHub Secrets no usados
+### 6. ✅ Limpiar GitHub Secrets no usados
 
 Secrets registrados durante iteraciones audit pero no usados en workflow final:
 
@@ -179,7 +180,7 @@ gh secret delete R2_ENDPOINT -R ibaifernandez/aglaya-kanban-desk
 
 (Mantén `R2_ACCESS_KEY_ID`, `R2_BUCKET`, `CF_ACCOUNT_ID`, `DATABASE_URL` — esos sí se usan.)
 
-### 7. Actualizar version badge README
+### 7. ✅ Actualizar version badge README
 
 README dice `version-1.3.1` pero `package.json` dice `1.1.5`. Decidir cuál es la verdad:
 
@@ -188,7 +189,7 @@ README dice `version-1.3.1` pero `package.json` dice `1.1.5`. Decidir cuál es l
 
 Plus: `tests-85 passing` → cambiar a `tests-95 passing` (4 skipped no se cuentan).
 
-### 8. Limpiar dead deps
+### 8. ✅ Limpiar dead deps
 
 ```bash
 npm uninstall bcryptjs  # B-17 — 0 invocaciones en código
