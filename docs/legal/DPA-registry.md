@@ -43,10 +43,10 @@
 
 - **Función:** Static CDN para client SPA + proxy `/api/*` y `/uploads/*` a Railway
 - **DPA template oficial:** https://www.netlify.com/legal/data-processing-addendum/
-- **Estado DPA:** 🟠 **PENDIENTE** — verificar si aceptado
-- **Acción:** Netlify dashboard → Team Settings → Privacy & Data Processing
+- **Estado DPA:** ✅ **ARCHIVADO 2026-05-27** — DPA estándar Netlify descargado (free tier no expone self-serve, version pública es pre-firmada por Netlify). PDF en `docs/legal/dpas/netlify-dpa-2026-05-27.pdf` (282 KB).
+- **Acción:** completada. Re-descargar si Netlify actualiza versión.
 - **Sub-procesadores Netlify:** AWS, Cloudflare, ver https://www.netlify.com/gdpr-ccpa/subprocessors/
-- **Transferencia internacional:** Global CDN — datos pueden replicarse mundialmente
+- **Transferencia internacional:** Global CDN — datos pueden replicarse mundialmente. SCCs incluidas en DPA
 
 ### 5. Cloudflare (post audit Mariana B-CRIT-02)
 
@@ -75,7 +75,7 @@
 | Supabase | ✅ archivado 2026-05-27 + TIA archivado ✅ | ✅ kanban-policy v1.0 | ✅ Supabase doc | Brasil |
 | Resend | ✅ archivado 2026-05-27 | ✅ kanban-policy v1.0 | ✅ Resend doc | US |
 | Railway | ✅ archivado 2026-05-27 | ✅ kanban-policy v1.0 | ✅ Railway doc | US |
-| Netlify | 🟠 verificar | ✅ SÍ (aglaya.biz) | ✅ Netlify doc | Global |
+| Netlify | ✅ archivado 2026-05-27 | ✅ kanban-policy v1.0 | ✅ Netlify doc | Global |
 | Cloudflare | 🔴 NUEVO post-audit | ❌ NO | ✅ Cloudflare doc | EU (WEUR) |
 | GitHub Actions | 🟠 verificar | ❌ NO | Microsoft Azure | US |
 
@@ -107,7 +107,7 @@ Cuando aceptes un DPA en dashboard del procesador:
 - [x] Verificar/aceptar DPA Supabase (2026-05-27 firmado vía PandaDoc + archivado en `docs/legal/dpas/supabase-dpa-2026-05-26.pdf`) + TIA archivado en `docs/legal/dpas/supabase-tia-2025-03-14.pdf`
 - [x] Verificar/aceptar DPA Resend (2026-05-27 archivado en `docs/legal/dpas/resend-dpa-2026-05-27.pdf`)
 - [x] Verificar/aceptar DPA Railway (2026-05-27 archivado en `docs/legal/dpas/railway-dpa-2026-05-27.pdf`)
-- [ ] Verificar/aceptar DPA Netlify (5 min)
+- [x] Verificar/aceptar DPA Netlify (2026-05-27 archivado en `docs/legal/dpas/netlify-dpa-2026-05-27.pdf`)
 - [ ] **🔴 PRIORITARIO:** aceptar DPA Cloudflare (procesador nuevo desde audit Mariana — backup diario)
 - [ ] Verificar status GitHub DPA (Microsoft Online Services DPA cubre)
 - [ ] Crear carpeta `docs/legal/dpas/` cuando empiecen a archivarse PDFs
