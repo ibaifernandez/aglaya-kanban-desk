@@ -4,607 +4,760 @@
   "graph": {},
   "nodes": [
     {
-      "label": "auth.js",
-      "file_type": "code",
-      "source_file": "server/middleware/auth.js",
+      "label": "railway-custom-domain.md",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
       "source_location": "L1",
-      "id": "server_middleware_auth_js",
-      "community": 97,
-      "norm_label": "auth.js"
+      "id": "docs_runbooks_railway_custom_domain_md",
+      "community": 95,
+      "norm_label": "railway-custom-domain.md"
     },
     {
-      "label": "jwt",
-      "file_type": "code",
-      "source_file": "server/middleware/auth.js",
+      "label": "Runbook \u2014 Railway Custom Domain `api.kanban.aglaya.biz`",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
       "source_location": "L1",
-      "id": "middleware_auth_jwt",
-      "community": 97,
-      "norm_label": "jwt"
+      "id": "runbooks_railway_custom_domain_runbook_railway_custom_domain_api_kanban_aglaya_biz",
+      "community": 95,
+      "norm_label": "runbook \u2014 railway custom domain `api.kanban.aglaya.biz`"
     },
     {
-      "label": "{ supabaseAdmin }",
-      "file_type": "code",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L2",
-      "id": "middleware_auth_supabaseadmin",
-      "community": 97,
-      "norm_label": "{ supabaseadmin }"
+      "label": "Contexto",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L9",
+      "id": "runbooks_railway_custom_domain_contexto",
+      "community": 95,
+      "norm_label": "contexto"
     },
     {
-      "label": "userCache",
-      "file_type": "code",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L18",
-      "id": "middleware_auth_usercache",
-      "community": 97,
-      "norm_label": "usercache"
+      "label": "Pasos",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L22",
+      "id": "runbooks_railway_custom_domain_pasos",
+      "community": 95,
+      "norm_label": "pasos"
     },
     {
-      "label": "getUserFromDb()",
-      "file_type": "code",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L20",
-      "id": "middleware_auth_getuserfromdb",
-      "community": 97,
-      "norm_label": "getuserfromdb()"
+      "label": "1. Railway \u2014 a\u00f1adir custom domain",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L24",
+      "id": "runbooks_railway_custom_domain_1_railway_a\u00f1adir_custom_domain",
+      "community": 95,
+      "norm_label": "1. railway \u2014 anadir custom domain"
     },
     {
-      "label": "requireAuth()",
-      "file_type": "code",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L64",
-      "id": "middleware_auth_requireauth",
-      "community": 97,
-      "norm_label": "requireauth()"
+      "label": "2. Cloudflare \u2014 crear CNAME",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L31",
+      "id": "runbooks_railway_custom_domain_2_cloudflare_crear_cname",
+      "community": 95,
+      "norm_label": "2. cloudflare \u2014 crear cname"
     },
     {
-      "label": "requireRole()",
-      "file_type": "code",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L121",
-      "id": "middleware_auth_requirerole",
-      "community": 97,
-      "norm_label": "requirerole()"
+      "label": "3. Verificar propagaci\u00f3n DNS (~5 min)",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L42",
+      "id": "runbooks_railway_custom_domain_3_verificar_propagaci\u00f3n_dns_5_min",
+      "community": 95,
+      "norm_label": "3. verificar propagacion dns (~5 min)"
     },
     {
-      "label": "invalidateUserCache()",
-      "file_type": "code",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L135",
-      "id": "middleware_auth_invalidateusercache",
-      "community": 97,
-      "norm_label": "invalidateusercache()"
+      "label": "code:bash (dig api.kanban.aglaya.biz +short)",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L44",
+      "id": "runbooks_railway_custom_domain_codeblock_1",
+      "community": 95,
+      "norm_label": "code:bash (dig api.kanban.aglaya.biz +short)"
     },
     {
-      "label": "admin.js",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L1",
-      "id": "server_routes_admin_js",
-      "community": 97,
-      "norm_label": "admin.js"
-    },
-    {
-      "label": "express",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L1",
-      "id": "routes_admin_express",
-      "community": 97,
-      "norm_label": "express"
-    },
-    {
-      "label": "path",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L2",
-      "id": "routes_admin_path",
-      "community": 97,
-      "norm_label": "path"
-    },
-    {
-      "label": "fs",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L3",
-      "id": "routes_admin_fs",
-      "community": 97,
-      "norm_label": "fs"
-    },
-    {
-      "label": "{ createAdminClient }",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L4",
-      "id": "routes_admin_createadminclient",
-      "community": 97,
-      "norm_label": "{ createadminclient }"
-    },
-    {
-      "label": "{ requireAuth, requireRole, invalidateUserCache }",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L5",
-      "id": "routes_admin_requireauth_requirerole_invalidateusercache",
-      "community": 97,
-      "norm_label": "{ requireauth, requirerole, invalidateusercache }"
-    },
-    {
-      "label": "{ sendEmail }",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L6",
-      "id": "routes_admin_sendemail",
-      "community": 97,
-      "norm_label": "{ sendemail }"
-    },
-    {
-      "label": "INVITE_TEMPLATE_PATH",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L8",
-      "id": "routes_admin_invite_template_path",
-      "community": 97,
-      "norm_label": "invite_template_path"
-    },
-    {
-      "label": "getInviteTemplate()",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L10",
-      "id": "routes_admin_getinvitetemplate",
-      "community": 97,
-      "norm_label": "getinvitetemplate()"
-    },
-    {
-      "label": "router",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L18",
-      "id": "routes_admin_router",
-      "community": 97,
-      "norm_label": "router"
-    },
-    {
-      "label": "ALLOWED_ROLES",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L20",
-      "id": "routes_admin_allowed_roles",
-      "community": 97,
-      "norm_label": "allowed_roles"
-    },
-    {
-      "label": "resolveRequesterOrganizationId()",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L26",
-      "id": "routes_admin_resolverequesterorganizationid",
-      "community": 97,
-      "norm_label": "resolverequesterorganizationid()"
-    },
-    {
-      "label": "isDuplicateAuthError()",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L41",
-      "id": "routes_admin_isduplicateautherror",
-      "community": 97,
-      "norm_label": "isduplicateautherror()"
-    },
-    {
-      "label": "isUniqueConstraintError()",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L51",
-      "id": "routes_admin_isuniqueconstrainterror",
-      "community": 97,
-      "norm_label": "isuniqueconstrainterror()"
-    },
-    {
-      "label": "findAuthUserByEmail()",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
+      "label": "4. Cloudflare \u2014 Firewall Rules (Free plan)",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
       "source_location": "L55",
-      "id": "routes_admin_findauthuserbyemail",
-      "community": 97,
-      "norm_label": "findauthuserbyemail()"
+      "id": "runbooks_railway_custom_domain_4_cloudflare_firewall_rules_free_plan",
+      "community": 95,
+      "norm_label": "4. cloudflare \u2014 firewall rules (free plan)"
     },
     {
-      "label": "adminClient",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
+      "label": "5. Update netlify.toml (yo lo hago tras verificaci\u00f3n operador)",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L74",
+      "id": "runbooks_railway_custom_domain_5_update_netlify_toml_yo_lo_hago_tras_verificaci\u00f3n_operador",
+      "community": 95,
+      "norm_label": "5. update netlify.toml (yo lo hago tras verificacion operador)"
+    },
+    {
+      "label": "code:toml ([[redirects]])",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
       "source_location": "L78",
-      "id": "routes_admin_adminclient",
-      "community": 97,
-      "norm_label": "adminclient"
+      "id": "runbooks_railway_custom_domain_codeblock_2",
+      "community": 95,
+      "norm_label": "code:toml ([[redirects]])"
     },
     {
-      "label": "query",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L79",
-      "id": "routes_admin_query",
-      "community": 97,
-      "norm_label": "query"
+      "label": "6. Update server CORS (yo tras tu confirmaci\u00f3n)",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L92",
+      "id": "runbooks_railway_custom_domain_6_update_server_cors_yo_tras_tu_confirmaci\u00f3n",
+      "community": 95,
+      "norm_label": "6. update server cors (yo tras tu confirmacion)"
     },
     {
-      "label": "targetQuery",
-      "file_type": "code",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L283",
-      "id": "routes_admin_targetquery",
-      "community": 97,
-      "norm_label": "targetquery"
+      "label": "code:js (const allowedOrigins = isProd)",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L96",
+      "id": "runbooks_railway_custom_domain_codeblock_3",
+      "community": 95,
+      "norm_label": "code:js (const allowedorigins = isprod)"
     },
     {
-      "label": "auth.js",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L1",
-      "id": "server_routes_auth_js",
-      "community": 36,
-      "norm_label": "auth.js"
+      "label": "7. Deshabilitar URL p\u00fablica Railway (opcional, requiere Pro)",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L102",
+      "id": "runbooks_railway_custom_domain_7_deshabilitar_url_p\u00fablica_railway_opcional_requiere_pro",
+      "community": 95,
+      "norm_label": "7. deshabilitar url publica railway (opcional, requiere pro)"
     },
     {
-      "label": "express",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L1",
-      "id": "routes_auth_express",
-      "community": 36,
-      "norm_label": "express"
+      "label": "Hardening alternativo (avanzado)",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L112",
+      "id": "runbooks_railway_custom_domain_hardening_alternativo_avanzado",
+      "community": 95,
+      "norm_label": "hardening alternativo (avanzado)"
     },
     {
-      "label": "jwt",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L2",
-      "id": "routes_auth_jwt",
-      "community": 36,
-      "norm_label": "jwt"
+      "label": "Validaci\u00f3n post-setup",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L128",
+      "id": "runbooks_railway_custom_domain_validaci\u00f3n_post_setup",
+      "community": 95,
+      "norm_label": "validacion post-setup"
     },
     {
-      "label": "{ createAdminClient, createPublicClient }",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L3",
-      "id": "routes_auth_createadminclient_createpublicclient",
-      "community": 36,
-      "norm_label": "{ createadminclient, createpublicclient }"
-    },
-    {
-      "label": "{ requireAuth, invalidateUserCache }",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "id": "routes_auth_requireauth_invalidateusercache",
-      "community": 36,
-      "norm_label": "{ requireauth, invalidateusercache }"
-    },
-    {
-      "label": "{ getSyncedUserProfile }",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L5",
-      "id": "routes_auth_getsynceduserprofile",
-      "community": 36,
-      "norm_label": "{ getsynceduserprofile }"
-    },
-    {
-      "label": "router",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L7",
-      "id": "routes_auth_router",
-      "community": 36,
-      "norm_label": "router"
-    },
-    {
-      "label": "adminClient",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L11",
-      "id": "routes_auth_adminclient",
-      "community": 36,
-      "norm_label": "adminclient"
-    },
-    {
-      "label": "allowedDomains",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L19",
-      "id": "routes_auth_alloweddomains",
-      "community": 36,
-      "norm_label": "alloweddomains"
-    },
-    {
-      "label": "token",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L61",
-      "id": "routes_auth_token",
-      "community": 36,
-      "norm_label": "token"
-    },
-    {
-      "label": "authClient",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L72",
-      "id": "routes_auth_authclient",
-      "community": 36,
-      "norm_label": "authclient"
-    },
-    {
-      "label": "update",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L154",
-      "id": "routes_auth_update",
-      "community": 36,
-      "norm_label": "update"
-    },
-    {
-      "label": "h",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L156",
-      "id": "routes_auth_h",
-      "community": 36,
-      "norm_label": "h"
-    },
-    {
-      "label": "assignedChecklistItems",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L237",
-      "id": "routes_auth_assignedchecklistitems",
-      "community": 36,
-      "norm_label": "assignedchecklistitems"
-    },
-    {
-      "label": "exportData",
-      "file_type": "code",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L275",
-      "id": "routes_auth_exportdata",
-      "community": 36,
-      "norm_label": "exportdata"
+      "label": "Referencias",
+      "file_type": "document",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L141",
+      "id": "runbooks_railway_custom_domain_referencias",
+      "community": 95,
+      "norm_label": "referencias"
     },
     {
       "label": "app.js",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L1",
+      "id": "server_app_js",
       "community": 9,
-      "norm_label": "app.js",
-      "id": "server_app_js"
+      "norm_label": "app.js"
     },
     {
       "label": "express",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L8",
+      "id": "server_app_express",
       "community": 9,
-      "norm_label": "express",
-      "id": "server_app_express"
+      "norm_label": "express"
     },
     {
       "label": "cors",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L9",
+      "id": "server_app_cors",
       "community": 9,
-      "norm_label": "cors",
-      "id": "server_app_cors"
+      "norm_label": "cors"
     },
     {
       "label": "path",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L10",
+      "id": "server_app_path",
       "community": 9,
-      "norm_label": "path",
-      "id": "server_app_path"
+      "norm_label": "path"
     },
     {
       "label": "helmet",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L11",
+      "id": "server_app_helmet",
       "community": 9,
-      "norm_label": "helmet",
-      "id": "server_app_helmet"
+      "norm_label": "helmet"
     },
     {
       "label": "rateLimit",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L12",
+      "id": "server_app_ratelimit",
       "community": 9,
-      "norm_label": "ratelimit",
-      "id": "server_app_ratelimit"
+      "norm_label": "ratelimit"
     },
     {
       "label": "{ getBoards, createBoard, updateBoard, deleteBoard, reorderBoards }",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L17",
+      "id": "server_app_getboards_createboard_updateboard_deleteboard_reorderboards",
       "community": 9,
-      "norm_label": "{ getboards, createboard, updateboard, deleteboard, reorderboards }",
-      "id": "server_app_getboards_createboard_updateboard_deleteboard_reorderboards"
+      "norm_label": "{ getboards, createboard, updateboard, deleteboard, reorderboards }"
     },
     {
       "label": "{ getColumns, createColumn, updateColumn, deleteColumn }",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L18",
+      "id": "server_app_getcolumns_createcolumn_updatecolumn_deletecolumn",
       "community": 9,
-      "norm_label": "{ getcolumns, createcolumn, updatecolumn, deletecolumn }",
-      "id": "server_app_getcolumns_createcolumn_updatecolumn_deletecolumn"
+      "norm_label": "{ getcolumns, createcolumn, updatecolumn, deletecolumn }"
     },
     {
       "label": "{\n  getCardsByBoard,\n  getCardsByColumn,\n  createCard,\n  updateCard,\n  moveCard,\n  deleteCard,\n  searchCards,\n}",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L19",
+      "id": "server_app_getcardsbyboard_getcardsbycolumn_createcard_updatecard_movecard_deletecard_searchcards",
       "community": 9,
-      "norm_label": "{\n  getcardsbyboard,\n  getcardsbycolumn,\n  createcard,\n  updatecard,\n  movecard,\n  deletecard,\n  searchcards,\n}",
-      "id": "server_app_getcardsbyboard_getcardsbycolumn_createcard_updatecard_movecard_deletecard_searchcards"
+      "norm_label": "{\n  getcardsbyboard,\n  getcardsbycolumn,\n  createcard,\n  updatecard,\n  movecard,\n  deletecard,\n  searchcards,\n}"
     },
     {
       "label": "{ getCategories, createCategory, updateCategory, deleteCategory }",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L28",
+      "id": "server_app_getcategories_createcategory_updatecategory_deletecategory",
       "community": 9,
-      "norm_label": "{ getcategories, createcategory, updatecategory, deletecategory }",
-      "id": "server_app_getcategories_createcategory_updatecategory_deletecategory"
+      "norm_label": "{ getcategories, createcategory, updatecategory, deletecategory }"
     },
     {
       "label": "{ uploadImage, deleteImage }",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L29",
+      "id": "server_app_uploadimage_deleteimage",
       "community": 9,
-      "norm_label": "{ uploadimage, deleteimage }",
-      "id": "server_app_uploadimage_deleteimage"
+      "norm_label": "{ uploadimage, deleteimage }"
     },
     {
       "label": "authRouter",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L30",
+      "id": "server_app_authrouter",
       "community": 9,
-      "norm_label": "authrouter",
-      "id": "server_app_authrouter"
+      "norm_label": "authrouter"
     },
     {
       "label": "digestRouter",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L31",
+      "id": "server_app_digestrouter",
       "community": 42,
-      "norm_label": "digestrouter",
-      "id": "server_app_digestrouter"
+      "norm_label": "digestrouter"
     },
     {
       "label": "adminRouter",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L32",
+      "id": "server_app_adminrouter",
       "community": 9,
-      "norm_label": "adminrouter",
-      "id": "server_app_adminrouter"
+      "norm_label": "adminrouter"
     },
     {
       "label": "workspacesRouter",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L33",
+      "id": "server_app_workspacesrouter",
       "community": 9,
-      "norm_label": "workspacesrouter",
-      "id": "server_app_workspacesrouter"
+      "norm_label": "workspacesrouter"
     },
     {
       "label": "mediaRouter",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L34",
+      "id": "server_app_mediarouter",
       "community": 9,
-      "norm_label": "mediarouter",
-      "id": "server_app_mediarouter"
+      "norm_label": "mediarouter"
     },
     {
       "label": "notificationsRouter",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L35",
+      "id": "server_app_notificationsrouter",
       "community": 9,
-      "norm_label": "notificationsrouter",
-      "id": "server_app_notificationsrouter"
+      "norm_label": "notificationsrouter"
     },
     {
       "label": "internalRouter",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L36",
+      "id": "server_app_internalrouter",
       "community": 113,
-      "norm_label": "internalrouter",
-      "id": "server_app_internalrouter"
+      "norm_label": "internalrouter"
     },
     {
       "label": "{ requireAuth }",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L37",
+      "id": "server_app_requireauth",
       "community": 9,
-      "norm_label": "{ requireauth }",
-      "id": "server_app_requireauth"
+      "norm_label": "{ requireauth }"
     },
     {
       "label": "{ requireWorkspaceMember }",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L38",
+      "id": "server_app_requireworkspacemember",
       "community": 9,
-      "norm_label": "{ requireworkspacemember }",
-      "id": "server_app_requireworkspacemember"
+      "norm_label": "{ requireworkspacemember }"
     },
     {
       "label": "app",
       "file_type": "code",
       "source_file": "server/app.js",
       "source_location": "L40",
+      "id": "server_app_app",
       "community": 9,
-      "norm_label": "app",
-      "id": "server_app_app"
-    },
-    {
-      "label": "globalLimiter",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L63",
-      "community": 9,
-      "norm_label": "globallimiter",
-      "id": "server_app_globallimiter"
-    },
-    {
-      "label": "authLimiter",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L73",
-      "community": 9,
-      "norm_label": "authlimiter",
-      "id": "server_app_authlimiter"
-    },
-    {
-      "label": "internalLimiter",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L81",
-      "community": 9,
-      "norm_label": "internallimiter",
-      "id": "server_app_internallimiter"
-    },
-    {
-      "label": "start",
-      "file_type": "code",
-      "source_file": "server/app.js",
-      "source_location": "L91",
-      "community": 9,
-      "norm_label": "start",
-      "id": "server_app_start"
+      "norm_label": "app"
     },
     {
       "label": "{ Sentry, enabled: sentryEnabled }",
       "file_type": "code",
       "source_file": "server/app.js",
-      "source_location": "L190",
+      "source_location": "L64",
+      "id": "server_app_sentry_enabled_sentryenabled",
       "community": 9,
-      "norm_label": "{ sentry, enabled: sentryenabled }",
-      "id": "server_app_sentry_enabled_sentryenabled"
+      "norm_label": "{ sentry, enabled: sentryenabled }"
+    },
+    {
+      "label": "globalLimiter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L96",
+      "id": "server_app_globallimiter",
+      "community": 9,
+      "norm_label": "globallimiter"
+    },
+    {
+      "label": "authLimiter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L106",
+      "id": "server_app_authlimiter",
+      "community": 9,
+      "norm_label": "authlimiter"
+    },
+    {
+      "label": "internalLimiter",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L114",
+      "id": "server_app_internallimiter",
+      "community": 9,
+      "norm_label": "internallimiter"
+    },
+    {
+      "label": "start",
+      "file_type": "code",
+      "source_file": "server/app.js",
+      "source_location": "L124",
+      "id": "server_app_start",
+      "community": 9,
+      "norm_label": "start"
+    },
+    {
+      "label": "auth.js",
+      "file_type": "code",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L1",
+      "community": 112,
+      "norm_label": "auth.js",
+      "id": "server_middleware_auth_js"
+    },
+    {
+      "label": "jwt",
+      "file_type": "code",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L1",
+      "community": 112,
+      "norm_label": "jwt",
+      "id": "middleware_auth_jwt"
+    },
+    {
+      "label": "{ supabaseAdmin }",
+      "file_type": "code",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L2",
+      "community": 112,
+      "norm_label": "{ supabaseadmin }",
+      "id": "middleware_auth_supabaseadmin"
+    },
+    {
+      "label": "userCache",
+      "file_type": "code",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L18",
+      "community": 112,
+      "norm_label": "usercache",
+      "id": "middleware_auth_usercache"
+    },
+    {
+      "label": "getUserFromDb()",
+      "file_type": "code",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L20",
+      "community": 112,
+      "norm_label": "getuserfromdb()",
+      "id": "middleware_auth_getuserfromdb"
+    },
+    {
+      "label": "requireAuth()",
+      "file_type": "code",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L64",
+      "community": 112,
+      "norm_label": "requireauth()",
+      "id": "middleware_auth_requireauth"
+    },
+    {
+      "label": "requireRole()",
+      "file_type": "code",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L121",
+      "community": 112,
+      "norm_label": "requirerole()",
+      "id": "middleware_auth_requirerole"
+    },
+    {
+      "label": "invalidateUserCache()",
+      "file_type": "code",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L135",
+      "community": 112,
+      "norm_label": "invalidateusercache()",
+      "id": "middleware_auth_invalidateusercache"
+    },
+    {
+      "label": "admin.js",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L1",
+      "community": 97,
+      "norm_label": "admin.js",
+      "id": "server_routes_admin_js"
+    },
+    {
+      "label": "express",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L1",
+      "community": 97,
+      "norm_label": "express",
+      "id": "routes_admin_express"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L2",
+      "community": 97,
+      "norm_label": "path",
+      "id": "routes_admin_path"
+    },
+    {
+      "label": "fs",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L3",
+      "community": 97,
+      "norm_label": "fs",
+      "id": "routes_admin_fs"
+    },
+    {
+      "label": "{ createAdminClient }",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L4",
+      "community": 97,
+      "norm_label": "{ createadminclient }",
+      "id": "routes_admin_createadminclient"
+    },
+    {
+      "label": "{ requireAuth, requireRole, invalidateUserCache }",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L5",
+      "community": 97,
+      "norm_label": "{ requireauth, requirerole, invalidateusercache }",
+      "id": "routes_admin_requireauth_requirerole_invalidateusercache"
+    },
+    {
+      "label": "{ sendEmail }",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L6",
+      "community": 97,
+      "norm_label": "{ sendemail }",
+      "id": "routes_admin_sendemail"
+    },
+    {
+      "label": "INVITE_TEMPLATE_PATH",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L8",
+      "community": 97,
+      "norm_label": "invite_template_path",
+      "id": "routes_admin_invite_template_path"
+    },
+    {
+      "label": "getInviteTemplate()",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L10",
+      "community": 97,
+      "norm_label": "getinvitetemplate()",
+      "id": "routes_admin_getinvitetemplate"
+    },
+    {
+      "label": "router",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L18",
+      "community": 97,
+      "norm_label": "router",
+      "id": "routes_admin_router"
+    },
+    {
+      "label": "ALLOWED_ROLES",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L20",
+      "community": 97,
+      "norm_label": "allowed_roles",
+      "id": "routes_admin_allowed_roles"
+    },
+    {
+      "label": "resolveRequesterOrganizationId()",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L26",
+      "community": 97,
+      "norm_label": "resolverequesterorganizationid()",
+      "id": "routes_admin_resolverequesterorganizationid"
+    },
+    {
+      "label": "isDuplicateAuthError()",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L41",
+      "community": 97,
+      "norm_label": "isduplicateautherror()",
+      "id": "routes_admin_isduplicateautherror"
+    },
+    {
+      "label": "isUniqueConstraintError()",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L51",
+      "community": 97,
+      "norm_label": "isuniqueconstrainterror()",
+      "id": "routes_admin_isuniqueconstrainterror"
+    },
+    {
+      "label": "findAuthUserByEmail()",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L55",
+      "community": 97,
+      "norm_label": "findauthuserbyemail()",
+      "id": "routes_admin_findauthuserbyemail"
+    },
+    {
+      "label": "adminClient",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L78",
+      "community": 97,
+      "norm_label": "adminclient",
+      "id": "routes_admin_adminclient"
+    },
+    {
+      "label": "query",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L79",
+      "community": 97,
+      "norm_label": "query",
+      "id": "routes_admin_query"
+    },
+    {
+      "label": "targetQuery",
+      "file_type": "code",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L283",
+      "community": 97,
+      "norm_label": "targetquery",
+      "id": "routes_admin_targetquery"
+    },
+    {
+      "label": "auth.js",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L1",
+      "community": 36,
+      "norm_label": "auth.js",
+      "id": "server_routes_auth_js"
+    },
+    {
+      "label": "express",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L1",
+      "community": 36,
+      "norm_label": "express",
+      "id": "routes_auth_express"
+    },
+    {
+      "label": "jwt",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L2",
+      "community": 36,
+      "norm_label": "jwt",
+      "id": "routes_auth_jwt"
+    },
+    {
+      "label": "{ createAdminClient, createPublicClient }",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L3",
+      "community": 36,
+      "norm_label": "{ createadminclient, createpublicclient }",
+      "id": "routes_auth_createadminclient_createpublicclient"
+    },
+    {
+      "label": "{ requireAuth, invalidateUserCache }",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "community": 36,
+      "norm_label": "{ requireauth, invalidateusercache }",
+      "id": "routes_auth_requireauth_invalidateusercache"
+    },
+    {
+      "label": "{ getSyncedUserProfile }",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L5",
+      "community": 36,
+      "norm_label": "{ getsynceduserprofile }",
+      "id": "routes_auth_getsynceduserprofile"
+    },
+    {
+      "label": "router",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L7",
+      "community": 36,
+      "norm_label": "router",
+      "id": "routes_auth_router"
+    },
+    {
+      "label": "adminClient",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L11",
+      "community": 36,
+      "norm_label": "adminclient",
+      "id": "routes_auth_adminclient"
+    },
+    {
+      "label": "allowedDomains",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L19",
+      "community": 36,
+      "norm_label": "alloweddomains",
+      "id": "routes_auth_alloweddomains"
+    },
+    {
+      "label": "token",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L61",
+      "community": 36,
+      "norm_label": "token",
+      "id": "routes_auth_token"
+    },
+    {
+      "label": "authClient",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L72",
+      "community": 36,
+      "norm_label": "authclient",
+      "id": "routes_auth_authclient"
+    },
+    {
+      "label": "update",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L154",
+      "community": 36,
+      "norm_label": "update",
+      "id": "routes_auth_update"
+    },
+    {
+      "label": "h",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L156",
+      "community": 36,
+      "norm_label": "h",
+      "id": "routes_auth_h"
+    },
+    {
+      "label": "assignedChecklistItems",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L237",
+      "community": 36,
+      "norm_label": "assignedchecklistitems",
+      "id": "routes_auth_assignedchecklistitems"
+    },
+    {
+      "label": "exportData",
+      "file_type": "code",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L275",
+      "community": 36,
+      "norm_label": "exportdata",
+      "id": "routes_auth_exportdata"
     },
     {
       "label": "README.md",
@@ -7505,7 +7658,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L1",
-      "community": 112,
+      "community": 5,
       "norm_label": "workspace.js",
       "id": "server_middleware_workspace_js"
     },
@@ -7514,7 +7667,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L1",
-      "community": 112,
+      "community": 5,
       "norm_label": "{ supabaseadmin }",
       "id": "middleware_workspace_supabaseadmin"
     },
@@ -7523,7 +7676,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L3",
-      "community": 112,
+      "community": 5,
       "norm_label": "resolveworkspaceidfromboard()",
       "id": "middleware_workspace_resolveworkspaceidfromboard"
     },
@@ -7532,7 +7685,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L15",
-      "community": 112,
+      "community": 5,
       "norm_label": "resolveworkspaceidfromcolumn()",
       "id": "middleware_workspace_resolveworkspaceidfromcolumn"
     },
@@ -7541,7 +7694,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L27",
-      "community": 112,
+      "community": 5,
       "norm_label": "resolveworkspaceidfromcard()",
       "id": "middleware_workspace_resolveworkspaceidfromcard"
     },
@@ -7550,7 +7703,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L48",
-      "community": 112,
+      "community": 5,
       "norm_label": "requireworkspacemember()",
       "id": "middleware_workspace_requireworkspacemember"
     },
@@ -7559,7 +7712,7 @@
       "file_type": "code",
       "source_file": "server/middleware/workspace.js",
       "source_location": "L119",
-      "community": 112,
+      "community": 5,
       "norm_label": "requireworkspacerole()",
       "id": "middleware_workspace_requireworkspacerole"
     },
@@ -8648,7 +8801,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L1",
-      "community": 112,
+      "community": 5,
       "norm_label": "media.js",
       "id": "server_routes_media_js"
     },
@@ -8657,7 +8810,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L1",
-      "community": 112,
+      "community": 5,
       "norm_label": "express",
       "id": "routes_media_express"
     },
@@ -8666,7 +8819,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L2",
-      "community": 112,
+      "community": 5,
       "norm_label": "multer",
       "id": "routes_media_multer"
     },
@@ -8675,7 +8828,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L3",
-      "community": 112,
+      "community": 5,
       "norm_label": "path",
       "id": "routes_media_path"
     },
@@ -8684,7 +8837,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L4",
-      "community": 112,
+      "community": 5,
       "norm_label": "{ supabaseadmin }",
       "id": "routes_media_supabaseadmin"
     },
@@ -8693,7 +8846,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L5",
-      "community": 112,
+      "community": 5,
       "norm_label": "{ requireauth }",
       "id": "routes_media_requireauth"
     },
@@ -8702,7 +8855,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L6",
-      "community": 112,
+      "community": 5,
       "norm_label": "{ requireworkspacemember, requireworkspacerole }",
       "id": "routes_media_requireworkspacemember_requireworkspacerole"
     },
@@ -8711,7 +8864,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L8",
-      "community": 112,
+      "community": 5,
       "norm_label": "router",
       "id": "routes_media_router"
     },
@@ -8720,7 +8873,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L11",
-      "community": 112,
+      "community": 5,
       "norm_label": "upload",
       "id": "routes_media_upload"
     },
@@ -8729,7 +8882,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L31",
-      "community": 112,
+      "community": 5,
       "norm_label": "ext",
       "id": "routes_media_ext"
     },
@@ -8738,7 +8891,7 @@
       "file_type": "code",
       "source_file": "server/routes/media.js",
       "source_location": "L43",
-      "community": 112,
+      "community": 5,
       "norm_label": "{ data: { publicurl } }",
       "id": "routes_media_data_publicurl"
     },
@@ -9170,7 +9323,7 @@
       "file_type": "code",
       "source_file": "server/routes/notifications.js",
       "source_location": "L1",
-      "community": 113,
+      "community": 112,
       "norm_label": "notifications.js",
       "id": "server_routes_notifications_js"
     },
@@ -9179,7 +9332,7 @@
       "file_type": "code",
       "source_file": "server/routes/notifications.js",
       "source_location": "L1",
-      "community": 113,
+      "community": 112,
       "norm_label": "express",
       "id": "routes_notifications_express"
     },
@@ -9188,7 +9341,7 @@
       "file_type": "code",
       "source_file": "server/routes/notifications.js",
       "source_location": "L2",
-      "community": 113,
+      "community": 112,
       "norm_label": "{ supabaseadmin }",
       "id": "routes_notifications_supabaseadmin"
     },
@@ -9197,7 +9350,7 @@
       "file_type": "code",
       "source_file": "server/routes/notifications.js",
       "source_location": "L3",
-      "community": 113,
+      "community": 112,
       "norm_label": "{ requireauth }",
       "id": "routes_notifications_requireauth"
     },
@@ -9206,7 +9359,7 @@
       "file_type": "code",
       "source_file": "server/routes/notifications.js",
       "source_location": "L5",
-      "community": 113,
+      "community": 112,
       "norm_label": "router",
       "id": "routes_notifications_router"
     },
@@ -10601,7 +10754,7 @@
       "file_type": "document",
       "source_file": "docs/manual-testing-iterations-1-2.md",
       "source_location": "L83",
-      "community": 95,
+      "community": 56,
       "norm_label": "test 1.3: feedback visual \u2014 endpoint sincrono",
       "id": "docs_manual_testing_iterations_1_2_test_1_3_feedback_visual_endpoint_s\u00edncrono"
     },
@@ -10610,7 +10763,7 @@
       "file_type": "document",
       "source_file": "docs/manual-testing-iterations-1-2.md",
       "source_location": "L90",
-      "community": 95,
+      "community": 56,
       "norm_label": "code:bash (# o usa postman/insomnia para obtener token)",
       "id": "docs_manual_testing_iterations_1_2_codeblock_4"
     },
@@ -10619,7 +10772,7 @@
       "file_type": "document",
       "source_file": "docs/manual-testing-iterations-1-2.md",
       "source_location": "L96",
-      "community": 95,
+      "community": 56,
       "norm_label": "code:bash (curl -x post http://localhost:3003/api/digest/send-me \\)",
       "id": "docs_manual_testing_iterations_1_2_codeblock_5"
     },
@@ -10628,7 +10781,7 @@
       "file_type": "document",
       "source_file": "docs/manual-testing-iterations-1-2.md",
       "source_location": "L105",
-      "community": 95,
+      "community": 56,
       "norm_label": "code:json ({)",
       "id": "docs_manual_testing_iterations_1_2_codeblock_6"
     },
@@ -10637,7 +10790,7 @@
       "file_type": "document",
       "source_file": "docs/manual-testing-iterations-1-2.md",
       "source_location": "L113",
-      "community": 95,
+      "community": 56,
       "norm_label": "code:json ({)",
       "id": "docs_manual_testing_iterations_1_2_codeblock_7"
     },
@@ -10646,7 +10799,7 @@
       "file_type": "document",
       "source_file": "docs/manual-testing-iterations-1-2.md",
       "source_location": "L133",
-      "community": 56,
+      "community": 118,
       "norm_label": "test 1.4: endpoint user digest con timeout",
       "id": "docs_manual_testing_iterations_1_2_test_1_4_endpoint_user_digest_con_timeout"
     },
@@ -10655,7 +10808,7 @@
       "file_type": "document",
       "source_file": "docs/manual-testing-iterations-1-2.md",
       "source_location": "L140",
-      "community": 56,
+      "community": 118,
       "norm_label": "code:bash (admin_token=\"tu_jwt_token_aqui\")",
       "id": "docs_manual_testing_iterations_1_2_codeblock_8"
     },
@@ -10664,7 +10817,7 @@
       "file_type": "document",
       "source_file": "docs/manual-testing-iterations-1-2.md",
       "source_location": "L149",
-      "community": 56,
+      "community": 118,
       "norm_label": "code:json ({)",
       "id": "docs_manual_testing_iterations_1_2_codeblock_9"
     },
@@ -10673,7 +10826,7 @@
       "file_type": "document",
       "source_file": "docs/manual-testing-iterations-1-2.md",
       "source_location": "L156",
-      "community": 56,
+      "community": 118,
       "norm_label": "code:json ({)",
       "id": "docs_manual_testing_iterations_1_2_codeblock_10"
     },
@@ -11555,7 +11708,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L30",
-      "community": 50,
+      "community": 119,
       "norm_label": "[unreleased] - 2026-04-28 (v1.3.0)",
       "id": "docs_changelog_unreleased_2026_04_28_v1_3_0"
     },
@@ -11564,7 +11717,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L32",
-      "community": 50,
+      "community": 119,
       "norm_label": "added",
       "id": "docs_changelog_added_32"
     },
@@ -11573,7 +11726,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L41",
-      "community": 50,
+      "community": 119,
       "norm_label": "fixed",
       "id": "docs_changelog_fixed_41"
     },
@@ -11798,7 +11951,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L178",
-      "community": 118,
+      "community": 50,
       "norm_label": "[1.1.1] \u2014 2026-04-08 \u2014 fixes post-migracion + herramientas de migracion",
       "id": "docs_changelog_1_1_1_2026_04_08_fixes_post_migraci\u00f3n_herramientas_de_migraci\u00f3n"
     },
@@ -11807,7 +11960,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L180",
-      "community": 118,
+      "community": 50,
       "norm_label": "fixed",
       "id": "docs_changelog_fixed_180"
     },
@@ -11816,7 +11969,7 @@
       "file_type": "document",
       "source_file": "docs/CHANGELOG.md",
       "source_location": "L184",
-      "community": 118,
+      "community": 50,
       "norm_label": "added",
       "id": "docs_changelog_added_184"
     },
@@ -14522,767 +14675,162 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/middleware/auth.js",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
       "source_location": "L1",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_middleware_auth_js",
-      "target": "middleware_auth_jwt"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_middleware_auth_js",
-      "target": "utils_supabase_supabaseadmin"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_middleware_auth_js",
-      "target": "middleware_auth_supabaseadmin"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L18",
-      "weight": 1.0,
-      "source": "server_middleware_auth_js",
-      "target": "middleware_auth_usercache",
+      "source": "docs_runbooks_railway_custom_domain_md",
+      "target": "runbooks_railway_custom_domain_runbook_railway_custom_domain_api_kanban_aglaya_biz",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L20",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L9",
       "weight": 1.0,
-      "source": "server_middleware_auth_js",
-      "target": "middleware_auth_getuserfromdb",
+      "source": "runbooks_railway_custom_domain_runbook_railway_custom_domain_api_kanban_aglaya_biz",
+      "target": "runbooks_railway_custom_domain_contexto",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L8",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L22",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_middleware_auth_js",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L29",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_middleware_auth_js",
-      "target": "middleware_auth_requirerole"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L135",
-      "weight": 1.0,
-      "source": "server_middleware_auth_js",
-      "target": "middleware_auth_invalidateusercache",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "server_middleware_auth_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "server_middleware_auth_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L37",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_middleware_auth_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "server_middleware_auth_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_digestroute_js",
-      "target": "server_middleware_auth_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_middleware_auth_js",
-      "target": "server_utils_supabase_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/media.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_media_js",
-      "target": "server_middleware_auth_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/workspaces.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_workspaces_js",
-      "target": "server_middleware_auth_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/notifications.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_notifications_js",
-      "target": "server_middleware_auth_js"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "server/middleware/auth.js",
-      "source_location": "L100",
-      "weight": 1.0,
-      "source": "middleware_auth_requireauth",
-      "target": "middleware_auth_getuserfromdb",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L37",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_digestroute_js",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/media.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_media_js",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/workspaces.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_workspaces_js",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/notifications.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_notifications_js",
-      "target": "middleware_auth_requireauth"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "middleware_auth_requirerole"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_digestrouter",
-      "target": "middleware_auth_requirerole"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/digestRoute.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_digestroute_js",
-      "target": "middleware_auth_requirerole"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "middleware_auth_invalidateusercache",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "middleware_auth_invalidateusercache",
+      "source": "runbooks_railway_custom_domain_runbook_railway_custom_domain_api_kanban_aglaya_biz",
+      "target": "runbooks_railway_custom_domain_pasos",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L1",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L112",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_express"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_path"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_fs"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "utils_supabase_createadminclient"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_createadminclient"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_requireauth_requirerole_invalidateusercache",
+      "source": "runbooks_railway_custom_domain_runbook_railway_custom_domain_api_kanban_aglaya_biz",
+      "target": "runbooks_railway_custom_domain_hardening_alternativo_avanzado",
       "confidence_score": 1.0
     },
     {
-      "relation": "imports",
-      "context": "import",
+      "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L6",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L128",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "utils_mailer_sendemail"
+      "source": "runbooks_railway_custom_domain_runbook_railway_custom_domain_api_kanban_aglaya_biz",
+      "target": "runbooks_railway_custom_domain_validaci\u00f3n_post_setup",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L6",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L141",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_sendemail"
+      "source": "runbooks_railway_custom_domain_runbook_railway_custom_domain_api_kanban_aglaya_biz",
+      "target": "runbooks_railway_custom_domain_referencias",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L8",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L24",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_invite_template_path"
+      "source": "runbooks_railway_custom_domain_pasos",
+      "target": "runbooks_railway_custom_domain_1_railway_a\u00f1adir_custom_domain",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L10",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L31",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_getinvitetemplate"
+      "source": "runbooks_railway_custom_domain_pasos",
+      "target": "runbooks_railway_custom_domain_2_cloudflare_crear_cname",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L18",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L42",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_router"
+      "source": "runbooks_railway_custom_domain_pasos",
+      "target": "runbooks_railway_custom_domain_3_verificar_propagaci\u00f3n_dns_5_min",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_allowed_roles"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L26",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_resolverequesterorganizationid"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L41",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_isduplicateautherror"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L51",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_isuniqueconstrainterror"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
       "source_location": "L55",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_findauthuserbyemail"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L270",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_adminclient"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L79",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_query"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L279",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "routes_admin_targetquery"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L32",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_admin_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "server_utils_supabase_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/admin.js",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_admin_js",
-      "target": "server_utils_mailer_js"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_express"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_jwt"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "utils_supabase_createadminclient"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "utils_supabase_createpublicclient"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_createadminclient_createpublicclient"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_requireauth_invalidateusercache",
+      "source": "runbooks_railway_custom_domain_pasos",
+      "target": "runbooks_railway_custom_domain_4_cloudflare_firewall_rules_free_plan",
       "confidence_score": 1.0
     },
     {
-      "relation": "imports",
-      "context": "import",
+      "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L6",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L74",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "utils_userprofile_getsynceduserprofile"
+      "source": "runbooks_railway_custom_domain_pasos",
+      "target": "runbooks_railway_custom_domain_5_update_netlify_toml_yo_lo_hago_tras_verificaci\u00f3n_operador",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L6",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L92",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_getsynceduserprofile"
+      "source": "runbooks_railway_custom_domain_pasos",
+      "target": "runbooks_railway_custom_domain_6_update_server_cors_yo_tras_tu_confirmaci\u00f3n",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L8",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L102",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_router"
+      "source": "runbooks_railway_custom_domain_pasos",
+      "target": "runbooks_railway_custom_domain_7_deshabilitar_url_p\u00fablica_railway_opcional_requiere_pro",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L152",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L44",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_adminclient"
+      "source": "runbooks_railway_custom_domain_3_verificar_propagaci\u00f3n_dns_5_min",
+      "target": "runbooks_railway_custom_domain_codeblock_1",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L20",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L78",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_alloweddomains"
+      "source": "runbooks_railway_custom_domain_5_update_netlify_toml_yo_lo_hago_tras_verificaci\u00f3n_operador",
+      "target": "runbooks_railway_custom_domain_codeblock_2",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L101",
+      "source_file": "docs/runbooks/railway-custom-domain.md",
+      "source_location": "L96",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_token"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L73",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_authclient"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L155",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_update"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L157",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_h"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L238",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_assignedchecklistitems"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L276",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "routes_auth_exportdata"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/app.js",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_app_js",
-      "target": "server_routes_auth_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "server_utils_userprofile_js"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "server/routes/auth.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_routes_auth_js",
-      "target": "server_utils_supabase_js"
+      "source": "runbooks_railway_custom_domain_6_update_server_cors_yo_tras_tu_confirmaci\u00f3n",
+      "target": "runbooks_railway_custom_domain_codeblock_3",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -15677,6 +15225,17 @@
       "target": "server_app_internalrouter"
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L37",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "middleware_auth_requireauth"
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server/app.js",
@@ -15721,6 +15280,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server/app.js",
+      "source_location": "L160",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_app_sentry_enabled_sentryenabled"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
       "source_location": "L63",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -15758,14 +15327,37 @@
       "target": "server_app_start"
     },
     {
-      "relation": "contains",
+      "relation": "imports_from",
+      "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "server/app.js",
-      "source_location": "L160",
+      "source_location": "L37",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "server_app_js",
-      "target": "server_app_sentry_enabled_sentryenabled"
+      "target": "server_middleware_auth_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L32",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_admin_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/app.js",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_js",
+      "target": "server_routes_auth_js"
     },
     {
       "relation": "imports_from",
@@ -16019,6 +15611,39 @@
       "confidence_score": 1.0,
       "source": "server_tests_workspaces_test_js",
       "target": "server_app_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "server_middleware_auth_js"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "middleware_auth_requireauth"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_app_digestrouter",
+      "target": "middleware_auth_requirerole"
     },
     {
       "relation": "contains",
@@ -16354,6 +15979,694 @@
       "confidence_score": 1.0,
       "source": "server_app_internalrouter",
       "target": "routes_internalroute_verifysecret"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_middleware_auth_js",
+      "target": "middleware_auth_jwt"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_middleware_auth_js",
+      "target": "utils_supabase_supabaseadmin"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_middleware_auth_js",
+      "target": "middleware_auth_supabaseadmin"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_middleware_auth_js",
+      "target": "middleware_auth_usercache"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_middleware_auth_js",
+      "target": "middleware_auth_getuserfromdb"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_middleware_auth_js",
+      "target": "middleware_auth_requireauth"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_middleware_auth_js",
+      "target": "middleware_auth_requirerole"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L135",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_middleware_auth_js",
+      "target": "middleware_auth_invalidateusercache"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "server_middleware_auth_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "server_middleware_auth_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_digestroute_js",
+      "target": "server_middleware_auth_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_middleware_auth_js",
+      "target": "server_utils_supabase_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/media.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_media_js",
+      "target": "server_middleware_auth_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/workspaces.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_workspaces_js",
+      "target": "server_middleware_auth_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/notifications.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_notifications_js",
+      "target": "server_middleware_auth_js"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "server/middleware/auth.js",
+      "source_location": "L100",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "middleware_auth_requireauth",
+      "target": "middleware_auth_getuserfromdb"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "middleware_auth_requireauth"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "middleware_auth_requireauth"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_digestroute_js",
+      "target": "middleware_auth_requireauth"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/media.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_media_js",
+      "target": "middleware_auth_requireauth"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/workspaces.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_workspaces_js",
+      "target": "middleware_auth_requireauth"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/notifications.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_notifications_js",
+      "target": "middleware_auth_requireauth"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "middleware_auth_requirerole"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/digestRoute.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_digestroute_js",
+      "target": "middleware_auth_requirerole"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "middleware_auth_invalidateusercache"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "middleware_auth_invalidateusercache"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_express"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_path"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_fs"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "utils_supabase_createadminclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_createadminclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_requireauth_requirerole_invalidateusercache"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "utils_mailer_sendemail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_sendemail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_invite_template_path"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_getinvitetemplate"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_router"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_allowed_roles"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L26",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_resolverequesterorganizationid"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L41",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_isduplicateautherror"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L51",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_isuniqueconstrainterror"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L55",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_findauthuserbyemail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L270",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_adminclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L79",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_query"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L279",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "routes_admin_targetquery"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "server_utils_supabase_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/admin.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_admin_js",
+      "target": "server_utils_mailer_js"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_express"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_jwt"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "utils_supabase_createadminclient"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "utils_supabase_createpublicclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_createadminclient_createpublicclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_requireauth_invalidateusercache"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "utils_userprofile_getsynceduserprofile"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_getsynceduserprofile"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_router"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L152",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_adminclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_alloweddomains"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L101",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_token"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L73",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_authclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L155",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_update"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L157",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_h"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L238",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_assignedchecklistitems"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L276",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "routes_auth_exportdata"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "server_utils_userprofile_js"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "server/routes/auth.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_routes_auth_js",
+      "target": "server_utils_supabase_js"
     },
     {
       "relation": "contains",
@@ -36004,5 +36317,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "fe8a09067946b4f7a4c5b3d190a61a01f18510e6"
+  "built_at_commit": "66ca5ebda27882309f1d497c9d71c236b5bd3976"
 }

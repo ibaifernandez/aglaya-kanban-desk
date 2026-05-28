@@ -5,11 +5,12 @@
  * por los tests sin arrancar el servidor TCP.
  * El punto de entrada real es index.js.
  */
-const express   = require('express');
-const cors      = require('cors');
-const path      = require('path');
-const helmet    = require('helmet');
-const rateLimit = require('express-rate-limit');
+const express      = require('express');
+const cors         = require('cors');
+const path         = require('path');
+const helmet       = require('helmet');
+const rateLimit    = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const isProd = process.env.NODE_ENV === 'production';
@@ -53,7 +54,8 @@ const allowedOrigins = isProd
   ? ['https://kanban.aglaya.biz', 'https://api.kanban.aglaya.biz']
   : ['http://localhost:5175'];
 
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cookieParser());
 
 // ── B-03 host monitor — detecta acceso directo a Railway URL ──
 // Si request entra con Host: web-production-*.up.railway.app → log a

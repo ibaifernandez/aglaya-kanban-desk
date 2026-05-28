@@ -1,4 +1,4 @@
-import { getAuthToken } from '../utils/session.js';
+import { getAuthToken, setAuthToken, clearAuthToken } from '../utils/session.js';
 
 const BASE = '/api';
 
@@ -6,24 +6,84 @@ function getToken() {
   return getAuthToken();
 }
 
-async function request(path, options = {}) {
+// B-02 audit Mariana: interceptor 401 → /api/auth/refresh → retry.
+//
+// Si access token expira (15 min), un único intento de refresh transparente.
+// Refresh token va en HttpOnly cookie (credentials: 'include').
+//
+// Mutex para evitar refresh concurrente: múltiples requests que reciben 401
+// simultáneamente esperan el primero. Si refresh falla, todas reciben 401
+// y se redirigen a login.
+
+let refreshPromise = null;
+
+async function refreshAccessToken() {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${BASE}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) {
+        clearAuthToken();
+        return null;
+      }
+      const data = await res.json();
+      if (data?.token) {
+        setAuthToken(data.token);
+        return data.token;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    } finally {
+      // Liberar mutex tras la siguiente microtask para que requests en flight
+      // que esperaban este refresh lean el resultado.
+      setTimeout(() => { refreshPromise = null; }, 0);
+    }
+  })();
+
+  return refreshPromise;
+}
+
+async function fetchWithAuth(path, options = {}, isRetry = false) {
   const token = getToken();
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE}${path}`, {
-    headers,
+    credentials: 'include',  // refresh cookie HttpOnly
     ...options,
+    headers,
   });
+
+  // Si 401 y no es retry ni endpoint de auth → intentar refresh + retry una vez
+  if (res.status === 401 && !isRetry && !path.startsWith('/auth/refresh') && !path.startsWith('/auth/login')) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      return fetchWithAuth(path, options, true);
+    }
+  }
+
+  return res;
+}
+
+async function request(path, options = {}) {
+  const res = await fetchWithAuth(path, options);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
   return json.data;
 }
 
 export const api = {
-  // Auth
+  // Auth — B-02: credentials:'include' para que el refresh cookie HttpOnly
+  // se setee en respuesta a login + se envíe en /auth/refresh + /auth/logout.
   login:    (body) => fetch('/api/auth/login', {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   }).then(async (r) => {
@@ -31,6 +91,12 @@ export const api = {
     if (!r.ok) throw new Error(json.error || `HTTP ${r.status}`);
     return json;
   }),
+
+  // B-02: logout invalida refresh cookie en server. Access token muere en TTL.
+  logout: () => fetch('/api/auth/logout', {
+    method: 'POST',
+    credentials: 'include',
+  }).then(() => true).catch(() => true),  // best-effort, no fallar logout local
 
   // Boards
   getBoards:     ()         => request('/boards'),

@@ -58,6 +58,17 @@ export function getAuthToken() {
   return readAuthSession().token;
 }
 
+// B-02 audit Mariana: helpers para que el interceptor de refresh en api/client.js
+// pueda actualizar el access token sin tocar el resto del session payload.
+export function setAuthToken(token) {
+  const session = readAuthSession();
+  writeAuthSession(token, session.user);
+}
+
+export function clearAuthToken() {
+  clearAuthSession();
+}
+
 export function readUiState() {
   const currentState = parseJson(sessionStorage.getItem(UI_STATE_KEY));
   if (currentState) return currentState;

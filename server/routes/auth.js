@@ -6,6 +6,46 @@ const { getSyncedUserProfile } = require('../utils/userProfile');
 
 const router = express.Router();
 
+// ── B-02 audit Mariana: tokens dual ───────────────────────────────────────────
+// Access token: corto (15 min), va en response body + localStorage cliente.
+// Refresh token: largo (30 días), va en HttpOnly cookie (XSS-resistant).
+// Refresh secret distinto al access secret para que leak access NO derive refresh.
+//
+// JWT_REFRESH_SECRET en env vars. Si no está seteado, fallback al JWT_SECRET
+// (compat con setup pre-B-02). Recomendado: setear distinto en prod.
+
+const ACCESS_TTL = '15m';
+const REFRESH_TTL_DAYS = 30;
+const REFRESH_TTL = `${REFRESH_TTL_DAYS}d`;
+const REFRESH_COOKIE_NAME = 'aglaya_refresh';
+
+function refreshSecret() {
+  return process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+}
+
+function signAccessToken(claims) {
+  return jwt.sign(claims, process.env.JWT_SECRET, { expiresIn: ACCESS_TTL });
+}
+
+function signRefreshToken(claims) {
+  // Refresh payload mínimo — solo lo que necesitamos para re-emitir access:
+  return jwt.sign({ id: claims.id, typ: 'refresh' }, refreshSecret(), { expiresIn: REFRESH_TTL });
+}
+
+function setRefreshCookie(res, token) {
+  res.cookie(REFRESH_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000,
+    path: '/api/auth',  // cookie solo se envía a /api/auth/* — minimal exposure
+  });
+}
+
+function clearRefreshCookie(res) {
+  res.clearCookie(REFRESH_COOKIE_NAME, { path: '/api/auth' });
+}
+
 // ── POST /api/auth/register ───────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
   const adminClient = createAdminClient();
@@ -57,14 +97,13 @@ router.post('/register', async (req, res) => {
     }
   }
 
-  // 4. Build JWT
-  const token = jwt.sign(
-    { id: userId, email, name, role, organizationId: organizationId || null },
-    process.env.JWT_SECRET,
-    { expiresIn: '7d' }
-  );
+  // 4. Build JWTs (B-02 — access corto + refresh HttpOnly cookie)
+  const claims = { id: userId, email, name, role, organizationId: organizationId || null };
+  const accessToken = signAccessToken(claims);
+  const refreshToken = signRefreshToken(claims);
+  setRefreshCookie(res, refreshToken);
 
-  return res.status(201).json({ token, user: { id: userId, email, name, role, avatarUrl: null } });
+  return res.status(201).json({ token: accessToken, user: { id: userId, email, name, role, avatarUrl: null } });
 });
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
@@ -96,21 +135,20 @@ router.post('/login', async (req, res) => {
     return res.status(500).json({ error: 'Error al obtener el perfil de usuario' });
   }
 
-  // 3. Build JWT
-  const token = jwt.sign(
-    {
-      id: userId,
-      email: profile.email,
-      name: profile.name,
-      role: profile.role,
-      organizationId: profile.organization_id,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: '7d' }
-  );
+  // 3. Build JWTs (B-02 — access corto + refresh HttpOnly cookie)
+  const claims = {
+    id: userId,
+    email: profile.email,
+    name: profile.name,
+    role: profile.role,
+    organizationId: profile.organization_id,
+  };
+  const accessToken = signAccessToken(claims);
+  const refreshToken = signRefreshToken(claims);
+  setRefreshCookie(res, refreshToken);
 
   return res.json({
-    token,
+    token: accessToken,
     user: {
       id: userId,
       email: profile.email,
@@ -344,6 +382,9 @@ router.delete('/me', requireAuth, async (req, res) => {
 
     console.warn(`[auth] self-delete completado userId=${userId} email=${userEmail}`);
 
+    // B-02: clear refresh cookie también
+    clearRefreshCookie(res);
+
     return res.status(200).json({
       ok: true,
       message: 'Cuenta eliminada. Las cards de las que eras owner permanecen accesibles a los workspaces correspondientes (sin owner asignado). Los workspaces que pertenecían solo a ti han sido eliminados en cascada.',
@@ -352,6 +393,76 @@ router.delete('/me', requireAuth, async (req, res) => {
     console.error('[auth] self-delete error:', err.message);
     return res.status(500).json({ error: 'Error al eliminar cuenta' });
   }
+});
+
+// ── POST /api/auth/refresh ────────────────────────────────────────────────────
+// B-02 audit Mariana: emite nuevo access token desde refresh cookie HttpOnly.
+// Sin auth header — el refresh cookie ES la auth aquí.
+// Rate-limited via authLimiter (montado en app.js a /api/auth).
+router.post('/refresh', async (req, res) => {
+  const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
+  if (!refreshToken) {
+    return res.status(401).json({ error: 'No refresh token' });
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(refreshToken, refreshSecret());
+  } catch (err) {
+    clearRefreshCookie(res);
+    return res.status(401).json({ error: 'Refresh token inválido o expirado' });
+  }
+
+  if (decoded?.typ !== 'refresh' || !decoded?.id) {
+    clearRefreshCookie(res);
+    return res.status(401).json({ error: 'Refresh token mal formado' });
+  }
+
+  // Re-fetch user de DB para que el nuevo access reflect role/orgId actuales (B-07).
+  const adminClient = createAdminClient();
+  const { data: profile, error } = await adminClient
+    .from('users')
+    .select('id, email, name, role, organization_id, avatar_url')
+    .eq('id', decoded.id)
+    .single();
+
+  if (error || !profile) {
+    clearRefreshCookie(res);
+    return res.status(401).json({ error: 'Usuario no encontrado' });
+  }
+
+  const claims = {
+    id: profile.id,
+    email: profile.email,
+    name: profile.name,
+    role: profile.role,
+    organizationId: profile.organization_id,
+  };
+  const accessToken = signAccessToken(claims);
+
+  // Rotación: emit nuevo refresh también (extends sliding window, mitigates replay)
+  const newRefresh = signRefreshToken(claims);
+  setRefreshCookie(res, newRefresh);
+
+  return res.json({
+    token: accessToken,
+    user: {
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      role: profile.role,
+      organizationId: profile.organization_id,
+      avatarUrl: profile.avatar_url ?? null,
+    },
+  });
+});
+
+// ── POST /api/auth/logout ─────────────────────────────────────────────────────
+// B-02 audit Mariana: clear refresh cookie. Access token muere por TTL 15min.
+// No requiere auth — clear funciona aunque el cookie esté inválido/expirado.
+router.post('/logout', (req, res) => {
+  clearRefreshCookie(res);
+  return res.json({ ok: true });
 });
 
 module.exports = router;
