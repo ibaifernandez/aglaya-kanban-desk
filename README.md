@@ -1,7 +1,7 @@
 # AGLAYA Kanban Desk
 
-![Version](https://img.shields.io/badge/version-1.3.1-6366f1)
-![Tests](https://img.shields.io/badge/tests-85%20passing-brightgreen)
+![Version](https://img.shields.io/badge/version-1.1.5-6366f1)
+![Tests](https://img.shields.io/badge/tests-95%20passing-brightgreen)
 ![Client](https://img.shields.io/badge/client-Netlify-00C7B7?logo=netlify)
 ![Server](https://img.shields.io/badge/server-Railway-0B0D0E?logo=railway)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)

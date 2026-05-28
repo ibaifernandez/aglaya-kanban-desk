@@ -1,6 +1,5 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const { createAdminClient, createPublicClient } = require('../utils/supabase');
 const { requireAuth } = require('../middleware/auth');
 const { getSyncedUserProfile } = require('../utils/userProfile');

@@ -85,10 +85,19 @@
       "norm_label": "build"
     },
     {
-      "label": "preview",
+      "label": "build:legal",
       "file_type": "code",
       "source_file": "client/package.json",
       "source_location": "L10",
+      "id": "client_package_scripts_build_legal",
+      "community": 7,
+      "norm_label": "build:legal"
+    },
+    {
+      "label": "preview",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L11",
       "id": "client_package_scripts_preview",
       "community": 7,
       "norm_label": "preview"
@@ -97,7 +106,7 @@
       "label": "dependencies",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L12",
+      "source_location": "L13",
       "id": "client_package_dependencies",
       "community": 7,
       "norm_label": "dependencies"
@@ -106,7 +115,7 @@
       "label": "@dnd-kit/core",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L13",
+      "source_location": "L14",
       "id": "client_package_dependencies_dnd_kit_core",
       "community": 7,
       "norm_label": "@dnd-kit/core"
@@ -115,7 +124,7 @@
       "label": "@dnd-kit/sortable",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L14",
+      "source_location": "L15",
       "id": "client_package_dependencies_dnd_kit_sortable",
       "community": 7,
       "norm_label": "@dnd-kit/sortable"
@@ -124,7 +133,7 @@
       "label": "@dnd-kit/utilities",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L15",
+      "source_location": "L16",
       "id": "client_package_dependencies_dnd_kit_utilities",
       "community": 7,
       "norm_label": "@dnd-kit/utilities"
@@ -133,7 +142,7 @@
       "label": "@supabase/supabase-js",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L16",
+      "source_location": "L17",
       "id": "client_package_dependencies_supabase_supabase_js",
       "community": 7,
       "norm_label": "@supabase/supabase-js"
@@ -142,7 +151,7 @@
       "label": "lucide-react",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L17",
+      "source_location": "L18",
       "id": "client_package_dependencies_lucide_react",
       "community": 7,
       "norm_label": "lucide-react"
@@ -151,7 +160,7 @@
       "label": "react",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L18",
+      "source_location": "L19",
       "id": "client_package_dependencies_react",
       "community": 7,
       "norm_label": "react"
@@ -160,7 +169,7 @@
       "label": "react-dom",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L19",
+      "source_location": "L20",
       "id": "client_package_dependencies_react_dom",
       "community": 7,
       "norm_label": "react-dom"
@@ -169,7 +178,7 @@
       "label": "react-easy-crop",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L20",
+      "source_location": "L21",
       "id": "client_package_dependencies_react_easy_crop",
       "community": 7,
       "norm_label": "react-easy-crop"
@@ -178,7 +187,7 @@
       "label": "react-markdown",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L21",
+      "source_location": "L22",
       "id": "client_package_dependencies_react_markdown",
       "community": 7,
       "norm_label": "react-markdown"
@@ -187,7 +196,7 @@
       "label": "remark-gfm",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L22",
+      "source_location": "L23",
       "id": "client_package_dependencies_remark_gfm",
       "community": 7,
       "norm_label": "remark-gfm"
@@ -196,7 +205,7 @@
       "label": "devDependencies",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L24",
+      "source_location": "L25",
       "id": "client_package_devdependencies",
       "community": 7,
       "norm_label": "devdependencies"
@@ -205,7 +214,7 @@
       "label": "@types/react",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L25",
+      "source_location": "L26",
       "id": "client_package_devdependencies_types_react",
       "community": 7,
       "norm_label": "@types/react"
@@ -214,7 +223,7 @@
       "label": "@types/react-dom",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L26",
+      "source_location": "L27",
       "id": "client_package_devdependencies_types_react_dom",
       "community": 7,
       "norm_label": "@types/react-dom"
@@ -223,7 +232,7 @@
       "label": "@vitejs/plugin-react",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L27",
+      "source_location": "L28",
       "id": "client_package_devdependencies_vitejs_plugin_react",
       "community": 7,
       "norm_label": "@vitejs/plugin-react"
@@ -232,16 +241,25 @@
       "label": "autoprefixer",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L28",
+      "source_location": "L29",
       "id": "client_package_devdependencies_autoprefixer",
       "community": 7,
       "norm_label": "autoprefixer"
     },
     {
+      "label": "marked",
+      "file_type": "code",
+      "source_file": "client/package.json",
+      "source_location": "L30",
+      "id": "client_package_devdependencies_marked",
+      "community": 7,
+      "norm_label": "marked"
+    },
+    {
       "label": "postcss",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L29",
+      "source_location": "L31",
       "id": "client_package_devdependencies_postcss",
       "community": 7,
       "norm_label": "postcss"
@@ -250,7 +268,7 @@
       "label": "tailwindcss",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L30",
+      "source_location": "L32",
       "id": "client_package_devdependencies_tailwindcss",
       "community": 7,
       "norm_label": "tailwindcss"
@@ -259,7 +277,7 @@
       "label": "vite",
       "file_type": "code",
       "source_file": "client/package.json",
-      "source_location": "L31",
+      "source_location": "L33",
       "id": "client_package_devdependencies_vite",
       "community": 7,
       "norm_label": "vite"
@@ -571,19 +589,10 @@
       "norm_label": "jest"
     },
     {
-      "label": "marked",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L38",
-      "id": "aglaya_kanban_desk_package_devdependencies_marked",
-      "community": 6,
-      "norm_label": "marked"
-    },
-    {
       "label": "supertest",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L39",
+      "source_location": "L38",
       "id": "aglaya_kanban_desk_package_devdependencies_supertest",
       "community": 6,
       "norm_label": "supertest"
@@ -593,72 +602,72 @@
       "file_type": "code",
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L1",
-      "id": "scripts_build_legal_pages_js",
       "community": 108,
-      "norm_label": "build-legal-pages.js"
+      "norm_label": "build-legal-pages.js",
+      "id": "scripts_build_legal_pages_js"
     },
     {
       "label": "fs",
       "file_type": "code",
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L16",
-      "id": "scripts_build_legal_pages_fs",
       "community": 108,
-      "norm_label": "fs"
+      "norm_label": "fs",
+      "id": "scripts_build_legal_pages_fs"
     },
     {
       "label": "path",
       "file_type": "code",
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L17",
-      "id": "scripts_build_legal_pages_path",
       "community": 108,
-      "norm_label": "path"
+      "norm_label": "path",
+      "id": "scripts_build_legal_pages_path"
     },
     {
       "label": "{ marked }",
       "file_type": "code",
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L18",
-      "id": "scripts_build_legal_pages_marked",
       "community": 108,
-      "norm_label": "{ marked }"
+      "norm_label": "{ marked }",
+      "id": "scripts_build_legal_pages_marked"
     },
     {
       "label": "ROOT",
       "file_type": "code",
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L20",
-      "id": "scripts_build_legal_pages_root",
       "community": 108,
-      "norm_label": "root"
+      "norm_label": "root",
+      "id": "scripts_build_legal_pages_root"
     },
     {
       "label": "PAGES",
       "file_type": "code",
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L23",
-      "id": "scripts_build_legal_pages_pages",
       "community": 108,
-      "norm_label": "pages"
+      "norm_label": "pages",
+      "id": "scripts_build_legal_pages_pages"
     },
     {
       "label": "wrap()",
       "file_type": "code",
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L34",
-      "id": "scripts_build_legal_pages_wrap",
       "community": 108,
-      "norm_label": "wrap()"
+      "norm_label": "wrap()",
+      "id": "scripts_build_legal_pages_wrap"
     },
     {
       "label": "buildPage()",
       "file_type": "code",
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L158",
-      "id": "scripts_build_legal_pages_buildpage",
       "community": 108,
-      "norm_label": "buildpage()"
+      "norm_label": "buildpage()",
+      "id": "scripts_build_legal_pages_buildpage"
     },
     {
       "label": "DPA-registry.md",
@@ -9368,7 +9377,7 @@
       "file_type": "code",
       "source_file": "client/src/utils/session.js",
       "source_location": "L61",
-      "community": 49,
+      "community": 76,
       "norm_label": "readuistate()",
       "id": "utils_session_readuistate"
     },
@@ -9377,7 +9386,7 @@
       "file_type": "code",
       "source_file": "client/src/utils/session.js",
       "source_location": "L75",
-      "community": 49,
+      "community": 76,
       "norm_label": "writeuistate()",
       "id": "utils_session_writeuistate"
     },
@@ -9521,7 +9530,7 @@
       "file_type": "code",
       "source_file": "client/src/components/UI/IconButton.jsx",
       "source_location": "L1",
-      "community": 81,
+      "community": 41,
       "norm_label": "iconbutton.jsx",
       "id": "client_src_components_ui_iconbutton_jsx"
     },
@@ -9530,7 +9539,7 @@
       "file_type": "code",
       "source_file": "client/src/components/UI/IconButton.jsx",
       "source_location": "L1",
-      "community": 81,
+      "community": 41,
       "norm_label": "iconbutton()",
       "id": "ui_iconbutton_iconbutton"
     },
@@ -14582,9 +14591,9 @@
       "source_file": "client/package.json",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "client_package_scripts",
-      "target": "client_package_scripts_prebuild",
-      "confidence_score": 1.0
+      "target": "client_package_scripts_prebuild"
     },
     {
       "relation": "contains",
@@ -14595,6 +14604,16 @@
       "confidence_score": 1.0,
       "source": "client_package_scripts",
       "target": "client_package_scripts_build"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "client_package_scripts",
+      "target": "client_package_scripts_build_legal",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -14750,6 +14769,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "client/package.json",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "client_package_devdependencies",
+      "target": "client_package_devdependencies_marked",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "client/package.json",
       "source_location": "L28",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -14892,9 +14921,9 @@
       "source_file": "package.json",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "aglaya_kanban_desk_package_scripts",
-      "target": "aglaya_kanban_desk_package_scripts_build_legal",
-      "confidence_score": 1.0
+      "target": "aglaya_kanban_desk_package_scripts_build_legal"
     },
     {
       "relation": "contains",
@@ -15120,16 +15149,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L38",
-      "weight": 1.0,
-      "source": "aglaya_kanban_desk_package_devdependencies",
-      "target": "aglaya_kanban_desk_package_devdependencies_marked",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
       "source_location": "L35",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -15142,9 +15161,9 @@
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_build_legal_pages_js",
-      "target": "scripts_build_legal_pages_fs",
-      "confidence_score": 1.0
+      "target": "scripts_build_legal_pages_fs"
     },
     {
       "relation": "contains",
@@ -15152,9 +15171,9 @@
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_build_legal_pages_js",
-      "target": "scripts_build_legal_pages_path",
-      "confidence_score": 1.0
+      "target": "scripts_build_legal_pages_path"
     },
     {
       "relation": "contains",
@@ -15162,9 +15181,9 @@
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_build_legal_pages_js",
-      "target": "scripts_build_legal_pages_marked",
-      "confidence_score": 1.0
+      "target": "scripts_build_legal_pages_marked"
     },
     {
       "relation": "contains",
@@ -15172,9 +15191,9 @@
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_build_legal_pages_js",
-      "target": "scripts_build_legal_pages_root",
-      "confidence_score": 1.0
+      "target": "scripts_build_legal_pages_root"
     },
     {
       "relation": "contains",
@@ -15182,9 +15201,9 @@
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L23",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_build_legal_pages_js",
-      "target": "scripts_build_legal_pages_pages",
-      "confidence_score": 1.0
+      "target": "scripts_build_legal_pages_pages"
     },
     {
       "relation": "contains",
@@ -15192,9 +15211,9 @@
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L34",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_build_legal_pages_js",
-      "target": "scripts_build_legal_pages_wrap",
-      "confidence_score": 1.0
+      "target": "scripts_build_legal_pages_wrap"
     },
     {
       "relation": "contains",
@@ -15202,9 +15221,9 @@
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L158",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_build_legal_pages_js",
-      "target": "scripts_build_legal_pages_buildpage",
-      "confidence_score": 1.0
+      "target": "scripts_build_legal_pages_buildpage"
     },
     {
       "relation": "calls",
@@ -15213,9 +15232,9 @@
       "source_file": "scripts/build-legal-pages.js",
       "source_location": "L178",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_build_legal_pages_buildpage",
-      "target": "scripts_build_legal_pages_wrap",
-      "confidence_score": 1.0
+      "target": "scripts_build_legal_pages_wrap"
     },
     {
       "relation": "contains",
@@ -35948,5 +35967,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f61a4d9a060b9d9ead914fd59fd5a5a0f01e00da"
+  "built_at_commit": "56523f578241f59be9d19184f66baff7e7ed6d81"
 }
