@@ -47,11 +47,44 @@ app.use(helmet({
 }));
 
 // ── CORS ───────────────────────────────────────────────────
+// allowlist incluye api.kanban.aglaya.biz para cuando el custom domain
+// esté setup (ver docs/runbooks/railway-custom-domain.md — B-03).
 const allowedOrigins = isProd
-  ? ['https://kanban.aglaya.biz']
+  ? ['https://kanban.aglaya.biz', 'https://api.kanban.aglaya.biz']
   : ['http://localhost:5175'];
 
 app.use(cors({ origin: allowedOrigins }));
+
+// ── B-03 host monitor — detecta acceso directo a Railway URL ──
+// Si request entra con Host: web-production-*.up.railway.app → log a
+// Sentry como signal de bypass intentado del proxy Netlify.
+// Cuando custom domain api.kanban.aglaya.biz esté setup, esto detecta
+// tráfico fuera del path esperado.
+if (isProd) {
+  const { Sentry, enabled: sentryEnabled } = require('./utils/sentry');
+  app.use((req, res, next) => {
+    const host = req.headers.host || '';
+    // Skip health (uptime monitors pueden tocar URL directa) e internal cron
+    if (req.path === '/api/health' || req.path.startsWith('/api/digest/cron-trigger')) {
+      return next();
+    }
+    if (host.includes('.railway.app') || host.includes('.up.railway.app')) {
+      const ua = req.headers['user-agent'] || '';
+      const forwardedFor = req.headers['x-forwarded-for'] || req.ip || '';
+      console.warn(`[B-03 monitor] direct railway access: host=${host} path=${req.path} ua=${ua.slice(0,80)} ip=${forwardedFor}`);
+      if (sentryEnabled) {
+        Sentry.captureMessage('B-03 direct railway access detected', {
+          level: 'warning',
+          tags: { audit: 'B-03', host, path: req.path },
+          extra: { user_agent: ua, ip: forwardedFor },
+        });
+      }
+      // NO bloqueamos todavía — solo loggeamos. Cambiar a 403 cuando
+      // el patrón de tráfico legítimo esté confirmado (≥1 semana data).
+    }
+    next();
+  });
+}
 
 // ── Rate limiting (B-06 audit Mariana) ─────────────────────
 //
