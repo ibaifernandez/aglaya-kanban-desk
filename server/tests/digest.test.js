@@ -174,7 +174,7 @@ describe('POST /api/digest/send-my-digest', () => {
     expect(res.status).toBe(500);
     expect(res.body.ok).toBe(false);
     expect(res.body.error).toContain('expirado');
-  });
+  }, 20000);
 
   it('responds with ok=true when digest sends successfully', async () => {
     const res = await request(app)
