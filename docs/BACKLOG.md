@@ -1,6 +1,12 @@
 # BACKLOG — AGLAYA Kanban Desk
 
-Registro granular de tareas por fase. Actualizar al completar o añadir ítems.
+Registro granular de tareas por fase (producto). Actualizar al completar o añadir ítems.
+
+> **Deuda técnica del audit Mariana:** los 49 findings medio/bajo/info pendientes
+> (a11y, seguridad/DB, legales, ops) viven en su propia cola:
+> [`backlog/audit-mariana-roadmap.md`](./backlog/audit-mariana-roadmap.md).
+> Este BACKLOG.md cubre features/producto; el roadmap del audit cubre deuda técnica.
+> Son complementarios — no dupliques ítems entre ambos.
 
 ---
 

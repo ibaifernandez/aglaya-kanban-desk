@@ -1,6 +1,6 @@
 # ROADMAP — AGLAYA Kanban Desk
 
-**Última actualización:** 2026-04-29
+**Última actualización:** 2026-07-12 (v1.3.1)
 
 ---
 

@@ -1,0 +1,74 @@
+name: schema-guard
+
+# Vacuna B-10 (audit Mariana): impide que una migración SQL entre sin actualizar
+# el schema fuente de verdad (docs/schema/supabase-schema.sql) y, si crea tabla,
+# sin GRANT explícito + ENABLE ROW LEVEL SECURITY.
+#
+# Causa raíz que previene (DOC-01, 2026-07-12): el schema doc llevaba fósil desde
+# ~v1.2.0 porque las migraciones no lo actualizaban. Este guard rompe ese ciclo.
+#
+# Corre en push Y pull_request a main (el repo despliega por push directo a main).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  guard:
+    name: Migración ↔ schema doc + GRANT/RLS
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout (historial completo para diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verificar coherencia migración ↔ schema
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+
+          # Primer push a un branch nuevo: BASE all-zeros → comparar con árbol vacío
+          if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE="$(git hash-object -t tree /dev/null)"
+          fi
+
+          CHANGED="$(git diff --name-only "$BASE" "$HEAD")"
+          echo "Ficheros cambiados:"; echo "$CHANGED"; echo "---"
+
+          MIGRATIONS="$(echo "$CHANGED" | grep -E '^(migrations/|docs/schema/migration-).*\.sql$' || true)"
+          if [ -z "$MIGRATIONS" ]; then
+            echo "Sin migraciones en el cambio — guard OK."
+            exit 0
+          fi
+          echo "Migraciones detectadas:"; echo "$MIGRATIONS"; echo "---"
+
+          # (1) toda migración exige actualizar el schema fuente de verdad
+          if ! echo "$CHANGED" | grep -qx 'docs/schema/supabase-schema.sql'; then
+            echo "::error::B-10: hay migración SQL pero NO se actualizó docs/schema/supabase-schema.sql (fuente de verdad). Regenera el schema y vuelve a commitear."
+            exit 1
+          fi
+
+          # (2) migraciones que crean tabla exigen GRANT + ENABLE RLS
+          FAIL=0
+          for m in $MIGRATIONS; do
+            git cat-file -e "$HEAD:$m" 2>/dev/null || continue
+            CONTENT="$(git show "$HEAD:$m")"
+            if echo "$CONTENT" | grep -qiE 'CREATE TABLE'; then
+              echo "$CONTENT" | grep -qi 'GRANT'               || { echo "::error::B-10: $m crea tabla sin GRANT explícito."; FAIL=1; }
+              echo "$CONTENT" | grep -qi 'ROW LEVEL SECURITY'  || { echo "::error::B-10: $m crea tabla sin ENABLE ROW LEVEL SECURITY."; FAIL=1; }
+            fi
+          done
+          [ "$FAIL" = "0" ] || exit 1
+
+          echo "B-10 guard: OK"

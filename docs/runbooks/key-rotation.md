@@ -1,6 +1,6 @@
 # Runbook — Rotación de claves y secretos
 
-**Última actualización:** 2026-05-27
+**Última actualización:** 2026-07-12
 **Mitigación de:** D-18 (audit Mariana 2026-05-27)
 **Cadencia recomendada:** anual mínimo + ad-hoc tras incidente / dev offboarding / sospecha de leak.
 
@@ -10,7 +10,7 @@
 
 | Clave | Vive en | Próxima rotación | Quién la usa |
 |---|---|---|---|
-| `aglaya-kanban-r2-bootstrap` (Cloudflare User API Token) | `.env` local + GitHub Secret `R2_ACCESS_KEY_ID` | **🔴 Jun 2 2026 (HARD — TTL 7d)** | Workflow `db-backup.yml` |
+| `aglaya-kanban-r2-bootstrap` (Cloudflare User API Token) | `.env` local + GitHub Secret `R2_ACCESS_KEY_ID` | ✅ extendido a **May 2027** (deadline Jun 2 2026 resuelto) | Workflow `db-backup.yml` |
 | `JWT_SECRET` | Railway env vars + `.env` local | Anual (próxima ~2027-05) | Server JWT signing/verifying |
 | `SUPABASE_SERVICE_ROLE_KEY` | Railway env vars + `.env` local | Anual o ad-hoc | Server admin operations |
 | `SUPABASE_DATABASE_PASSWORD` | Railway env vars + `.env` local + GitHub Secret `DATABASE_URL` | Anual o ad-hoc | Server DDL via psql, GH backup workflow |
@@ -18,7 +18,7 @@
 | `TASK_SECRET` | Railway env vars + `.env` local | Anual | `/api/internal/*` endpoints |
 | `DIGEST_CRON_SECRET` | GitHub Secret + Railway env | Anual | GH Actions digest-cron workflow |
 | `SUPABASE_PAT` | `.env` local | Anual | Supabase Management API (local scripts) |
-| `kanban-backup-prod-v2` (Cloudflare User R2 Token) | unused (creado durante audit, no consumido) | Borrar | n/a |
+| `kanban-backup-prod-v2` (Cloudflare User R2 Token) | ✅ ya borrado (huérfano del audit) | — | n/a |
 
 ---
 
@@ -42,9 +42,9 @@
 
 ---
 
-## 1. Rotar Cloudflare R2 token (deadline Jun 2 2026)
+## 1. Rotar Cloudflare R2 token
 
-> **🔴 URGENTE — el bootstrap token actual expira Jun 2 2026.** Sin rotación, workflow `db-backup.yml` falla silenciosamente (`Notify on failure` solo emite `::error::` en GH Actions log, sin push notification — D-08 pendiente).
+> **Estado:** el bootstrap token se extendió a **May 2027** (deadline Jun 2 2026 ya resuelto). Al acercarse 2027, rotar con Opción A o B. Sin token válido, `db-backup.yml` falla silenciosamente (solo `::error::` en el log, sin push notification — D-08 pendiente).
 
 ### Opción A — Extender TTL del token actual (recomendado quick-win)
 
@@ -120,7 +120,7 @@ Por ahora, mantener native R2 API (cfut_ Bearer auth) en workflow `db-backup.yml
 
 1. Ir a https://supabase.com/dashboard/project/jowtasxhnluqqcgkeoll/settings/api
 2. Click **Reset** en `service_role` key (o **Reveal** para ver actual).
-3. **⚠️ Cloudflare regenera la key inmediatamente.** No hay ventana de gracia.
+3. **⚠️ Supabase regenera la key inmediatamente.** No hay ventana de gracia.
 4. Copiar nueva key.
 5. Update Railway env var `SUPABASE_SERVICE_ROLE_KEY` (Railway redeploy automático).
 6. Update `.env` local.
@@ -248,7 +248,7 @@ Tras cualquier rotación:
 
 | Cuándo | Acción |
 |---|---|
-| 2026-05-30 (3 días antes del deadline) | Rotar `aglaya-kanban-r2-bootstrap` (opción A o B) |
+| ~2027-05 (antes del nuevo TTL) | Rotar `aglaya-kanban-r2-bootstrap` (opción A o B) |
 | Cada Q1 (enero) | Rotación anual: `JWT_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `TASK_SECRET`, `DIGEST_CRON_SECRET`, `SUPABASE_PAT` |
 | Tras incidente / sospecha leak | Rotación inmediata de la clave afectada + audit |
 | Tras dev offboarding | Rotación de cualquier clave que tuvo acceso |

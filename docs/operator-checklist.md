@@ -182,12 +182,7 @@ gh secret delete R2_ENDPOINT -R ibaifernandez/aglaya-kanban-desk
 
 ### 7. ✅ Actualizar version badge README
 
-README dice `version-1.3.1` pero `package.json` dice `1.1.5`. Decidir cuál es la verdad:
-
-- Si `1.1.5` es correcto: editar `README.md:4` → cambiar `version-1.3.1` por `version-1.1.5`
-- Si quieres bumpear: `npm version 1.4.0 --no-git-tag-version` + actualizar README a `1.4.0`
-
-Plus: `tests-85 passing` → cambiar a `tests-95 passing` (4 skipped no se cuentan).
+RESUELTO (2026-07-12): versión unificada a **1.3.1** en todos los sitios (fuente única = raíz `package.json`); badge de tests a **102 passing** (106 tests / 13 suites, 4 skip). Ver commit `d6f3494`.
 
 ### 8. ✅ Limpiar dead deps
 
