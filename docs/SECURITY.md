@@ -242,4 +242,4 @@ Si descubres una vulnerabilidad:
 - `docs/audits/2026-05-27-mariana/findings.json` — hallazgos queryables
 - `docs/audits/2026-05-27-mariana/audit-B.md` — detalle seguridad/DB/arquitectura
 - `docs/runbooks/db-restore.md` — procedimiento restore backup
-- `docs/ADR-025-state-management.md` — decisión state management cliente
+- `docs/ARCHITECTURE.md` §7 (ADR-025) — decisión state management cliente

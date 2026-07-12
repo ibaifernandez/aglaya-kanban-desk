@@ -203,3 +203,13 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 **Contexto:** El icono de correo dentro de un workspace seguía disparando el admin digest global, lo que rompía la expectativa de contexto del usuario y además podía mostrar correos obsoletos cuando `public.users.email` divergía de Supabase Auth.
 **Decisión:** Reinterpretar el botón de la toolbar como acción contextual del workspace: ahora envía el digest personal filtrado por `workspaceId`, exige confirmación explícita en GUI y resuelve el email efectivo desde Supabase Auth, sincronizando `public.users` cuando detecta drift.
 **Consecuencias:** El comportamiento del botón queda alineado con la pantalla donde vive, el feedback muestra el destinatario correcto y se elimina una fuente recurrente de inconsistencias entre identidad autenticada y perfil público.
+
+### ADR-025: State Management del Cliente — Mantener Acople Plano a `api`
+**Fecha:** 2026-05-27
+**Estado:** Aceptado
+**Contexto:** El cliente expone una API plana en `client/src/api/client.js` (~40 funciones que envuelven `fetch`). 18 archivos importan `api` directo — 4 son hooks de datos (`useBoardData`, `useBoards`, `useCategories`, `useWorkspaces`) y 14 son componentes que llaman `api` para mutaciones. No hay mutation hooks; el estado loading/error vive disperso en cada componente. Se evaluaron tres caminos: (A) domain hooks hand-rolled por recurso, (B) adoptar `@tanstack/react-query`, (C) no tocar.
+**Decisión:** Camino C — mantener el acople plano UI → `api`, sin domain hooks ni state-management library. La API es estable, el equipo es chico (<3 devs frontend) y no hay fricción real en producción que justifique la migración; el Camino A reinventaría TanStack Query a mano y el B es correcto pero prematuro.
+**Triggers para revisar:** stale data en producción, loading state desincronizado, race conditions en mutaciones, equipo frontend >3 devs, o API inestable. Plan futuro si se gatilla: adoptar TanStack Query (no hand-rolled), migración incremental por recurso.
+**Consecuencias:** Deuda explícita y documentada. Cero riesgo/esfuerzo hoy; camino de migración claro cuando aparezca un trigger.
+
+> **Nota de numeración ADR:** los ADR-001 a ADR-010 se citan en "Historial de Decisiones Clave" (arriba) pero no tienen entrada individual — preceden a la adopción de este registro numerado. Su rationale vive en esa lista y en el historial git. El registro individual empieza en ADR-011. (Backfill formal pendiente: finding D-13 del audit.)

@@ -4,7 +4,7 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
-## [Unreleased] - 2026-04-28/29 (v1.3.1)
+## [1.3.1] - 2026-04-29
 
 ### Added
 - **`NotificationBell` como componente independiente**: campana extraída de `Toolbar` a `components/UI/NotificationBell.jsx` con su propio polling (45 s). Reutilizada en `WorkspaceDashboard` y `Toolbar` — ahora visible desde la lista de espacios de trabajo, no solo dentro de un tablero.
@@ -27,7 +27,7 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
-## [Unreleased] - 2026-04-28 (v1.3.0)
+## [1.3.0] - 2026-04-28
 
 ### Added
 - **Asignaciones por ítem de checklist**: cada ítem puede asignarse a ninguno, uno, varios o todos los miembros del workspace. El campo `assignees` se añade al JSONB `checklist` en `cards` (sin cambio de schema SQL). La UX es un selector de avatares por ítem, con opción "Todos los miembros".
@@ -43,7 +43,7 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
-## [Unreleased] - 2026-04-27/28
+## [1.2.2] - 2026-04-28
 
 ### Added
 - **Iteración 1 — Sistema de digest robusto**: validación de config de email en startup (fail-fast), desfase configurable entre admin digest y user digest, endpoints `/api/digest/send-me` y `/api/digest/send-my-digest` síncronos con feedback inmediato de éxito/error.
