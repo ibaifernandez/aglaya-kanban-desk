@@ -3,7 +3,7 @@
 Estado real de seguridad y superficie de ataque. Este documento se sincroniza con cada audit/cambio relevante.
 
 **Última actualización:** 2026-05-27 (post audit Mariana Trench — `docs/audits/2026-05-27-mariana/`)
-**Versión actual:** v1.1.5 (`package.json`). README badge desactualizado (D-06 audit).
+**Versión actual:** v1.3.1 (fuente única: raíz `package.json`). README badge sincronizado a este valor (2026-07-12).
 
 > **Nota importante:** versiones anteriores de este documento contenían afirmaciones inexactas detectadas durante audit Mariana (D-05). Esta versión refleja el estado real post-mitigaciones.
 

@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — Arquitectura Técnica AGLAYA Kanban Desk
 
-**Última actualización:** 2026-04-13 (v1.1.5)
+**Última actualización:** 2026-07-12 (v1.3.1 — esquema reconciliado con la DB real)
 
 ---
 
@@ -62,7 +62,7 @@ CREATE TABLE public.workspaces (
   id              uuid PRIMARY KEY,
   organization_id uuid REFERENCES public.organizations(id),
   name            text NOT NULL,
-  type            text DEFAULT 'personal', -- 'personal' | 'interno' | 'externo'
+  type            text CHECK (type IN ('personal','interno','externo')), -- ⚠️ default real en DB: 'general' (ver docs/INCIDENTS.md)
   emoji           text DEFAULT '📋',
   created_at      timestamptz DEFAULT now()
 );
@@ -78,6 +78,8 @@ CREATE TABLE public.workspace_members (
 -- Estructura Kanban
 ALTER TABLE public.boards ADD COLUMN workspace_id uuid REFERENCES public.workspaces(id);
 ```
+
+> **Nota:** este bloque es ilustrativo (modelo Core). El esquema completo, verídico y verificado contra la DB real de producción — columnas reales (`title`/`order`, no `name`/`position`), tablas `notifications` y `digest_logs`, GRANTs, RLS e inconsistencias conocidas — vive en [`docs/schema/supabase-schema.sql`](./schema/supabase-schema.sql).
 
 ---
 

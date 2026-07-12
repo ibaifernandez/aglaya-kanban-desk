@@ -1,7 +1,7 @@
 # AGLAYA Kanban Desk
 
-![Version](https://img.shields.io/badge/version-1.1.5-6366f1)
-![Tests](https://img.shields.io/badge/tests-95%20passing-brightgreen)
+![Version](https://img.shields.io/badge/version-1.3.1-6366f1)
+![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen)
 ![Client](https://img.shields.io/badge/client-Netlify-00C7B7?logo=netlify)
 ![Server](https://img.shields.io/badge/server-Railway-0B0D0E?logo=railway)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
@@ -38,7 +38,7 @@ Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo inter
 | Storage         | Supabase Storage (adjuntos, avatares, portadas) |
 | Email           | Resend + node-cron (digests diarios)            |
 | Seguridad       | Helmet + express-rate-limit + CORS por entorno  |
-| Tests           | Jest + Supertest (85 tests · 10 suites)         |
+| Tests           | Jest + Supertest (106 tests · 13 suites)        |
 | Deploy cliente  | Netlify (auto-deploy en push a `main`)          |
 | Deploy servidor | Railway (auto-deploy en push a `main`)          |
 
@@ -58,12 +58,12 @@ client/  (React 18 + Vite · Netlify · puerto 5175)
 server/  (Express 4 · Railway · puerto 3003)
 ├── app.js              ← Express config, rutas, middlewares, 404 y error handler
 ├── index.js            ← Entry point: valida config y arranca listen()
-├── routes/             ← auth, boards, cards, columns, categories,
-│                          workspaces, notifications, media, digest
+├── routes/             ← auth, boards, cards, columns, categories, workspaces,
+│                          notifications, media, digest, admin, internal
 ├── middleware/         ← requireAuth, requireRole, requireWorkspaceMember
-├── digest.js           ← Admin digest · estadísticas globales diarias
-├── userDigest.js       ← User digest · tarjetas urgentes/vencidas por usuario
-└── utils/supabase.js   ← Cliente admin (service_role) + anon
+├── services/digest/    ← admin.js · user.js · shared.js (lógica de digests)
+└── utils/              ← supabase (admin service_role + anon), mailer (Resend),
+                           sentry, digestLogging, smtpConfig, userProfile
 
          React ←──── JWT / HTTPS ────→ Express
                                            │
@@ -230,19 +230,22 @@ Incluye:
 
 ## Tests
 
-85 tests en 10 suites — todos en verde.
+106 tests en 13 suites — 102 en verde, 4 `skip` documentados (mocks legacy de auth/admin/security, pendientes en backlog del audit).
 
 | Suite                | Tests | Descripción                                          |
 | -------------------- | ----- | ---------------------------------------------------- |
-| `auth`               | 9     | Registro, login, restricción de dominio              |
-| `workspaces`         | 13    | Tipos personal/interno/externo, permisos por rol     |
 | `notifications`      | 16    | GET, PATCH /read-all, PATCH /:id/read, aislamiento   |
-| `security`           | 15    | 401 en rutas protegidas, 200 en públicas, 404 JSON   |
+| `security`           | 15    | 401 en rutas protegidas, 200 en públicas, 404 JSON (1 skip) |
+| `workspaces`         | 12    | Tipos personal/interno/externo, permisos por rol     |
+| `digestLogging`      | 11    | Registro de intentos de envío                        |
+| `auth`               | 9     | Registro, login, restricción de dominio (1 skip)     |
+| `auth-refresh`       | 7     | Refresh token, cookie HttpOnly, rotación (B-02)      |
 | `cards-validation`   | 7     | Validación de enums y tipos en mutaciones            |
-| `smtpConfig`         | 10    | Validación de variables de entorno de email          |
-| `admin`              | 5     | Rutas de administración                              |
+| `smtpConfig`         | 7     | Validación de variables de entorno de email          |
+| `auth-self-service`  | 6     | Endpoints self-delete / self-export (RGPD C-04/C-05) |
+| `admin`              | 5     | Rutas de administración (2 skip)                     |
 | `digest`             | 5     | Lógica de digest                                     |
-| `digestLogging`      | 4     | Registro de intentos de envío                        |
+| `uploads`            | 5     | Bloqueo SVG/HTML, magic-bytes, límites (B-CRIT-01)   |
 | `health`             | 1     | Endpoint `/api/health`                               |
 
 ```bash
@@ -265,9 +268,11 @@ cd server && npm test
 | [ROADMAP.md](./docs/ROADMAP.md)                      | Fases completadas y próximos pasos     |
 | [CHANGELOG.md](./docs/CHANGELOG.md)                  | Historial de versiones                 |
 | [BACKLOG.md](./docs/BACKLOG.md)                      | Features en cola                       |
-| [README-deploy.md](./docs/README-deploy.md)          | Guía de deploy paso a paso             |
+| [RUNBOOK.md](./docs/RUNBOOK.md)                      | Operativa: desarrollo local y deploy   |
 | [SECURITY.md](./docs/SECURITY.md)                    | Modelo de seguridad y RLS              |
 | [supabase-schema.sql](./docs/schema/supabase-schema.sql) | Schema SQL completo                |
+
+> **Versionado:** la fuente única de verdad de la versión es la raíz [`package.json`](./package.json) (`1.3.1`). El badge de arriba y cualquier sello de versión en la documentación deben alinearse a ese valor.
 
 ---
 

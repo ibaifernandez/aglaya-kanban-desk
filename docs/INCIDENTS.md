@@ -1,8 +1,46 @@
 # INCIDENTS.md — Registro de Incidencias y Correctivos
 
-**Última actualización:** 2026-05-27
+**Última actualización:** 2026-07-12
 
 Este documento resume los fallos relevantes encontrados durante la estabilización de AGLAYA Kanban Desk, su causa raíz, la solución aplicada y cualquier nota operativa pendiente.
+
+---
+
+## 2026-07-12 — Reconciliación documentación ↔ DB real: 5 divergencias detectadas
+
+**Contexto:** barrida documental que introspeccionó la DB de producción real. El `docs/schema/supabase-schema.sql` se regeneró como mirror fiel. Estos 5 hallazgos quedan **documentados** (no corregidos en DB — requieren migración/decisión del operador, fuera del alcance docs-only).
+
+### DOC-01 (causa raíz) — El "master schema" llevaba desincronizado desde ~v1.2.0
+
+**Síntoma:** `supabase-schema.sql` documentaba `name`/`position` para boards/columns cuando la DB real usa `title`/`order`; omitía 6 columnas reales (`columns.default_sort`, `cards.tags`, `cards.checklist_title`, `cards.assignee_id`, `categories.board_id`, `users.avatar_url`) y la tabla `digest_logs` entera.
+
+**Causa raíz:** la regla de CLAUDE.md *"tras migración, actualizar el schema doc"* no se cumplió al añadir features de Phase 2/4. El doc quedó congelado mientras la DB evolucionó.
+
+**Solución aplicada:** schema regenerado por introspección directa (2026-07-12). **Prevención recomendada:** finding **B-10** del backlog (CI lint que rechace PRs con migración sin actualizar schema + GRANT).
+
+### DOC-02 (🟡 bug latente) — `workspaces.type` DEFAULT contradice su CHECK
+
+- **default real** = `'general'`; **CHECK** = `personal|interno|externo`.
+- Un INSERT que omita `type` rellena `'general'` → **viola el CHECK → falla**. No dispara hoy porque la app siempre envía `type` explícito (datos reales: personal 5, interno 6, externo 1, cero 'general').
+- **Fix recomendado (migración):** `ALTER TABLE public.workspaces ALTER COLUMN type SET DEFAULT 'personal';`
+
+### DOC-03 (🟡 seguridad) — El rol `anon` tiene TODOS los privilegios en todas las tablas
+
+- GRANTs reales: `anon`, `authenticated` y `service_role` tienen `ALL` (incl. DELETE/TRUNCATE) sobre las 10 tablas.
+- Mitigado por RLS (anon no pasa las policies que exigen `auth.uid()`), pero es superficie más ancha que la política del proyecto y que lo que CLAUDE.md prescribe.
+- **Fix recomendado (migración):** revocar escritura a `anon` (`REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public FROM anon;`) tras verificar que nada legítimo dependa de ello.
+
+### DOC-04 (🟡 marca) — La organización de producción sigue siendo "LFi Agency"
+
+- Fila real: `id ...0001 · name 'LFi Agency' · slug 'lfi' · plan 'pro'`.
+- Contradice **ADR-011** (rebrand AGLAYA: "eliminar toda referencia a marcas anteriores"). El rebrand nunca migró la fila de la DB.
+- **Fix recomendado (migración):** `UPDATE public.organizations SET name='AGLAYA', slug='aglaya' WHERE id='00000000-0000-0000-0000-000000000001';` (verificar antes que ningún cliente Supabase cachee el slug).
+
+### DOC-05 (🟢 menor) — Divergencias de `ON DELETE` y scope RLS vs documentación previa
+
+- `boards.workspace_id` y `workspace_members.invited_by` son **NO ACTION** en la DB real, pese a que ADR-013 documenta `SET NULL`.
+- Las policies RLS de `cards`/`columns`/`categories` filtran por **organización** (`get_my_org_id()`), no por membresía de workspace. El aislamiento por workspace lo impone la capa API (`requireWorkspaceMember`; el servidor usa `service_role` que bypasa RLS).
+- Documentado tal cual en `supabase-schema.sql`. Decisión de si alinear DB↔ADR o ADR↔DB queda al operador.
 
 ---
 
