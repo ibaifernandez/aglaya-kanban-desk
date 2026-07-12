@@ -14,28 +14,20 @@
 -- deja de ser fuente de verdad. Ver finding en docs/INCIDENTS.md.
 --
 -- ─────────────────────────────────────────────────────────────
--- ⚠️  INCONSISTENCIAS CONOCIDAS (reflejadas tal cual; corrección pendiente
---     de migración — ver docs/INCIDENTS.md):
+-- NOTAS DE MODELO (ver docs/INCIDENTS.md):
 --
---   1. workspaces.type  DEFAULT 'general'  contradice su propio CHECK
---      (personal|interno|externo). Un INSERT que omita `type` falla. Hoy no
---      dispara porque la app siempre envía type explícito. Fix recomendado:
---      ALTER COLUMN type SET DEFAULT 'personal'.
+--   • RLS de cards / columns / categories filtra por ORGANIZACIÓN
+--     (get_my_org_id()), no por membresía de workspace. El aislamiento por
+--     workspace lo impone la capa API (requireWorkspaceMember); el servidor
+--     usa service_role, que bypasa RLS. RLS es defensa secundaria. (DOC-05)
 --
---   2. GRANTs: el rol `anon` tiene TODOS los privilegios (incl. DELETE/
---      TRUNCATE) sobre TODAS las tablas (default histórico de Supabase).
---      Lo mitiga RLS, pero es superficie más ancha que la política del
---      proyecto. Fix recomendado: REVOKE de escritura a `anon`.
+--   • boards.workspace_id usa NO ACTION (no SET NULL): impide borrar un
+--     workspace con tableros, evitando tableros huérfanos. (DOC-05)
 --
---   3. Seed: la organización real es 'LFi Agency' / slug 'lfi' — resto del
---      rebrand AGLAYA sin migrar (contradice ADR-011). Fix recomendado:
---      UPDATE organizations SET name='AGLAYA', slug='aglaya' WHERE id=...0001.
---
---   4. RLS de cards / columns / categories filtra por ORGANIZACIÓN
---      (get_my_org_id()), no por membresía de workspace. Es más ancho de lo
---      que sugería la doc anterior. El aislamiento por workspace lo impone la
---      capa API (requireWorkspaceMember); el servidor usa service_role, que
---      bypasa RLS. RLS es defensa secundaria.
+-- HISTÓRICO: las inconsistencias DOC-02 (default type 'general'), DOC-03
+-- (anon con escritura) y DOC-04 (org 'LFi Agency') se corrigieron en la
+-- migración 2026-07-12 (migration-db-reconciliation-2026-07-12.sql). Este
+-- fichero ya refleja el estado post-migración.
 -- ─────────────────────────────────────────────────────────────
 -- ============================================================
 
@@ -142,8 +134,7 @@ CREATE TABLE IF NOT EXISTS public.workspaces (
   description     TEXT,
   created_by      UUID REFERENCES public.users(id) ON DELETE SET NULL,
   cover_url       TEXT,
-  -- ⚠️ DEFAULT 'general' contradice el CHECK de abajo (ver cabecera, inconsistencia #1)
-  type            TEXT DEFAULT 'general'
+  type            TEXT DEFAULT 'personal'
                     CHECK (type = ANY (ARRAY['personal','interno','externo'])),
   created_at      TIMESTAMPTZ DEFAULT now()
 );
@@ -171,8 +162,8 @@ CREATE TABLE IF NOT EXISTS public.boards (
   color           TEXT,
   organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
   owner_id        UUID REFERENCES public.users(id) ON DELETE SET NULL,
-  -- ⚠️ boards.workspace_id NO tiene ON DELETE (NO ACTION), pese a que ADR-013
-  --    documenta SET NULL. Ver inconsistencia FK en docs/INCIDENTS.md.
+  -- boards.workspace_id usa NO ACTION (impide borrar un workspace con tableros;
+  -- preferido sobre el SET NULL del ADR-013, que huérfanaría tableros). Ver DOC-05.
   workspace_id    UUID REFERENCES public.workspaces(id),
   "order"         INTEGER NOT NULL DEFAULT 0,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -269,19 +260,17 @@ CREATE INDEX IF NOT EXISTS idx_digest_logs_created_at    ON public.digest_logs(c
 
 
 -- ── 9. GRANTs ───────────────────────────────────────────────
--- ⚠️ ESTADO REAL en producción: los tres roles (anon, authenticated,
---    service_role) tienen TODOS los privilegios sobre TODAS las tablas
---    (default histórico de Supabase). Se documenta tal cual (inconsistencia
---    #2). RLS es el guard efectivo. Corrección recomendada: revocar escritura
---    a `anon`. El patrón mínimo prescrito por CLAUDE.md para tablas nuevas es:
---      GRANT SELECT, INSERT, UPDATE, DELETE ON public.<tabla> TO authenticated;
---      GRANT SELECT, INSERT, UPDATE, DELETE ON public.<tabla> TO service_role;
+-- ESTADO REAL (tras migración 2026-07-12, DOC-03): `anon` solo SELECT;
+-- `authenticated` y `service_role` con escritura completa. RLS es el guard
+-- efectivo. Patrón para tablas nuevas (CLAUDE.md):
+--   GRANT SELECT, INSERT, UPDATE, DELETE ON public.<tabla> TO authenticated, service_role;
 DO $$
 DECLARE t text;
 BEGIN
   FOR t IN SELECT tablename FROM pg_tables WHERE schemaname = 'public'
   LOOP
-    EXECUTE format('GRANT ALL ON public.%I TO anon, authenticated, service_role;', t);
+    EXECUTE format('GRANT SELECT ON public.%I TO anon;', t);
+    EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON public.%I TO authenticated, service_role;', t);
   END LOOP;
 END $$;
 
@@ -345,7 +334,7 @@ CREATE POLICY "Borrar tableros de mis workspaces" ON public.boards
     WHERE wm.workspace_id = boards.workspace_id AND wm.user_id = auth.uid()
       AND wm.role = ANY (ARRAY['owner','admin'])));
 
--- columns (⚠️ scope: ORGANIZACIÓN, no workspace — ver inconsistencia #4)
+-- columns (⚠️ scope: ORGANIZACIÓN, no workspace — ver NOTAS DE MODELO / DOC-05)
 CREATE POLICY "Usuarios ven columnas de su org" ON public.columns
   FOR SELECT USING (EXISTS (
     SELECT 1 FROM public.boards b
@@ -367,7 +356,7 @@ CREATE POLICY "Usuarios borran columnas de su org" ON public.columns
     SELECT 1 FROM public.boards b
     WHERE b.id = columns.board_id AND b.organization_id = get_my_org_id()));
 
--- cards (⚠️ scope: ORGANIZACIÓN vía join columns→boards — ver inconsistencia #4)
+-- cards (⚠️ scope: ORGANIZACIÓN vía join columns→boards — ver NOTAS DE MODELO / DOC-05)
 CREATE POLICY "Usuarios ven tarjetas de su org" ON public.cards
   FOR SELECT USING (EXISTS (
     SELECT 1 FROM public.columns col JOIN public.boards b ON b.id = col.board_id
@@ -411,10 +400,8 @@ CREATE POLICY "digest_logs_service_update" ON public.digest_logs
 
 
 -- ── 11. Seed de organización ────────────────────────────────
--- ⚠️ ESTADO REAL: la fila de producción es 'LFi Agency' / 'lfi' — resto del
---    rebrand AGLAYA sin migrar (inconsistencia #3, contradice ADR-011).
---    Se documenta el estado real; la corrección a 'AGLAYA'/'aglaya' está
---    pendiente de decisión (ver docs/INCIDENTS.md).
+-- Organización única (single-tenant, ADR-020). Rebrand AGLAYA aplicado a la
+-- fila real en la migración 2026-07-12 (DOC-04).
 INSERT INTO public.organizations (id, name, slug, plan)
-VALUES ('00000000-0000-0000-0000-000000000001', 'LFi Agency', 'lfi', 'pro')
+VALUES ('00000000-0000-0000-0000-000000000001', 'AGLAYA', 'aglaya', 'pro')
 ON CONFLICT (id) DO NOTHING;

@@ -8,7 +8,7 @@ Este documento resume los fallos relevantes encontrados durante la estabilizaci�
 
 ## 2026-07-12 — Reconciliación documentación ↔ DB real: 5 divergencias detectadas
 
-**Contexto:** barrida documental que introspeccionó la DB de producción real. El `docs/schema/supabase-schema.sql` se regeneró como mirror fiel. Estos 5 hallazgos quedan **documentados** (no corregidos en DB — requieren migración/decisión del operador, fuera del alcance docs-only).
+**Contexto:** barrida documental que introspeccionó la DB de producción real. El `docs/schema/supabase-schema.sql` se regeneró como mirror fiel. De los 5 hallazgos, **DOC-02/03/04 se corrigieron** en la migración `docs/schema/migration-db-reconciliation-2026-07-12.sql` (aplicada a producción y verificada); DOC-01 (causa raíz) y DOC-05 se resuelven por documentación.
 
 ### DOC-01 (causa raíz) — El "master schema" llevaba desincronizado desde ~v1.2.0
 
@@ -22,25 +22,25 @@ Este documento resume los fallos relevantes encontrados durante la estabilizaci�
 
 - **default real** = `'general'`; **CHECK** = `personal|interno|externo`.
 - Un INSERT que omita `type` rellena `'general'` → **viola el CHECK → falla**. No dispara hoy porque la app siempre envía `type` explícito (datos reales: personal 5, interno 6, externo 1, cero 'general').
-- **Fix recomendado (migración):** `ALTER TABLE public.workspaces ALTER COLUMN type SET DEFAULT 'personal';`
+- **Fix (migración):** `ALTER COLUMN type SET DEFAULT 'personal'` — ✅ **APLICADO 2026-07-12**, verificado (default real = `'personal'`).
 
 ### DOC-03 (🟡 seguridad) — El rol `anon` tiene TODOS los privilegios en todas las tablas
 
 - GRANTs reales: `anon`, `authenticated` y `service_role` tienen `ALL` (incl. DELETE/TRUNCATE) sobre las 10 tablas.
 - Mitigado por RLS (anon no pasa las policies que exigen `auth.uid()`), pero es superficie más ancha que la política del proyecto y que lo que CLAUDE.md prescribe.
-- **Fix recomendado (migración):** revocar escritura a `anon` (`REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA public FROM anon;`) tras verificar que nada legítimo dependa de ello.
+- **Fix (migración):** REVOKE de escritura a `anon` — ✅ **APLICADO 2026-07-12**. Pre-flight: el cliente solo usa la anon key para auth, nunca escribe en tablas. Verificado: `anon` = solo SELECT; `authenticated`/`service_role` intactos.
 
 ### DOC-04 (🟡 marca) — La organización de producción sigue siendo "LFi Agency"
 
 - Fila real: `id ...0001 · name 'LFi Agency' · slug 'lfi' · plan 'pro'`.
 - Contradice **ADR-011** (rebrand AGLAYA: "eliminar toda referencia a marcas anteriores"). El rebrand nunca migró la fila de la DB.
-- **Fix recomendado (migración):** `UPDATE public.organizations SET name='AGLAYA', slug='aglaya' WHERE id='00000000-0000-0000-0000-000000000001';` (verificar antes que ningún cliente Supabase cachee el slug).
+- **Fix (migración):** `UPDATE organizations SET name='AGLAYA', slug='aglaya'` — ✅ **APLICADO 2026-07-12**. Pre-flight: slug `lfi` no referenciado en código (la org se resuelve por id fijo). Verificado: `AGLAYA`/`aglaya`.
 
 ### DOC-05 (🟢 menor) — Divergencias de `ON DELETE` y scope RLS vs documentación previa
 
 - `boards.workspace_id` y `workspace_members.invited_by` son **NO ACTION** en la DB real, pese a que ADR-013 documenta `SET NULL`.
 - Las policies RLS de `cards`/`columns`/`categories` filtran por **organización** (`get_my_org_id()`), no por membresía de workspace. El aislamiento por workspace lo impone la capa API (`requireWorkspaceMember`; el servidor usa `service_role` que bypasa RLS).
-- Documentado tal cual en `supabase-schema.sql`. Decisión de si alinear DB↔ADR o ADR↔DB queda al operador.
+- **Resolución (documentación):** el `NO ACTION` de `boards.workspace_id` se mantiene a propósito — es más seguro que el `SET NULL` del ADR-013 (que huérfanaría tableros → invisibles por RLS). El scope RLS por-organización se documenta como comportamiento real (el aislamiento por workspace lo impone la capa API). Ambos reflejados en `supabase-schema.sql`.
 
 ---
 
