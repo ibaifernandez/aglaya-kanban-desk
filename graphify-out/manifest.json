@@ -5,9 +5,9 @@
     "semantic_hash": "f7eaa76d4cde09edcd894b6f1dec7fc3"
   },
   "client/package.json": {
-    "mtime": 1783895462.9211972,
-    "ast_hash": "96bd0abe993cc90f01e6fe9499fcc698",
-    "semantic_hash": "96bd0abe993cc90f01e6fe9499fcc698"
+    "mtime": 1783964696.2263412,
+    "ast_hash": "c2f8dac584a16baa20ae7c6c3c9a989c",
+    "semantic_hash": "c2f8dac584a16baa20ae7c6c3c9a989c"
   },
   "client/postcss.config.js": {
     "mtime": 1772469586.2014663,
@@ -254,6 +254,16 @@
     "ast_hash": "1c744d0ca743a0e898b6712ecc3b823d",
     "semantic_hash": "1c744d0ca743a0e898b6712ecc3b823d"
   },
+  "kanban-mcp/pyproject.toml": {
+    "mtime": 1783941440.640281,
+    "ast_hash": "cd65232da57edb96e605ad15c67efb46",
+    "semantic_hash": "cd65232da57edb96e605ad15c67efb46"
+  },
+  "kanban-mcp/server.py": {
+    "mtime": 1783953363.4581628,
+    "ast_hash": "58c40fea24ad4ed9f0230ad2a93571f5",
+    "semantic_hash": "58c40fea24ad4ed9f0230ad2a93571f5"
+  },
   "migrations/add_explicit_grants.sql": {
     "mtime": 1778660854.788485,
     "ast_hash": "7e86b919cbfb725ab99b20e12b6e8844",
@@ -265,9 +275,9 @@
     "semantic_hash": "027162aac079253aeaa078d8c0bb6846"
   },
   "package.json": {
-    "mtime": 1783900765.2629716,
-    "ast_hash": "a7bd57f2f62c27c8c455a93caa5761ad",
-    "semantic_hash": "a7bd57f2f62c27c8c455a93caa5761ad"
+    "mtime": 1783964695.1922607,
+    "ast_hash": "5c446f3f8ea2e4018469c6c1572e32cd",
+    "semantic_hash": "5c446f3f8ea2e4018469c6c1572e32cd"
   },
   "scripts/seed-launch-kanban.js": {
     "mtime": 1777754989.1026325,
@@ -375,9 +385,9 @@
     "semantic_hash": "ea8aec6d8a86659cdf200f5afb4bb074"
   },
   "server/services/digest/user.js": {
-    "mtime": 1779891620.335937,
-    "ast_hash": "38b0dd01a0ace354f512aca18682ef42",
-    "semantic_hash": "38b0dd01a0ace354f512aca18682ef42"
+    "mtime": 1783953118.9228106,
+    "ast_hash": "f55de8d98f502f298cd6db0b8f88f4de",
+    "semantic_hash": "f55de8d98f502f298cd6db0b8f88f4de"
   },
   "server/tests/admin.test.js": {
     "mtime": 1779921523.2709086,
@@ -403,6 +413,11 @@
     "mtime": 1777448230.4945061,
     "ast_hash": "23849df264587481c0db67bf5ab83ad6",
     "semantic_hash": "23849df264587481c0db67bf5ab83ad6"
+  },
+  "server/tests/digest-personal-filter.test.js": {
+    "mtime": 1783953186.623527,
+    "ast_hash": "6b9c785c474488b4e1f046c45cd02a8c",
+    "semantic_hash": "6b9c785c474488b4e1f046c45cd02a8c"
   },
   "server/tests/digest.test.js": {
     "mtime": 1780509225.7470222,
@@ -473,5 +488,195 @@
     "mtime": 1778806110.3150702,
     "ast_hash": "39038625fc24093aa66a8d08b07e4e81",
     "semantic_hash": "39038625fc24093aa66a8d08b07e4e81"
+  },
+  ".github/workflows/ci.yml": {
+    "mtime": 1779929789.473454,
+    "ast_hash": "4779da19129d7f2a715c9eacbddece8b",
+    "semantic_hash": ""
+  },
+  ".github/workflows/db-backup.yml": {
+    "mtime": 1779913512.961694,
+    "ast_hash": "782e03179b0a3d6d160a7e28fd995974",
+    "semantic_hash": ""
+  },
+  ".github/workflows/digest-cron.yml": {
+    "mtime": 1778806110.304203,
+    "ast_hash": "62776115a74295dd9afc0f45df84a07a",
+    "semantic_hash": ""
+  },
+  ".github/workflows/schema-guard.yml": {
+    "mtime": 1783899304.6462514,
+    "ast_hash": "f2a5b085ec6419efde24290710c79539",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1783900339.148749,
+    "ast_hash": "27cee1eb2baa2b7b0b49a1779ecc9857",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1779884335.6500294,
+    "ast_hash": "6e073dc9606fe224fdda5fd09f8fc23c",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1783964783.38626,
+    "ast_hash": "8ecc8e0e6cef57fcab991a153265b6a0",
+    "semantic_hash": ""
+  },
+  "client/index.html": {
+    "mtime": 1775574730.7693987,
+    "ast_hash": "2914f5834d29e0cd5df2f78b4b93e52f",
+    "semantic_hash": ""
+  },
+  "client/public/privacidad.html": {
+    "mtime": 1783900798.2914221,
+    "ast_hash": "ff841de57dcef8c4ec86ab3be314497a",
+    "semantic_hash": ""
+  },
+  "docs/ARCHITECTURE.md": {
+    "mtime": 1783964739.2764013,
+    "ast_hash": "472612229dc63e4a4155adde30488a30",
+    "semantic_hash": ""
+  },
+  "docs/BACKLOG.md": {
+    "mtime": 1783899255.5015259,
+    "ast_hash": "ec728f1fcb0e38c668c0447f04af0128",
+    "semantic_hash": ""
+  },
+  "docs/CHANGELOG.md": {
+    "mtime": 1783964693.6819568,
+    "ast_hash": "e03c4e59d0113e6ad436ce98209b7d2e",
+    "semantic_hash": ""
+  },
+  "docs/INCIDENTS.md": {
+    "mtime": 1783900893.5104809,
+    "ast_hash": "37359dddc257b6b973c1456ff0034e64",
+    "semantic_hash": ""
+  },
+  "docs/PERMISSIONS.md": {
+    "mtime": 1783964704.6861725,
+    "ast_hash": "b5ae37adf2be1a62c6c5b52765697709",
+    "semantic_hash": ""
+  },
+  "docs/PRD.md": {
+    "mtime": 1783964703.185587,
+    "ast_hash": "9c6415373e2d5cc815951b592fd19605",
+    "semantic_hash": ""
+  },
+  "docs/ROADMAP.md": {
+    "mtime": 1783964861.9187036,
+    "ast_hash": "827607822dc60e596a685b4a25642d70",
+    "semantic_hash": ""
+  },
+  "docs/RUNBOOK.md": {
+    "mtime": 1783964706.281226,
+    "ast_hash": "f0f7dffde321f7d29054762ce982c9af",
+    "semantic_hash": ""
+  },
+  "docs/SECURITY.md": {
+    "mtime": 1783964655.3451784,
+    "ast_hash": "bb7f570f07ae431191f6807fdda69c27",
+    "semantic_hash": ""
+  },
+  "docs/audits/2026-05-27-mariana/REPORT.md": {
+    "mtime": 1779950468.7208776,
+    "ast_hash": "d080d13976cc2f25d9c36529aca806ca",
+    "semantic_hash": ""
+  },
+  "docs/audits/2026-05-27-mariana/audit-A-addendum.md": {
+    "mtime": 1779895276.0745547,
+    "ast_hash": "0cf392fac23693d8ef779720954bafbf",
+    "semantic_hash": ""
+  },
+  "docs/audits/2026-05-27-mariana/audit-A.md": {
+    "mtime": 1779894411.7195086,
+    "ast_hash": "12f4ad0db3f4d93440da88896abb025f",
+    "semantic_hash": ""
+  },
+  "docs/audits/2026-05-27-mariana/audit-B.md": {
+    "mtime": 1779913903.668245,
+    "ast_hash": "30afe69e6dce226b98e1d875fe339513",
+    "semantic_hash": ""
+  },
+  "docs/audits/2026-05-27-mariana/audit-C.md": {
+    "mtime": 1779914697.5546527,
+    "ast_hash": "8b0ae0f1fefc831e1b6377fb979749ce",
+    "semantic_hash": ""
+  },
+  "docs/audits/2026-05-27-mariana/audit-D.md": {
+    "mtime": 1779915340.818817,
+    "ast_hash": "fc1941a193c2f8be0660373b4885ac9c",
+    "semantic_hash": ""
+  },
+  "docs/backlog/audit-mariana-roadmap.md": {
+    "mtime": 1779950549.8341959,
+    "ast_hash": "e735465b6d0a3c9b6d6c22097cbcbe20",
+    "semantic_hash": ""
+  },
+  "docs/mails/supabase-email-invite.html": {
+    "mtime": 1775876313.4610467,
+    "ast_hash": "66c0b75d62cfbfc91b579291606b7603",
+    "semantic_hash": ""
+  },
+  "docs/operator-checklist.md": {
+    "mtime": 1783899252.1419492,
+    "ast_hash": "ed9b165c7c0e20400b700ea037166eb6",
+    "semantic_hash": ""
+  },
+  "docs/runbooks/db-restore.md": {
+    "mtime": 1779910572.1616004,
+    "ast_hash": "411fe9a931aac2a3118c891c9ab78855",
+    "semantic_hash": ""
+  },
+  "docs/runbooks/key-rotation.md": {
+    "mtime": 1783899276.4537847,
+    "ast_hash": "17028fc76bd5a48924c03280b074d9ba",
+    "semantic_hash": ""
+  },
+  "docs/runbooks/railway-custom-domain.md": {
+    "mtime": 1779930859.470384,
+    "ast_hash": "797ad8d27a1553c3fc48ba3a9fb38518",
+    "semantic_hash": ""
+  },
+  "kanban-mcp/README.md": {
+    "mtime": 1783953542.7180724,
+    "ast_hash": "8685b96a74c035559e1506dc8b71af6a",
+    "semantic_hash": ""
+  },
+  "client/src/assets/aglaya-favicon-blanco.svg": {
+    "mtime": 1775574730.7698786,
+    "ast_hash": "c39c1c283fd4f6c1310946ce48ff9277",
+    "semantic_hash": ""
+  },
+  "client/src/assets/aglaya-favicon-negro.svg": {
+    "mtime": 1775574730.770101,
+    "ast_hash": "ee32595dd75cad96cfa80506ee72a12c",
+    "semantic_hash": ""
+  },
+  "client/src/assets/aglaya-favicon-rojo.png": {
+    "mtime": 1775574730.7705193,
+    "ast_hash": "3c97701df9f59149d3fe163a29c3f429",
+    "semantic_hash": ""
+  },
+  "client/src/assets/aglaya-favicon-rojo.svg": {
+    "mtime": 1775574730.7707603,
+    "ast_hash": "e07e4112fd535371329a9ea10d525e18",
+    "semantic_hash": ""
+  },
+  "client/src/assets/aglaya-logo-blanco.svg": {
+    "mtime": 1775574730.7709532,
+    "ast_hash": "d48170f37d2d9764637ad6ec0bf981db",
+    "semantic_hash": ""
+  },
+  "client/src/assets/aglaya-logo-color.svg": {
+    "mtime": 1775574730.7711453,
+    "ast_hash": "1a408e91d623e1623ae12ab57f79e409",
+    "semantic_hash": ""
+  },
+  "client/src/assets/aglaya-logo-negro.svg": {
+    "mtime": 1775574730.7713623,
+    "ast_hash": "4d9f4de9f69bc41bd4881a232cb2743e",
+    "semantic_hash": ""
   }
 }

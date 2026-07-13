@@ -4,100 +4,91 @@
 - cluster-only mode — file stats not available
 
 ## Summary
-- 712 nodes · 1162 edges · 67 communities (49 shown, 18 thin omitted)
-- Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 59 edges (avg confidence: 0.54)
-- Token cost: 43,027 input · 2,423 output
+- 760 nodes · 1275 edges · 58 communities (46 shown, 12 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 57 edges (avg confidence: 0.54)
+- Token cost: 42,866 input · 1,928 output
 
 ## Graph Freshness
-- Built from commit: `00d1bb07`
+- Built from commit: `b6104bab`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
+- Card & Board API
+- React & UI Dependencies
+- Backend & Server Dependencies
+- Architecture & Design Decisions
 - Authentication & Authorization
-- Kanban UI Components
-- Project Architecture
-- Accessibility & Compliance
-- Server Dependencies
-- Express Route Handlers
-- JWT Token Management
-- Testing & Build Config
-- Sidebar & Navigation
-- Digest HTML Utilities
-- Client Session Management
-- Workspace Components
-- Frontend Dependencies
+- Security & Compliance Audit
+- Board UI Components
+- Workspace Access Control
+- Express App & Routers
+- Modal & Sidebar Components
+- Email Digest Generation
+- Client Auth Utilities
+- Card & Column Components
+- Workspace Management UI
+- User Digest Formatting
+- Internal Routes & Logging
 - Database Schema
-- Notifications & Logging
-- Email Digest System
-- Modal & Settings UI
-- App & Data Hooks
-- Digest API Endpoint
-- Build Tool Dependencies
-- Database Seeding
-- Card Operations
-- File Upload & Storage
+- User Settings UI
+- App Core & Contexts
 - Login & Auth UI
-- Server Init & Monitoring
-- Data Migration Scripts
-- User Preferences
-- Categories Management
-- Board Operations
+- Database Seeding
+- Card Management API
+- File Upload Handling
+- App Initialization & Config
+- MyBoard Data Migration
+- Board Management API
+- Digest Email Route
 - Supabase Seeding
+- Auth Tests
 - Notification Tests
 - Workspace Tests
-- Frontend Framework
-- Admin Route Tests
-- Digest Route Tests
+- Category Management
+- Admin Tests
+- Digest Tests
 - Upload Tests
-- Column Operations
+- Column Management
 - Self-Service Auth Tests
-- Build Scripts
-- Internal API Routes
 - Token Refresh Tests
-- Project Metadata
 - Card Validation Tests
+- Digest Filtering Tests
 - Security Tests
+- Permission Matrix
 - Health Check Tests
-- Developer Documentation
-- HTML & Assets
-- React Framework
 - Digest Hour Migration
-- Organizations RLS
-- Email Templates
+- Organizations Migration
 - Digest Logs Schema
-- Privacy Policy
-- Data Deletion (RGPD)
-- Data Export (RGPD)
-- Digest API Router
-- Operations Runbook
-- Bundle Performance
-- JWT Security Issue
-- Public URL Exposure
-- High Severity Issues
-- Database Backup
+- Client Entry Point
+- AGLAYA Logo White
+- AGLAYA Logo Black
+- AGLAYA Logotype White
+- AGLAYA Logotype Black
+- Kanban MCP
+- Accessibility Standard
 
 ## God Nodes (most connected - your core abstractions)
 1. `useEscapeKey()` - 23 edges
-2. `supabaseAdmin` - 20 edges
-3. `api` - 19 edges
-4. `useFocusTrap()` - 16 edges
-5. `Supabase Schema (PostgreSQL)` - 16 edges
-6. `useCategoriesCtx()` - 12 edges
-7. `public.users` - 10 edges
-8. `Spinner()` - 9 edges
-9. `readAuthSession()` - 9 edges
-10. `requireAuth()` - 9 edges
+2. `_request()` - 23 edges
+3. `supabaseAdmin` - 21 edges
+4. `api` - 19 edges
+5. `ARCHITECTURE.md — Technical Design & ADRs` - 19 edges
+6. `useFocusTrap()` - 16 edges
+7. `AGLAYA Kanban Desk` - 14 edges
+8. `useCategoriesCtx()` - 12 edges
+9. `public.users` - 10 edges
+10. `Spinner()` - 9 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `React 18` --uses--> `lucide-react`  [EXTRACTED]
-  README.md → client/package.json
-- `React 18` --uses--> `tailwindcss`  [EXTRACTED]
-  README.md → client/package.json
-- `React 18` --uses--> `vite`  [EXTRACTED]
-  README.md → client/package.json
-- `Schema Guard — Migration ↔ Schema Sync` --validates--> `Supabase Schema (PostgreSQL)`  [EXTRACTED]
-  .github/workflows/schema-guard.yml → docs/schema/supabase-schema.sql
+- `Supabase — Database/Auth/Storage Platform` --conceptually_related_to--> `resend`  [INFERRED]
+  docs/audits/2026-05-27-mariana/audit-B.md → package.json
+- `AGLAYA Logo — Red SVG` --represents--> `AGLAYA Kanban Desk`  [EXTRACTED]
+  client/src/assets/aglaya-favicon-rojo.svg → README.md
+- `AGLAYA Logotype — Color` --represents--> `AGLAYA Kanban Desk`  [EXTRACTED]
+  client/src/assets/aglaya-logo-color.svg → README.md
+- `Runbook — Key & Secret Rotation` --references--> `resend`  [EXTRACTED]
+  docs/runbooks/key-rotation.md → package.json
 - `useCategories()` --indirect_call--> `createCategory()`  [INFERRED]
   client/src/hooks/useCategories.js → server/routes/categories.js
 
@@ -105,214 +96,203 @@
 - None detected.
 
 ## Hyperedges (group relationships)
-- **Project Phase Lifecycle** — phase_1, phase_2, phase_3, phase_4 [EXTRACTED 1.00]
-- **Frontend Technology Stack** — react_18, vite, tailwind_css, lucide_react, dnd_kit [EXTRACTED 1.00]
-- **Deployment & Infra Stack** — railway, netlify, supabase, cloudflare [EXTRACTED 1.00]
-- **Security & Defense Mechanisms** — row_level_security, jwt_auth, helmet_security, rate_limiting, cors_config [EXTRACTED 1.00]
-- **Project Documentation Suite** — claude, agents, readme, docs_architecture, docs_roadmap, docs_backlog, docs_changelog [EXTRACTED 1.00]
-- **CRITICAL findings requiring immediate mitigation** — finding_b_crit_01_xss, finding_b_crit_02_backup, finding_c_01_privacy_policy, finding_d_01_sentry, finding_d_03_ci_tests, finding_d_05_security_md [EXTRACTED 1.00]
-- **RGPD/LGPD/Ley21719 compliance requirements cascade** — finding_c_01_privacy_policy, compliance_rgpd_art_13, compliance_rgpd_art_17, compliance_rgpd_art_20, framework_rgpd, framework_lgpd, framework_ley_21_719 [EXTRACTED 1.00]
-- **Stored XSS attack vector (B-CRIT-01) full chain** — finding_b_crit_01_xss, security_issue_xss_vector, framework_owasp_top_10, framework_cvss_3_1, mitigation_402b0d7_xss [EXTRACTED 1.00]
-- **Backup/disaster-recovery architecture (B-CRIT-02 mitigation)** — finding_b_crit_02_backup, mitigation_3ae6541_backup, workflow_db_backup, service_cloudflare_r2, service_supabase, runbook_db_restore [EXTRACTED 0.95]
-- **Production observability gap (D-01/D-02/D-08 cluster)** — finding_d_01_sentry, finding_d_02_sentry, finding_d_08_alerts [INFERRED 0.80]
+- **Architecture Decision Records (ADR-011 through ADR-026)** — adr_011, adr_012, adr_014, adr_015, adr_016, adr_017, adr_018, adr_019, adr_020, adr_021, adr_022, adr_023, adr_024, adr_025, adr_026 [EXTRACTED 1.00]
+- **Roadmap Phases (Phase 0-5 Progression)** — phase_0, phase_1, phase_2, phase_3, phase_4, phase_5 [EXTRACTED 1.00]
+- **Multi-Tenant Auth & Access Control System** — multi_tenant_architecture, row_level_security, user_roles_macro, workspace_roles_micro, workspace_types [INFERRED 0.95]
+- **Project Documentation Suite** — claude, agents, docs_architecture, docs_changelog, docs_permissions, docs_security, docs_prd, docs_roadmap, docs_runbook [EXTRACTED 1.00]
+- **Production Deployment Stack** — supabase_service, railway_service, netlify_service, resend_service, cloudflare_service [EXTRACTED 1.00]
+- **GitHub Actions CI/CD Workflows** — github_ci_yml, github_db_backup_yml, github_digest_cron_yml, github_schema_guard_yml [EXTRACTED 1.00]
+- **Mariana Audit Phases A-D Framework** — audit_mariana_a, audit_mariana_b, audit_mariana_c, audit_mariana_d, audit_mariana_report [EXTRACTED 1.00]
+- **Legal Compliance Frameworks — RGPD/LGPD/Ley 21.719** — rgpd, lgpd, ley_21_719, audit_mariana_c [EXTRACTED 1.00]
+- **Backup & Disaster Recovery System — B-CRIT-02 Mitigation** — db_backup_workflow, docs_runbooks_db_restore_runbook, cloudflare_r2, supabase, github_actions [EXTRACTED 1.00]
+- **Security & Operations Procedures** — docs_runbooks_key_rotation_runbook, docs_runbooks_db_restore_runbook, docs_runbooks_railway_custom_domain_runbook, docs_operator_checklist [INFERRED 0.85]
+- **Infrastructure & Platform Ecosystem** — supabase, railway, cloudflare_r2, netlify, resend, github_actions [INFERRED 0.80]
 
-## Communities (67 total, 18 thin omitted)
+## Communities (58 total, 12 thin omitted)
 
-### Community 0 - "Authentication & Authorization"
-Cohesion: 0.05
-Nodes (38): getUserFromDb(), invalidateUserCache(), jwt, requireAuth(), requireRole(), { supabaseAdmin }, userCache, requireWorkspaceMember() (+30 more)
-
-### Community 1 - "Kanban UI Components"
+### Community 0 - "Card & Board API"
 Cohesion: 0.09
-Nodes (25): Board(), PRIORITY_SORT_ORDER, Card(), SortableCard(), CardModal(), EMPTY, fileIcon(), normalizeAttachments() (+17 more)
+Nodes (48): Any, _api_base(), assign_card(), assign_checklist_item(), _board_of_column(), _cfg(), clear_workspace(), create_board() (+40 more)
 
-### Community 2 - "Project Architecture"
+### Community 1 - "React & UI Dependencies"
+Cohesion: 0.04
+Nodes (48): autoprefixer, dependencies, @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities, lucide-react, react, react-dom (+40 more)
+
+### Community 2 - "Backend & Server Dependencies"
+Cohesion: 0.04
+Nodes (48): concurrently, cookie-parser, cors, dotenv, express, express-rate-limit, file-type, helmet (+40 more)
+
+### Community 3 - "Architecture & Design Decisions"
+Cohesion: 0.05
+Nodes (46): ADR-011 — Brand Consolidation, ADR-012 — Jest Downgrade for Stability, ADR-014 — Permission Alignment & Session Migration, ADR-015 — Admin Invite Resilience, ADR-016 — Supabase Client Isolation, ADR-017 — Explicit Workspace Context for Cards, ADR-018 — Consistent Overlay & Destructive Action UX, ADR-019 — Contextual Digest per Workspace (+38 more)
+
+### Community 4 - "Authentication & Authorization"
 Cohesion: 0.06
-Nodes (39): ADR-011: Brand Consolidation (AGLAYA), ADR-020: Single-Tenant Model (Intentional), ADR-021: Category FK Migration (UUID), ADR-022: Performance Indexes, ADR-023: Global Error Handler & 404 JSON, ADR-024: app.js / index.js Separation, AGLAYA Kanban Desk, Cloudflare — DNS & R2 Storage (+31 more)
+Nodes (29): getUserFromDb(), invalidateUserCache(), jwt, requireAuth(), requireRole(), { supabaseAdmin }, userCache, ALLOWED_ROLES (+21 more)
 
-### Community 3 - "Accessibility & Compliance"
-Cohesion: 0.07
-Nodes (37): A11y — WCAG 1.3.1 Info and Relationships (Level A), ADR-025: Flat API State Management, Audit Mariana Trench — 2026-05-27, Backlog roadmap — 49 medium/low findings across 3 blocks, RGPD Art. 13/14 — Information to data subject, CardModal component — 937 LOC god component, DPA with Supabase — Data Processing Agreement, A-01 CRÍTICO — Labels not associated with inputs (+29 more)
+### Community 5 - "Security & Compliance Audit"
+Cohesion: 0.08
+Nodes (36): Audit Mariana — Security & Compliance Review, Audit Phase A — UX/A11y/Performance/SEO, Audit Phase A Addendum — A11y Gap Corrections, Audit Phase B — Backend Security + Database, Audit Phase C — Legal Compliance RGPD/LGPD, Audit Phase D — DevOps/Observability/Docs, Audit Mariana Trench — Full Consolidated Report, Cloudflare R2 — Object Storage for Backups (+28 more)
 
-### Community 4 - "Server Dependencies"
-Cohesion: 0.07
-Nodes (29): cookie-parser, cors, dotenv, express, express-rate-limit, file-type, helmet, jsonwebtoken (+21 more)
+### Community 6 - "Board UI Components"
+Cohesion: 0.14
+Nodes (15): Board(), PRIORITY_SORT_ORDER, CardModal(), EMPTY, fileIcon(), normalizeAttachments(), CategoryRow(), CategorySettings() (+7 more)
 
-### Community 5 - "Express Route Handlers"
+### Community 7 - "Workspace Access Control"
+Cohesion: 0.09
+Nodes (22): requireWorkspaceMember(), requireWorkspaceRole(), resolveWorkspaceIdFromBoard(), resolveWorkspaceIdFromCard(), resolveWorkspaceIdFromColumn(), { supabaseAdmin }, express, multer (+14 more)
+
+### Community 8 - "Express App & Routers"
 Cohesion: 0.08
 Nodes (25): adminRouter, app, authLimiter, authRouter, cookieParser, cors, digestRouter, express (+17 more)
 
-### Community 6 - "JWT Token Management"
-Cohesion: 0.09
-Nodes (14): { createAdminClient, createPublicClient }, express, { getSyncedUserProfile }, jwt, refreshSecret(), { requireAuth, invalidateUserCache }, router, signRefreshToken() (+6 more)
+### Community 9 - "Modal & Sidebar Components"
+Cohesion: 0.13
+Nodes (12): Sidebar(), BoardMoveModal(), ColumnPickerModal(), IconButton(), AddMemberModal(), ROLE_LABELS, WorkspaceMembers(), WS_ROLES (+4 more)
 
-### Community 7 - "Testing & Build Config"
-Cohesion: 0.09
-Nodes (21): concurrently, jest, description, devDependencies, concurrently, jest, supertest, jest (+13 more)
-
-### Community 8 - "Sidebar & Navigation"
-Cohesion: 0.15
-Nodes (11): Sidebar(), IconButton(), formatNotification(), NotificationBell(), AddMemberModal(), ROLE_LABELS, WorkspaceMembers(), WS_ROLES (+3 more)
-
-### Community 9 - "Digest HTML Utilities"
-Cohesion: 0.18
-Nodes (18): dateLabel(), escHtml(), isOverdue(), buildAssignedSection(), buildHtml(), buildSection(), checklistBadge(), dueBadge() (+10 more)
-
-### Community 10 - "Client Session Management"
-Cohesion: 0.27
-Nodes (15): fetchWithAuth(), getToken(), refreshAccessToken(), request(), AuthContext, AuthProvider(), clearAuthSession(), clearAuthToken() (+7 more)
-
-### Community 11 - "Workspace Components"
+### Community 10 - "Email Digest Generation"
 Cohesion: 0.16
-Nodes (12): useWorkspaces(), canDeleteWorkspace(), canManageWorkspace(), COLUMN_COLORS, EMOJIS, MiniKanban(), ROLE_LABELS, seededRand() (+4 more)
+Nodes (19): buildHtml(), buildStats(), buildSubject(), DIGEST_HOUR, DIGEST_MINUTE, { escHtml, dateLabel, todayStr, DONE_COLUMN_RE }, { logDigestAttempt }, priorityRow() (+11 more)
 
-### Community 12 - "Frontend Dependencies"
-Cohesion: 0.12
-Nodes (17): dependencies, @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities, react-dom, react-easy-crop, react-markdown, remark-gfm (+9 more)
-
-### Community 13 - "Database Schema"
-Cohesion: 0.28
-Nodes (16): Supabase Schema (PostgreSQL), public.boards, public.cards, public.categories, public.columns, public.digest_logs, public.get_my_org_id(), public.get_my_role() (+8 more)
-
-### Community 14 - "Notifications & Logging"
-Cohesion: 0.16
-Nodes (13): express, { requireAuth }, router, { supabaseAdmin }, { logDigestAttempt, queryDigestLogs }, { supabaseAdmin }, logDigestAttempt(), queryDigestLogs() (+5 more)
-
-### Community 15 - "Email Digest System"
-Cohesion: 0.18
-Nodes (15): buildHtml(), buildStats(), buildSubject(), DIGEST_HOUR, DIGEST_MINUTE, { escHtml, dateLabel, todayStr, DONE_COLUMN_RE }, { logDigestAttempt }, priorityRow() (+7 more)
-
-### Community 16 - "Modal & Settings UI"
-Cohesion: 0.19
-Nodes (10): BoardMoveModal(), ColumnPickerModal(), EMOJIS, TYPE_OPTS, WorkspaceSettings(), useFocusTrap(), AdminPage(), ASSIGNABLE_ROLES (+2 more)
-
-### Community 17 - "App & Data Hooks"
+### Community 11 - "Client Auth Utilities"
 Cohesion: 0.26
-Nodes (12): api, App(), AuthenticatedApp(), restoreSession(), useAuth(), CategoriesContext, useBoardData(), useBoards() (+4 more)
+Nodes (17): fetchWithAuth(), getToken(), refreshAccessToken(), request(), AuthContext, AuthProvider(), clearAuthSession(), clearAuthToken() (+9 more)
 
-### Community 18 - "Digest API Endpoint"
-Cohesion: 0.16
-Nodes (13): { buildUserCards, sendUserDigest, sendAllUserDigests }, { createAdminClient, supabaseAdmin }, express, { getSyncedUserProfile }, { queryDigestLogs }, { requireAuth, requireRole }, router, { sendDigest } (+5 more)
+### Community 12 - "Card & Column Components"
+Cohesion: 0.19
+Nodes (13): Card(), SortableCard(), Column(), SortableColumn(), Badge(), COLOR_OPTIONS, colorById(), PRIORITIES (+5 more)
 
-### Community 19 - "Build Tool Dependencies"
+### Community 13 - "Workspace Management UI"
+Cohesion: 0.14
+Nodes (14): useWorkspaces(), canDeleteWorkspace(), canManageWorkspace(), COLUMN_COLORS, DeleteConfirmModal(), EMOJIS, MiniKanban(), ROLE_LABELS (+6 more)
+
+### Community 14 - "User Digest Formatting"
 Cohesion: 0.15
-Nodes (13): autoprefixer, devDependencies, autoprefixer, marked, postcss, @types/react, @types/react-dom, @vitejs/plugin-react (+5 more)
+Nodes (19): isOverdue(), buildSection(), buildSubject(), buildUserCards(), checklistBadge(), dueBadge(), { escHtml, dateLabel, todayStr, isOverdue, DONE_COLUMN_RE }, formatDueDate() (+11 more)
+
+### Community 15 - "Internal Routes & Logging"
+Cohesion: 0.15
+Nodes (13): express, router, { supabaseAdmin }, VALID_PRIORITIES, { logDigestAttempt, queryDigestLogs }, { supabaseAdmin }, logDigestAttempt(), queryDigestLogs() (+5 more)
+
+### Community 16 - "Database Schema"
+Cohesion: 0.31
+Nodes (14): public.boards, public.cards, public.categories, public.columns, public.digest_logs, public.get_my_org_id(), public.get_my_role(), public.get_workspace_role() (+6 more)
+
+### Community 17 - "User Settings UI"
+Cohesion: 0.17
+Nodes (9): AvatarCropModal(), DigestPreferences(), formatLocalHour(), utcHourToLocal(), UserMenu(), AdminPage(), ASSIGNABLE_ROLES, InviteModal() (+1 more)
+
+### Community 18 - "App Core & Contexts"
+Cohesion: 0.28
+Nodes (8): api, App(), AuthenticatedApp(), restoreSession(), CategoriesContext, useBoardData(), useBoards(), clearUiState()
+
+### Community 19 - "Login & Auth UI"
+Cohesion: 0.24
+Nodes (6): SIZE_CLASSES, Spinner(), useAuth(), LoginPage(), ResetPasswordPage(), supabase
 
 ### Community 20 - "Database Seeding"
 Cohesion: 0.19
 Nodes (12): COLUMNS, CONTENIDO_CARDS, createBoard(), createCards(), { createClient }, createColumns(), main(), OPERACIONES_CARDS (+4 more)
 
-### Community 21 - "Card Operations"
+### Community 21 - "Card Management API"
 Cohesion: 0.26
 Nodes (12): createAssigneeNotification(), createCard(), createChecklistNotifications(), deleteCard(), getCardsByBoard(), getCardsByColumn(), moveCard(), searchCards() (+4 more)
 
-### Community 22 - "File Upload & Storage"
+### Community 22 - "File Upload Handling"
 Cohesion: 0.15
 Nodes (11): ALLOWED_MIME, FileType, FORBIDDEN_MIME, fs, multer, path, storage, upload (+3 more)
 
-### Community 23 - "Login & Auth UI"
-Cohesion: 0.29
-Nodes (4): SIZE_CLASSES, Spinner(), ResetPasswordPage(), supabase
-
-### Community 24 - "Server Init & Monitoring"
+### Community 23 - "App Initialization & Config"
 Cohesion: 0.25
 Nodes (6): app, { Sentry, enabled: sentryEnabled }, { validateSmtpConfig, validateDigestSchedules }, { validateSmtpConfig, validateDigestSchedules }, validateDigestSchedules(), validateSmtpConfig()
 
-### Community 25 - "Data Migration Scripts"
+### Community 24 - "MyBoard Data Migration"
 Cohesion: 0.18
 Nodes (9): boardIdMap, categoryIdMap, columnIdMap, { createClient }, fs, MYBOARD_PATH, path, supabase (+1 more)
 
-### Community 26 - "User Preferences"
-Cohesion: 0.31
-Nodes (5): AvatarCropModal(), DigestPreferences(), formatLocalHour(), utcHourToLocal(), UserMenu()
-
-### Community 27 - "Categories Management"
-Cohesion: 0.36
-Nodes (7): useCategories(), createCategory(), deleteCategory(), getCategories(), { supabaseAdmin }, toCat(), updateCategory()
-
-### Community 28 - "Board Operations"
+### Community 25 - "Board Management API"
 Cohesion: 0.33
 Nodes (8): createBoard(), DEFAULT_COLUMNS, deleteBoard(), getBoards(), reorderBoards(), { supabaseAdmin }, toBoard(), updateBoard()
 
-### Community 29 - "Supabase Seeding"
+### Community 26 - "Digest Email Route"
+Cohesion: 0.22
+Nodes (8): { buildUserCards, sendUserDigest, sendAllUserDigests }, { createAdminClient, supabaseAdmin }, express, { getSyncedUserProfile }, { queryDigestLogs }, { requireAuth, requireRole }, router, { sendDigest }
+
+### Community 27 - "Supabase Seeding"
 Cohesion: 0.22
 Nodes (7): boardIdMap, columnIdMap, { createClient }, fs, path, supabase, tasks
 
-### Community 30 - "Notification Tests"
+### Community 28 - "Auth Tests"
+Cohesion: 0.22
+Nodes (5): app, request, { supabaseAdmin, createAdminClient, createPublicClient }, TEST_PROFILE, createPublicClient()
+
+### Community 29 - "Notification Tests"
 Cohesion: 0.22
 Nodes (6): app, jwt, mockFrom, request, SAMPLE_NOTIFS, TOKEN
 
-### Community 31 - "Workspace Tests"
+### Community 30 - "Workspace Tests"
 Cohesion: 0.25
 Nodes (7): app, configureMocks(), jwt, makeChain(), mockFreshAdmin, request, { supabaseAdmin }
 
-### Community 32 - "Frontend Framework"
-Cohesion: 0.25
-Nodes (8): lucide-react, tailwindcss, vite, @dnd-kit — Drag & Drop, lucide-react, React 18, tailwindcss, vite
+### Community 31 - "Category Management"
+Cohesion: 0.43
+Nodes (7): useCategories(), createCategory(), deleteCategory(), getCategories(), { supabaseAdmin }, toCat(), updateCategory()
 
-### Community 33 - "Admin Route Tests"
+### Community 32 - "Admin Tests"
 Cohesion: 0.25
 Nodes (5): app, jwt, request, { supabaseAdmin, createAdminClient }, createAdminClient()
 
-### Community 34 - "Digest Route Tests"
+### Community 33 - "Digest Tests"
 Cohesion: 0.25
 Nodes (6): app, { buildUserCards, sendUserDigest }, { createAdminClient, supabaseAdmin }, jwt, request, workspaceState
 
-### Community 35 - "Upload Tests"
+### Community 34 - "Upload Tests"
 Cohesion: 0.25
 Nodes (6): app, fs, jwt, path, PNG_SIGNATURE, request
 
-### Community 36 - "Column Operations"
+### Community 35 - "Column Management"
 Cohesion: 0.43
 Nodes (6): createColumn(), deleteColumn(), getColumns(), { supabaseAdmin }, toColumn(), updateColumn()
 
-### Community 37 - "Self-Service Auth Tests"
+### Community 36 - "Self-Service Auth Tests"
 Cohesion: 0.29
 Nodes (4): app, jwt, mockUserProfile, request
 
-### Community 38 - "Build Scripts"
-Cohesion: 0.33
-Nodes (6): scripts, build, build:legal, dev, prebuild, preview
-
-### Community 39 - "Internal API Routes"
-Cohesion: 0.33
-Nodes (4): express, router, { supabaseAdmin }, VALID_PRIORITIES
-
-### Community 40 - "Token Refresh Tests"
+### Community 37 - "Token Refresh Tests"
 Cohesion: 0.33
 Nodes (4): app, jwt, mockProfile, request
 
-### Community 41 - "Project Metadata"
-Cohesion: 0.40
-Nodes (4): name, private, type, version
-
-### Community 42 - "Card Validation Tests"
+### Community 38 - "Card Validation Tests"
 Cohesion: 0.40
 Nodes (3): app, jwt, request
 
-### Community 43 - "Security Tests"
+### Community 40 - "Security Tests"
 Cohesion: 0.50
 Nodes (3): app, PROTECTED_ROUTES, request
 
+### Community 41 - "Permission Matrix"
+Cohesion: 0.67
+Nodes (3): PERMISSIONS.md — Role & Access Matrix, User Roles (Macro) — superadmin / admin / colaborador / cliente, Workspace Roles (Micro) — owner / admin / member / guest
+
 ## Knowledge Gaps
-- **304 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+299 more)
+- **310 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+305 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **18 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useCategories()` connect `Categories Management` to `App & Data Hooks`?**
-  _High betweenness centrality (0.184) - this node is a cross-community bridge._
-- **Why does `createCategory()` connect `Categories Management` to `Express Route Handlers`?**
-  _High betweenness centrality (0.062) - this node is a cross-community bridge._
-- **Why does `updateCategory()` connect `Categories Management` to `Express Route Handlers`?**
-  _High betweenness centrality (0.062) - this node is a cross-community bridge._
+- **Why does `useCategories()` connect `Category Management` to `App Core & Contexts`?**
+  _High betweenness centrality (0.164) - this node is a cross-community bridge._
+- **Why does `createCategory()` connect `Category Management` to `Express App & Routers`?**
+  _High betweenness centrality (0.055) - this node is a cross-community bridge._
+- **Why does `updateCategory()` connect `Category Management` to `Express App & Routers`?**
+  _High betweenness centrality (0.055) - this node is a cross-community bridge._
 - **What connects `name`, `private`, `version` to the rest of the system?**
-  _304 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Authentication & Authorization` be split into smaller, more focused modules?**
-  _Cohesion score 0.05052790346907994 - nodes in this community are weakly interconnected._
-- **Should `Kanban UI Components` be split into smaller, more focused modules?**
-  _Cohesion score 0.09292929292929293 - nodes in this community are weakly interconnected._
-- **Should `Project Architecture` be split into smaller, more focused modules?**
-  _Cohesion score 0.06477732793522267 - nodes in this community are weakly interconnected._
+  _310 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Card & Board API` be split into smaller, more focused modules?**
+  _Cohesion score 0.09098639455782313 - nodes in this community are weakly interconnected._
+- **Should `React & UI Dependencies` be split into smaller, more focused modules?**
+  _Cohesion score 0.04081632653061224 - nodes in this community are weakly interconnected._
+- **Should `Backend & Server Dependencies` be split into smaller, more focused modules?**
+  _Cohesion score 0.04081632653061224 - nodes in this community are weakly interconnected._
