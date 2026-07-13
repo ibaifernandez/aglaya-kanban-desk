@@ -1,5 +1,5 @@
 # PRD (Product Requirements Document) — AGLAYA Kanban Desk
-**Phase 4 (completada) · v1.3.1**
+**Phase 4 (completada) · v1.4.0**
 **Owner:** AGLAYA · info@ibaifernandez.com
 **Fecha:** 2026-07-12 (Sincronizado con codebase)
 

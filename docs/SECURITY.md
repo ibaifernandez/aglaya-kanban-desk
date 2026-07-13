@@ -2,8 +2,8 @@
 
 Estado real de seguridad y superficie de ataque. Este documento se sincroniza con cada audit/cambio relevante.
 
-**Última actualización:** 2026-05-27 (post audit Mariana Trench — `docs/audits/2026-05-27-mariana/`)
-**Versión actual:** v1.3.1 (fuente única: raíz `package.json`). README badge sincronizado a este valor (2026-07-12).
+**Última actualización:** 2026-07-13 (fixes del audit aplicados + reconciliación DB + riel MCP)
+**Versión actual:** v1.4.0 (fuente única: raíz `package.json`).
 
 > **Nota importante:** versiones anteriores de este documento contenían afirmaciones inexactas detectadas durante audit Mariana (D-05). Esta versión refleja el estado real post-mitigaciones.
 
@@ -16,44 +16,50 @@ Estado real de seguridad y superficie de ataque. Este documento se sincroniza co
 | Autenticación | ✅ | Supabase Auth + JWT firmado por servidor (HS256, `JWT_SECRET`) |
 | Autorización middleware | ✅ | `requireAuth` y `requireWorkspaceMember` aplicados en rutas de datos |
 | Restricción de dominio | ✅ | `POST /api/auth/register` filtra dominios corporativos |
-| **JWT expiración** | 🟠 ALTO abierto | `expiresIn: '7d'` sin refresh token ni rotación (B-02). Si JWT leaks → 7 días de acceso atacante |
-| **JWT claims (role, organizationId)** | 🟠 ALTO abierto | No re-validados contra DB en cada request (B-07). Cambio de role queda obsoleto 7d |
-| **Persistencia de sesión** | 🟡 MEDIO | JWT en **`localStorage`** (no sessionStorage como decía versión previa de este doc). Riesgo XSS amplificado. Ver C-10 transparencia |
+| **JWT expiración + refresh** | ✅ RESUELTO (B-02) | Access token 15 min + refresh token en cookie HttpOnly (30d, secreto distinto). Interceptor de refresh en cliente. `dbb414f` |
+| **JWT claims re-validados** | ✅ RESUELTO (B-07) | Claims re-validados contra DB en cada request (cache TTL 30s). `fe8a090` |
+| **Persistencia de sesión** | ✅ | Access token en **`sessionStorage`** (`aglaya_session`); refresh en cookie HttpOnly. Migración suave desde localStorage legado. |
 | Security headers HTTP (API) | ✅ | helmet activo en respuestas Railway (CSP/HSTS/X-Frame/X-Content/Referrer) |
-| **Security headers HTTP (HTML)** | 🟠 ALTO abierto | Netlify NO añade CSP/X-Frame/X-Content/Referrer/Permissions-Policy en HTML servido (B-05). Solo HSTS de Cloudflare |
+| **Security headers HTTP (HTML)** | ✅ RESUELTO (B-05) | `netlify.toml` `[[headers]]` con CSP + X-Frame + X-Content + Referrer + Permissions-Policy. `f61a4d9` |
 | Exposición de claves | ✅ | `SUPABASE_SERVICE_ROLE_KEY` solo backend; `VITE_*` prefix correcto en cliente |
 | CORS | ✅ | Origins estrictos (`localhost:5175` dev / `kanban.aglaya.biz` prod) |
-| **Rate limiting** | 🟠 ALTO abierto | Aplicado **SOLO en `/api/auth`** (B-06). Resto de endpoints (boards/cards/workspaces/admin/digest/notifications/media/uploads/internal) **sin rate limit** |
-| **Internal route `/api/internal/*`** | 🟡 MEDIO abierto | Auth por `x-task-secret` sin rate limit ni logging de intentos (B-09) |
+| **Rate limiting** | ✅ RESUELTO (B-06) | Global 300 req/15min en todo `/api/*` + estricto en `/api/auth` (20/15min) y `/api/internal` (10/min). `6c31670` |
+| **Internal route `/api/internal/*`** | ✅ RESUELTO (B-09) | `x-task-secret` + rate limit dedicado (10/min) anti secret-guessing. `6c31670` |
 | **Row Level Security (RLS)** | ✅ post-audit | 9/9 tablas con RLS habilitada (organizations habilitada en migración `migration-organizations-rls.sql` durante audit). 8 tablas con políticas SELECT explícitas; WRITE policies parciales (B-12, MEDIO) |
 | Aislamiento Supabase clients | ✅ | `auth` y `admin` usan clientes frescos por request |
-| **Railway URL pública** | 🟠 ALTO abierto | `web-production-099a0.up.railway.app/api/*` accesible sin gateway (B-03). Bypass de proxy Netlify posible con JWT robado |
+| **Railway URL pública** | 🟠 PARCIAL (B-03) | Monitor activo que loguea acceso directo a la URL Railway (`app.js`). Custom domain + Cloudflare WAF pendientes. `66ca5eb` |
 | **Uploads XSS** | ✅ MITIGADO | Hallazgo B-CRIT-01 (CVSS 8.0) detectado y resuelto durante audit. SHA fix `402b0d7`. 4-layer defense: ext blocklist + MIME blocklist + allowlist + magic-bytes |
 | **Backup strategy** | ✅ MITIGADO quick-win | B-CRIT-02 resuelto: GitHub Actions cron daily → Cloudflare R2. SHA `3ae6541`. Pendiente upgrade Supabase Pro estructural |
-| **npm audit** | 🟡 MEDIO abierto | 0 critical, 2 HIGH (lodash code-injection, path-to-regexp ReDoS — transitivas), 11 MODERATE (B-08) |
+| **npm audit** | 🟡 4 residuales (B-08) | Remediado 27→4 (2026-07-12): CRÍTICA + todas las HIGH cerradas. Residuales: 2 moderate server (file-type ESM-blocked, uuid no-aplica) + 2 dev-only client (vite/esbuild). Ver INCIDENTS.md |
 
 ### Resumen estado
 
-- **Verde:** auth flow, autorización middleware, helmet API, CORS, RLS (post-audit), service_role aislado, uploads XSS resuelto, backup resuelto
-- **Amarillo abierto:** JWT 7d + claims stale, localStorage JWT, Railway URL pública, CSP HTML Netlify ausente, rate limit incompleto, npm audit pendientes
-- **Mitigado durante audit:** B-CRIT-01 (XSS uploads), B-CRIT-02 (backup), B-04/B-11 (organizations RLS)
+- **Verde:** auth flow + JWT refresh 15m (B-02), autorización middleware, re-validación de claims (B-07), helmet API + CSP HTML Netlify (B-05), CORS, rate limiting completo (B-06/B-09), RLS 10/10 + GRANTs (anon sin escritura), sesión en sessionStorage, uploads XSS resuelto, backup resuelto.
+- **Amarillo abierto:** Railway URL sin gateway (B-03 parcial), 4 vulns residuales de deps (B-08), WRITE policies RLS parciales (B-12).
+- **Mitigado durante audit + cierre:** B-CRIT-01 (XSS uploads), B-CRIT-02 (backup), B-04/B-11 (organizations RLS), y B-02/03/05/06/07/09.
 
 ---
 
 ## Hallazgos abiertos referenciados
 
-Ver `docs/audits/2026-05-27-mariana/audit-B.md` para detalle completo. IDs activos:
+La mayoría de los ALTOS del audit se cerraron en el cierre formal (ver `docs/audits/2026-05-27-mariana/REPORT.md` §12). IDs realmente abiertos hoy:
 
-| ID | Severidad | Acción |
+| ID | Severidad | Estado |
 |---|---|---|
-| B-02 | ALTO | JWT refresh token + access token corto |
-| B-03 | ALTO | Railway custom domain `api.kanban.aglaya.biz` o Cloudflare WAF |
-| B-05 | ALTO | `netlify.toml` `[[headers]]` con CSP + X-Frame-Options + X-Content-Type-Options + Referrer-Policy + Permissions-Policy |
-| B-06 | ALTO | Global rate limit (300 req/15min) + estricto sobre `/api/internal` |
-| B-07 | ALTO | Re-validación JWT claims contra DB en middleware |
-| B-08 | MEDIO | `npm audit fix` non-breaking + evaluar major bumps |
-| B-09 | MEDIO | Rate limit + logging en internal route |
-| B-12 | MEDIO | Policies WRITE explícitas en boards/columns/cards/categories/workspaces |
+| B-03 | ALTO | **Parcial** — monitor activo; falta custom domain `api.kanban.aglaya.biz` + Cloudflare WAF |
+| B-08 | MEDIO | **Remediado a 4 residuales** justificados (2 moderate server + 2 dev-only client) |
+| B-12 | MEDIO | Policies WRITE explícitas por tabla (hoy RLS por-organización) |
+
+## Cuentas privilegiadas (superadmin)
+
+El bypass "God Mode" es **por rol** (`role='superadmin'`), no por email. Cuentas superadmin actuales:
+
+| Cuenta | Uso | Credencial |
+|---|---|---|
+| `info@ibaifernandez.com` | Operador humano (Ibai) | Login personal |
+| `kanban-rail@aglaya.biz` | **Cuenta de servicio del riel MCP** (orquestador; escribe cards vía API) | Server-side en `~/.config/aglaya/kanban-rail.env` (chmod 600), nunca en código/logs. Revocable: borrar user o bajar rol |
+
+El riel MCP (`kanban-mcp/`, ver ADR-026 en `ARCHITECTURE.md`) usa además `SUPABASE_SERVICE_ROLE_KEY` para lecturas puntuales vía PostgREST — misma custodia server-side.
 
 ---
 

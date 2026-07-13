@@ -1,6 +1,8 @@
 # ROADMAP — AGLAYA Kanban Desk
 
-**Última actualización:** 2026-07-12 (v1.3.1)
+**Última actualización:** 2026-07-13 (v1.4.0)
+
+> **v1.4.0 (2026-07-13):** riel MCP (`kanban-mcp/`, ADR-026) para operar el kanban desde el orquestador; digest diario sin workspaces personales; reconciliación DB↔doc + remediación B-08. Ver `CHANGELOG.md`.
 
 ---
 

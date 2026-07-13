@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — Arquitectura Técnica AGLAYA Kanban Desk
 
-**Última actualización:** 2026-07-12 (v1.3.1 — esquema reconciliado con la DB real)
+**Última actualización:** 2026-07-13 (v1.4.0 — riel MCP + digest sin personal + reconciliación)
 
 ---
 
@@ -43,7 +43,7 @@ El sistema utiliza una capa de seguridad concéntrica:
 - `requireWorkspaceMember`: El "muro de fuego" **Micro**. Verifica si el usuario pertenece al espacio de trabajo. Es un middleware *context-aware* capaz de derivar el `workspaceId` desde un `boardId`, `columnId` o `cardId`.
 
 ### Modo Dios (Superadmin)
-El Superadmin (`info@ibaifernandez.com`) posee un bypass en el middleware que le permite auditar cualquier workspace mediante acceso directo por URL, actuando como Propietario virtual sin necesidad de estar invitado explícitamente.
+El bypass "Modo Dios" es **por rol** (`role='superadmin'`), no por email: permite auditar/operar cualquier workspace por acceso directo, actuando como Propietario virtual sin estar invitado. Hoy hay **dos** cuentas superadmin — el operador humano (`info@ibaifernandez.com`) y la cuenta de servicio del riel MCP (`kanban-rail@aglaya.biz`; ver ADR-026 + `SECURITY.md`).
 
 ### Roles Micro
 Definidos en la tabla `workspace_members`:
@@ -211,5 +211,12 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 **Decisión:** Camino C — mantener el acople plano UI → `api`, sin domain hooks ni state-management library. La API es estable, el equipo es chico (<3 devs frontend) y no hay fricción real en producción que justifique la migración; el Camino A reinventaría TanStack Query a mano y el B es correcto pero prematuro.
 **Triggers para revisar:** stale data en producción, loading state desincronizado, race conditions en mutaciones, equipo frontend >3 devs, o API inestable. Plan futuro si se gatilla: adoptar TanStack Query (no hand-rolled), migración incremental por recurso.
 **Consecuencias:** Deuda explícita y documentada. Cero riesgo/esfuerzo hoy; camino de migración claro cuando aparezca un trigger.
+
+### ADR-026: Riel MCP — Operar el Kanban vía API con Cuenta de Servicio
+**Fecha:** 2026-07-13
+**Estado:** Aceptado
+**Contexto:** El orquestador necesita crear estructura y clavar cards de forma programática, sin usar la UI ni ver secretos. Dos vías: (A) un MCP que hace login como cuenta de servicio y usa la API existente; (B) extender la API interna secret-authed con CRUD nuevo.
+**Decisión:** Camino A. Un servidor MCP stdio (`kanban-mcp/`, Python FastMCP) inicia sesión como una cuenta de servicio superadmin dedicada (`kanban-rail@aglaya.biz`) y conduce la API de producción. Cero código de producto; cada escritura hereda validación, roles, RLS y las notificaciones del server. Las lecturas que la API no expone (column→board, checklist) usan PostgREST con service_role. Credenciales server-side (`~/.config/aglaya/kanban-rail.env`, chmod 600); el capitán nunca las ve.
+**Consecuencias:** El orquestador opera el kanban sin tocar la app ni desplegar. La cuenta de servicio es un segundo superadmin (ver `SECURITY.md`), revocable. Destructivas gated (`confirm=true`). Descartada B por exigir código de producto + deploy sin ganancia funcional.
 
 > **Nota de numeración ADR:** los ADR-001 a ADR-010 se citan en "Historial de Decisiones Clave" (arriba) pero no tienen entrada individual — preceden a la adopción de este registro numerado. Su rationale vive en esa lista y en el historial git. El registro individual empieza en ADR-011. (Backfill formal pendiente: finding D-13 del audit.)

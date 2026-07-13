@@ -4,6 +4,29 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [1.4.0] - 2026-07-13
+
+### Added
+- **Riel MCP `kanban-mcp/`** (stdio, Python): el orquestador opera el kanban vía la API con una cuenta de servicio superadmin dedicada (ADR-026). Tools de lectura / estructura / comanda / flujo / asignación + destructivas gated. Asignar responsable (card o ítem de checklist) dispara las notificaciones in-app existentes (`card_assignment` / `checklist_mention`).
+- **Member tools** en el riel: `list_members`, `remove_member` (gated).
+- **Vacuna B-10:** CI `schema-guard` que rechaza migraciones SQL sin actualizar el schema doc + GRANT/RLS.
+
+### Changed
+- **Digest diario excluye workspaces de tipo `personal`** (`services/digest/user.js`); la petición contextual explícita con `workspaceId` se respeta. Test: `digest-personal-filter.test.js`.
+- **`supabase-schema.sql` regenerado como espejo fiel de la DB real** (columnas `title`/`order`, tabla `digest_logs`, GRANTs, 35 policies RLS) por introspección directa. Fuente única de versión = raíz `package.json`.
+- `create_card`/`list_cards` del riel: `board_id` derivado de `column_id` (opcional).
+
+### Fixed
+- **Reconciliación DB↔doc** (migración 2026-07-12, DOC-02/03/04): `workspaces.type` default coherente, `anon` sin escritura, rebrand org `LFi Agency`→`AGLAYA`. Ver INCIDENTS.md.
+- **Vulnerabilidades B-08 remediadas** (27→4 residuales justificados): CRÍTICA + todas las HIGH cerradas; `nodemailer` (muerto) eliminado.
+- **SECURITY.md** sincronizado al estado real post-fixes (B-02/05/06/07/09 constaban abiertos por error).
+- Higiene documental: versión única, enlaces rotos, métricas de tests reales, cruft borrado.
+
+### Governance
+- **Purga de usuarios:** el kanban pasa a 3 cuentas (Ibai, riel, Món). 8 cuentas borradas + rastro limpio; cards huérfanas conservadas sin responsable; 5 workspaces no-keeper borrados.
+
+---
+
 ## [1.3.1] - 2026-04-29
 
 ### Added

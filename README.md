@@ -1,6 +1,6 @@
 # AGLAYA Kanban Desk
 
-![Version](https://img.shields.io/badge/version-1.3.1-6366f1)
+![Version](https://img.shields.io/badge/version-1.4.0-6366f1)
 ![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen)
 ![Client](https://img.shields.io/badge/client-Netlify-00C7B7?logo=netlify)
 ![Server](https://img.shields.io/badge/server-Railway-0B0D0E?logo=railway)
@@ -78,7 +78,7 @@ server/  (Express 4 · Railway · puerto 3003)
 
 ---
 
-## Características — v1.3.1
+## Características — v1.4.0
 
 ### Workspaces y roles
 
@@ -117,7 +117,7 @@ server/  (Express 4 · Railway · puerto 3003)
 ### Email y digests
 
 - **Admin digest:** estadísticas globales, tarjetas vencidas, huérfanas, top tableros y datos de usuarios Supabase — enviado diariamente vía GitHub Actions
-- **User digest:** email personal con tarjetas urgentes/vencidas y asignaciones pendientes, segmentado por workspace
+- **User digest:** email personal con tarjetas urgentes/vencidas y asignaciones pendientes, segmentado por workspace (el diario **excluye los workspaces personales**)
 - Endpoint `POST /api/digest/send-me` para envío bajo demanda (admin)
 - Email vía [Resend](https://resend.com)
 
@@ -272,7 +272,7 @@ cd server && npm test
 | [SECURITY.md](./docs/SECURITY.md)                    | Modelo de seguridad y RLS              |
 | [supabase-schema.sql](./docs/schema/supabase-schema.sql) | Schema SQL completo                |
 
-> **Versionado:** la fuente única de verdad de la versión es la raíz [`package.json`](./package.json) (`1.3.1`). El badge de arriba y cualquier sello de versión en la documentación deben alinearse a ese valor.
+> **Versionado:** la fuente única de verdad de la versión es la raíz [`package.json`](./package.json) (`1.4.0`). El badge de arriba y cualquier sello de versión en la documentación deben alinearse a ese valor.
 
 ---
 
