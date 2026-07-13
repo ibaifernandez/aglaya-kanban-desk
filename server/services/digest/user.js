@@ -79,7 +79,11 @@ async function buildUserCards(userId, options = {}) {
 
     workspaces = memberships
       .map((m) => m.workspace)
-      .filter(Boolean);
+      .filter(Boolean)
+      // El digest diario NO incluye workspaces de tipo 'personal' (2026-07-13).
+      // Solo aplica al digest completo (sin workspaceId). Una petición
+      // contextual con workspaceId explícito arriba se respeta tal cual.
+      .filter((w) => w.type !== 'personal');
   }
 
   if (!workspaces.length) return { personal: [], interno: [], externo: [], total: 0 };

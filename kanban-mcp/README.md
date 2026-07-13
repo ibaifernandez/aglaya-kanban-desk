@@ -69,13 +69,20 @@ o en un `.mcp.json` de proyecto:
 
 | Grupo | Tool | Notas |
 |-------|------|-------|
-| Lectura | `list_workspaces` · `list_boards(ws)` · `list_columns(board)` · `list_cards(board)` | |
+| Lectura | `list_workspaces` · `list_boards(ws)` · `list_columns(board)` · `list_cards(board?,column?)` · `list_members(ws)` | `list_cards` acepta `board_id` **o** `column_id` (deriva el board) |
 | Estructura | `create_workspace(name,type)` · `create_board(ws,name)` · `create_column(board,name,order?)` | board auto-siembra columnas por defecto |
-| Comanda | `create_card(board,column,title,description_md,priority,checklist[],due_date)` | el BRIEF va en `description_md` (markdown) |
+| Comanda | `create_card(column,title,description_md,priority,checklist[],due_date,assignee?,board_id?)` | el BRIEF va en `description_md`; **`board_id` OPCIONAL** (se deriva de `column`); `assignee` fija responsable + notifica |
+| Asignar | `assign_card(card_id,user)` · `assign_checklist_item(card_id,item,user)` | `user` = email/nombre/id; `item` = índice o texto; **dispara notificación in-app** |
 | Flujo | `move_card(card_id,column,order?)` | append por defecto |
-| Destructivas 🔒 | `delete_card` · `delete_board` · `delete_workspace` · `clear_workspace` | **GATED: exigen `confirm=true`**; primero reportan qué se borraría |
+| Destructivas 🔒 | `delete_card` · `delete_board` · `delete_workspace` · `clear_workspace` · `remove_member(ws,user)` | **GATED: exigen `confirm=true`**; `remove_member` quita membresía (no borra la cuenta) |
 
 `priority ∈ urgent|high|medium|low|none`. `type ∈ personal|interno|externo`.
+
+## Notificaciones
+
+Asignar responsable (card o ítem de checklist) pasa por el `update` de la API,
+que dispara las **notificaciones in-app existentes** (tabla `notifications`,
+tipos `card_assignment` y `checklist_mention`). El asignado las ve en la campana.
 
 ## Seguridad
 
