@@ -6,6 +6,29 @@ Este documento resume los fallos relevantes encontrados durante la estabilizaci�
 
 ---
 
+## 2026-07-12 — Remediación de vulnerabilidades de dependencias (B-08)
+
+**Síntoma:** `npm audit` reportaba **27 vulnerabilidades** — server 21 (1 crítica, 6 high, 13 moderate, 1 low) + client 6 (3 high, 2 moderate, 1 low). Finding B-08 del audit Mariana, pendiente desde 2026-05-27.
+
+**Remediación aplicada:**
+- **Server `npm audit fix`** (non-breaking) → 18 cerradas, incluyendo la **CRÍTICA `shell-quote`** y las HIGH `form-data`, `lodash`, `multer`, `path-to-regexp`, `ws` + moderadas (`express`, `qs`, `body-parser`, `@opentelemetry/*`, `js-yaml`, `ip-address`, `svix`, `resend`, `@babel/core`).
+- **`npm uninstall nodemailer`** → cierra la HIGH de nodemailer. Era **dependencia muerta**: el proyecto migró a Resend SDK (0 `require` en el código).
+- **Client `npm audit fix`** (non-breaking) → 4 cerradas.
+
+**Residuales aceptados (4) — con justificación, NO forzados:**
+
+| Paquete | Sev | Por qué se acepta |
+|---|---|---|
+| `file-type` 16.5.4 (server) | moderate | Fix exige v22, que es **ESM puro** → rompería el server CommonJS + jest. La vuln (loop en parser ASF) es auth-gated y el allowlist de uploads (png/jpeg/webp/gif/pdf/csv/txt) no incluye ASF. Revisar si el server migra a ESM. |
+| `uuid` 9.0.1 (server) | moderate | La vuln afecta a v3/v5/v6 **con buffer**; el único uso real es `uuidv4()` sin buffer (`uploads.js`) → **no aplica**. Bump a v14 (ESM) innecesario. |
+| `vite` + `esbuild` (client) | high + moderate | **Solo dev-server** (devDependency; NO viajan al bundle de producción). Fix exige vite 5→8 (×3 majors). Sin impacto en el sitio desplegado. |
+
+**Verificación:** server tests **102/4/106/13** verde; client build verde (728 KB / 207 KB gzip). **La crítica y todas las HIGH que afectan a producción quedan cerradas.**
+
+**Estado:** de 27 → 4 residuales (2 moderate server documentadas + 2 dev-only client). B-08 cerrado con residual aceptado.
+
+---
+
 ## 2026-07-12 — Reconciliación documentación ↔ DB real: 5 divergencias detectadas
 
 **Contexto:** barrida documental que introspeccionó la DB de producción real. El `docs/schema/supabase-schema.sql` se regeneró como mirror fiel. De los 5 hallazgos, **DOC-02/03/04 se corrigieron** en la migración `docs/schema/migration-db-reconciliation-2026-07-12.sql` (aplicada a producción y verificada); DOC-01 (causa raíz) y DOC-05 se resuelven por documentación.
