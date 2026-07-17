@@ -150,4 +150,7 @@ Reglas para cualquier hilo que trabaje aquí:
 - **El capitán puede haber tocado docs de este repo**: sus commits van identificados y se registran en `docs/CHANGELOG.md`.
 - Los 3 miembros (Ibai, Món, capitán) son los únicos usuarios — la purga de 2026-07 es deliberada; no re-invites a nadie sin OK de Ibai.
 
+
+**Consulta al capitán EN VIVO:** MCP **`aglaya-atlas`** (disponible en toda sesión de Claude de esta máquina) — `flota_estado` · `ficha(nave)` · `contrato(nombre)` · `quien_consume` · `verdad_comercial` · `parked` · `buscar`. Responde leyendo el atlas en vivo y citando fuente. Ya no hace falta esperar un brief del capitán: pregúntale.
+
 **Último pase del capitán: 2026-07-17** — re-verificación 7/7 (kosher v1.4.0 del 13-jul intacto): MCP vivo (probado: 3 workspaces / 12 boards / 3 miembros), grafo 760 @ HEAD (fantasmas 0), selladas las modernizaciones de config de graphify 0.9.13 que estaban sin commitear (esenciales estándar + hooks `hook-guard`), huella colocada.
