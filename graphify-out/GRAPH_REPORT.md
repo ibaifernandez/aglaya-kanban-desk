@@ -1,15 +1,16 @@
-# Graph Report - .  (2026-07-13)
+# Graph Report - aglaya-kanban-desk  (2026-07-13)
 
 ## Corpus Check
-- cluster-only mode — file stats not available
+- 122 files · ~111,134 words
+- Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 760 nodes · 1275 edges · 58 communities (46 shown, 12 thin omitted)
+- 760 nodes · 1275 edges · 59 communities (46 shown, 13 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 57 edges (avg confidence: 0.54)
-- Token cost: 42,866 input · 1,928 output
+- Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b6104bab`
+- Built from commit: `58122334`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -67,6 +68,7 @@
 - AGLAYA Logotype Black
 - Kanban MCP
 - Accessibility Standard
+- Sidebar.jsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `useEscapeKey()` - 23 edges
@@ -108,7 +110,7 @@
 - **Security & Operations Procedures** — docs_runbooks_key_rotation_runbook, docs_runbooks_db_restore_runbook, docs_runbooks_railway_custom_domain_runbook, docs_operator_checklist [INFERRED 0.85]
 - **Infrastructure & Platform Ecosystem** — supabase, railway, cloudflare_r2, netlify, resend, github_actions [INFERRED 0.80]
 
-## Communities (58 total, 12 thin omitted)
+## Communities (59 total, 13 thin omitted)
 
 ### Community 0 - "Card & Board API"
 Cohesion: 0.09
@@ -147,16 +149,16 @@ Cohesion: 0.08
 Nodes (25): adminRouter, app, authLimiter, authRouter, cookieParser, cors, digestRouter, express (+17 more)
 
 ### Community 9 - "Modal & Sidebar Components"
-Cohesion: 0.13
-Nodes (12): Sidebar(), BoardMoveModal(), ColumnPickerModal(), IconButton(), AddMemberModal(), ROLE_LABELS, WorkspaceMembers(), WS_ROLES (+4 more)
+Cohesion: 0.17
+Nodes (10): BoardMoveModal(), ColumnPickerModal(), AddMemberModal(), ROLE_LABELS, WorkspaceMembers(), WS_ROLES, EMOJIS, TYPE_OPTS (+2 more)
 
 ### Community 10 - "Email Digest Generation"
 Cohesion: 0.16
 Nodes (19): buildHtml(), buildStats(), buildSubject(), DIGEST_HOUR, DIGEST_MINUTE, { escHtml, dateLabel, todayStr, DONE_COLUMN_RE }, { logDigestAttempt }, priorityRow() (+11 more)
 
 ### Community 11 - "Client Auth Utilities"
-Cohesion: 0.26
-Nodes (17): fetchWithAuth(), getToken(), refreshAccessToken(), request(), AuthContext, AuthProvider(), clearAuthSession(), clearAuthToken() (+9 more)
+Cohesion: 0.27
+Nodes (15): fetchWithAuth(), getToken(), refreshAccessToken(), request(), AuthContext, AuthProvider(), clearAuthSession(), clearAuthToken() (+7 more)
 
 ### Community 12 - "Card & Column Components"
 Cohesion: 0.19
@@ -183,8 +185,8 @@ Cohesion: 0.17
 Nodes (9): AvatarCropModal(), DigestPreferences(), formatLocalHour(), utcHourToLocal(), UserMenu(), AdminPage(), ASSIGNABLE_ROLES, InviteModal() (+1 more)
 
 ### Community 18 - "App Core & Contexts"
-Cohesion: 0.28
-Nodes (8): api, App(), AuthenticatedApp(), restoreSession(), CategoriesContext, useBoardData(), useBoards(), clearUiState()
+Cohesion: 0.27
+Nodes (10): api, App(), AuthenticatedApp(), restoreSession(), CategoriesContext, useBoardData(), useBoards(), clearUiState() (+2 more)
 
 ### Community 19 - "Login & Auth UI"
 Cohesion: 0.24
@@ -277,7 +279,7 @@ Nodes (3): PERMISSIONS.md — Role & Access Matrix, User Roles (Macro) — super
 ## Knowledge Gaps
 - **310 isolated node(s):** `name`, `private`, `version`, `type`, `dev` (+305 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_

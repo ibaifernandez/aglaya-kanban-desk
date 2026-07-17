@@ -138,3 +138,16 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+
+---
+
+## AGLAYA · Flota — el capitán
+
+Este repo es una **nave de la flota AGLAYA** — el riel de comandas de los humanos (Ibai y Món). Existe un orquestador (el «capitán», repo `aglaya-orchestrator` en `/Users/AGLAYA/Local Sites/aglaya-orchestrator`) cuyo atlas es la fuente de verdad **de flota**: registro de contratos inter-nave (`atlas/contratos/README.md` — incluido el **contrato captain→kanban de inyección de cards**), fichas por nave (`atlas/repos/aglaya-kanban/`), tablero global (`atlas/tablero.md`) y las reglas de ruteo de cards (`atlas/kanban-manual.md`).
+
+Reglas para cualquier hilo que trabaje aquí:
+- **Antes de un cambio estructural** (schema de cards, tools del MCP `aglaya-kanban-desk`, workspaces/boards), consulta el registro de contratos del atlas — el capitán inyecta cards por ese contrato.
+- **El capitán puede haber tocado docs de este repo**: sus commits van identificados y se registran en `docs/CHANGELOG.md`.
+- Los 3 miembros (Ibai, Món, capitán) son los únicos usuarios — la purga de 2026-07 es deliberada; no re-invites a nadie sin OK de Ibai.
+
+**Último pase del capitán: 2026-07-17** — re-verificación 7/7 (kosher v1.4.0 del 13-jul intacto): MCP vivo (probado: 3 workspaces / 12 boards / 3 miembros), grafo 760 @ HEAD (fantasmas 0), selladas las modernizaciones de config de graphify 0.9.13 que estaban sin commitear (esenciales estándar + hooks `hook-guard`), huella colocada.

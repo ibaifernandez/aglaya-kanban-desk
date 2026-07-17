@@ -1,7 +1,23 @@
-data/
+# ── Graphify scan exclusions — aglaya-kanban-desk ──────────
+# Regenerado 2026-07-12 para rebuild limpio con graphify 0.9.13
+
+# Dependencias / builds
 node_modules/
 dist/
 build/
 .venv/
 __pycache__/
+
+# Output del propio graphify (NUNCA grafar el grafo viejo)
+graphify-out/
+
+# Datos y runtime
+data/
+scratch/
 .claude/
+
+# Binarios pesados (PDFs/docx legales, ~9MB — no aportan al grafo de código)
+docs/legal/
+
+# Terceros
+vendor/

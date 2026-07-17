@@ -44,9 +44,9 @@ supabase/.branches/
 # ── Graphify output (commit graph + report only) ──────────
 graphify-out/*
 !graphify-out/graph.json
-!graphify-out/REPORT.md
-!graphify-out/graph.html
-!graphify-out/.graphify_analysis.json
+!graphify-out/GRAPH_REPORT.md
+!graphify-out/manifest.json
+!graphify-out/cost.json
 
 # Local Netlify folder
 .netlify
