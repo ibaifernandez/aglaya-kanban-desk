@@ -293,30 +293,59 @@ contra la realidad en vez de leerlo.
 ### 🔴 Bug vivo — `internalRoute.js:34`
 
 ```js
-workspaceName = 'Ibai Fernández',   // .ilike('name', `%…%`) → sin match → 404
+workspaceName = 'Ibai Fernández',   // .ilike('name', `%…%`) con service_role
 ```
 
-No existe ningún workspace con ese nombre. Los tres vivos (`list_workspaces`, 2026-07-21):
-`⭐ AGLAYA 2.0`, `Portafolio IF`, `🇨🇱 Ley 21.719` — y ninguno de tipo `personal`; la purga
-de la 1.4.0 se los llevó. **Omitir `workspaceName` da 404 garantizado.**
+> **Corrección (2026-07-21).** Una versión anterior de esta sección, y el commit `7f61ba7`,
+> afirmaban que ese workspace **no existía** y que omitir el campo daba **404**. Es falso.
+> Lo concluí de `list_workspaces` del riel, que devuelve 3 filas — pero esa tool no custodia
+> esa pregunta: `GET /workspaces` filtra por `workspace_members.user_id` y el riel solo ve
+> aquello de lo que es miembro. El hallazgo es del capitán. Los commits no se reescriben:
+> la corrección va encima.
 
-Latente, no activo: el capitán pasa el campo explícito desde `atlas/kanban-manual.md`.
+Consultado el custodio real (`psql` con `service_role`, que es lo que usa el endpoint):
 
-- [ ] **Decidir el default** — es cambio de contrato del riel (`POST /api/internal/create-card`),
-      no se toca unilateralmente. Opciones: hacer `workspaceName` obligatorio (400 si falta)
-      o apuntar el default a un workspace vivo. **Consultar al capitán antes de tocar**
-- [x] **`CLAUDE.md`** — ejemplo `curl` con placeholder + puntero a `list_workspaces`; el
-      default roto queda advertido en vez de recomendado
+```
+SELECT id, name, type FROM workspaces WHERE name ILIKE '%Ibai Fernández%';
+→ 198853c9-4f5d-46ef-bdcb-e4d3bddd16f5 | Ibai Fernández | personal   (1 fila)
 
-### La lección
+SELECT id, name, type FROM workspaces;   → 6 filas   (el riel ve 3)
+```
 
-El mismo fósil vivía en **tres sitios de acuerdo entre sí**: el código, el `CLAUDE.md` de
-este repo y la ficha del atlas del capitán. Su `atlas/kanban-manual.md` —el custodio que la
-propia ficha señala— tenía el nombre bueno, y perdió contra dos copias que se confirmaban
-mutuamente.
+**El default existe y apunta al workspace personal de Ibai — zona intocable por regla dura.**
+Omitir `workspaceName` no falla: devuelve `201` y la card aterriza ahí. Es la rama peor de
+las dos: un 404 avisa, un 201 no.
 
-> **Tres copias coincidiendo no es corroboración.** Son copias, no observaciones
-> independientes. Es el mismo mecanismo que hacía fiable el badge `1.4.0`: coincidía.
+Rastro: 0 cards de prueba en ese workspace (nunca se ejecutó el paso). Pero tiene 56 cards:
+está vivo y en uso.
+
+- [x] **`docs/runbooks/key-rotation.md:186`** — el paso de verificación tras rotar
+      `TASK_SECRET` omitía `workspaceName`: cada rotación habría escrito en el espacio
+      personal devolviendo `201`. Corregido a `⭐ AGLAYA 2.0`
+- [x] **`CLAUDE.md`** — el ejemplo advierte el destino real en vez de recomendarlo
+- [x] **`kanban-mcp/server.py:166`** — el docstring decía «every workspace the rail can see
+      (all — the rail is superadmin)». Falso: la ruta es por membresía y el rol no concede
+      nada. Es lo que me hizo preguntarle al custodio equivocado
+- [ ] **Hacer `workspaceName` obligatorio (400 si falta)** — decisión de Ibai. Contrato del
+      riel, así que es su firma. ⚠️ **La premisa cambió:** se decidió creyendo que «hoy no
+      hay ni una llamada que funcione omitiéndolo». Sí la había —el runbook— y funcionaba
+      escribiendo donde no debe. El cambio deja de ser inocuo y pasa a ser el arreglo de una
+      fuga silenciosa. Confirmar antes de tocar
+
+### Las lecciones
+
+**Un alcance no contesta por otro.** Le pregunté a `list_workspaces` si algo existía. Esa
+tool contesta «de qué es miembro el riel», no «qué hay en la tabla». El endpoint consulta
+con `service_role`, que salta RLS — otro alcance, otra respuesta. El capitán cometió el
+mismo fallo el mismo día contando las tools de su MCP en el módulo en vez de en `server.py`.
+
+**Tres copias coincidiendo no es corroboración.** El nombre muerto vivía a la vez en el
+código, en el `CLAUDE.md` de este repo y en la ficha del atlas, de acuerdo entre sí, mientras
+`atlas/kanban-manual.md` —el custodio que la propia ficha señala— tenía el nombre bueno.
+Mismo mecanismo que hacía fiable el badge `1.4.0`: coincidía.
+
+**Corolario para el test de ejemplos** (ver más abajo): debe validar contra `service_role`,
+no contra el riel, o hereda este mismo punto ciego.
 
 ---
 
