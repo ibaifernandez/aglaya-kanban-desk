@@ -225,3 +225,165 @@ La plataforma debe reflejar cómo funciona el trabajo real: los proyectos y tare
 - [ ] Configurar servidores propios de AGLAYA con PM2/Docker
 - [ ] Configurar HTTPS / SSL y monitoreo de salud del servidor
 - [ ] Implementar CI/CD básico hacia producción (GitHub Actions)
+
+---
+
+## Higiene documental — estado copiado *(2026-07-21)*
+
+**Doctrina:** un documento puede describir diseño y decisiones; no puede describir
+estado. Ante cada línea: ¿es este documento el **custodio** de este dato, o lo copia?
+De la versión manda `package.json`; de los tests, el runner; del despliegue, Railway;
+del schema, `docs/schema/supabase-schema.sql`; de la fase y la cola, `ROADMAP.md` y
+este archivo.
+
+Origen: auditoría del orquestador de flota (`aglaya-orchestrator`). Las cifras
+encontradas no estaban «mal» al escribirse — eran copias que envejecieron solas.
+
+### Hecho
+- [x] **Guardián `docs-guard`** — `scripts/docs-guard.sh` + workflow `.github/workflows/docs-guard.yml`
+  - V1 versión literal · V2 conteos de tests/suites · V3 fase/backlog duplicados
+  - Ámbito estrecho a propósito (`README.md`, `CLAUDE.md`). Excluidos por diseño:
+    `docs/CHANGELOG.md` (versiones son su oficio), `docs/legal/` (bajo Art. 30 el RAT
+    **debe** fechar tratamientos — ahí la regla se aplica al revés), `ROADMAP.md`,
+    `BACKLOG.md` y `docs/audits/` (observaciones fechadas)
+- [x] **Sello del guardián** — `scripts/docs-guard.test.sh`: sabotea un fichero con cada
+      forma vigilada y exige rojo, más casos de no-falso-positivo (`React 18`, `Node.js 20+`,
+      badges derivados del custodio)
+- [x] **Mutación del sello** — `scripts/docs-guard.mutation.sh`: amputa cada regla del
+      guardián y exige que el sello lo note. Sin esto, el sello podría ser decoración
+- [x] **README.md** — badge de versión ahora derivado de `package.json` vía shields;
+      badge de tests sustituido por el de CI; borrados el sello `v1.4.0` del título de
+      características, el conteo de la tabla de stack y la tabla de suites con cifras
+      (decía 13 suites / 106 tests / 102 verde; el runner decía 14 / 107 / 103)
+- [x] **CLAUDE.md** — borradas las secciones «Fase actual» y «Backlog priorizado»
+      (tercera copia de `ROADMAP.md` y de este archivo); sustituidas por una tabla de
+      custodios
+
+### Pendiente — commit en espera
+
+> **Decisión (Ibai, árbitro, 2026-07-21):** el pase NO se commitea hasta que el capitán
+> limpie su sección. Un guardián que nace rojo se normaliza y acaba apagándolo alguien.
+> `docs-guard` estrena verde o no estrena. Todo lo de arriba está hecho y verificado en
+> el árbol de trabajo, esperando ese único desbloqueo.
+
+- [ ] **`CLAUDE.md` · sección de flota** *(bloqueante del commit)* — propiedad del capitán
+      (`aglaya-orchestrator`), no de este repo. `CLAUDE.md:150` sigue con versión literal
+      tecleada y con conteos (workspaces, boards, miembros, nodos del grafo) que no
+      custodia. Es la única línea que mantiene a `docs-guard` en rojo. Consultarle en vivo
+      por MCP `aglaya-atlas` (`flota_estado`, `ficha`, `donde_pregunto`) en vez de copiar
+      cifras
+- [ ] **Borrado de `AGENTS.md`** — ya hecho en el árbol de trabajo; entra en el mismo
+      commit que el resto del pase. Se declaraba «resumen de CLAUDE.md» y acabó afirmando
+      Phase 4 completada mientras CLAUDE.md la daba pendiente. Un resumen es una copia
+- [x] **Huella del capitán en `CLAUDE.md`** — hecho. La tabla de tools pasa de inventario
+      a enrutador y declara que mandan las tools disponibles, no la tabla
+- [x] **Ficha del capitán en el atlas** — hecho por él, `06751d7` en `aglaya-orchestrator`.
+      Retiradas la enumeración de las 17 tools (las 17 correctas: el problema no era que
+      fallara ninguna, era que la lista envejece sola), los valores de los rate limiters,
+      el intervalo de la campana y la lista de las 12 rutas HTTP
+
+---
+
+## Nombres de entidades copiados de la DB *(2026-07-21)*
+
+Cuarta clase de estado copiado, **fuera del alcance de `docs-guard`**: no hay regex que
+sepa si un nombre existe. Detectada aplicando el método del capitán — comprobar el ejemplo
+contra la realidad en vez de leerlo.
+
+### 🔴 Bug vivo — `internalRoute.js:34`
+
+```js
+workspaceName = 'Ibai Fernández',   // .ilike('name', `%…%`) con service_role
+```
+
+> **Corrección (2026-07-21).** Una versión anterior de esta sección, y el commit `7f61ba7`,
+> afirmaban que ese workspace **no existía** y que omitir el campo daba **404**. Es falso.
+> Lo concluí de `list_workspaces` del riel, que devuelve 3 filas — pero esa tool no custodia
+> esa pregunta: `GET /workspaces` filtra por `workspace_members.user_id` y el riel solo ve
+> aquello de lo que es miembro. El hallazgo es del capitán. Los commits no se reescriben:
+> la corrección va encima.
+
+Consultado el custodio real (`psql` con `service_role`, que es lo que usa el endpoint):
+
+```
+SELECT id, name, type FROM workspaces WHERE name ILIKE '%Ibai Fernández%';
+→ 198853c9-4f5d-46ef-bdcb-e4d3bddd16f5 | Ibai Fernández | personal   (1 fila)
+
+SELECT id, name, type FROM workspaces;   → 6 filas   (el riel ve 3)
+```
+
+**El default existe y apunta al workspace personal de Ibai — zona intocable por regla dura.**
+Omitir `workspaceName` no falla: devuelve `201` y la card aterriza ahí. Es la rama peor de
+las dos: un 404 avisa, un 201 no.
+
+Rastro: 0 cards de prueba en ese workspace (nunca se ejecutó el paso). Pero tiene 56 cards:
+está vivo y en uso.
+
+- [x] **`docs/runbooks/key-rotation.md:186`** — el paso de verificación tras rotar
+      `TASK_SECRET` omitía `workspaceName`: cada rotación habría escrito en el espacio
+      personal devolviendo `201`. Corregido a `⭐ AGLAYA 2.0`
+- [x] **`CLAUDE.md`** — el ejemplo advierte el destino real en vez de recomendarlo
+- [x] **`kanban-mcp/server.py:166`** — el docstring decía «every workspace the rail can see
+      (all — the rail is superadmin)». Falso: la ruta es por membresía y el rol no concede
+      nada. Es lo que me hizo preguntarle al custodio equivocado
+- [x] **`workspaceName` obligatorio (400 si falta)** — firmado por Ibai sabiendo que la
+      premisa había cambiado: no era higiene, era cerrar una fuga silenciosa hacia su
+      espacio privado. El 400 nombra la causa (qué campo falta y por qué no hay default),
+      porque quien se lo coma vendrá de un runbook viejo y merece entenderlo en vez de
+      creer que algo se rompió. Fijado por `server/tests/internal-create-card.test.js`:
+      sin ese test el default vuelve el día que alguien lo «arregle» por comodidad, y
+      volverá silencioso, que es como llegó
+
+---
+
+## Workspaces `3` y `4` — forense, sin tocar *(2026-07-21)*
+
+La DB devuelve 6 workspaces; Ibai cuenta 4. Sobran los llamados `3` y `4`.
+**No se ha borrado nada.** Borrar un workspace es irreversible.
+
+| ws | tipo | tableros | cards | miembros | creado | contenido |
+|---|---|---|---|---|---|---|
+| `3` | interno | 2 (ambos «prueba») | 1 | 1 | 2026-04-13 18:38:00 | card «prueba adjunto», tocada 2026-05-15 |
+| `4` | externo | 0 | 0 | 1 | 2026-04-13 18:38:06 | vacío |
+
+Ambos creados por **Món** (`correo-retirado`, admin) con 6 segundos de diferencia.
+`3` es su espacio de pruebas: tableros «prueba», card «prueba adjunto» — probablemente
+con un fichero en Storage que quedaría huérfano.
+
+- [ ] **Preguntar a Món antes de tocar nada.** No son basura anónima: son suyos. `4` está
+      vacío y es trivial, pero es suyo igual. Ninguno de los que encontró esto tiene firma
+      para borrar el espacio de trabajo de otra persona
+
+### Las lecciones
+
+**Un alcance no contesta por otro.** Le pregunté a `list_workspaces` si algo existía. Esa
+tool contesta «de qué es miembro el riel», no «qué hay en la tabla». El endpoint consulta
+con `service_role`, que salta RLS — otro alcance, otra respuesta. El capitán cometió el
+mismo fallo el mismo día contando las tools de su MCP en el módulo en vez de en `server.py`.
+
+**Tres copias coincidiendo no es corroboración.** El nombre muerto vivía a la vez en el
+código, en el `CLAUDE.md` de este repo y en la ficha del atlas, de acuerdo entre sí, mientras
+`atlas/kanban-manual.md` —el custodio que la propia ficha señala— tenía el nombre bueno.
+Mismo mecanismo que hacía fiable el badge `1.4.0`: coincidía.
+
+**Corolario para el test de ejemplos** (ver más abajo): debe validar contra `service_role`,
+no contra el riel, o hereda este mismo punto ciego.
+
+---
+
+## Doctrina — conteos en mensajes de commit *(2026-07-21)*
+
+Refinamiento del capitán sobre una regla mía que prohibía de más («no metas conteos en
+commits»). Una regla que prohíbe de más se incumple hasta que se ignora.
+
+Un mensaje de commit es un **registro fechado e inmutable** — misma clase que `CHANGELOG.md`
+o que un RAT. Puede decir qué midió ese cambio; no puede describir cómo es el mundo.
+
+| | Ejemplo | Por qué |
+|---|---|---|
+| ✅ | `grafo refrescado — 1274 nodos` (`b2f49df`) | Cuenta lo que hizo. Fechado, siempre cierto |
+| ❌ | `MCP aglaya-atlas — 7 tools read-only` (`f90b58f`) | Afirma lo que el MCP **es**. Se lee en presente, y hoy son 17 |
+| ❌ | `suite del servidor en 107 tests / 103 verde` (`ce93c82`) | Igual: se lee como el estado de la suite, no como mi medición |
+
+**La pregunta:** ¿estoy contando lo que hice, o describiendo lo que hay? Lo primero envejece
+bien porque va fechado. Lo segundo envejece mal porque se lee como presente.

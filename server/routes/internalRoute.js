@@ -22,7 +22,17 @@ function verifySecret(req, res, next) {
 //   priority     {string}  opcional — urgent|high|medium|low|none (default: medium)
 //   description  {string}  opcional
 //   dueDate      {string}  opcional — ISO 8601
-//   workspaceName {string} opcional — default "Ibai Fernández"
+//   workspaceName {string} REQUERIDO — sin default, a propósito (ver abajo)
+
+// Por qué workspaceName no tiene default (2026-07-21):
+// Lo tuvo: "Ibai Fernández". Ese workspace existe y es el PERSONAL de Ibai — zona
+// intocable por regla dura. Omitir el campo no daba error: el lookup por ilike
+// resolvía, la card aterrizaba en su espacio privado y la respuesta era 201. Una
+// fuga silenciosa, no un fallo. docs/runbooks/key-rotation.md la omitía en su paso
+// de verificación tras rotar TASK_SECRET.
+// Un default que apunta a un sitio prohibido es peor que no tener default: un 400
+// avisa, un 201 miente. Fijado por server/tests/internal-create-card.test.js — si
+// alguien repone el default por comodidad, ese test se pone rojo.
 
 router.post('/create-card', verifySecret, async (req, res) => {
   const {
@@ -31,11 +41,21 @@ router.post('/create-card', verifySecret, async (req, res) => {
     priority     = 'medium',
     description  = '',
     dueDate      = null,
-    workspaceName = 'Ibai Fernández',
+    workspaceName,
   } = req.body;
 
   if (!title?.trim())     return res.status(400).json({ error: 'title es obligatorio.' });
   if (!boardName?.trim()) return res.status(400).json({ error: 'boardName es obligatorio.' });
+  if (!workspaceName?.trim()) {
+    return res.status(400).json({
+      error:
+        'workspaceName es obligatorio. No hay default por diseño: el anterior ' +
+        '("Ibai Fernández") apuntaba al workspace personal de Ibai, y omitir el ' +
+        'campo enviaba la card ahí devolviendo 201. Indica el workspace destino ' +
+        'explícitamente — los nombres vivos los da list_workspaces en el MCP ' +
+        'aglaya-kanban-desk.',
+    });
+  }
 
   const safePriority = VALID_PRIORITIES.has(priority) ? priority : 'medium';
 

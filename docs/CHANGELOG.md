@@ -4,6 +4,60 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Guardián `docs-guard`** (CI): impide que vuelva a entrar estado copiado en `README.md`
+  y `CLAUDE.md` — versiones literales (V1), conteos de tests/suites (V2) y fase/backlog
+  duplicados de `ROADMAP.md`/`BACKLOG.md` (V3). Ámbito estrecho a propósito; excluidos
+  por diseño `CHANGELOG.md`, `docs/legal/` (bajo Art. 30 el RAT **debe** fechar
+  tratamientos), `ROADMAP.md`, `BACKLOG.md` y `docs/audits/`.
+- **Sello del guardián** (`scripts/docs-guard.test.sh`): sabotea un fichero con cada forma
+  vigilada y exige rojo, más casos de no-falso-positivo. Un guardián que corre y da verde
+  estando destripado es peor que no tenerlo, porque además tranquiliza.
+- **Mutación del sello** (`scripts/docs-guard.mutation.sh`): amputa cada regla del guardián
+  y exige que el sello lo note. Sin esto, el sello podría ser decoración.
+
+### Changed
+- **Doctrina de custodios:** un documento puede describir diseño y decisiones; no puede
+  describir estado. De la versión manda `package.json`; de los tests, el runner; del
+  despliegue, Railway; del schema, `supabase-schema.sql`; de la fase y la cola,
+  `ROADMAP.md` y `BACKLOG.md`.
+- **README.md**: badge de versión ahora derivado de `package.json` vía shields (no copiado);
+  badge de tests sustituido por el de CI; retirados el sello de versión del título de
+  características, el conteo de la tabla de stack y la tabla de suites con cifras.
+- **CLAUDE.md**: retiradas las secciones «Fase actual» y «Backlog priorizado» (tercera copia
+  de `ROADMAP.md` y `BACKLOG.md`); sustituidas por una tabla de custodios. La URL de
+  producción de Railway deja de escribirse aquí — se consulta con `servicios()`.
+- **Sección de flota**: la tabla de tools del MCP `aglaya-atlas` pasa de inventario a
+  enrutador, y declara explícitamente que mandan las tools disponibles, no la tabla.
+
+### Removed
+- **`AGENTS.md`**: se declaraba «resumen de CLAUDE.md». Un resumen es una copia, y una copia
+  diverge: llegó a afirmar Phase 4 completada mientras `CLAUDE.md` la daba pendiente.
+- **Default de `workspaceName`** en `POST /api/internal/create-card`. Apuntaba a
+  `"Ibai Fernández"` — que existe y es su workspace **personal**, zona intocable. Omitir el
+  campo no fallaba: devolvía `201` y la card aterrizaba ahí. `key-rotation.md` lo omitía en
+  su paso de verificación tras rotar `TASK_SECRET`. Ahora es obligatorio: `400` con un error
+  que nombra la causa. Cambio de contrato del riel, firmado por Ibai.
+
+### Security
+- **Fuga silenciosa hacia el espacio privado cerrada** (la del default anterior). Sin rastro:
+  0 cards de prueba en ese workspace — el paso del runbook nunca llegó a ejecutarse.
+- **`kanban-mcp/server.py`**: `list_workspaces` declaraba «every workspace the rail can see
+  (all — the rail is superadmin)». Falso — `GET /workspaces` filtra por
+  `workspace_members.user_id` y el rol no concede nada ahí; el riel ve 3 de 6 filas. Una
+  tool que miente sobre su propio alcance envenena a todo el que se fíe de su respuesta.
+
+### Fixed
+- **Deriva de métricas de tests en README** (13 suites / 106 tests / 102 verde frente a
+  14 / 107 / 103 reales). Origen documentado: `d6f3494` (12-jul) escribió las cifras
+  correctas; `bff1ab8` (13-jul) añadió `digest-personal-filter.test.js` y las dejó fósiles;
+  el pase de higiene `b6104ba` del mismo día pasó por delante sin verlas. El arreglo manual
+  duró un día y sobrevivió a dos revisiones — de ahí el guardián.
+
+---
+
 ## [1.4.0] - 2026-07-13
 
 ### Added
