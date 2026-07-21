@@ -16,12 +16,6 @@ El diseño de UI debe estar alineado bajo el Design System de AGLAYA (`aglaya-de
 
 ---
 
-## Carpeta local
-
-`/Users/AGLAYA/Local Sites/aglaya-kanban-desk`
-
----
-
 ## Puertos exclusivos de este proyecto
 
 **⚠️ No cambiar estos puertos nunca.**
@@ -45,7 +39,12 @@ preview_start → "AGLAYA Kanban Desk Server"   (puerto 3003)
 preview_start → "AGLAYA Kanban Desk Client"   (puerto 5175)
 ```
 
-Configuración en `.claude/launch.json`.
+El custodio de los puertos es [`.claude/launch.json`](.claude/launch.json) (y
+`vite.config.js` / `server/index.js`). Esta tabla es una copia por comodidad, y
+[`scripts/docs-guard.sh`](scripts/docs-guard.sh) la compara contra él en CI: si
+divergen, rojo. Antes aquí ponía «no modificar launch.json sin actualizar este
+archivo» — una copia documentando su propio procedimiento manual, que es una copia
+igual.
 
 ---
 
@@ -102,6 +101,31 @@ curl -s -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
 
 ---
 
+## Cómo entra trabajo desde otras naves de la flota
+
+Dos puertas, con **alcance distinto**. Esa asimetría importa: probar una no dice nada
+de la otra.
+
+| Puerta | Quién puede usarla | Alcance | Direcciona por |
+|---|---|---|---|
+| MCP `aglaya-kanban-desk` | cualquier sesión de Claude **de esta máquina** (registrado en `~/.claude.json`, no en el repo) | solo los workspaces de los que el riel es **miembro** | UUID |
+| `POST /api/internal/create-card` | quien tenga `TASK_SECRET` — también desde fuera de esta máquina | **todos** (usa `service_role`, salta RLS) | nombre |
+
+Camino por MCP: `list_workspaces()` → `list_boards(workspace_id)` →
+`list_columns(board_id)` → `create_card(column_id, title, description_md, …)`.
+Asignar responsable dispara la notificación in-app real.
+
+⚠️ **El alcance del riel se mantiene a mano.** La cuenta `kanban-rail@aglaya.biz` es
+superadmin **por rol**, pero `GET /workspaces` filtra por **membresía** y no mira el
+rol (`server/routes/workspaces.js`). Consecuencia: **si creas un workspace y no añades
+al riel como miembro, el riel se queda ciego a él en silencio** — no dará «no eres
+miembro», simplemente ese workspace no aparecerá en la lista y ninguna nave podrá
+dejar cards ahí. Al crear un workspace destinado a recibir comandas, añadir al riel.
+
+Quién es miembro de qué lo custodia la tabla `workspace_members`, no este archivo.
+
+---
+
 ## Acceso a Supabase desde Claude (DDL y queries directas)
 
 `.env` (gitignored) contiene credenciales para que Claude ejecute migraciones y queries sin intervención manual:
@@ -114,7 +138,9 @@ Patrón para aplicar DDL/migraciones:
 ```bash
 set -a; source .env; set +a
 export PGPASSWORD="$SUPABASE_DATABASE_PASSWORD"
-psql "postgresql://postgres@db.jowtasxhnluqqcgkeoll.supabase.co:5432/postgres" -f docs/schema/migration-<nombre>.sql
+# El host se DERIVA de SUPABASE_URL — no se teclea aquí. El custodio es .env / Supabase.
+PGHOST="db.$(echo "$SUPABASE_URL" | sed -E 's#https?://([^.]+)\..*#\1#').supabase.co"
+psql "postgresql://postgres@$PGHOST:5432/postgres" -f docs/schema/migration-<nombre>.sql
 ```
 
 Para queries puntuales: `psql ... -c "SELECT ..."`.

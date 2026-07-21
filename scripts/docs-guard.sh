@@ -40,9 +40,12 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # --- tabla de reglas -------------------------------------------------------
-# El orden de esta lista es el orden de evaluación. La mutación amputa reglas
-# quitando ids de aquí, así que no la conviertas en algo más listo.
+# El orden de estas listas es el orden de evaluación. La mutación amputa reglas
+# quitando ids de aquí, así que no las conviertas en algo más listas.
+#   RULES       — regex, se aplican a cada fichero vigilado
+#   CROSSCHECKS — cruzan dos fuentes; corren una vez, no por fichero
 RULES=(V1 V2 V3)
+CROSSCHECKS=(PORTS)
 
 # V1 · versión literal. Cualquier semver x.y.z tecleado es una copia de
 # package.json — incluida la que hoy acierta. Usa un badge derivado:
@@ -52,16 +55,24 @@ RULE_V1_PATTERN='[vV]?[0-9]+\.[0-9]+\.[0-9]+'
 RULE_V1_CUSTODIAN='package.json (o docs/CHANGELOG.md si es un hito histórico)'
 RULE_V1_WHY='versión literal tecleada'
 
-# V2 · conteos de tests/suites. Los cuenta el runner, gratis y sin envejecer.
-RULE_V2_PATTERN='(tests-[0-9]+|[0-9]+[[:space:]]*(tests?|suites?|pruebas?)\b|[0-9]+[[:space:]]+en[[:space:]]+verde)'
-RULE_V2_CUSTODIAN='el runner (`npm test`) y el badge de CI'
-RULE_V2_WHY='conteo de tests/suites escrito a mano'
+# V2 · cualquier conteo de artefactos: «cifra + sustantivo en plural».
+# Nació mirando solo tests|suites|pruebas — una lista escrita a mano, que es el
+# vicio que este guardián persigue. Dejó pasar «7 índices de rendimiento» cuando
+# había 13. La forma es la cifra junto al plural, no un catálogo de sustantivos.
+# Los números en palabra («tres tipos de workspace») NO muerden: describen diseño.
+# Las cifras miden, y lo medido lo custodia quien lo produce.
+RULE_V2_PATTERN='(tests-[0-9]+|[0-9]+[[:space:]]*(tests?|suites?|pruebas?)\b|[0-9]+[[:space:]]+[A-Za-zÁÉÍÓÚÑáéíóúñ]+s\b|[0-9]+[[:space:]]+en[[:space:]]+verde)'
+RULE_V2_CUSTODIAN='quien produce la cifra (el runner, la DB, el código, Railway)'
+RULE_V2_WHY='conteo o medida escrita a mano'
 
 # V3 · estado de fase/backlog: checkbox de progreso o columna «Estado».
 RULE_V3_PATTERN='(^[[:space:]]*[-*][[:space:]]*\[[ xX]\]|\|[[:space:]]*Estado[[:space:]]*\|)'
 RULE_V3_CUSTODIAN='docs/ROADMAP.md (fase) y docs/BACKLOG.md (cola)'
 RULE_V3_WHY='estado de fase/backlog duplicado'
 # ---------------------------------------------------------------------------
+
+ONLY_PORTS=0
+if [ "${1:-}" = "--only-ports" ]; then ONLY_PORTS=1; shift; fi
 
 if [ "$#" -gt 0 ]; then
   FILES=("$@")
@@ -70,6 +81,36 @@ else
 fi
 
 FAIL=0
+
+# PORTS · la tabla de puertos de CLAUDE.md contra .claude/launch.json.
+# No es regex: ningún patrón sabe si «3003» sigue siendo el puerto. Aquí antes
+# había una confesión —«no modificar launch.json sin actualizar este archivo»—,
+# que es una copia documentando su propio procedimiento manual. Esto lo comprueba.
+check_PORTS() {
+  local md="${DOCS_GUARD_PORTS_MD:-$REPO_ROOT/CLAUDE.md}"
+  local json="${DOCS_GUARD_PORTS_JSON:-$REPO_ROOT/.claude/launch.json}"
+  [ -f "$md" ] && [ -f "$json" ] || { echo "docs-guard[PORTS]: falta $md o $json — omitido."; return 0; }
+
+  local doc_ports json_ports
+  doc_ports="$(grep -oE '\*\*[0-9]{2,5}\*\*' "$md" | tr -d '*' | sort -u | tr '\n' ' ')"
+  json_ports="$(grep -oE '"port"[[:space:]]*:[[:space:]]*[0-9]+' "$json" \
+                | grep -oE '[0-9]+$' | sort -u | tr '\n' ' ')"
+
+  if [ "$doc_ports" != "$json_ports" ]; then
+    echo "::error file=${md#"$REPO_ROOT"/}::docs-guard[PORTS]: la tabla de puertos no coincide con launch.json."
+    echo "  doc:          ${doc_ports:-(ninguno)}"
+    echo "  launch.json:  ${json_ports:-(ninguno)}"
+    echo "    → custodio: .claude/launch.json (y vite.config.js / server/index.js)"
+    FAIL=1
+  fi
+}
+
+if [ "$ONLY_PORTS" = "1" ]; then
+  for id in "${CROSSCHECKS[@]}"; do "check_$id"; done
+  [ "$FAIL" = "0" ] || exit 1
+  echo "docs-guard[PORTS]: OK"
+  exit 0
+fi
 
 # report <fichero> <regex> <custodio> <por qué>
 report() {
@@ -97,6 +138,8 @@ for f in "${FILES[@]}"; do
     report "$f" "${!p}" "${!c}" "${!w}"
   done
 done
+
+for id in "${CROSSCHECKS[@]}"; do "check_$id"; done
 
 if [ "$FAIL" != "0" ]; then
   echo

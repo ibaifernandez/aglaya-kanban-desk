@@ -124,10 +124,12 @@ server/  (Express 4 · Railway · puerto 3003)
 ### Seguridad
 
 - CORS restringido por entorno (solo `kanban.aglaya.biz` en producción)
-- Rate limiting: 20 req / 15 min en rutas de auth
+- Rate limiting por familia de rutas (auth, endpoint interno, general) — los valores
+  vigentes están en `server/app.js`, que es quien los custodia
 - Helmet con CSP en producción
 - Validación de enums y tipos en todos los endpoints de mutación
-- JWT con expiración de 7 días; tokens en sessionStorage
+- Access token JWT de vida corta + refresh token en cookie HttpOnly con rotación;
+  las duraciones exactas viven en `server/routes/auth.js` (`ACCESS_TTL` / `REFRESH_TTL`)
 - Confirmación de borrado en tarjetas y columnas
 - Global error handler: todos los errores no capturados responden con JSON (nunca HTML)
 
@@ -223,7 +225,7 @@ Incluye:
 - Jerarquía completa: organizations → workspaces → boards → columns → cards
 - Tabla `notifications` con índices parciales (`WHERE read = false`)
 - `cards.category` como UUID FK con `ON DELETE SET NULL`
-- 7 índices de rendimiento en columnas de alta frecuencia
+- Índices de rendimiento en columnas de alta frecuencia (los vigentes, en el propio schema)
 - RLS activado en todas las tablas con funciones `SECURITY DEFINER`
 
 ---
