@@ -350,9 +350,13 @@ Ambos creados por **Món** (`mmontufarq@gmail.com`, admin) con 6 segundos de dif
 `3` es su espacio de pruebas: tableros «prueba», card «prueba adjunto» — probablemente
 con un fichero en Storage que quedaría huérfano.
 
-- [ ] **Preguntar a Món antes de tocar nada.** No son basura anónima: son suyos. `4` está
-      vacío y es trivial, pero es suyo igual. Ninguno de los que encontró esto tiene firma
-      para borrar el espacio de trabajo de otra persona
+- [x] **Decidido (Ibai, 2026-07-21): se quedan. Cerrado.** No hay consulta pendiente ni
+      limpieza futura. Son el espacio de trabajo de Món y se respetan — que `4` esté vacío
+      no lo hace basura, lo hace suyo y vacío. Que la DB devuelva seis workspaces y no
+      cuatro no es una anomalía a corregir: es el número correcto.
+
+      Queda escrito solo para que la próxima auditoría no lo levante otra vez como
+      hallazgo. No lo es.
 
 ### Las lecciones
 
