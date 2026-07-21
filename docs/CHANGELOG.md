@@ -7,6 +7,16 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
+- **Guardián `docs-guard`** (CI): impide que vuelva a entrar estado copiado en `README.md`
+  y `CLAUDE.md` — versiones literales (V1), conteos (V2) y fase/backlog duplicados de
+  `ROADMAP.md`/`BACKLOG.md` (V3). Ámbito estrecho a propósito; excluidos por diseño
+  `CHANGELOG.md`, `docs/legal/` (bajo Art. 30 el RAT **debe** fechar tratamientos),
+  `ROADMAP.md`, `BACKLOG.md` y `docs/audits/`.
+- **Sello del guardián** (`scripts/docs-guard.test.sh`): sabotea un fichero con cada forma
+  vigilada y exige rojo, más casos de no-falso-positivo. Un guardián que corre y da verde
+  estando destripado es peor que no tenerlo, porque además tranquiliza.
+- **Mutación del sello** (`scripts/docs-guard.mutation.sh`): amputa cada regla del guardián
+  y exige que el sello lo note. Sin esto, el sello podría ser decoración.
 - **`docs-guard` · regla PORTS** (cruzada, no regex): el canon sale del **código**
   (`vite.config.js`, `server/index.js`), `launch.json` debe repetirlo, y **cada puerto
   citado** en `CLAUDE.md` y `README.md` —tabla, prosa, `localhost:`, `PORT=`— debe estar
@@ -24,18 +34,6 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   servidor lee 24 — faltaban `JWT_REFRESH_SECRET` y el `TASK_SECRET` del riel de comandas.
 - **`validateCoreConfig()`** en `server/utils/smtpConfig.js`, llamado **antes** de
   `require('./app')`.
-
-### Security
-- **Arranque sin credenciales dejaba de avisar.** `index.js` tenía validación amistosa,
-  pero corría después de `require('./app')`, que construye los clientes de Supabase en
-  carga de módulo: un clon limpio recibía `Error: supabaseUrl is required` desde dentro de
-  la librería. La red de seguridad estaba puesta detrás del agujero. Ahora el error nombra
-  todas las variables que faltan y apunta a `.env.example`.
-- **Alcance del riel documentado** (`CLAUDE.md`, `kanban-mcp/server.py`): las dos puertas
-  de entrada de trabajo tienen alcance distinto — el MCP solo alcanza los workspaces de
-  los que el riel es **miembro**; el endpoint HTTP alcanza todos (`service_role`). Y el
-  alcance del riel se mantiene **a mano**: un workspace nuevo sin el riel dentro queda
-  invisible en silencio y ninguna nave puede dejar cards ahí.
 
 ### Fixed
 - **`docs-guard` · V2 ampliada.** Nació mirando `tests|suites|pruebas` — una lista escrita
@@ -62,18 +60,22 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   `ls`.
 - **Criterio de enrutado**: `CLAUDE.md` no decía a qué tablero va cada cosa —vive en el
   atlas del capitán— ni que hubiera que preguntarlo. Ahora apunta al custodio.
-
-### Added
-- **Guardián `docs-guard`** (CI): impide que vuelva a entrar estado copiado en `README.md`
-  y `CLAUDE.md` — versiones literales (V1), conteos de tests/suites (V2) y fase/backlog
-  duplicados de `ROADMAP.md`/`BACKLOG.md` (V3). Ámbito estrecho a propósito; excluidos
-  por diseño `CHANGELOG.md`, `docs/legal/` (bajo Art. 30 el RAT **debe** fechar
-  tratamientos), `ROADMAP.md`, `BACKLOG.md` y `docs/audits/`.
-- **Sello del guardián** (`scripts/docs-guard.test.sh`): sabotea un fichero con cada forma
-  vigilada y exige rojo, más casos de no-falso-positivo. Un guardián que corre y da verde
-  estando destripado es peor que no tenerlo, porque además tranquiliza.
-- **Mutación del sello** (`scripts/docs-guard.mutation.sh`): amputa cada regla del guardián
-  y exige que el sello lo note. Sin esto, el sello podría ser decoración.
+- **`docs-guard` · tres defectos de `PORTS`**, encontrados con un método nuevo: correr el
+  guardián sobre un documento que **no es de este repo** (la ficha del atlas del capitán).
+  Un texto ajeno usa el idioma de otra forma y ejercita lo que el propio nunca toca.
+  - *Ancla demasiado estrecha:* exigía la cifra a ≤3 caracteres de «puerto», así que un
+    adjetivo la derrotaba — «Puertos sagrados 9999» pasaba verde.
+  - *Años tratados como puertos:* «el puerto 3003 se fijó en 2026» marcaba `2026`.
+  - *Falso negativo silencioso (el grave):* `read -r -a` partía la ruta por espacios y este
+    repo vive en `/Users/AGLAYA/Local Sites/…`. Con la ruta partida el fichero no existía,
+    el bucle lo saltaba y **el guardián daba verde sin haber leído nada**. Un guardián que
+    no encuentra el fichero debe fallar ruidoso o no fallar; lo que no puede es aprobar lo
+    que no ha leído. Costó además una afirmación falsa en un informe.
+- **Deriva de métricas de tests en README** (13 suites / 106 tests / 102 verde frente a
+  14 / 107 / 103 reales). Origen documentado: `d6f3494` (12-jul) escribió las cifras
+  correctas; `bff1ab8` (13-jul) añadió `digest-personal-filter.test.js` y las dejó fósiles;
+  el pase de higiene `b6104ba` del mismo día pasó por delante sin verlas. El arreglo manual
+  duró un día y sobrevivió a dos revisiones — de ahí el guardián.
 
 ### Changed
 - **Doctrina de custodios:** un documento puede describir diseño y decisiones; no puede
@@ -82,7 +84,9 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   `ROADMAP.md` y `BACKLOG.md`.
 - **README.md**: badge de versión ahora derivado de `package.json` vía shields (no copiado);
   badge de tests sustituido por el de CI; retirados el sello de versión del título de
-  características, el conteo de la tabla de stack y la tabla de suites con cifras.
+  características, el conteo de la tabla de stack y la tabla de suites con cifras. También
+  las versiones mayores tecleadas del stack (`React 18`, `Express 4`): acertaban hoy, pero
+  son copias de `package.json` con suerte y rotarían en el próximo salto de mayor.
 - **CLAUDE.md**: retiradas las secciones «Fase actual» y «Backlog priorizado» (tercera copia
   de `ROADMAP.md` y `BACKLOG.md`); sustituidas por una tabla de custodios. La URL de
   producción de Railway deja de escribirse aquí — se consulta con `servicios()`.
@@ -97,21 +101,36 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   campo no fallaba: devolvía `201` y la card aterrizaba ahí. `key-rotation.md` lo omitía en
   su paso de verificación tras rotar `TASK_SECRET`. Ahora es obligatorio: `400` con un error
   que nombra la causa. Cambio de contrato del riel, firmado por Ibai.
+- **`.claude/handoffs/` vaciada.** Tres instantáneas de abril, mayo y julio; ninguna
+  describía el estado de hoy. Un informe de auditoría fechado se archiva y se cita; un
+  handoff caducado no informa, **compite con la fuente viva**. Sus cifras ya estaban
+  desviadas al día siguiente de escribirse. El estado del repo ya tiene custodios que
+  contestan gratis. La historia sigue en git.
+
+### Governance
+- **Los workspaces `3` y `4` se conservan.** Son el espacio de pruebas de Món. Que uno esté
+  vacío no lo hace basura: lo hace suyo y vacío. Que la DB devuelva seis workspaces y no
+  cuatro no es una anomalía a corregir — es el número correcto. Decisión de Ibai, cerrada
+  en `docs/BACKLOG.md` (escrita, no borrada, para que ninguna auditoría futura la levante
+  otra vez como hallazgo).
 
 ### Security
+- **Arranque sin credenciales dejaba de avisar.** `index.js` tenía validación amistosa,
+  pero corría después de `require('./app')`, que construye los clientes de Supabase en
+  carga de módulo: un clon limpio recibía `Error: supabaseUrl is required` desde dentro de
+  la librería. La red de seguridad estaba puesta detrás del agujero. Ahora el error nombra
+  todas las variables que faltan y apunta a `.env.example`.
+- **Alcance del riel documentado** (`CLAUDE.md`, `kanban-mcp/server.py`): las dos puertas
+  de entrada de trabajo tienen alcance distinto — el MCP solo alcanza los workspaces de
+  los que el riel es **miembro**; el endpoint HTTP alcanza todos (`service_role`). Y el
+  alcance del riel se mantiene **a mano**: un workspace nuevo sin el riel dentro queda
+  invisible en silencio y ninguna nave puede dejar cards ahí.
 - **Fuga silenciosa hacia el espacio privado cerrada** (la del default anterior). Sin rastro:
   0 cards de prueba en ese workspace — el paso del runbook nunca llegó a ejecutarse.
 - **`kanban-mcp/server.py`**: `list_workspaces` declaraba «every workspace the rail can see
   (all — the rail is superadmin)». Falso — `GET /workspaces` filtra por
   `workspace_members.user_id` y el rol no concede nada ahí; el riel ve 3 de 6 filas. Una
   tool que miente sobre su propio alcance envenena a todo el que se fíe de su respuesta.
-
-### Fixed
-- **Deriva de métricas de tests en README** (13 suites / 106 tests / 102 verde frente a
-  14 / 107 / 103 reales). Origen documentado: `d6f3494` (12-jul) escribió las cifras
-  correctas; `bff1ab8` (13-jul) añadió `digest-personal-filter.test.js` y las dejó fósiles;
-  el pase de higiene `b6104ba` del mismo día pasó por delante sin verlas. El arreglo manual
-  duró un día y sobrevivió a dos revisiones — de ahí el guardián.
 
 ---
 
