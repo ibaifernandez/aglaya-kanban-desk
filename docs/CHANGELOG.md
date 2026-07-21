@@ -14,9 +14,23 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   estos docs y no son puertos. Sustituye a la confesión escrita que había en `CLAUDE.md`
   («no modificar launch.json sin actualizar este archivo») — una copia documentando su
   propio procedimiento manual sigue siendo una copia.
-- **`docs-guard` · regla LINKS** (cruzada): todo enlace relativo de los docs vigilados
-  debe resolver en disco. Es la parte tratable de la clase «el documento nombra algo que
-  puede no existir»: un fichero se comprueba, un nombre de workspace no.
+- **`docs-guard` · regla LINKS** (cruzada): toda ruta de fichero citada en los docs
+  vigilados debe resolver en disco — enlaces markdown, backticks y **bloques de código**.
+  Es la parte tratable de la clase «el documento nombra algo que puede no existir»: un
+  fichero se comprueba, un nombre de workspace no. Ignora, autodetectándolo: externos,
+  plantillas con `<>`, rutas gitignoreadas y rutas de otros repos.
+- **`.env.example`**, que **no existía** pese a que el README mandaba copiarlo. Derivado
+  del código (`process.env.*`), no del bloque del README: ese llevaba 15 variables y el
+  servidor lee 24 — faltaban `JWT_REFRESH_SECRET` y el `TASK_SECRET` del riel de comandas.
+- **`validateCoreConfig()`** en `server/utils/smtpConfig.js`, llamado **antes** de
+  `require('./app')`.
+
+### Security
+- **Arranque sin credenciales dejaba de avisar.** `index.js` tenía validación amistosa,
+  pero corría después de `require('./app')`, que construye los clientes de Supabase en
+  carga de módulo: un clon limpio recibía `Error: supabaseUrl is required` desde dentro de
+  la librería. La red de seguridad estaba puesta detrás del agujero. Ahora el error nombra
+  todas las variables que faltan y apunta a `.env.example`.
 - **Alcance del riel documentado** (`CLAUDE.md`, `kanban-mcp/server.py`): las dos puertas
   de entrada de trabajo tienen alcance distinto — el MCP solo alcanza los workspaces de
   los que el riel es **miembro**; el endpoint HTTP alcanza todos (`service_role`). Y el
