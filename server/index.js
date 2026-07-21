@@ -10,10 +10,22 @@
 // (de app.js, etc.) para capturar errores during module load.
 const { Sentry, enabled: sentryEnabled } = require('./utils/sentry');
 
+// La validación de config va ANTES de require('./app'): app.js construye los
+// clientes de Supabase en carga de módulo y, sin credenciales, revienta con
+// "supabaseUrl is required" desde dentro de la librería. Poner la red de
+// seguridad detrás del agujero es no tenerla.
+const { validateCoreConfig, validateSmtpConfig, validateDigestSchedules } = require('./utils/smtpConfig');
+
+try {
+  validateCoreConfig();
+} catch (err) {
+  console.error(`❌ Startup failed: ${err.message}`);
+  if (sentryEnabled) Sentry.captureException(err);
+  process.exit(1);
+}
+
 const app  = require('./app');
 const PORT = process.env.PORT || 3003;
-
-const { validateSmtpConfig, validateDigestSchedules } = require('./utils/smtpConfig');
 
 try {
   validateSmtpConfig();
