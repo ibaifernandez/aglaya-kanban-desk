@@ -110,14 +110,21 @@ echo "PORTS · tabla de puertos ↔ .claude/launch.json (cruzado, no regex)"
 # Antes esto era una confesión escrita: "no modificar launch.json sin actualizar
 # este archivo". Una copia que documenta su propio procedimiento manual sigue
 # siendo una copia: el día que nadie se acuerde, nadie lo nota.
+# ports_case <nombre> <línea del doc> <esperado>
+# Monta un mini-repo con los custodios REALES del puerto (vite.config.js,
+# server/index.js, launch.json) todos en 3003/5175, y mete la línea a probar en
+# el doc. El canon sale del CÓDIGO; el doc solo puede repetirlo.
 ports_case() {
-  local name="$1" md_port="$2" json_port="$3" expect="$4"
-  local d="$TMP/ports"; rm -rf "$d"; mkdir -p "$d/.claude"
-  printf '| Server (Express) | **%s** |\n| Client (Vite) | **5175** |\n' "$md_port" >"$d/CLAUDE.md"
-  printf '{"configurations":[{"port":%s},{"port":5175}]}\n' "$json_port" >"$d/.claude/launch.json"
+  local name="$1" doc_line="$2" expect="$3"
+  local d="$TMP/ports"; rm -rf "$d"; mkdir -p "$d/.claude" "$d/client" "$d/server"
+
+  printf 'export default { server: { port: 5175, proxy: { "/api": { target: "http://localhost:3003" } } } }\n' >"$d/client/vite.config.js"
+  printf 'const PORT = process.env.PORT || 3003;\n' >"$d/server/index.js"
+  printf '{"configurations":[{"port":5175},{"port":3003}]}\n' >"$d/.claude/launch.json"
+  printf '%s\n' "$doc_line" >"$d/DOC.md"
 
   local code
-  DOCS_GUARD_PORTS_MD="$d/CLAUDE.md" DOCS_GUARD_PORTS_JSON="$d/.claude/launch.json" \
+  DOCS_GUARD_PORTS_ROOT="$d" DOCS_GUARD_PORTS_DOCS="$d/DOC.md" \
     bash "$GUARD" --only-ports >"$TMP/out.txt" 2>&1
   code=$?
 
@@ -130,8 +137,46 @@ ports_case() {
     sed 's/^/     /' "$TMP/out.txt"; FAIL=$((FAIL + 1))
   fi
 }
-ports_case "puerto del doc distinto del de launch.json" 3003 9999 red
-ports_case "puertos coincidentes"                       3003 3003 green
+
+# La versión anterior de esta regla miraba SOLO la tabla `**NNNN**` — dos de los
+# dieciséis sitios donde el puerto está tecleado, y se le escapaban dos en el
+# mismo fichero que vigilaba, cuatro líneas más abajo. Estas formas son las reales.
+ports_case "tabla — puerto correcto"        '| Server (Express) | **3003** |'          green
+ports_case "tabla — puerto inventado"       '| Server (Express) | **9999** |'          red
+ports_case "prosa «puerto NNNN» correcta"   'preview_start → Server (puerto 3003)'     green
+ports_case "prosa «puerto NNNN» desviada"   'preview_start → Server (puerto 9999)'     red
+ports_case "par «puertos A/B» desviado"     '- No matar procesos en puertos 3003/9999' red
+ports_case "localhost:NNNN desviado"        '# Servidor → http://localhost:9999'       red
+ports_case "PORT=NNNN desviado"             'PORT=9999'                                red
+ports_case "ISO 8601 no es un puerto"       '- `dueDate` (ISO 8601) son opcionales'    green
+ports_case "5432 de Postgres no es nuestro" 'psql "postgresql://postgres@$H:5432/postgres"' green
+
+echo
+echo "LINKS · enlaces relativos ↔ sistema de ficheros (cruzado, no regex)"
+links_case() {
+  local name="$1" doc_line="$2" expect="$3"
+  local d="$TMP/links"; rm -rf "$d"; mkdir -p "$d/docs"
+  printf 'existe\n' >"$d/docs/EXISTE.md"
+  printf '%s\n' "$doc_line" >"$d/DOC.md"
+
+  local code
+  DOCS_GUARD_ONLY=LINKS DOCS_GUARD_LINKS_ROOT="$d" DOCS_GUARD_LINKS_DOCS="$d/DOC.md" \
+    bash "$GUARD" >"$TMP/out.txt" 2>&1
+  code=$?
+
+  if [ "$expect" = "red" ] && [ "$code" != "0" ]; then
+    echo "  ✅ ROJO (esperado) — $name"; PASS=$((PASS + 1))
+  elif [ "$expect" = "green" ] && [ "$code" = "0" ]; then
+    echo "  ✅ VERDE (esperado) — $name"; PASS=$((PASS + 1))
+  else
+    echo "  ❌ $name — esperaba $expect, exit=$code"
+    sed 's/^/     /' "$TMP/out.txt"; FAIL=$((FAIL + 1))
+  fi
+}
+links_case "enlace a fichero existente"      'Ver [docs](./docs/EXISTE.md) para más.'      green
+links_case "enlace a fichero inexistente"    'Ver [docs](./docs/FANTASMA.md) para más.'    red
+links_case "enlace con ancla, fichero ok"    'Ver [x](./docs/EXISTE.md#seccion).'          green
+links_case "enlace externo se ignora"        'Ver [web](https://aglaya.biz) para más.'     green
 
 echo
 echo "=== $PASS ok · $FAIL fallos ==="

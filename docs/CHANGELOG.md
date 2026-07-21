@@ -7,10 +7,16 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
-- **`docs-guard` · regla PORTS** (cruzada, no regex): compara la tabla de puertos de
-  `CLAUDE.md` contra `.claude/launch.json`. Sustituye a la confesión escrita que había
-  en `CLAUDE.md` («no modificar launch.json sin actualizar este archivo») — una copia
-  documentando su propio procedimiento manual sigue siendo una copia.
+- **`docs-guard` · regla PORTS** (cruzada, no regex): el canon sale del **código**
+  (`vite.config.js`, `server/index.js`), `launch.json` debe repetirlo, y **cada puerto
+  citado** en `CLAUDE.md` y `README.md` —tabla, prosa, `localhost:`, `PORT=`— debe estar
+  en él. Ancla por contexto, no por forma: `ISO 8601` y el `5432` de Postgres viven en
+  estos docs y no son puertos. Sustituye a la confesión escrita que había en `CLAUDE.md`
+  («no modificar launch.json sin actualizar este archivo») — una copia documentando su
+  propio procedimiento manual sigue siendo una copia.
+- **`docs-guard` · regla LINKS** (cruzada): todo enlace relativo de los docs vigilados
+  debe resolver en disco. Es la parte tratable de la clase «el documento nombra algo que
+  puede no existir»: un fichero se comprueba, un nombre de workspace no.
 - **Alcance del riel documentado** (`CLAUDE.md`, `kanban-mcp/server.py`): las dos puertas
   de entrada de trabajo tienen alcance distinto — el MCP solo alcanza los workspaces de
   los que el riel es **miembro**; el endpoint HTTP alcanza todos (`service_role`). Y el
@@ -31,7 +37,17 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   limitadores; nombrar uno daba a entender que era el que hay). Todos apuntan a su custodio.
 - **`CLAUDE.md`**: retirada la ruta absoluta en disco y el host de Supabase tecleado — el
   host ahora se **deriva** de `SUPABASE_URL` en el propio snippet de `psql` (verificado:
-  conecta).
+  conecta). Retirados también los puertos de los repos hermanos (estado de otro repo,
+  incomprobable desde aquí); la regla que protegía —investigar el proceso antes de
+  matarlo— se queda y no caduca. La lista de tres cuentas se reformula como **decisión**
+  («quién puede existir»), no como informe: quién existe lo custodia la tabla `users`.
+- **`README.md` · árbol de arquitectura**: describía la forma **y enumeraba los ficheros**.
+  La enumeración ya estaba desviada (11 rutas listadas, 12 reales — faltaba `uploads`) y
+  `kanban-mcp/` no aparecía en absoluto pese a ser el riel por el que entra el trabajo de
+  la flota. Ahora describe la forma y el papel de cada carpeta; el inventario lo custodia
+  `ls`.
+- **Criterio de enrutado**: `CLAUDE.md` no decía a qué tablero va cada cosa —vive en el
+  atlas del capitán— ni que hubiera que preguntarlo. Ahora apunta al custodio.
 
 ### Added
 - **Guardián `docs-guard`** (CI): impide que vuelva a entrar estado copiado en `README.md`
