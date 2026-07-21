@@ -260,8 +260,8 @@
     "semantic_hash": "cd65232da57edb96e605ad15c67efb46"
   },
   "kanban-mcp/server.py": {
-    "mtime": 1784664336.284611,
-    "ast_hash": "bb0090af347546e698dd67a0910f1ebc",
+    "mtime": 1784666536.5943637,
+    "ast_hash": "158f98df30ba537d73fcc184e8f260b2",
     "semantic_hash": ""
   },
   "migrations/add_explicit_grants.sql": {
@@ -340,7 +340,7 @@
     "semantic_hash": "5221648e59ace352fc379c350085add9"
   },
   "server/routes/internalRoute.js": {
-    "mtime": 1784665214.6689017,
+    "mtime": 1784665846.6130562,
     "ast_hash": "93951c8e500d2927cd3e792ba5a9d86c",
     "semantic_hash": ""
   },
@@ -510,13 +510,13 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1784665252.8617868,
-    "ast_hash": "e253cc4bcaa6a1e777df7b49c8bd5993",
+    "mtime": 1784666531.989141,
+    "ast_hash": "01e228b0489e698d859639542d1c3172",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784659222.3250568,
-    "ast_hash": "bae60644f35bf6c44189b41ae51c156c",
+    "mtime": 1784666503.2299302,
+    "ast_hash": "a8b1fd8d4e6dbeca8e9660b69c0f34f5",
     "semantic_hash": ""
   },
   "client/index.html": {
@@ -535,13 +535,13 @@
     "semantic_hash": ""
   },
   "docs/BACKLOG.md": {
-    "mtime": 1784665265.43173,
+    "mtime": 1784665846.6068823,
     "ast_hash": "830369d25016df5bd1ce5ac8e5484fc9",
     "semantic_hash": ""
   },
   "docs/CHANGELOG.md": {
-    "mtime": 1784665276.4845145,
-    "ast_hash": "261f92935f3c2f242a15cb59b00b5dc1",
+    "mtime": 1784666583.4855459,
+    "ast_hash": "0af49a2526bff5419862a524bf8d96bf",
     "semantic_hash": ""
   },
   "docs/INCIDENTS.md": {
@@ -625,7 +625,7 @@
     "semantic_hash": ""
   },
   "docs/runbooks/key-rotation.md": {
-    "mtime": 1784664341.3902514,
+    "mtime": 1784665846.6080782,
     "ast_hash": "f97c4ab4f36f89457a9d2ad504578ecc",
     "semantic_hash": ""
   },
@@ -675,27 +675,27 @@
     "semantic_hash": ""
   },
   "scripts/docs-guard.mutation.sh": {
-    "mtime": 1784659183.9956543,
-    "ast_hash": "25ebf574a1044a9f473b64bdc7f81cc9",
+    "mtime": 1784666460.2696414,
+    "ast_hash": "8c00848df4d0c71566ab15b3a7155b64",
     "semantic_hash": ""
   },
   "scripts/docs-guard.sh": {
-    "mtime": 1784659158.1049669,
-    "ast_hash": "5b7c9eb71ad84cae9ff54abc3ad9991f",
+    "mtime": 1784666441.1121724,
+    "ast_hash": "c9567101bea91a6f0861288811647915",
     "semantic_hash": ""
   },
   "scripts/docs-guard.test.sh": {
-    "mtime": 1784659086.7105248,
-    "ast_hash": "faa145f2e727b674e8d31ecc374943d4",
+    "mtime": 1784666402.1966012,
+    "ast_hash": "5147d3ac9d012c257bc3d6da9edb5ccf",
     "semantic_hash": ""
   },
   ".github/workflows/docs-guard.yml": {
-    "mtime": 1784659282.9672844,
+    "mtime": 1784665846.6052032,
     "ast_hash": "412e8af10ce91c89c9ef139d919453dd",
     "semantic_hash": ""
   },
   "server/tests/internal-create-card.test.js": {
-    "mtime": 1784665191.3858724,
+    "mtime": 1784665846.6135893,
     "ast_hash": "d25f93474d23fb21c8ca311325e3a335",
     "semantic_hash": ""
   }
