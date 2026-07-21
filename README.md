@@ -30,9 +30,9 @@ Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo inter
 
 | Capa            | Tecnología                                      |
 | --------------- | ----------------------------------------------- |
-| Frontend        | React 18 + Vite + TailwindCSS                   |
+| Frontend        | React + Vite + TailwindCSS                      |
 | Drag & drop     | @dnd-kit                                        |
-| Backend         | Express 4 + Node.js                             |
+| Backend         | Express + Node.js                               |
 | Base de datos   | Supabase (PostgreSQL + RLS)                     |
 | Auth            | Supabase Auth + JWT middleware + bcryptjs       |
 | Storage         | Supabase Storage (adjuntos, avatares, portadas) |
@@ -47,7 +47,7 @@ Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo inter
 ## Arquitectura
 
 ```
-client/  (React 18 + Vite · Netlify · puerto 5175)
+client/  (React + Vite · Netlify · puerto 5175)
 └── src/
     ├── pages/          ← vistas de ruta completa
     ├── components/     ← UI de tablero, tarjeta, workspace y navegación
@@ -55,7 +55,7 @@ client/  (React 18 + Vite · Netlify · puerto 5175)
     ├── hooks/          ← acceso a datos por entidad
     └── api/client.js   ← cliente HTTP único · interceptor JWT + refresh
 
-server/  (Express 4 · Railway · puerto 3003)
+server/  (Express · Railway · puerto 3003)
 ├── app.js              ← Express sin listen(): rutas, middlewares, 404, error handler
 ├── index.js            ← Entry point: valida config y arranca listen()   (ADR-024)
 ├── routes/             ← una por recurso de la API
@@ -145,7 +145,9 @@ kanban-mcp/  (Python · stdio)
 
 ### Requisitos
 
-- Node.js 20+
+- Node.js — la versión con la que se construye y testea la declara
+  [`.github/workflows/ci.yml`](./.github/workflows/ci.yml); las de cada dependencia,
+  [`package.json`](./package.json)
 - Un proyecto [Supabase](https://supabase.com) (el plan free es suficiente para desarrollo)
 - Una cuenta [Resend](https://resend.com) para el envío de emails (plan free disponible)
 
