@@ -509,19 +509,14 @@
     "ast_hash": "f2a5b085ec6419efde24290710c79539",
     "semantic_hash": ""
   },
-  "AGENTS.md": {
-    "mtime": 1783900339.148749,
-    "ast_hash": "27cee1eb2baa2b7b0b49a1779ecc9857",
-    "semantic_hash": ""
-  },
   "CLAUDE.md": {
-    "mtime": 1779884335.6500294,
-    "ast_hash": "6e073dc9606fe224fdda5fd09f8fc23c",
+    "mtime": 1784662328.5029893,
+    "ast_hash": "6127606fd7cd7c86da77f9dd939262be",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1783964783.38626,
-    "ast_hash": "8ecc8e0e6cef57fcab991a153265b6a0",
+    "mtime": 1784659222.3250568,
+    "ast_hash": "bae60644f35bf6c44189b41ae51c156c",
     "semantic_hash": ""
   },
   "client/index.html": {
@@ -540,13 +535,13 @@
     "semantic_hash": ""
   },
   "docs/BACKLOG.md": {
-    "mtime": 1783899255.5015259,
-    "ast_hash": "ec728f1fcb0e38c668c0447f04af0128",
+    "mtime": 1784660589.4439971,
+    "ast_hash": "8b02428f33a64548069aa207d40af562",
     "semantic_hash": ""
   },
   "docs/CHANGELOG.md": {
-    "mtime": 1783964693.6819568,
-    "ast_hash": "e03c4e59d0113e6ad436ce98209b7d2e",
+    "mtime": 1784662543.347045,
+    "ast_hash": "727ba142cc8d3a66e815fc6c95d8c9ba",
     "semantic_hash": ""
   },
   "docs/INCIDENTS.md": {
@@ -677,6 +672,26 @@
   "client/src/assets/aglaya-logo-negro.svg": {
     "mtime": 1775574730.7713623,
     "ast_hash": "4d9f4de9f69bc41bd4881a232cb2743e",
+    "semantic_hash": ""
+  },
+  "scripts/docs-guard.mutation.sh": {
+    "mtime": 1784659183.9956543,
+    "ast_hash": "25ebf574a1044a9f473b64bdc7f81cc9",
+    "semantic_hash": ""
+  },
+  "scripts/docs-guard.sh": {
+    "mtime": 1784659158.1049669,
+    "ast_hash": "5b7c9eb71ad84cae9ff54abc3ad9991f",
+    "semantic_hash": ""
+  },
+  "scripts/docs-guard.test.sh": {
+    "mtime": 1784659086.7105248,
+    "ast_hash": "faa145f2e727b674e8d31ecc374943d4",
+    "semantic_hash": ""
+  },
+  ".github/workflows/docs-guard.yml": {
+    "mtime": 1784659282.9672844,
+    "ast_hash": "412e8af10ce91c89c9ef139d919453dd",
     "semantic_hash": ""
   }
 }
