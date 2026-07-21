@@ -186,7 +186,7 @@ Por ahora, mantener native R2 API (cfut_ Bearer auth) en workflow `db-backup.yml
    ```bash
    curl -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
      -H "x-task-secret: $TASK_SECRET" -H "Content-Type: application/json" \
-     -d '{"title":"rotation-test","boardName":"Backlog","priority":"low"}'
+     -d '{"title":"rotation-test","boardName":"Backlog","priority":"low","workspaceName":"⭐ AGLAYA 2.0"}'
    ```
 
 ---

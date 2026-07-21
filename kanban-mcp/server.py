@@ -163,7 +163,17 @@ def _resolve_user(user: str) -> str:
 # ---------------------------------------------------------------------------
 @mcp.tool()
 def list_workspaces() -> dict[str, Any]:
-    """List every workspace the rail can see (all — the rail is superadmin).
+    """List the workspaces the rail is a MEMBER of — NOT every workspace that exists.
+
+    `GET /workspaces` parte de `workspace_members` filtrando por `user_id`
+    (server/routes/workspaces.js). Ser superadmin no concede nada en esa ruta.
+    Al 2026-07-21 el riel ve 3 de las 6 filas de la tabla.
+
+    Esta tool NO puede contestar "¿existe un workspace llamado X?". Para eso el
+    custodio es la DB vía `service_role`, que salta RLS — que es justamente lo
+    que usa `POST /api/internal/create-card`. Preguntar aquí y concluir que algo
+    no existe es preguntarle al custodio equivocado.
+
     Each: id, name, emoji, type, boards, members."""
     rows = _request("GET", "/workspaces") or []
     items = [{"id": w["id"], "name": w["name"], "emoji": w.get("emoji"), "type": w.get("type"),
