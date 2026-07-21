@@ -510,13 +510,13 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1784666531.989141,
-    "ast_hash": "01e228b0489e698d859639542d1c3172",
+    "mtime": 1784667031.3541746,
+    "ast_hash": "1e78803f009678903d4526b5b5df37ca",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784666503.2299302,
-    "ast_hash": "a8b1fd8d4e6dbeca8e9660b69c0f34f5",
+    "mtime": 1784667052.833792,
+    "ast_hash": "f81a1e037e00b0a9de5dbaf9b6baace5",
     "semantic_hash": ""
   },
   "client/index.html": {
@@ -540,8 +540,8 @@
     "semantic_hash": ""
   },
   "docs/CHANGELOG.md": {
-    "mtime": 1784666583.4855459,
-    "ast_hash": "0af49a2526bff5419862a524bf8d96bf",
+    "mtime": 1784667222.9491763,
+    "ast_hash": "3fa42e7a4a95308c62bccb0dbacf3a3d",
     "semantic_hash": ""
   },
   "docs/INCIDENTS.md": {
@@ -675,18 +675,18 @@
     "semantic_hash": ""
   },
   "scripts/docs-guard.mutation.sh": {
-    "mtime": 1784666460.2696414,
-    "ast_hash": "8c00848df4d0c71566ab15b3a7155b64",
+    "mtime": 1784667144.6789935,
+    "ast_hash": "2df902ba1369e68281a8788c0d0e5b9e",
     "semantic_hash": ""
   },
   "scripts/docs-guard.sh": {
-    "mtime": 1784666441.1121724,
-    "ast_hash": "c9567101bea91a6f0861288811647915",
+    "mtime": 1784667175.611426,
+    "ast_hash": "32e499e3cc8e8d534c5dcae911b774ec",
     "semantic_hash": ""
   },
   "scripts/docs-guard.test.sh": {
-    "mtime": 1784666402.1966012,
-    "ast_hash": "5147d3ac9d012c257bc3d6da9edb5ccf",
+    "mtime": 1784667143.097463,
+    "ast_hash": "10d74ecc4543abfc605fcbc742187e48",
     "semantic_hash": ""
   },
   ".github/workflows/docs-guard.yml": {

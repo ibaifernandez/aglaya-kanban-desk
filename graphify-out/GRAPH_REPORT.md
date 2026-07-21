@@ -1,16 +1,16 @@
 # Graph Report - aglaya-kanban-desk  (2026-07-21)
 
 ## Corpus Check
-- 125 files · ~116,948 words
+- 125 files · ~118,223 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1287 nodes · 1714 edges · 174 communities (98 shown, 76 thin omitted)
+- 1289 nodes · 1717 edges · 179 communities (102 shown, 77 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 53 edges (avg confidence: 0.52)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5c88ad41`
+- Built from commit: `b360a576`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -178,11 +178,16 @@
 - Phase 4 — Quality & UX (Completed)
 - Phase 5 — Scale & Collaboration (Planned)
 - Railway — Server Hosting Platform
+- media.js
 - RGPD — EU General Data Protection Regulation
 - Row Level Security — Data Isolation
 - User Roles (Macro) — superadmin / admin / colaborador / cliente
 - Workspace Roles (Micro) — owner / admin / member / guest
 - Workspace Types — personal / interno / externo
+- digest.test.js
+- workspace.js
+- digest-personal-filter.test.js
+- [1.1.0.0] — 2026-04-11 — Certificación "Kosher" · Nutrición Atlas · v1.1.0 Global Sync
 
 ## God Nodes (most connected - your core abstractions)
 1. `CHANGELOG — AGLAYA Kanban Desk` - 25 edges
@@ -221,7 +226,7 @@
 - **Backup & Disaster Recovery System — B-CRIT-02 Mitigation** — db_backup_workflow, docs_runbooks_db_restore_runbook, cloudflare_r2, supabase, github_actions [EXTRACTED 1.00]
 - **Infrastructure & Platform Ecosystem** — supabase, railway, cloudflare_r2, netlify, resend, github_actions [INFERRED 0.80]
 
-## Communities (174 total, 76 thin omitted)
+## Communities (179 total, 77 thin omitted)
 
 ### Community 0 - "Card & Board API"
 Cohesion: 0.09
@@ -236,44 +241,44 @@ Cohesion: 0.13
 Nodes (15): cookie-parser, cors, express, helmet, node-cron, dependencies, cookie-parser, cors (+7 more)
 
 ### Community 4 - "Authentication & Authorization"
-Cohesion: 0.08
-Nodes (20): getUserFromDb(), invalidateUserCache(), jwt, requireAuth(), requireRole(), { supabaseAdmin }, userCache, ALLOWED_ROLES (+12 more)
+Cohesion: 0.13
+Nodes (9): ALLOWED_ROLES, { createAdminClient }, express, fs, INVITE_TEMPLATE_PATH, path, { requireAuth, requireRole, invalidateUserCache }, router (+1 more)
 
 ### Community 6 - "Board UI Components"
-Cohesion: 0.14
-Nodes (15): Board(), PRIORITY_SORT_ORDER, CardModal(), EMPTY, fileIcon(), normalizeAttachments(), CategoryRow(), CategorySettings() (+7 more)
+Cohesion: 0.19
+Nodes (12): Sidebar(), CategoryRow(), CategorySettings(), Toolbar(), formatNotification(), NotificationBell(), useEscapeKey(), WorkspaceForm() (+4 more)
 
 ### Community 7 - "Workspace Access Control"
-Cohesion: 0.09
-Nodes (22): requireWorkspaceMember(), requireWorkspaceRole(), resolveWorkspaceIdFromBoard(), resolveWorkspaceIdFromCard(), resolveWorkspaceIdFromColumn(), { supabaseAdmin }, express, multer (+14 more)
+Cohesion: 0.15
+Nodes (8): { createClient }, express, MANAGEABLE_MEMBER_ROLES, { requireAuth }, { requireWorkspaceMember, requireWorkspaceRole }, router, { supabaseAdmin }, VALID_TYPES
 
 ### Community 8 - "Express App & Routers"
 Cohesion: 0.08
 Nodes (25): adminRouter, app, authLimiter, authRouter, cookieParser, cors, digestRouter, express (+17 more)
 
 ### Community 9 - "Modal & Sidebar Components"
-Cohesion: 0.30
-Nodes (10): Card(), Badge(), COLOR_OPTIONS, colorById(), PRIORITIES, PRIORITY_LIST, daysUntil(), formatDate() (+2 more)
+Cohesion: 0.15
+Nodes (14): Board(), PRIORITY_SORT_ORDER, Card(), SortableCard(), Column(), SortableColumn(), Badge(), ContextMenu() (+6 more)
 
 ### Community 10 - "Email Digest Generation"
-Cohesion: 0.18
-Nodes (15): buildHtml(), buildStats(), buildSubject(), DIGEST_HOUR, DIGEST_MINUTE, { escHtml, dateLabel, todayStr, DONE_COLUMN_RE }, { logDigestAttempt }, priorityRow() (+7 more)
+Cohesion: 0.16
+Nodes (19): buildHtml(), buildStats(), buildSubject(), DIGEST_HOUR, DIGEST_MINUTE, { escHtml, dateLabel, todayStr, DONE_COLUMN_RE }, { logDigestAttempt }, priorityRow() (+11 more)
 
 ### Community 12 - "Card & Column Components"
-Cohesion: 0.25
-Nodes (5): SortableCard(), Column(), SortableColumn(), Sidebar(), IconButton()
+Cohesion: 0.18
+Nodes (11): getUserFromDb(), invalidateUserCache(), jwt, requireAuth(), requireRole(), { supabaseAdmin }, userCache, express (+3 more)
 
 ### Community 13 - "Workspace Management UI"
-Cohesion: 0.14
-Nodes (14): useWorkspaces(), canDeleteWorkspace(), canManageWorkspace(), COLUMN_COLORS, DeleteConfirmModal(), EMOJIS, MiniKanban(), ROLE_LABELS (+6 more)
+Cohesion: 0.15
+Nodes (13): useWorkspaces(), canDeleteWorkspace(), canManageWorkspace(), COLUMN_COLORS, DeleteConfirmModal(), EMOJIS, MiniKanban(), ROLE_LABELS (+5 more)
 
 ### Community 14 - "User Digest Formatting"
 Cohesion: 0.15
-Nodes (23): escHtml(), isOverdue(), todayStr(), buildAssignedSection(), buildHtml(), buildSection(), buildSubject(), buildUserCards() (+15 more)
+Nodes (19): isOverdue(), buildSection(), buildSubject(), buildUserCards(), checklistBadge(), dueBadge(), { escHtml, dateLabel, todayStr, isOverdue, DONE_COLUMN_RE }, formatDueDate() (+11 more)
 
 ### Community 15 - "Internal Routes & Logging"
-Cohesion: 0.12
-Nodes (15): express, router, { supabaseAdmin }, VALID_PRIORITIES, { buildUserCards }, { supabaseAdmin }, { logDigestAttempt, queryDigestLogs }, { supabaseAdmin } (+7 more)
+Cohesion: 0.15
+Nodes (13): express, router, { supabaseAdmin }, VALID_PRIORITIES, { logDigestAttempt, queryDigestLogs }, { supabaseAdmin }, logDigestAttempt(), queryDigestLogs() (+5 more)
 
 ### Community 16 - "Database Schema"
 Cohesion: 0.31
@@ -336,8 +341,8 @@ Cohesion: 0.36
 Nodes (7): useCategories(), createCategory(), deleteCategory(), getCategories(), { supabaseAdmin }, toCat(), updateCategory()
 
 ### Community 32 - "Admin Tests"
-Cohesion: 0.12
-Nodes (11): app, jwt, request, { supabaseAdmin, createAdminClient }, app, { buildUserCards, sendUserDigest }, { createAdminClient, supabaseAdmin }, jwt (+3 more)
+Cohesion: 0.25
+Nodes (5): app, jwt, request, { supabaseAdmin, createAdminClient }, createAdminClient()
 
 ### Community 33 - "Digest Tests"
 Cohesion: 0.33
@@ -441,7 +446,7 @@ Nodes (9): { createAdminClient, createPublicClient }, express, { getSyncedUserPr
 
 ### Community 74 - "CHANGELOG — AGLAYA Kanban Desk"
 Cohesion: 0.12
-Nodes (17): [0.8.1] — 2026-03-27 — Hotfix: categoría hardcodeada en tarjetas, [1.0.0.0] — 2026-04-11 — Lanzamiento Oficial GitHub, [1.1.0.0] — 2026-04-11 — Certificación "Kosher" · Nutrición Atlas · v1.1.0 Global Sync, [1.1.1] — 2026-04-08 — Fixes post-migración + herramientas de migración, [1.1.1] - 2026-04-12, [1.1.5] - 2026-04-13/14, [1.2.1] — 2026-04-10 — Tests · Mover tarjetas cross-workspace · Settings de workspace, Added (+9 more)
+Nodes (17): [0.8.1] — 2026-03-27 — Hotfix: categoría hardcodeada en tarjetas, [1.0.0.0] — 2026-04-11 — Lanzamiento Oficial GitHub, [1.1.1] — 2026-04-08 — Fixes post-migración + herramientas de migración, [1.1.1] - 2026-04-12, [1.1.5] - 2026-04-13/14, [1.2.1] — 2026-04-10 — Tests · Mover tarjetas cross-workspace · Settings de workspace, [1.3.0] - 2026-04-28, Added (+9 more)
 
 ### Community 76 - "Audit Mariana — Roadmap Backlog"
 Cohesion: 0.20
@@ -516,8 +521,8 @@ Cohesion: 0.33
 Nodes (6): [1.1.0] — 2026-04-07 — Rebrand AGLAYA + Workspace Types + Acceso por Rol, Fase A — Rebrand visual y de dominio, Fase B — Workspace types, Fase C — Control de acceso por tipo de usuario, Fase D — UI diferenciada por rol, Infraestructura y deploy
 
 ### Community 95 - "[1.3.0] - 2026-04-28"
-Cohesion: 0.67
-Nodes (3): [1.3.0] - 2026-04-28, Added, Fixed
+Cohesion: 0.27
+Nodes (5): CardModal(), EMPTY, fileIcon(), normalizeAttachments(), MARKDOWN_LINK_COMPONENTS
 
 ### Community 96 - "🔍 3. Diagnóstico y Mantenimiento"
 Cohesion: 0.33
@@ -548,8 +553,8 @@ Cohesion: 0.25
 Nodes (8): Added, Added, Changed, Fixed, Fixed, Removed, Security, [Unreleased]
 
 ### Community 103 - "docs-guard.test.sh"
-Cohesion: 0.53
-Nodes (4): expect_green(), expect_red(), ports_case(), docs-guard.test.sh script
+Cohesion: 0.48
+Nodes (5): expect_green(), expect_red(), links_case(), ports_case(), docs-guard.test.sh script
 
 ### Community 104 - "Versiones heredadas de MyBoard (referencia)"
 Cohesion: 0.50
@@ -591,20 +596,36 @@ Nodes (4): Backend ✅, Frontend ✅, Phase 2 — Workspaces *(Completada — 20
 Cohesion: 0.67
 Nodes (3): Hecho, Higiene documental — estado copiado *(2026-07-21)*, Pendiente — commit en espera
 
+### Community 169 - "media.js"
+Cohesion: 0.20
+Nodes (9): requireWorkspaceRole(), express, multer, path, { requireAuth }, { requireWorkspaceMember, requireWorkspaceRole }, router, { supabaseAdmin } (+1 more)
+
+### Community 175 - "digest.test.js"
+Cohesion: 0.25
+Nodes (6): app, { buildUserCards, sendUserDigest }, { createAdminClient, supabaseAdmin }, jwt, request, workspaceState
+
+### Community 176 - "workspace.js"
+Cohesion: 0.67
+Nodes (5): requireWorkspaceMember(), resolveWorkspaceIdFromBoard(), resolveWorkspaceIdFromCard(), resolveWorkspaceIdFromColumn(), { supabaseAdmin }
+
+### Community 178 - "[1.1.0.0] — 2026-04-11 — Certificación "Kosher" · Nutrición Atlas · v1.1.0 Global Sync"
+Cohesion: 0.67
+Nodes (3): [1.1.0.0] — 2026-04-11 — Certificación "Kosher" · Nutrición Atlas · v1.1.0 Global Sync, Added, Changed
+
 ## Knowledge Gaps
 - **740 isolated node(s):** `Identidad del proyecto`, `Puertos exclusivos de este proyecto`, `Dónde vive el estado del proyecto`, `Endpoint interno: cómo crear cards sin UI`, `Cómo entra trabajo desde otras naves de la flota` (+735 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **76 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **77 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `useCategories()` connect `Category Management` to `App.jsx`?**
-  _High betweenness centrality (0.057) - this node is a cross-community bridge._
+  _High betweenness centrality (0.054) - this node is a cross-community bridge._
 - **Why does `createCategory()` connect `Category Management` to `Express App & Routers`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **Why does `updateCategory()` connect `Category Management` to `Express App & Routers`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **What connects `Identidad del proyecto`, `Puertos exclusivos de este proyecto`, `Dónde vive el estado del proyecto` to the rest of the system?**
   _740 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Card & Board API` be split into smaller, more focused modules?**
