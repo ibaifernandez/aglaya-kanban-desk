@@ -104,7 +104,11 @@ check_PORTS() {
 
   local docs
   if [ -n "${DOCS_GUARD_PORTS_DOCS:-}" ]; then
-    read -r -a docs <<<"$DOCS_GUARD_PORTS_DOCS"
+    # Separado por SALTOS DE LÍNEA, no por espacios: este repo vive en
+    # "/Users/AGLAYA/Local Sites/…" y un `read -a` partía la ruta en dos trozos
+    # inexistentes. El guardián no fallaba: se saltaba el fichero y daba VERDE.
+    # Un falso negativo silencioso en el propio guardián — peor que un falso positivo.
+    docs=(); while IFS= read -r l; do [ -n "$l" ] && docs+=("$l"); done <<<"$DOCS_GUARD_PORTS_DOCS"
   else
     docs=("$root/CLAUDE.md" "$root/README.md")
   fi
@@ -137,6 +141,8 @@ check_PORTS() {
     while IFS=: read -r lineno text; do
       [ -n "$lineno" ] || continue
       for p in $(printf '%s' "$text" | grep -oE '\b[0-9]{4}\b'); do
+        # Un año en una línea que habla de puertos no es un puerto.
+        case "$p" in 19??|20??) continue ;; esac
         case " $canon " in
           *" $p "*) ;;
           *) echo "::error file=${rel},line=${lineno}::docs-guard[PORTS]: puerto ${p} no existe en el código."
@@ -145,7 +151,11 @@ check_PORTS() {
              FAIL=1 ;;
         esac
       done
-    done < <(grep -nE '(\*\*[0-9]{4}\*\*|[Pp]uertos?[^0-9]{0,3}[0-9]{4}|[Pp]ort[^0-9]{0,3}[0-9]{4}|PORT=[0-9]{4}|localhost:[0-9]{4})' "$md" || true)
+      # Selección de línea por CONTEXTO, no por proximidad. La versión anterior exigía
+      # la cifra a <=3 caracteres de «puerto» y un adjetivo la derrotaba: «Puertos
+      # sagrados 9999» pasaba verde. Encontrado corriendo este guardián sobre un
+      # documento ajeno — un texto que no es el tuyo ejercita lo que el propio no toca.
+    done < <(grep -nE '(\*\*[0-9]{4}\*\*|[Pp]uertos?\b|[Pp]ort\b|PORT=|localhost:)' "$md" || true)
   done
 }
 
@@ -169,7 +179,7 @@ check_LINKS() {
   local root="${DOCS_GUARD_LINKS_ROOT:-$REPO_ROOT}"
   local docs
   if [ -n "${DOCS_GUARD_LINKS_DOCS:-}" ]; then
-    read -r -a docs <<<"$DOCS_GUARD_LINKS_DOCS"
+    docs=(); while IFS= read -r l; do [ -n "$l" ] && docs+=("$l"); done <<<"$DOCS_GUARD_LINKS_DOCS"
   else
     docs=("$root/CLAUDE.md" "$root/README.md")
   fi
