@@ -22,8 +22,13 @@ PASS=0
 FAIL=0
 
 # Ejecuta el guardián sobre un fichero suelto y devuelve su exit code.
+# Los casos de regex prueban UN fichero temporal. Los crosschecks (LINKS, PORTS)
+# tienen que apuntar también a ese temporal: si no, corren contra el repo real y
+# contaminan el resultado de un test que no va sobre ellos.
 run_guard() {
-  bash "$GUARD" "$1" >"$TMP/out.txt" 2>&1
+  DOCS_GUARD_LINKS_ROOT="$TMP" DOCS_GUARD_LINKS_DOCS="$1" \
+  DOCS_GUARD_PORTS_ROOT="$TMP" DOCS_GUARD_PORTS_DOCS="$1" \
+    bash "$GUARD" "$1" >"$TMP/out.txt" 2>&1
   echo $?
 }
 
@@ -157,6 +162,8 @@ links_case() {
   local name="$1" doc_line="$2" expect="$3"
   local d="$TMP/links"; rm -rf "$d"; mkdir -p "$d/docs"
   printf 'existe\n' >"$d/docs/EXISTE.md"
+  printf '.env\n' >"$d/.gitignore"
+  ( cd "$d" && git init -q 2>/dev/null )   # para que `git check-ignore` funcione
   printf '%s\n' "$doc_line" >"$d/DOC.md"
 
   local code
@@ -177,6 +184,16 @@ links_case "enlace a fichero existente"      'Ver [docs](./docs/EXISTE.md) para 
 links_case "enlace a fichero inexistente"    'Ver [docs](./docs/FANTASMA.md) para más.'    red
 links_case "enlace con ancla, fichero ok"    'Ver [x](./docs/EXISTE.md#seccion).'          green
 links_case "enlace externo se ignora"        'Ver [web](https://aglaya.biz) para más.'     green
+
+# El `cp .env.example .env` roto del README vivía en un BLOQUE DE CÓDIGO, no en un
+# enlace markdown. La primera versión de LINKS cerró la mitad bonita de la clase.
+links_case "ruta en bloque de código, existe"      'cp docs/EXISTE.md /tmp/x'          green
+links_case "ruta en bloque de código, no existe"   'cp .env.example .env'              red
+links_case "ruta entre backticks, existe"          'Mira `docs/EXISTE.md` para eso.'   green
+links_case "ruta entre backticks, no existe"       'Mira `docs/FANTASMA.md`.'          red
+links_case "placeholder <nombre> se ignora"        'psql -f docs/migration-<n>.sql'    green
+links_case "ruta gitignoreada se ignora"           'edita .env con tus valores'        green
+links_case "ruta de otro repo se ignora"           'vive en `atlas/kanban-manual.md`'  green
 
 echo
 echo "=== $PASS ok · $FAIL fallos ==="

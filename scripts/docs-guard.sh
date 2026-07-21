@@ -149,10 +149,22 @@ check_PORTS() {
   done
 }
 
-# LINKS · todo enlace relativo de los docs vigilados debe resolver en disco.
+# LINKS · toda ruta de fichero citada en los docs vigilados debe resolver en disco.
+#
 # Es la parte tratable de la clase «el documento nombra algo que puede no existir»:
-# un fichero sí se puede comprobar, un nombre de workspace no. Los externos (http)
-# se ignoran: su custodio está fuera del repo.
+# un fichero sí se puede comprobar, un nombre de workspace no.
+#
+# Mira enlaces markdown Y rutas sueltas (backticks, bloques de código). La primera
+# versión solo miraba `](ruta)` — y el fallo real que motivó la regla, un
+# `cp .env.example .env` que apuntaba a un fichero inexistente, vivía en un bloque
+# de código. Cerrar la mitad con mejor sintaxis es no cerrar la clase.
+#
+# Se ignoran, por este orden:
+#   · externos (http…), que no custodia este repo
+#   · plantillas con <>, $ o * — no son rutas, son huecos
+#   · rutas gitignoreadas (`.env`): no se espera que existan en un clon limpio
+#   · rutas cuyo primer segmento no es un directorio de este repo (`atlas/…` es del
+#     capitán). Se autodetecta: sin listas blancas que envejezcan.
 check_LINKS() {
   local root="${DOCS_GUARD_LINKS_ROOT:-$REPO_ROOT}"
   local docs
@@ -162,22 +174,43 @@ check_LINKS() {
     docs=("$root/CLAUDE.md" "$root/README.md")
   fi
 
+  local exts='md|js|jsx|json|sql|sh|py|yml|yaml|example|txt|toml'
+  # Verbos de shell tras los cuales un nombre suelto SÍ es una ruta. Sin esto,
+  # `Node.js` en prosa y los `app.js` del árbol de arquitectura son falsos
+  # positivos: un nombre con extensión no es una ruta si nadie lo abre.
+  local verbs='cp|mv|cat|less|source|psql|node|bash|sh|rm|touch|python3?|npx|vim|nano'
+
   for md in "${docs[@]}"; do
     [ -f "$md" ] || continue
     local rel="${md#"$root"/}"
-    while IFS=: read -r lineno target; do
-      [ -n "$target" ] || continue
-      target="${target#./}"
-      target="${target%%#*}"                      # descarta anclas #seccion
-      [ -n "$target" ] || continue
-      if [ ! -e "$root/$target" ]; then
-        echo "::error file=${rel},line=${lineno}::docs-guard[LINKS]: el enlace apunta a algo que no existe: ${target}"
-        echo "  ${rel}:${lineno} → ${target}"
-        echo "    → custodio: el sistema de ficheros"
-        FAIL=1
-      fi
-    done < <(grep -noE '\]\((\./)?[A-Za-z0-9_][A-Za-z0-9_./#-]*\)' "$md" \
-             | sed -E 's/\]\(//; s/\)$//' || true)
+    while IFS=: read -r lineno rest; do
+      [ -n "$lineno" ] || continue
+      for raw in $( { # (a) destino de enlace markdown — inequívoco
+                      printf '%s' "$rest" | grep -oE "\]\((\./)?[A-Za-z0-9_.][A-Za-z0-9_./#-]*\)" \
+                        | sed -E 's/^\]\(//; s/\)$//; s/#.*$//'
+                      # (b) con barra: es una ruta, no una etiqueta
+                      printf '%s' "$rest" | grep -oE "(\./)?[A-Za-z0-9_.][A-Za-z0-9_.-]*/[A-Za-z0-9_./-]*\.($exts)\b"
+                      # (c) nombre suelto, pero detrás de un verbo que lo abre
+                      printf '%s' "$rest" | grep -oE "\b($verbs)[[:space:]]+(-[A-Za-z][[:space:]]+)?[A-Za-z0-9_.][A-Za-z0-9_.-]*\.($exts)\b" \
+                        | grep -oE "[A-Za-z0-9_.][A-Za-z0-9_.-]*\.($exts)$"
+                    } | sed -E 's|^\./||' | sort -u ); do
+        case "$raw" in
+          *'<'*|*'>'*|*'$'*|*'*'*|/*|'~'*) continue ;;
+        esac
+        # gitignoreada → no se espera en un clon limpio
+        ( cd "$root" && git check-ignore -q "$raw" 2>/dev/null ) && continue
+        # primer segmento no es un directorio de este repo → referencia externa
+        case "$raw" in
+          */*) [ -d "$root/${raw%%/*}" ] || continue ;;
+        esac
+        if [ ! -e "$root/$raw" ]; then
+          echo "::error file=${rel},line=${lineno}::docs-guard[LINKS]: cita una ruta que no existe: ${raw}"
+          echo "  ${rel}:${lineno} → ${raw}"
+          echo "    → custodio: el sistema de ficheros"
+          FAIL=1
+        fi
+      done
+    done < <(grep -nE "[A-Za-z0-9_.][A-Za-z0-9_./-]*\.($exts)\b" "$md" | grep -v 'https\?://' || true)
   done
 }
 
