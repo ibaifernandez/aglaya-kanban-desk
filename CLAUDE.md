@@ -16,12 +16,6 @@ El diseño de UI debe estar alineado bajo el Design System de AGLAYA (`aglaya-de
 
 ---
 
-## Carpeta local
-
-`/Users/AGLAYA/Local Sites/aglaya-kanban-desk`
-
----
-
 ## Puertos exclusivos de este proyecto
 
 **⚠️ No cambiar estos puertos nunca.**
@@ -31,12 +25,10 @@ El diseño de UI debe estar alineado bajo el Design System de AGLAYA (`aglaya-de
 | Server (Express) | **3003** |
 | Client (Vite) | **5175** |
 
-**Proyectos hermanos**:
-
-- 3001/5173 (personal)
-- 3002/5174 (conta-if)
-
-Si alguno está ocupado al arrancar, investiga qué proceso lo tiene antes de matarlo.
+Los proyectos hermanos tienen los suyos, y **sus puertos los custodian ellos** — aquí
+llegaron a estar copiados, que es estado de otro repo escrito en este y sin forma de
+comprobarlo desde aquí. Si un puerto está ocupado al arrancar, investiga qué proceso
+lo tiene antes de matarlo: eso protege igual y no caduca.
 
 Los servidores se arrancan con:
 
@@ -45,7 +37,17 @@ preview_start → "AGLAYA Kanban Desk Server"   (puerto 3003)
 preview_start → "AGLAYA Kanban Desk Client"   (puerto 5175)
 ```
 
-Configuración en `.claude/launch.json`.
+El custodio del puerto es el **código**: `client/vite.config.js` y `server/index.js`.
+`.claude/launch.json` debe repetirlo, y estos documentos también.
+
+Todo lo de arriba es copia por comodidad, y la regla `PORTS` de
+[`scripts/docs-guard.sh`](scripts/docs-guard.sh) la comprueba en CI: extrae el canon
+del código, exige que `launch.json` coincida, y luego exige que **cada puerto citado
+en `CLAUDE.md` y `README.md`** —tabla, prosa, `localhost:`, `PORT=`— esté en ese canon.
+Si inventas uno, rojo.
+
+Antes aquí ponía «no modificar launch.json sin actualizar este archivo»: una copia
+documentando por escrito su propio procedimiento manual, que es una copia igual.
 
 ---
 
@@ -102,6 +104,38 @@ curl -s -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
 
 ---
 
+## Cómo entra trabajo desde otras naves de la flota
+
+Dos puertas, con **alcance distinto**. Esa asimetría importa: probar una no dice nada
+de la otra.
+
+| Puerta | Quién puede usarla | Alcance | Direcciona por |
+|---|---|---|---|
+| MCP `aglaya-kanban-desk` | cualquier sesión de Claude **de esta máquina** (registrado en `~/.claude.json`, no en el repo) | solo los workspaces de los que el riel es **miembro** | UUID |
+| `POST /api/internal/create-card` | quien tenga `TASK_SECRET` — también desde fuera de esta máquina | **todos** (usa `service_role`, salta RLS) | nombre |
+
+Camino por MCP: `list_workspaces()` → `list_boards(workspace_id)` →
+`list_columns(board_id)` → `create_card(column_id, title, description_md, …)`.
+Asignar responsable dispara la notificación in-app real.
+
+⚠️ **El alcance del riel se mantiene a mano.** La cuenta `kanban-rail@aglaya.biz` es
+superadmin **por rol**, pero `GET /workspaces` filtra por **membresía** y no mira el
+rol (`server/routes/workspaces.js`). Consecuencia: **si creas un workspace y no añades
+al riel como miembro, el riel se queda ciego a él en silencio** — no dará «no eres
+miembro», simplemente ese workspace no aparecerá en la lista y ninguna nave podrá
+dejar cards ahí. Al crear un workspace destinado a recibir comandas, añadir al riel.
+
+Quién es miembro de qué lo custodia la tabla `workspace_members`, no este archivo.
+
+**Y a qué tablero va cada cosa, tampoco lo custodia este repo.** El criterio de
+enrutado —qué trabajo entra como card y a qué workspace/tablero pertenece— vive en el
+atlas del capitán (`atlas/kanban-manual.md`). Desde aquí se pregunta:
+`ficha("aglaya-kanban-desk")` o `donde_pregunto("enrutado de cards")` en el MCP
+`aglaya-atlas`. No lo adivines: el match es `ilike` parcial y un nombre aproximado
+aterriza en el sitio equivocado devolviendo `201`.
+
+---
+
 ## Acceso a Supabase desde Claude (DDL y queries directas)
 
 `.env` (gitignored) contiene credenciales para que Claude ejecute migraciones y queries sin intervención manual:
@@ -114,7 +148,9 @@ Patrón para aplicar DDL/migraciones:
 ```bash
 set -a; source .env; set +a
 export PGPASSWORD="$SUPABASE_DATABASE_PASSWORD"
-psql "postgresql://postgres@db.jowtasxhnluqqcgkeoll.supabase.co:5432/postgres" -f docs/schema/migration-<nombre>.sql
+# El host se DERIVA de SUPABASE_URL — no se teclea aquí. El custodio es .env / Supabase.
+PGHOST="db.$(echo "$SUPABASE_URL" | sed -E 's#https?://([^.]+)\..*#\1#').supabase.co"
+psql "postgresql://postgres@$PGHOST:5432/postgres" -f docs/schema/migration-<nombre>.sql
 ```
 
 Para queries puntuales: `psql ... -c "SELECT ..."`.
@@ -164,7 +200,7 @@ Reglas para cualquier hilo que trabaje aquí:
 
 - **Antes de un cambio estructural** (schema de cards, tools del MCP `aglaya-kanban-desk`, workspaces/boards), consultar el registro de contratos del atlas: el capitán inyecta cards por ese contrato y un cambio unilateral lo rompe.
 - **Si el capitán toca docs de este repo**, debería estar registrado en commits debidamente identificados y todos los cambios deberían quedar registrados en `docs/CHANGELOG.md`.
-- **Tres usuarios y no más que tres**, mientras no cambie el paradigma de uso de esta aplicación: Ibai (`info@ibaifernandez.com`), Món (`mmontufarq@gmail.com`) y Kanban Rail (`kanban-rail@aglaya.biz`). No dar de alta a nadie sin OK de Ibai.
+- **Solo estas tres cuentas están autorizadas**, mientras no cambie el paradigma de uso de esta aplicación: Ibai (`info@ibaifernandez.com`), Món (`mmontufarq@gmail.com`) y Kanban Rail (`kanban-rail@aglaya.biz`). No dar de alta a nadie sin OK de Ibai. Esto es una **decisión**, no un informe: dice quién *puede* existir. Quién existe de hecho lo custodia la tabla `users` — si no coinciden, el hallazgo es que hay que reconciliarlas, no que este archivo esté desactualizado.
 
 **Al capitán se le pregunta, no se le cita.** MCP `aglaya-atlas`, disponible en toda sesión de Claude de esta máquina. Responde leyendo el atlas en vivo y citando fuente:
 

@@ -260,8 +260,8 @@
     "semantic_hash": "cd65232da57edb96e605ad15c67efb46"
   },
   "kanban-mcp/server.py": {
-    "mtime": 1784664336.284611,
-    "ast_hash": "bb0090af347546e698dd67a0910f1ebc",
+    "mtime": 1784666536.5943637,
+    "ast_hash": "158f98df30ba537d73fcc184e8f260b2",
     "semantic_hash": ""
   },
   "migrations/add_explicit_grants.sql": {
@@ -290,9 +290,9 @@
     "semantic_hash": "23ad347a0f1b4ca266444bcdc2b7ff02"
   },
   "server/index.js": {
-    "mtime": 1779918367.0080292,
-    "ast_hash": "997adbe23fb1ca9246ec3694c79617b0",
-    "semantic_hash": "997adbe23fb1ca9246ec3694c79617b0"
+    "mtime": 1784667979.7283432,
+    "ast_hash": "2d019bac475e6956daeb5373f00d7776",
+    "semantic_hash": ""
   },
   "server/middleware/auth.js": {
     "mtime": 1779930530.0335834,
@@ -340,7 +340,7 @@
     "semantic_hash": "5221648e59ace352fc379c350085add9"
   },
   "server/routes/internalRoute.js": {
-    "mtime": 1784665214.6689017,
+    "mtime": 1784665846.6130562,
     "ast_hash": "93951c8e500d2927cd3e792ba5a9d86c",
     "semantic_hash": ""
   },
@@ -445,9 +445,9 @@
     "semantic_hash": "9f25b31d8753fac903e37b2f6b9b0d0c"
   },
   "server/tests/smtpConfig.test.js": {
-    "mtime": 1777451578.3045306,
-    "ast_hash": "d5dc562f244967077d854ecf8253c7b4",
-    "semantic_hash": "d5dc562f244967077d854ecf8253c7b4"
+    "mtime": 1784667958.3296692,
+    "ast_hash": "39f8ea48d9ad9cf60da55936db114c38",
+    "semantic_hash": ""
   },
   "server/tests/uploads.test.js": {
     "mtime": 1779908334.1404662,
@@ -475,9 +475,9 @@
     "semantic_hash": "09d94634c4f09081c91305d5c6060d8c"
   },
   "server/utils/smtpConfig.js": {
-    "mtime": 1777370647.97537,
-    "ast_hash": "d48dcefb92f4682e067c7843202b305a",
-    "semantic_hash": "d48dcefb92f4682e067c7843202b305a"
+    "mtime": 1784667972.2229197,
+    "ast_hash": "810bcf53e78af43a30e78c78de5367b5",
+    "semantic_hash": ""
   },
   "server/utils/supabase.js": {
     "mtime": 1776109088.3964648,
@@ -510,13 +510,13 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1784665252.8617868,
-    "ast_hash": "e253cc4bcaa6a1e777df7b49c8bd5993",
+    "mtime": 1784667031.3541746,
+    "ast_hash": "1e78803f009678903d4526b5b5df37ca",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784659222.3250568,
-    "ast_hash": "bae60644f35bf6c44189b41ae51c156c",
+    "mtime": 1784667696.253007,
+    "ast_hash": "a004ae0de7af79aa7fdeaab9789f4384",
     "semantic_hash": ""
   },
   "client/index.html": {
@@ -535,13 +535,13 @@
     "semantic_hash": ""
   },
   "docs/BACKLOG.md": {
-    "mtime": 1784665265.43173,
+    "mtime": 1784665846.6068823,
     "ast_hash": "830369d25016df5bd1ce5ac8e5484fc9",
     "semantic_hash": ""
   },
   "docs/CHANGELOG.md": {
-    "mtime": 1784665276.4845145,
-    "ast_hash": "261f92935f3c2f242a15cb59b00b5dc1",
+    "mtime": 1784668311.465281,
+    "ast_hash": "64d412cb9e9fe00850e7ae40a6344a4c",
     "semantic_hash": ""
   },
   "docs/INCIDENTS.md": {
@@ -625,7 +625,7 @@
     "semantic_hash": ""
   },
   "docs/runbooks/key-rotation.md": {
-    "mtime": 1784664341.3902514,
+    "mtime": 1784665846.6080782,
     "ast_hash": "f97c4ab4f36f89457a9d2ad504578ecc",
     "semantic_hash": ""
   },
@@ -675,27 +675,27 @@
     "semantic_hash": ""
   },
   "scripts/docs-guard.mutation.sh": {
-    "mtime": 1784659183.9956543,
-    "ast_hash": "25ebf574a1044a9f473b64bdc7f81cc9",
+    "mtime": 1784667144.6789935,
+    "ast_hash": "2df902ba1369e68281a8788c0d0e5b9e",
     "semantic_hash": ""
   },
   "scripts/docs-guard.sh": {
-    "mtime": 1784659158.1049669,
-    "ast_hash": "5b7c9eb71ad84cae9ff54abc3ad9991f",
+    "mtime": 1784667831.6853144,
+    "ast_hash": "7d021c276369e502ef12385624ce3aaf",
     "semantic_hash": ""
   },
   "scripts/docs-guard.test.sh": {
-    "mtime": 1784659086.7105248,
-    "ast_hash": "faa145f2e727b674e8d31ecc374943d4",
+    "mtime": 1784667821.5540242,
+    "ast_hash": "9a1be3c9251b3ff98a0ddd56dee1ae08",
     "semantic_hash": ""
   },
   ".github/workflows/docs-guard.yml": {
-    "mtime": 1784659282.9672844,
+    "mtime": 1784665846.6052032,
     "ast_hash": "412e8af10ce91c89c9ef139d919453dd",
     "semantic_hash": ""
   },
   "server/tests/internal-create-card.test.js": {
-    "mtime": 1784665191.3858724,
+    "mtime": 1784665846.6135893,
     "ast_hash": "d25f93474d23fb21c8ca311325e3a335",
     "semantic_hash": ""
   }

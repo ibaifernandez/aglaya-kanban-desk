@@ -85,3 +85,51 @@ describe('validateDigestSchedules', () => {
     warnSpy.mockRestore();
   });
 });
+
+/**
+ * validateCoreConfig — la red de seguridad que faltaba.
+ *
+ * Encontrado siguiendo el README en un clon limpio (2026-07-21): tras `cp
+ * .env.example .env` sin rellenar, arrancar el servidor no daba el mensaje
+ * amistoso de validateSmtpConfig sino un stack trace de dentro de supabase-js
+ * ("supabaseUrl is required"). La validación existía, pero corría DESPUÉS de
+ * `require('./app')`, que revienta en carga de módulo. La red estaba puesta
+ * detrás del agujero.
+ */
+describe('validateCoreConfig', () => {
+  const originalEnv = { ...process.env };
+  const CORE = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_ANON_KEY', 'JWT_SECRET'];
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+    CORE.forEach((k) => delete process.env[k]);
+  });
+
+  afterAll(() => { process.env = originalEnv; });
+
+  it('lanza si falta alguna variable esencial', () => {
+    const { validateCoreConfig } = require('../utils/smtpConfig');
+    expect(() => validateCoreConfig()).toThrow();
+  });
+
+  it('el error nombra TODAS las que faltan, no solo la primera', () => {
+    const { validateCoreConfig } = require('../utils/smtpConfig');
+    try {
+      validateCoreConfig();
+      throw new Error('debería haber lanzado');
+    } catch (err) {
+      CORE.forEach((k) => expect(err.message).toContain(k));
+    }
+  });
+
+  it('el error apunta a .env.example, que es de donde se copia', () => {
+    const { validateCoreConfig } = require('../utils/smtpConfig');
+    expect(() => validateCoreConfig()).toThrow(/\.env\.example/);
+  });
+
+  it('no lanza cuando están todas', () => {
+    CORE.forEach((k) => { process.env[k] = 'x'; });
+    const { validateCoreConfig } = require('../utils/smtpConfig');
+    expect(() => validateCoreConfig()).not.toThrow();
+  });
+});

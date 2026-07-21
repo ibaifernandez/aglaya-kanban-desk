@@ -30,9 +30,9 @@ Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo inter
 
 | Capa            | Tecnología                                      |
 | --------------- | ----------------------------------------------- |
-| Frontend        | React 18 + Vite + TailwindCSS                   |
+| Frontend        | React + Vite + TailwindCSS                      |
 | Drag & drop     | @dnd-kit                                        |
-| Backend         | Express 4 + Node.js                             |
+| Backend         | Express + Node.js                               |
 | Base de datos   | Supabase (PostgreSQL + RLS)                     |
 | Auth            | Supabase Auth + JWT middleware + bcryptjs       |
 | Storage         | Supabase Storage (adjuntos, avatares, portadas) |
@@ -47,30 +47,36 @@ Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo inter
 ## Arquitectura
 
 ```
-client/  (React 18 + Vite · Netlify · puerto 5175)
-├── src/
-│   ├── pages/          ← LoginPage, WorkspaceDashboard, ResetPasswordPage
-│   ├── components/     ← Board, Card, CardModal, Sidebar, Toolbar, NotificationBell…
-│   ├── context/        ← AuthContext, CategoriesContext
-│   ├── hooks/          ← useBoardData, useWorkspaces, useBoards…
-│   └── api/client.js   ← interceptor JWT · todas las peticiones
+client/  (React + Vite · Netlify · puerto 5175)
+└── src/
+    ├── pages/          ← vistas de ruta completa
+    ├── components/     ← UI de tablero, tarjeta, workspace y navegación
+    ├── context/        ← estado transversal (sesión, categorías)
+    ├── hooks/          ← acceso a datos por entidad
+    └── api/client.js   ← cliente HTTP único · interceptor JWT + refresh
 
-server/  (Express 4 · Railway · puerto 3003)
-├── app.js              ← Express config, rutas, middlewares, 404 y error handler
-├── index.js            ← Entry point: valida config y arranca listen()
-├── routes/             ← auth, boards, cards, columns, categories, workspaces,
-│                          notifications, media, digest, admin, internal
-├── middleware/         ← requireAuth, requireRole, requireWorkspaceMember
-├── services/digest/    ← admin.js · user.js · shared.js (lógica de digests)
-└── utils/              ← supabase (admin service_role + anon), mailer (Resend),
-                           sentry, digestLogging, smtpConfig, userProfile
+server/  (Express · Railway · puerto 3003)
+├── app.js              ← Express sin listen(): rutas, middlewares, 404, error handler
+├── index.js            ← Entry point: valida config y arranca listen()   (ADR-024)
+├── routes/             ← una por recurso de la API
+├── middleware/         ← seguridad concéntrica: auth → rol → membresía de workspace
+├── services/           ← lógica de dominio extraída de las rutas
+└── utils/              ← clientes Supabase, email, observabilidad
 
-         React ←──── JWT / HTTPS ────→ Express
+kanban-mcp/  (Python · stdio)
+└── server.py           ← riel MCP: el orquestador opera el kanban por la API
+                          con una cuenta de servicio dedicada   (ADR-026)
+
+         React ←──── JWT / HTTPS ────→ Express ←──── MCP (stdio) ──── orquestador
                                            │
                                       Supabase
                                (PostgreSQL + RLS + Auth
                                 + Storage + Admin API)
 ```
+
+> El árbol describe **la forma**, no el inventario. Qué ficheros hay exactamente en
+> cada carpeta lo custodia el sistema de ficheros: `ls server/routes/`. Aquí llegó a
+> estar la lista de rutas enumerada, y ya se había quedado corta.
 
 **Aislamiento de datos:** Row Level Security activa en todas las tablas. El servidor usa `service_role` (bypasa RLS para operaciones administrativas); el cliente nunca toca la DB directamente.
 
@@ -124,10 +130,12 @@ server/  (Express 4 · Railway · puerto 3003)
 ### Seguridad
 
 - CORS restringido por entorno (solo `kanban.aglaya.biz` en producción)
-- Rate limiting: 20 req / 15 min en rutas de auth
+- Rate limiting por familia de rutas (auth, endpoint interno, general) — los valores
+  vigentes están en `server/app.js`, que es quien los custodia
 - Helmet con CSP en producción
 - Validación de enums y tipos en todos los endpoints de mutación
-- JWT con expiración de 7 días; tokens en sessionStorage
+- Access token JWT de vida corta + refresh token en cookie HttpOnly con rotación;
+  las duraciones exactas viven en `server/routes/auth.js` (`ACCESS_TTL` / `REFRESH_TTL`)
 - Confirmación de borrado en tarjetas y columnas
 - Global error handler: todos los errores no capturados responden con JSON (nunca HTML)
 
@@ -137,7 +145,9 @@ server/  (Express 4 · Railway · puerto 3003)
 
 ### Requisitos
 
-- Node.js 20+
+- Node.js — la versión con la que se construye y testea la declara
+  [`.github/workflows/ci.yml`](./.github/workflows/ci.yml); las de cada dependencia,
+  [`package.json`](./package.json)
 - Un proyecto [Supabase](https://supabase.com) (el plan free es suficiente para desarrollo)
 - Una cuenta [Resend](https://resend.com) para el envío de emails (plan free disponible)
 
@@ -171,35 +181,21 @@ npm run dev
 
 ## Variables de entorno
 
-```env
-# Supabase
-SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_ANON_KEY=
+La plantilla completa, con qué es obligatorio y qué opcional, está en
+[`.env.example`](./.env.example) — que es su custodio. Aquí no se transcribe.
 
-# JWT
-JWT_SECRET=
+```bash
+cp .env.example .env
+```
 
-# Email (Resend)
-RESEND_API_KEY=
-SMTP_FROM=noreply@tudominio.com
+Aquí llegó a estar la lista copiada, y le faltaban nueve variables que el código sí
+lee, entre ellas `JWT_REFRESH_SECRET` y el `TASK_SECRET` del riel de comandas. Quien
+la siguiera montaba un servidor a medias sin que nada se lo dijera.
 
-# Admin digest (cron diario)
-DIGEST_TO=admin@tudominio.com
-DIGEST_HOUR=6
-DIGEST_MINUTE=0
+El custodio último es el propio código:
 
-# User digest (cron diario)
-USER_DIGEST_HOUR=7
-USER_DIGEST_MINUTE=0
-
-# GitHub Actions cron trigger (necesario en Railway + GH Secrets)
-DIGEST_CRON_SECRET=genera-un-secreto-largo-aqui
-
-# App
-PORT=3003
-SITE_URL=https://kanban.aglaya.biz
-NODE_ENV=production
+```bash
+grep -rhoE 'process\.env\.[A-Z_]+' server/ | sort -u
 ```
 
 ---
@@ -223,7 +219,7 @@ Incluye:
 - Jerarquía completa: organizations → workspaces → boards → columns → cards
 - Tabla `notifications` con índices parciales (`WHERE read = false`)
 - `cards.category` como UUID FK con `ON DELETE SET NULL`
-- 7 índices de rendimiento en columnas de alta frecuencia
+- Índices de rendimiento en columnas de alta frecuencia (los vigentes, en el propio schema)
 - RLS activado en todas las tablas con funciones `SECURITY DEFINER`
 
 ---
