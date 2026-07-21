@@ -156,6 +156,39 @@ ports_case "PORT=NNNN desviado"             'PORT=9999'                         
 ports_case "ISO 8601 no es un puerto"       '- `dueDate` (ISO 8601) son opcionales'    green
 ports_case "5432 de Postgres no es nuestro" 'psql "postgresql://postgres@$H:5432/postgres"' green
 
+# Encontrado corriendo este guardián sobre un documento AJENO (la ficha del atlas del
+# capitán). Mi ancla exigía la cifra a <=3 caracteres de «puerto», así que un adjetivo
+# en medio la derrotaba: «Puertos sagrados 9999» pasaba verde. Un texto que no es el
+# tuyo usa el idioma de otra forma y ejercita lo que el propio nunca toca.
+ports_case "adjetivo entre «puertos» y la cifra"  '- **Puertos sagrados 9999.** No cambiarlos.'  red
+ports_case "misma forma, puerto correcto"        '- **Puertos sagrados 3003.** No cambiarlos.'  green
+ports_case "pares tras adjetivo: caza los dos"   'Puertos sagrados 3003/9999.'                  red
+ports_case "hermanos citados de otro repo"       'Puertos sagrados 3003/5175. Hermanos: 3001/5173.' red
+# Un año en una línea que habla de puertos no es un puerto.
+ports_case "año en línea de puertos"             'El puerto 3003 se fijó en 2026.'              green
+
+# Un falso negativo del propio guardián: con la ruta partida por espacios, el fichero
+# no existía, se saltaba en silencio y el guardián daba VERDE. Este repo vive en
+# "/Users/AGLAYA/Local Sites/…". Un guardián que no encuentra el fichero debe fallar
+# ruidoso o no fallar: lo que no puede es aprobar lo que no ha leído.
+ports_ruta_con_espacios() {
+  local d="$TMP/con espacios"; rm -rf "$d"; mkdir -p "$d/.claude" "$d/client" "$d/server"
+  printf 'export default { server: { port: 5175, proxy: { "/api": { target: "http://localhost:3003" } } } }\n' >"$d/client/vite.config.js"
+  printf 'const PORT = process.env.PORT || 3003;\n' >"$d/server/index.js"
+  printf '{"configurations":[{"port":5175},{"port":3003}]}\n' >"$d/.claude/launch.json"
+  printf 'Puertos sagrados 3003/9999.\n' >"$d/DOC.md"
+
+  if DOCS_GUARD_PORTS_ROOT="$d" DOCS_GUARD_PORTS_DOCS="$d/DOC.md" \
+       bash "$GUARD" --only-ports >"$TMP/out.txt" 2>&1; then
+    echo "  ❌ VERDE con ruta que contiene espacios — el guardián aprobó sin leer"
+    FAIL=$((FAIL + 1))
+  else
+    echo "  ✅ ROJO (esperado) — ruta con espacios: sí lee el fichero"
+    PASS=$((PASS + 1))
+  fi
+}
+ports_ruta_con_espacios
+
 echo
 echo "LINKS · enlaces relativos ↔ sistema de ficheros (cruzado, no regex)"
 links_case() {
