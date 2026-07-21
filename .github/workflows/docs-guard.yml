@@ -1,0 +1,46 @@
+name: docs-guard
+
+# Impide que vuelva a entrar estado copiado en las puertas de entrada del repo
+# (README.md, CLAUDE.md): versiones tecleadas, conteos de tests, y fase/backlog
+# duplicados de docs/ROADMAP.md y docs/BACKLOG.md.
+#
+# Doctrina (2026-07-21, auditoría del orquestador de flota): un documento puede
+# describir diseño y decisiones; no puede describir estado. Si hace falta estado,
+# se consulta a su custodio.
+#
+# Los tres pasos NO son redundantes:
+#   1. guard      — ¿hay estado copiado en los ficheros vigilados?
+#   2. sello      — ¿el guardián muerde en cada forma que dice vigilar?
+#   3. mutación   — ¿el sello lo nota si alguien destripa una regla?
+# Sin (2), un guardián con un regex roto da verde y además tranquiliza.
+# Sin (3), el sello puede ser decoración.
+#
+# Ámbito y exclusiones deliberadas (CHANGELOG, docs/legal, ROADMAP, BACKLOG,
+# audits): ver la cabecera de scripts/docs-guard.sh.
+#
+# Corre en push Y pull_request a main (el repo despliega por push directo a main).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  guard:
+    name: Docs sin estado copiado
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sello — ¿el guardián muerde en cada forma vigilada?
+        run: bash scripts/docs-guard.test.sh
+
+      - name: Mutación — ¿el sello nota si se destripa una regla?
+        run: bash scripts/docs-guard.mutation.sh
+
+      - name: Guardián — ¿hay estado copiado en README.md / CLAUDE.md?
+        run: bash scripts/docs-guard.sh

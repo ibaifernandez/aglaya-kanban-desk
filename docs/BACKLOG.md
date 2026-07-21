@@ -225,3 +225,57 @@ La plataforma debe reflejar cómo funciona el trabajo real: los proyectos y tare
 - [ ] Configurar servidores propios de AGLAYA con PM2/Docker
 - [ ] Configurar HTTPS / SSL y monitoreo de salud del servidor
 - [ ] Implementar CI/CD básico hacia producción (GitHub Actions)
+
+---
+
+## Higiene documental — estado copiado *(2026-07-21)*
+
+**Doctrina:** un documento puede describir diseño y decisiones; no puede describir
+estado. Ante cada línea: ¿es este documento el **custodio** de este dato, o lo copia?
+De la versión manda `package.json`; de los tests, el runner; del despliegue, Railway;
+del schema, `docs/schema/supabase-schema.sql`; de la fase y la cola, `ROADMAP.md` y
+este archivo.
+
+Origen: auditoría del orquestador de flota (`aglaya-orchestrator`). Las cifras
+encontradas no estaban «mal» al escribirse — eran copias que envejecieron solas.
+
+### Hecho
+- [x] **Guardián `docs-guard`** — `scripts/docs-guard.sh` + workflow `.github/workflows/docs-guard.yml`
+  - V1 versión literal · V2 conteos de tests/suites · V3 fase/backlog duplicados
+  - Ámbito estrecho a propósito (`README.md`, `CLAUDE.md`). Excluidos por diseño:
+    `docs/CHANGELOG.md` (versiones son su oficio), `docs/legal/` (bajo Art. 30 el RAT
+    **debe** fechar tratamientos — ahí la regla se aplica al revés), `ROADMAP.md`,
+    `BACKLOG.md` y `docs/audits/` (observaciones fechadas)
+- [x] **Sello del guardián** — `scripts/docs-guard.test.sh`: sabotea un fichero con cada
+      forma vigilada y exige rojo, más casos de no-falso-positivo (`React 18`, `Node.js 20+`,
+      badges derivados del custodio)
+- [x] **Mutación del sello** — `scripts/docs-guard.mutation.sh`: amputa cada regla del
+      guardián y exige que el sello lo note. Sin esto, el sello podría ser decoración
+- [x] **README.md** — badge de versión ahora derivado de `package.json` vía shields;
+      badge de tests sustituido por el de CI; borrados el sello `v1.4.0` del título de
+      características, el conteo de la tabla de stack y la tabla de suites con cifras
+      (decía 13 suites / 106 tests / 102 verde; el runner decía 14 / 107 / 103)
+- [x] **CLAUDE.md** — borradas las secciones «Fase actual» y «Backlog priorizado»
+      (tercera copia de `ROADMAP.md` y de este archivo); sustituidas por una tabla de
+      custodios
+
+### Pendiente — commit en espera
+
+> **Decisión (Ibai, árbitro, 2026-07-21):** el pase NO se commitea hasta que el capitán
+> limpie su sección. Un guardián que nace rojo se normaliza y acaba apagándolo alguien.
+> `docs-guard` estrena verde o no estrena. Todo lo de arriba está hecho y verificado en
+> el árbol de trabajo, esperando ese único desbloqueo.
+
+- [ ] **`CLAUDE.md` · sección de flota** *(bloqueante del commit)* — propiedad del capitán
+      (`aglaya-orchestrator`), no de este repo. `CLAUDE.md:150` sigue con versión literal
+      tecleada y con conteos (workspaces, boards, miembros, nodos del grafo) que no
+      custodia. Es la única línea que mantiene a `docs-guard` en rojo. Consultarle en vivo
+      por MCP `aglaya-atlas` (`flota_estado`, `ficha`, `donde_pregunto`) en vez de copiar
+      cifras
+- [ ] **Borrado de `AGENTS.md`** — ya hecho en el árbol de trabajo; entra en el mismo
+      commit que el resto del pase. Se declaraba «resumen de CLAUDE.md» y acabó afirmando
+      Phase 4 completada mientras CLAUDE.md la daba pendiente. Un resumen es una copia
+- [ ] **Corregir la huella del capitán en `CLAUDE.md`**: dice que su MCP tiene 7 tools;
+      tiene al menos 14 (`donde_pregunto`, `sello`, `contradicciones`, `firmas`, `flags`,
+      `repo_estado`, `servicios`… ). Una lista corta funciona lo justo para que no
+      sospeches que falta la mitad
