@@ -275,7 +275,64 @@ encontradas no estaban «mal» al escribirse — eran copias que envejecieron so
 - [ ] **Borrado de `AGENTS.md`** — ya hecho en el árbol de trabajo; entra en el mismo
       commit que el resto del pase. Se declaraba «resumen de CLAUDE.md» y acabó afirmando
       Phase 4 completada mientras CLAUDE.md la daba pendiente. Un resumen es una copia
-- [ ] **Corregir la huella del capitán en `CLAUDE.md`**: dice que su MCP tiene 7 tools;
-      tiene al menos 14 (`donde_pregunto`, `sello`, `contradicciones`, `firmas`, `flags`,
-      `repo_estado`, `servicios`… ). Una lista corta funciona lo justo para que no
-      sospeches que falta la mitad
+- [x] **Huella del capitán en `CLAUDE.md`** — hecho. La tabla de tools pasa de inventario
+      a enrutador y declara que mandan las tools disponibles, no la tabla
+- [x] **Ficha del capitán en el atlas** — hecho por él, `06751d7` en `aglaya-orchestrator`.
+      Retiradas la enumeración de las 17 tools (las 17 correctas: el problema no era que
+      fallara ninguna, era que la lista envejece sola), los valores de los rate limiters,
+      el intervalo de la campana y la lista de las 12 rutas HTTP
+
+---
+
+## Nombres de entidades copiados de la DB *(2026-07-21)*
+
+Cuarta clase de estado copiado, **fuera del alcance de `docs-guard`**: no hay regex que
+sepa si un nombre existe. Detectada aplicando el método del capitán — comprobar el ejemplo
+contra la realidad en vez de leerlo.
+
+### 🔴 Bug vivo — `internalRoute.js:34`
+
+```js
+workspaceName = 'Ibai Fernández',   // .ilike('name', `%…%`) → sin match → 404
+```
+
+No existe ningún workspace con ese nombre. Los tres vivos (`list_workspaces`, 2026-07-21):
+`⭐ AGLAYA 2.0`, `Portafolio IF`, `🇨🇱 Ley 21.719` — y ninguno de tipo `personal`; la purga
+de la 1.4.0 se los llevó. **Omitir `workspaceName` da 404 garantizado.**
+
+Latente, no activo: el capitán pasa el campo explícito desde `atlas/kanban-manual.md`.
+
+- [ ] **Decidir el default** — es cambio de contrato del riel (`POST /api/internal/create-card`),
+      no se toca unilateralmente. Opciones: hacer `workspaceName` obligatorio (400 si falta)
+      o apuntar el default a un workspace vivo. **Consultar al capitán antes de tocar**
+- [x] **`CLAUDE.md`** — ejemplo `curl` con placeholder + puntero a `list_workspaces`; el
+      default roto queda advertido en vez de recomendado
+
+### La lección
+
+El mismo fósil vivía en **tres sitios de acuerdo entre sí**: el código, el `CLAUDE.md` de
+este repo y la ficha del atlas del capitán. Su `atlas/kanban-manual.md` —el custodio que la
+propia ficha señala— tenía el nombre bueno, y perdió contra dos copias que se confirmaban
+mutuamente.
+
+> **Tres copias coincidiendo no es corroboración.** Son copias, no observaciones
+> independientes. Es el mismo mecanismo que hacía fiable el badge `1.4.0`: coincidía.
+
+---
+
+## Doctrina — conteos en mensajes de commit *(2026-07-21)*
+
+Refinamiento del capitán sobre una regla mía que prohibía de más («no metas conteos en
+commits»). Una regla que prohíbe de más se incumple hasta que se ignora.
+
+Un mensaje de commit es un **registro fechado e inmutable** — misma clase que `CHANGELOG.md`
+o que un RAT. Puede decir qué midió ese cambio; no puede describir cómo es el mundo.
+
+| | Ejemplo | Por qué |
+|---|---|---|
+| ✅ | `grafo refrescado — 1274 nodos` (`b2f49df`) | Cuenta lo que hizo. Fechado, siempre cierto |
+| ❌ | `MCP aglaya-atlas — 7 tools read-only` (`f90b58f`) | Afirma lo que el MCP **es**. Se lee en presente, y hoy son 17 |
+| ❌ | `suite del servidor en 107 tests / 103 verde` (`ce93c82`) | Igual: se lee como el estado de la suite, no como mi medición |
+
+**La pregunta:** ¿estoy contando lo que hice, o describiendo lo que hay? Lo primero envejece
+bien porque va fechado. Lo segundo envejece mal porque se lee como presente.

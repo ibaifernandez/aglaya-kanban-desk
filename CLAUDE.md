@@ -83,12 +83,16 @@ curl -s -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
     "title":      "Título de la tarea",
     "boardName":  "Nombre del tablero",
     "priority":   "high",
-    "workspaceName": "Ibai Fernández"
+    "workspaceName": "<nombre exacto del workspace destino>"
   }'
 ```
 
 - `priority`: `urgent` | `high` | `medium` (default) | `low` | `none`
-- `workspaceName`: default `"Ibai Fernández"` — omitir si es personal
+- `workspaceName`: **pásalo siempre explícito.** El match es `ilike` parcial, así que
+  un nombre inexistente devuelve 404 aunque se lea perfectamente bien. Los nombres
+  vivos los custodia la DB: `list_workspaces` en el MCP `aglaya-kanban-desk`.
+  ⚠️ El default del código (`internalRoute.js:34`) apunta hoy a un workspace que ya
+  no existe — omitir el campo da 404 garantizado. Ver `docs/BACKLOG.md`.
 - `boardName`: nombre exacto del tablero (case-insensitive)
 - La card va al **Backlog** (o primera columna si no existe)
 - `description` y `dueDate` (ISO 8601) son opcionales
