@@ -290,9 +290,9 @@
     "semantic_hash": "23ad347a0f1b4ca266444bcdc2b7ff02"
   },
   "server/index.js": {
-    "mtime": 1779918367.0080292,
-    "ast_hash": "997adbe23fb1ca9246ec3694c79617b0",
-    "semantic_hash": "997adbe23fb1ca9246ec3694c79617b0"
+    "mtime": 1784667979.7283432,
+    "ast_hash": "2d019bac475e6956daeb5373f00d7776",
+    "semantic_hash": ""
   },
   "server/middleware/auth.js": {
     "mtime": 1779930530.0335834,
@@ -445,9 +445,9 @@
     "semantic_hash": "9f25b31d8753fac903e37b2f6b9b0d0c"
   },
   "server/tests/smtpConfig.test.js": {
-    "mtime": 1777451578.3045306,
-    "ast_hash": "d5dc562f244967077d854ecf8253c7b4",
-    "semantic_hash": "d5dc562f244967077d854ecf8253c7b4"
+    "mtime": 1784667958.3296692,
+    "ast_hash": "39f8ea48d9ad9cf60da55936db114c38",
+    "semantic_hash": ""
   },
   "server/tests/uploads.test.js": {
     "mtime": 1779908334.1404662,
@@ -475,9 +475,9 @@
     "semantic_hash": "09d94634c4f09081c91305d5c6060d8c"
   },
   "server/utils/smtpConfig.js": {
-    "mtime": 1777370647.97537,
-    "ast_hash": "d48dcefb92f4682e067c7843202b305a",
-    "semantic_hash": "d48dcefb92f4682e067c7843202b305a"
+    "mtime": 1784667972.2229197,
+    "ast_hash": "810bcf53e78af43a30e78c78de5367b5",
+    "semantic_hash": ""
   },
   "server/utils/supabase.js": {
     "mtime": 1776109088.3964648,
@@ -515,8 +515,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784667319.5195975,
-    "ast_hash": "92c5481ab2b2a4d4abd49dce24e71a64",
+    "mtime": 1784667696.253007,
+    "ast_hash": "a004ae0de7af79aa7fdeaab9789f4384",
     "semantic_hash": ""
   },
   "client/index.html": {
@@ -680,13 +680,13 @@
     "semantic_hash": ""
   },
   "scripts/docs-guard.sh": {
-    "mtime": 1784667175.611426,
-    "ast_hash": "32e499e3cc8e8d534c5dcae911b774ec",
+    "mtime": 1784667831.6853144,
+    "ast_hash": "7d021c276369e502ef12385624ce3aaf",
     "semantic_hash": ""
   },
   "scripts/docs-guard.test.sh": {
-    "mtime": 1784667143.097463,
-    "ast_hash": "10d74ecc4543abfc605fcbc742187e48",
+    "mtime": 1784667821.5540242,
+    "ast_hash": "9a1be3c9251b3ff98a0ddd56dee1ae08",
     "semantic_hash": ""
   },
   ".github/workflows/docs-guard.yml": {
