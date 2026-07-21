@@ -181,35 +181,21 @@ npm run dev
 
 ## Variables de entorno
 
-```env
-# Supabase
-SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_ANON_KEY=
+La plantilla completa, con qué es obligatorio y qué opcional, está en
+[`.env.example`](./.env.example) — que es su custodio. Aquí no se transcribe.
 
-# JWT
-JWT_SECRET=
+```bash
+cp .env.example .env
+```
 
-# Email (Resend)
-RESEND_API_KEY=
-SMTP_FROM=noreply@tudominio.com
+Aquí llegó a estar la lista copiada, y le faltaban nueve variables que el código sí
+lee, entre ellas `JWT_REFRESH_SECRET` y el `TASK_SECRET` del riel de comandas. Quien
+la siguiera montaba un servidor a medias sin que nada se lo dijera.
 
-# Admin digest (cron diario)
-DIGEST_TO=admin@tudominio.com
-DIGEST_HOUR=6
-DIGEST_MINUTE=0
+El custodio último es el propio código:
 
-# User digest (cron diario)
-USER_DIGEST_HOUR=7
-USER_DIGEST_MINUTE=0
-
-# GitHub Actions cron trigger (necesario en Railway + GH Secrets)
-DIGEST_CRON_SECRET=genera-un-secreto-largo-aqui
-
-# App
-PORT=3003
-SITE_URL=https://kanban.aglaya.biz
-NODE_ENV=production
+```bash
+grep -rhoE 'process\.env\.[A-Z_]+' server/ | sort -u
 ```
 
 ---
