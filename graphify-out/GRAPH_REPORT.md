@@ -1,16 +1,16 @@
 # Graph Report - aglaya-kanban-desk  (2026-07-21)
 
 ## Corpus Check
-- 125 files · ~118,236 words
+- 125 files · ~119,118 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1289 nodes · 1716 edges · 180 communities (103 shown, 77 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 53 edges (avg confidence: 0.52)
+- 1290 nodes · 1717 edges · 180 communities (103 shown, 77 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 54 edges (avg confidence: 0.52)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5e972475`
+- Built from commit: `fee8942f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -239,7 +239,7 @@ Nodes (48): autoprefixer, dependencies, @dnd-kit/core, @dnd-kit/sortable, @dnd-k
 
 ### Community 2 - "Backend & Server Dependencies"
 Cohesion: 0.13
-Nodes (15): cookie-parser, cors, express, helmet, node-cron, dependencies, cookie-parser, cors (+7 more)
+Nodes (15): cookie-parser, cors, dotenv, express, helmet, node-cron, dependencies, cookie-parser (+7 more)
 
 ### Community 4 - "Authentication & Authorization"
 Cohesion: 0.13
@@ -254,7 +254,7 @@ Cohesion: 0.15
 Nodes (8): { createClient }, express, MANAGEABLE_MEMBER_ROLES, { requireAuth }, { requireWorkspaceMember, requireWorkspaceRole }, router, { supabaseAdmin }, VALID_TYPES
 
 ### Community 8 - "Express App & Routers"
-Cohesion: 0.08
+Cohesion: 0.07
 Nodes (25): adminRouter, app, authLimiter, authRouter, cookieParser, cors, digestRouter, express (+17 more)
 
 ### Community 9 - "Modal & Sidebar Components"
@@ -290,8 +290,8 @@ Cohesion: 0.08
 Nodes (25): Privacy Policy — Multi-Jurisdiction, AGLAYA Logo — Red SVG, AGLAYA Logotype — Color, CI Workflow — Jest + Vite Build, AGLAYA Kanban Desk, Arquitectura, Características, Documentación (+17 more)
 
 ### Community 19 - "Phase 1 — Multi-tenant y autenticación *(En curso)*"
-Cohesion: 0.17
-Nodes (12): BACKLOG — AGLAYA Kanban Desk, Backlog — Features futuras (sin fase asignada), 🔴 Bug vivo — `internalRoute.js:34`, Doctrina — conteos en mensajes de commit *(2026-07-21)*, Hecho, Higiene documental — estado copiado *(2026-07-21)*, Infraestructura soberana *(Pendiente)*, Las lecciones (+4 more)
+Cohesion: 0.15
+Nodes (13): BACKLOG — AGLAYA Kanban Desk, Backlog — Features futuras (sin fase asignada), Backlog — Sub-fase 2.2: Alertas automáticas (sugerencia Bani #4), Bloqueantes, 🔴 Bug vivo — `internalRoute.js:34`, Componentes necesarios, Decisiones de diseño pendientes, Doctrina — conteos en mensajes de commit *(2026-07-21)* (+5 more)
 
 ### Community 20 - "Database Seeding"
 Cohesion: 0.19
@@ -306,8 +306,8 @@ Cohesion: 0.15
 Nodes (11): ALLOWED_MIME, FileType, FORBIDDEN_MIME, fs, multer, path, storage, upload (+3 more)
 
 ### Community 23 - "App Initialization & Config"
-Cohesion: 0.25
-Nodes (6): app, { Sentry, enabled: sentryEnabled }, { validateSmtpConfig, validateDigestSchedules }, { validateSmtpConfig, validateDigestSchedules }, validateDigestSchedules(), validateSmtpConfig()
+Cohesion: 0.33
+Nodes (7): app, { Sentry, enabled: sentryEnabled }, { validateCoreConfig, validateSmtpConfig, validateDigestSchedules }, { validateSmtpConfig, validateDigestSchedules }, validateCoreConfig(), validateDigestSchedules(), validateSmtpConfig()
 
 ### Community 24 - "MyBoard Data Migration"
 Cohesion: 0.18
@@ -346,8 +346,8 @@ Cohesion: 0.25
 Nodes (5): app, jwt, request, { supabaseAdmin, createAdminClient }, createAdminClient()
 
 ### Community 33 - "Digest Tests"
-Cohesion: 0.33
-Nodes (6): 🚀 2. Despliegue en Producción, Estado actual (real): Railway + Netlify, Estructura en Servidor (`/opt/aglaya/`), Objetivo futuro: infraestructura soberana (Docker/Nginx), Requisitos del Servidor, Variables de Entorno (`.env`)
+Cohesion: 0.18
+Nodes (11): 🛠️ 1. Desarrollo Local, 🚀 2. Despliegue en Producción, Arrancar la Aplicación, Estado actual (real): Railway + Netlify, Estructura en Servidor (`/opt/aglaya/`), Instalación Inicial, Objetivo futuro: infraestructura soberana (Docker/Nginx), ⚠️ Reglas Críticas de Operación (+3 more)
 
 ### Community 34 - "Upload Tests"
 Cohesion: 0.25
@@ -386,8 +386,8 @@ Cohesion: 0.06
 Nodes (34): 0. Resumen Ejecutivo, 10. Lecciones aprendidas del proceso audit, 11. SHAs commits del audit (orden cronológico), 12. Cierre formal — 2026-05-28, 1. Conteo total, 2. Hallazgos críticos abiertos (16), 3. Hallazgos críticos mitigados durante audit, 4. Roadmap por sprints (2 semanas cada uno) (+26 more)
 
 ### Community 59 - "ADR (Architecture Decision Records)"
-Cohesion: 0.07
-Nodes (30): 🏗️ 1. Descripción General, 📁 2. Jerarquía de Datos, 🔐 3. Seguridad y Multi-tenancy, 💾 4. Esquema de Base de Datos (Core), 🚀 5. Flujo de Despliegue, 📝 6. Referencias, 📖 7. Registro de Decisiones Arquitectónicas (ADR), ADR-011: Consolidación de Marca e Identidad (+22 more)
+Cohesion: 0.12
+Nodes (16): ADR-011: Consolidación de Marca e Identidad, ADR-012: Estabilización del Entorno de Tests (Jest Downgrade), ADR-014: Alineación Estricta de Permisos GUI/API y Sesión Efímera, ADR-015: Invitación Admin Resiliente ante Sesiones y Estados Parciales, ADR-016: Aislamiento Estricto de Clientes Supabase en Backend, ADR-017: Contexto de Workspace Explícito para Operaciones de Tarjeta, ADR-018: Contrato Único para Overlays, Confirmaciones y Navegación Compacta, ADR-019: Digest Contextual por Workspace y Email Derivado de Auth (+8 more)
 
 ### Community 60 - "Runbook — Rotación de claves y secretos"
 Cohesion: 0.07
@@ -398,8 +398,8 @@ Cohesion: 0.08
 Nodes (25): 10. Considerar UptimeRobot (free, 5 min), 11. Setup retention cron (workflow para aplicar plazos política), 1. ✅ Rotar/extender token Cloudflare `aglaya-kanban-r2-bootstrap`, 2.1 Supabase (5 min), 2.2 Resend (5 min), 2.3 Railway (5 min), 2.4 Netlify (5 min), 2.5 Cloudflare (5 min — **más urgente** post-B-CRIT-02) (+17 more)
 
 ### Community 62 - "INCIDENTS.md — Registro de Incidencias y Correctivos"
-Cohesion: 0.14
-Nodes (14): 2026-04-13 — Acciones destructivas sin confirmación consistente, 2026-04-13 — Borrado de tarjetas devolvía `400 Contexto de workspace no encontrado`, 2026-04-13 — Botón de digest en workspace apuntando al flujo equivocado, 2026-04-13 — Invitaciones admin con `500` desde la GUI, 2026-04-13 — Invitaciones admin fallaban con JWT desfasado o perfil parcial, 2026-04-13 — Modal de categorías sin cierre por `Escape`, 2026-04-13 — Navegación interior del workspace demasiado cargada en resoluciones pequeñas, 2026-04-27 — Cron jobs de digest no ejecutan en Railway (UTC vs. Brasil) (+6 more)
+Cohesion: 0.08
+Nodes (25): 2026-04-13 — Acciones destructivas sin confirmación consistente, 2026-04-13 — Borrado de tarjetas devolvía `400 Contexto de workspace no encontrado`, 2026-04-13 — Botón de digest en workspace apuntando al flujo equivocado, 2026-04-13 — Invitaciones admin con `500` desde la GUI, 2026-04-13 — Invitaciones admin fallaban con JWT desfasado o perfil parcial, 2026-04-13 — Modal de categorías sin cierre por `Escape`, 2026-04-13 — Navegación interior del workspace demasiado cargada en resoluciones pequeñas, 2026-04-27 — Cron jobs de digest no ejecutan en Railway (UTC vs. Brasil) (+17 more)
 
 ### Community 63 - "SECURITY — AGLAYA Kanban Desk"
 Cohesion: 0.08
@@ -426,8 +426,8 @@ Cohesion: 0.12
 Nodes (16): 1. Visión Estratégica, 2. Stack Técnico, 3. Estructura de Datos (Core), 4. Usuarios Objetivo, 5. Modelo de Negocio (Freemium), 6. Funcionalidades Core, 7. Criterios de Aceptación, Board (+8 more)
 
 ### Community 69 - "🚀 2. Despliegue en Producción"
-Cohesion: 0.20
-Nodes (10): 🛠️ 1. Desarrollo Local, 🔍 3. Diagnóstico y Mantenimiento, Arrancar la Aplicación, Consultar Historial de Incidencias, Ejecutar Tareas Manuales, Instalación Inicial, Limpieza de Caché y Reinstalación, ⚠️ Reglas Críticas de Operación (+2 more)
+Cohesion: 0.40
+Nodes (5): 🔍 3. Diagnóstico y Mantenimiento, Consultar Historial de Incidencias, Ejecutar Tareas Manuales, Limpieza de Caché y Reinstalación, Verificar Salud del Sistema
 
 ### Community 70 - "AdminPage.jsx"
 Cohesion: 0.17
@@ -448,6 +448,10 @@ Nodes (9): { createAdminClient, createPublicClient }, express, { getSyncedUserPr
 ### Community 74 - "CHANGELOG — AGLAYA Kanban Desk"
 Cohesion: 0.12
 Nodes (17): [0.7.0] — 2026-03-25 — Sesión 6: UI Polish — display name, logo, mini-kanban, espacios de trabajo, [0.8.1] — 2026-03-27 — Hotfix: categoría hardcodeada en tarjetas, [1.0.0.0] — 2026-04-11 — Lanzamiento Oficial GitHub, [1.1.1] — 2026-04-08 — Fixes post-migración + herramientas de migración, [1.1.1] - 2026-04-12, [1.2.1] — 2026-04-10 — Tests · Mover tarjetas cross-workspace · Settings de workspace, [1.3.0] - 2026-04-28, Added (+9 more)
+
+### Community 75 - "auth.js"
+Cohesion: 0.20
+Nodes (10): 🏗️ 1. Descripción General, 📁 2. Jerarquía de Datos, 💾 4. Esquema de Base de Datos (Core), 🚀 5. Flujo de Despliegue, 📝 6. Referencias, 📖 7. Registro de Decisiones Arquitectónicas (ADR), ARCHITECTURE.md — Arquitectura Técnica AGLAYA Kanban Desk, Historial de Decisiones Clave: (+2 more)
 
 ### Community 76 - "Audit Mariana — Roadmap Backlog"
 Cohesion: 0.20
@@ -526,8 +530,8 @@ Cohesion: 0.17
 Nodes (10): Acceso a Supabase desde Claude (DDL y queries directas), AGLAYA · Flota — el capitán, CLAUDE.md — AGLAYA Kanban Desk, Cómo entra trabajo desde otras naves de la flota, Dónde vive el estado del proyecto, Endpoint interno: cómo crear cards sin UI, graphify, Identidad del proyecto (+2 more)
 
 ### Community 96 - "🔍 3. Diagnóstico y Mantenimiento"
-Cohesion: 0.33
-Nodes (6): 2026-07-12 — Reconciliación documentación ↔ DB real: 5 divergencias detectadas, DOC-01 (causa raíz) — El "master schema" llevaba desincronizado desde ~v1.2.0, DOC-02 (🟡 bug latente) — `workspaces.type` DEFAULT contradice su CHECK, DOC-03 (🟡 seguridad) — El rol `anon` tiene TODOS los privilegios en todas las tablas, DOC-04 (🟡 marca) — La organización de producción sigue siendo "LFi Agency", DOC-05 (🟢 menor) — Divergencias de `ON DELETE` y scope RLS vs documentación previa
+Cohesion: 0.50
+Nodes (4): 🔐 3. Seguridad y Multi-tenancy, Aislamiento por Middleware, Modo Dios (Superadmin), Roles Micro
 
 ### Community 97 - "[0.3.0] — 2026-03-18 — Sesión 2: Admin Digest + correcciones de flujo auth"
 Cohesion: 0.40
@@ -582,8 +586,8 @@ Cohesion: 0.40
 Nodes (5): Foto de perfil ✅, Portada visual de espacios de trabajo ✅, Sub-fase 2.1: Supabase Storage + Identidad visual *(Completada — 2026-03-27)*, Supabase Storage ✅, Tipo de espacio de trabajo ✅
 
 ### Community 112 - "2026-05-27 — Audit Mariana Trench: 2 críticos detectados y mitigados"
-Cohesion: 0.40
-Nodes (5): 2026-05-27 — Audit Mariana Trench: 2 críticos detectados y mitigados, B-04 / B-11: RLS faltante en organizations table, B-CRIT-01: XSS explotable vía upload SVG (CVSS 8.0 HIGH), B-CRIT-02: Backup ausente + Supabase plan Free (sin PITR ni daily backups), D-05: SECURITY.md documentaba estado FALSO (descubierto en Fase D)
+Cohesion: 0.67
+Nodes (3): [1.1.0.0] — 2026-04-11 — Certificación "Kosher" · Nutrición Atlas · v1.1.0 Global Sync, Added, Changed
 
 ### Community 145 - "Bloque C — Features producto (no security)"
 Cohesion: 0.50
@@ -594,8 +598,8 @@ Cohesion: 0.50
 Nodes (4): Backend ✅, Frontend ✅, Phase 2 — Workspaces *(Completada — 2026-03-24/25)*, UX/Branding ✅
 
 ### Community 161 - "Higiene documental — estado copiado *(2026-07-21)*"
-Cohesion: 0.50
-Nodes (4): Backlog — Sub-fase 2.2: Alertas automáticas (sugerencia Bani #4), Bloqueantes, Componentes necesarios, Decisiones de diseño pendientes
+Cohesion: 0.67
+Nodes (3): Hecho, Higiene documental — estado copiado *(2026-07-21)*, Pendiente — commit en espera
 
 ### Community 169 - "media.js"
 Cohesion: 0.20
@@ -609,16 +613,12 @@ Nodes (6): app, { buildUserCards, sendUserDigest }, { createAdminClient, supabas
 Cohesion: 0.67
 Nodes (5): requireWorkspaceMember(), resolveWorkspaceIdFromBoard(), resolveWorkspaceIdFromCard(), resolveWorkspaceIdFromColumn(), { supabaseAdmin }
 
-### Community 178 - "[1.1.0.0] — 2026-04-11 — Certificación "Kosher" · Nutrición Atlas · v1.1.0 Global Sync"
-Cohesion: 0.67
-Nodes (3): [1.1.0.0] — 2026-04-11 — Certificación "Kosher" · Nutrición Atlas · v1.1.0 Global Sync, Added, Changed
-
 ### Community 179 - "[1.1.5] - 2026-04-13/14"
 Cohesion: 0.50
 Nodes (4): [1.1.5] - 2026-04-13/14, Added, Docs, Fixed
 
 ## Knowledge Gaps
-- **740 isolated node(s):** `Por qué existe esto`, `Stack`, `Arquitectura`, `Workspaces y roles`, `Tableros y tarjetas` (+735 more)
+- **740 isolated node(s):** `{ Sentry, enabled: sentryEnabled }`, `{ validateCoreConfig, validateSmtpConfig, validateDigestSchedules }`, `app`, `{ validateSmtpConfig, validateDigestSchedules }`, `Por qué existe esto` (+735 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **77 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -626,12 +626,12 @@ Nodes (4): [1.1.5] - 2026-04-13/14, Added, Docs, Fixed
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `useCategories()` connect `Category Management` to `App.jsx`?**
-  _High betweenness centrality (0.054) - this node is a cross-community bridge._
+  _High betweenness centrality (0.053) - this node is a cross-community bridge._
 - **Why does `createCategory()` connect `Category Management` to `Express App & Routers`?**
   _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **Why does `updateCategory()` connect `Category Management` to `Express App & Routers`?**
   _High betweenness centrality (0.018) - this node is a cross-community bridge._
-- **What connects `Por qué existe esto`, `Stack`, `Arquitectura` to the rest of the system?**
+- **What connects `{ Sentry, enabled: sentryEnabled }`, `{ validateCoreConfig, validateSmtpConfig, validateDigestSchedules }`, `app` to the rest of the system?**
   _740 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Card & Board API` be split into smaller, more focused modules?**
   _Cohesion score 0.09098639455782313 - nodes in this community are weakly interconnected._
