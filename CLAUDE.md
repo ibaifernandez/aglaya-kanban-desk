@@ -88,13 +88,14 @@ curl -s -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
 ```
 
 - `priority`: `urgent` | `high` | `medium` (default) | `low` | `none`
-- `workspaceName`: **pásalo siempre explícito.** El match es `ilike` parcial, así que
-  un nombre inexistente devuelve 404 aunque se lea perfectamente bien. Los nombres
-  vivos los custodia la DB: `list_workspaces` en el MCP `aglaya-kanban-desk`.
-  ⚠️ **Nunca lo omitas.** El default del código (`internalRoute.js:34`) es
-  `"Ibai Fernández"`, que **sí existe** y es el workspace **personal** de Ibai —
-  zona intocable. Omitir el campo no da error: devuelve `201` y la card aterriza
-  ahí. Ver `docs/BACKLOG.md`.
+- `workspaceName`: **obligatorio — sin default, a propósito.** Omitirlo da `400`.
+  Tuvo default (`"Ibai Fernández"`, el workspace **personal** de Ibai, zona
+  intocable): omitir el campo mandaba la card ahí devolviendo `201`. Un default que
+  apunta a un sitio prohibido es peor que ninguno — un 400 avisa, un 201 miente.
+  Fijado por `server/tests/internal-create-card.test.js`.
+  El match es `ilike` parcial, así que un nombre inexistente devuelve 404 aunque se
+  lea perfectamente bien. Los destinos del riel: `list_workspaces` en el MCP
+  `aglaya-kanban-desk` (ojo: lista de lo que el riel es **miembro**, no lo que existe).
 - `boardName`: nombre exacto del tablero (case-insensitive)
 - La card va al **Backlog** (o primera columna si no existe)
 - `description` y `dueDate` (ISO 8601) son opcionales

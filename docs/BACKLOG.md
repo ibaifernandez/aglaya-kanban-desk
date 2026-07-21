@@ -326,11 +326,33 @@ está vivo y en uso.
 - [x] **`kanban-mcp/server.py:166`** — el docstring decía «every workspace the rail can see
       (all — the rail is superadmin)». Falso: la ruta es por membresía y el rol no concede
       nada. Es lo que me hizo preguntarle al custodio equivocado
-- [ ] **Hacer `workspaceName` obligatorio (400 si falta)** — decisión de Ibai. Contrato del
-      riel, así que es su firma. ⚠️ **La premisa cambió:** se decidió creyendo que «hoy no
-      hay ni una llamada que funcione omitiéndolo». Sí la había —el runbook— y funcionaba
-      escribiendo donde no debe. El cambio deja de ser inocuo y pasa a ser el arreglo de una
-      fuga silenciosa. Confirmar antes de tocar
+- [x] **`workspaceName` obligatorio (400 si falta)** — firmado por Ibai sabiendo que la
+      premisa había cambiado: no era higiene, era cerrar una fuga silenciosa hacia su
+      espacio privado. El 400 nombra la causa (qué campo falta y por qué no hay default),
+      porque quien se lo coma vendrá de un runbook viejo y merece entenderlo en vez de
+      creer que algo se rompió. Fijado por `server/tests/internal-create-card.test.js`:
+      sin ese test el default vuelve el día que alguien lo «arregle» por comodidad, y
+      volverá silencioso, que es como llegó
+
+---
+
+## Workspaces `3` y `4` — forense, sin tocar *(2026-07-21)*
+
+La DB devuelve 6 workspaces; Ibai cuenta 4. Sobran los llamados `3` y `4`.
+**No se ha borrado nada.** Borrar un workspace es irreversible.
+
+| ws | tipo | tableros | cards | miembros | creado | contenido |
+|---|---|---|---|---|---|---|
+| `3` | interno | 2 (ambos «prueba») | 1 | 1 | 2026-04-13 18:38:00 | card «prueba adjunto», tocada 2026-05-15 |
+| `4` | externo | 0 | 0 | 1 | 2026-04-13 18:38:06 | vacío |
+
+Ambos creados por **Món** (`correo-retirado`, admin) con 6 segundos de diferencia.
+`3` es su espacio de pruebas: tableros «prueba», card «prueba adjunto» — probablemente
+con un fichero en Storage que quedaría huérfano.
+
+- [ ] **Preguntar a Món antes de tocar nada.** No son basura anónima: son suyos. `4` está
+      vacío y es trivial, pero es suyo igual. Ninguno de los que encontró esto tiene firma
+      para borrar el espacio de trabajo de otra persona
 
 ### Las lecciones
 
