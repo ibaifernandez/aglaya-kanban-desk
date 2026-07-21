@@ -1,3 +1,19 @@
+// Variables sin las que el servidor no puede ni construir sus clientes.
+// DEBE llamarse ANTES de require('./app'): supabase-js revienta en carga de
+// módulo con "supabaseUrl is required", un stack trace de librería que no le
+// dice a nadie qué hacer. Encontrado siguiendo el README en un clon limpio.
+function validateCoreConfig() {
+  const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_ANON_KEY', 'JWT_SECRET'];
+  const missing = required.filter(k => !process.env[k]);
+  if (missing.length > 0) {
+    throw new Error(
+      `Configuración incompleta. Faltan variables:\n${missing.map(k => `  · ${k}`).join('\n')}\n\n` +
+      `Cópialas de .env.example a .env y rellénalas:  cp .env.example .env\n` +
+      `La plantilla completa, con qué es obligatorio y qué opcional, está en .env.example.`
+    );
+  }
+}
+
 function validateSmtpConfig() {
   const missing = ['RESEND_API_KEY', 'SMTP_FROM'].filter(k => !process.env[k]);
   if (missing.length > 0) {
@@ -24,4 +40,4 @@ function validateDigestSchedules() {
   return { adminHour, adminMinute, userHour, userMinute };
 }
 
-module.exports = { validateSmtpConfig, validateDigestSchedules };
+module.exports = { validateCoreConfig, validateSmtpConfig, validateDigestSchedules };

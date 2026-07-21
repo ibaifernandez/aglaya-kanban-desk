@@ -7,6 +7,63 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
+- **`docs-guard` · regla PORTS** (cruzada, no regex): el canon sale del **código**
+  (`vite.config.js`, `server/index.js`), `launch.json` debe repetirlo, y **cada puerto
+  citado** en `CLAUDE.md` y `README.md` —tabla, prosa, `localhost:`, `PORT=`— debe estar
+  en él. Ancla por contexto, no por forma: `ISO 8601` y el `5432` de Postgres viven en
+  estos docs y no son puertos. Sustituye a la confesión escrita que había en `CLAUDE.md`
+  («no modificar launch.json sin actualizar este archivo») — una copia documentando su
+  propio procedimiento manual sigue siendo una copia.
+- **`docs-guard` · regla LINKS** (cruzada): toda ruta de fichero citada en los docs
+  vigilados debe resolver en disco — enlaces markdown, backticks y **bloques de código**.
+  Es la parte tratable de la clase «el documento nombra algo que puede no existir»: un
+  fichero se comprueba, un nombre de workspace no. Ignora, autodetectándolo: externos,
+  plantillas con `<>`, rutas gitignoreadas y rutas de otros repos.
+- **`.env.example`**, que **no existía** pese a que el README mandaba copiarlo. Derivado
+  del código (`process.env.*`), no del bloque del README: ese llevaba 15 variables y el
+  servidor lee 24 — faltaban `JWT_REFRESH_SECRET` y el `TASK_SECRET` del riel de comandas.
+- **`validateCoreConfig()`** en `server/utils/smtpConfig.js`, llamado **antes** de
+  `require('./app')`.
+
+### Security
+- **Arranque sin credenciales dejaba de avisar.** `index.js` tenía validación amistosa,
+  pero corría después de `require('./app')`, que construye los clientes de Supabase en
+  carga de módulo: un clon limpio recibía `Error: supabaseUrl is required` desde dentro de
+  la librería. La red de seguridad estaba puesta detrás del agujero. Ahora el error nombra
+  todas las variables que faltan y apunta a `.env.example`.
+- **Alcance del riel documentado** (`CLAUDE.md`, `kanban-mcp/server.py`): las dos puertas
+  de entrada de trabajo tienen alcance distinto — el MCP solo alcanza los workspaces de
+  los que el riel es **miembro**; el endpoint HTTP alcanza todos (`service_role`). Y el
+  alcance del riel se mantiene **a mano**: un workspace nuevo sin el riel dentro queda
+  invisible en silencio y ninguna nave puede dejar cards ahí.
+
+### Fixed
+- **`docs-guard` · V2 ampliada.** Nació mirando `tests|suites|pruebas` — una lista escrita
+  a mano, que es el vicio que este guardián persigue. Dejaba pasar cualquier otro conteo.
+  Ahora la forma es «cifra + sustantivo en plural»; los números en palabra («tres tipos de
+  workspace») no muerden, porque describen diseño. En su primera pasada cazó dos derivas
+  vivas en `README.md` que la versión estrecha no veía:
+  - «7 índices de rendimiento» — hay **13** (`pg_indexes`).
+  - «JWT con expiración de 7 días» — fósil pre-B-02: hoy es access de 15 min + refresh de
+    30 días (`ACCESS_TTL` / `REFRESH_TTL` en `server/routes/auth.js`). Es el modelo de
+    seguridad, no un conteo cosmético.
+- **`README.md`**: retirados esos dos datos y el valor único de rate limiting (hay varios
+  limitadores; nombrar uno daba a entender que era el que hay). Todos apuntan a su custodio.
+- **`CLAUDE.md`**: retirada la ruta absoluta en disco y el host de Supabase tecleado — el
+  host ahora se **deriva** de `SUPABASE_URL` en el propio snippet de `psql` (verificado:
+  conecta). Retirados también los puertos de los repos hermanos (estado de otro repo,
+  incomprobable desde aquí); la regla que protegía —investigar el proceso antes de
+  matarlo— se queda y no caduca. La lista de tres cuentas se reformula como **decisión**
+  («quién puede existir»), no como informe: quién existe lo custodia la tabla `users`.
+- **`README.md` · árbol de arquitectura**: describía la forma **y enumeraba los ficheros**.
+  La enumeración ya estaba desviada (11 rutas listadas, 12 reales — faltaba `uploads`) y
+  `kanban-mcp/` no aparecía en absoluto pese a ser el riel por el que entra el trabajo de
+  la flota. Ahora describe la forma y el papel de cada carpeta; el inventario lo custodia
+  `ls`.
+- **Criterio de enrutado**: `CLAUDE.md` no decía a qué tablero va cada cosa —vive en el
+  atlas del capitán— ni que hubiera que preguntarlo. Ahora apunta al custodio.
+
+### Added
 - **Guardián `docs-guard`** (CI): impide que vuelva a entrar estado copiado en `README.md`
   y `CLAUDE.md` — versiones literales (V1), conteos de tests/suites (V2) y fase/backlog
   duplicados de `ROADMAP.md`/`BACKLOG.md` (V3). Ámbito estrecho a propósito; excluidos
