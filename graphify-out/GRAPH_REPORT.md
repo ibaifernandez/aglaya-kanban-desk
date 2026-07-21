@@ -1,16 +1,16 @@
 # Graph Report - aglaya-kanban-desk  (2026-07-21)
 
 ## Corpus Check
-- 124 files · ~113,808 words
+- 124 files · ~114,330 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1274 nodes · 1699 edges · 167 communities (90 shown, 77 thin omitted)
+- 1278 nodes · 1702 edges · 167 communities (90 shown, 77 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 53 edges (avg confidence: 0.52)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ce93c827`
+- Built from commit: `7f61ba71`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -194,12 +194,12 @@
   client/src/assets/aglaya-favicon-rojo.svg → README.md
 - `AGLAYA Logotype — Color` --represents--> `AGLAYA Kanban Desk`  [EXTRACTED]
   client/src/assets/aglaya-logo-color.svg → README.md
-- `useCategories()` --indirect_call--> `createCategory()`  [INFERRED]
-  client/src/hooks/useCategories.js → server/routes/categories.js
-- `useCategories()` --indirect_call--> `updateCategory()`  [INFERRED]
-  client/src/hooks/useCategories.js → server/routes/categories.js
 - `Privacy Policy — Multi-Jurisdiction` --documents--> `AGLAYA Kanban Desk`  [EXTRACTED]
   client/public/privacidad.html → README.md
+- `CI Workflow — Jest + Vite Build` --implements--> `AGLAYA Kanban Desk`  [EXTRACTED]
+  .github/workflows/ci.yml → README.md
+- `useCategories()` --indirect_call--> `createCategory()`  [INFERRED]
+  client/src/hooks/useCategories.js → server/routes/categories.js
 
 ## Import Cycles
 - None detected.
@@ -227,15 +227,15 @@ Nodes (48): autoprefixer, dependencies, @dnd-kit/core, @dnd-kit/sortable, @dnd-k
 
 ### Community 2 - "Backend & Server Dependencies"
 Cohesion: 0.13
-Nodes (15): cookie-parser, cors, dotenv, express, helmet, node-cron, dependencies, cookie-parser (+7 more)
+Nodes (15): cookie-parser, cors, express, helmet, node-cron, dependencies, cookie-parser, cors (+7 more)
 
 ### Community 4 - "Authentication & Authorization"
 Cohesion: 0.08
 Nodes (20): getUserFromDb(), invalidateUserCache(), jwt, requireAuth(), requireRole(), { supabaseAdmin }, userCache, ALLOWED_ROLES (+12 more)
 
 ### Community 6 - "Board UI Components"
-Cohesion: 0.15
-Nodes (17): Board(), PRIORITY_SORT_ORDER, Card(), CategoryRow(), CategorySettings(), Toolbar(), Badge(), ContextMenu() (+9 more)
+Cohesion: 0.14
+Nodes (15): Board(), PRIORITY_SORT_ORDER, CardModal(), EMPTY, fileIcon(), normalizeAttachments(), CategoryRow(), CategorySettings() (+7 more)
 
 ### Community 7 - "Workspace Access Control"
 Cohesion: 0.09
@@ -246,20 +246,20 @@ Cohesion: 0.08
 Nodes (25): adminRouter, app, authLimiter, authRouter, cookieParser, cors, digestRouter, express (+17 more)
 
 ### Community 9 - "Modal & Sidebar Components"
-Cohesion: 0.27
-Nodes (5): CardModal(), EMPTY, fileIcon(), normalizeAttachments(), MARKDOWN_LINK_COMPONENTS
+Cohesion: 0.30
+Nodes (10): Card(), Badge(), COLOR_OPTIONS, colorById(), PRIORITIES, PRIORITY_LIST, daysUntil(), formatDate() (+2 more)
 
 ### Community 10 - "Email Digest Generation"
 Cohesion: 0.19
 Nodes (13): buildHtml(), buildSubject(), DIGEST_HOUR, DIGEST_MINUTE, { escHtml, dateLabel, todayStr, DONE_COLUMN_RE }, { logDigestAttempt }, priorityRow(), sendDigest() (+5 more)
 
 ### Community 12 - "Card & Column Components"
-Cohesion: 0.33
-Nodes (6): 2026-07-12 — Reconciliación documentación ↔ DB real: 5 divergencias detectadas, DOC-01 (causa raíz) — El "master schema" llevaba desincronizado desde ~v1.2.0, DOC-02 (🟡 bug latente) — `workspaces.type` DEFAULT contradice su CHECK, DOC-03 (🟡 seguridad) — El rol `anon` tiene TODOS los privilegios en todas las tablas, DOC-04 (🟡 marca) — La organización de producción sigue siendo "LFi Agency", DOC-05 (🟢 menor) — Divergencias de `ON DELETE` y scope RLS vs documentación previa
+Cohesion: 0.20
+Nodes (10): 🏗️ 1. Descripción General, 📁 2. Jerarquía de Datos, 💾 4. Esquema de Base de Datos (Core), 🚀 5. Flujo de Despliegue, 📝 6. Referencias, 📖 7. Registro de Decisiones Arquitectónicas (ADR), ARCHITECTURE.md — Arquitectura Técnica AGLAYA Kanban Desk, Historial de Decisiones Clave: (+2 more)
 
 ### Community 13 - "Workspace Management UI"
-Cohesion: 0.15
-Nodes (13): useWorkspaces(), canDeleteWorkspace(), canManageWorkspace(), COLUMN_COLORS, EMOJIS, MiniKanban(), ROLE_LABELS, seededRand() (+5 more)
+Cohesion: 0.14
+Nodes (14): useWorkspaces(), canDeleteWorkspace(), canManageWorkspace(), COLUMN_COLORS, DeleteConfirmModal(), EMOJIS, MiniKanban(), ROLE_LABELS (+6 more)
 
 ### Community 14 - "User Digest Formatting"
 Cohesion: 0.14
@@ -278,8 +278,8 @@ Cohesion: 0.05
 Nodes (35): Acceso a Supabase desde Claude (DDL y queries directas), AGLAYA · Flota — el capitán, Carpeta local, CLAUDE.md — AGLAYA Kanban Desk, Dónde vive el estado del proyecto, Endpoint interno: cómo crear cards sin UI, graphify, Identidad del proyecto (+27 more)
 
 ### Community 19 - "Phase 1 — Multi-tenant y autenticación *(En curso)*"
-Cohesion: 0.06
-Nodes (36): Autenticación ✅, Backend ✅, BACKLOG — AGLAYA Kanban Desk, Backlog — Features futuras (sin fase asignada), Backlog — Movilidad de objetos *(Visión a largo plazo — no implementar sin diseño previo)*, Backlog — Sub-fase 2.2: Alertas automáticas (sugerencia Bani #4), Base de datos ✅, Bloqueantes (+28 more)
+Cohesion: 0.05
+Nodes (40): Autenticación ✅, Backend ✅, BACKLOG — AGLAYA Kanban Desk, Backlog — Features futuras (sin fase asignada), Backlog — Movilidad de objetos *(Visión a largo plazo — no implementar sin diseño previo)*, Backlog — Sub-fase 2.2: Alertas automáticas (sugerencia Bani #4), Base de datos ✅, Bloqueantes (+32 more)
 
 ### Community 20 - "Database Seeding"
 Cohesion: 0.19
@@ -326,16 +326,16 @@ Cohesion: 0.25
 Nodes (7): app, configureMocks(), jwt, makeChain(), mockFreshAdmin, request, { supabaseAdmin }
 
 ### Community 31 - "Category Management"
-Cohesion: 0.53
-Nodes (5): createCategory(), getCategories(), { supabaseAdmin }, toCat(), updateCategory()
+Cohesion: 0.36
+Nodes (7): useCategories(), createCategory(), deleteCategory(), getCategories(), { supabaseAdmin }, toCat(), updateCategory()
 
 ### Community 32 - "Admin Tests"
 Cohesion: 0.12
 Nodes (11): app, jwt, request, { supabaseAdmin, createAdminClient }, app, { buildUserCards, sendUserDigest }, { createAdminClient, supabaseAdmin }, jwt (+3 more)
 
 ### Community 33 - "Digest Tests"
-Cohesion: 0.33
-Nodes (6): 🚀 2. Despliegue en Producción, Estado actual (real): Railway + Netlify, Estructura en Servidor (`/opt/aglaya/`), Objetivo futuro: infraestructura soberana (Docker/Nginx), Requisitos del Servidor, Variables de Entorno (`.env`)
+Cohesion: 0.18
+Nodes (11): 🛠️ 1. Desarrollo Local, 🚀 2. Despliegue en Producción, Arrancar la Aplicación, Estado actual (real): Railway + Netlify, Estructura en Servidor (`/opt/aglaya/`), Instalación Inicial, Objetivo futuro: infraestructura soberana (Docker/Nginx), ⚠️ Reglas Críticas de Operación (+3 more)
 
 ### Community 34 - "Upload Tests"
 Cohesion: 0.25
@@ -358,8 +358,8 @@ Cohesion: 0.40
 Nodes (3): app, jwt, request
 
 ### Community 39 - "Digest Filtering Tests"
-Cohesion: 0.40
-Nodes (5): 2026-05-27 — Audit Mariana Trench: 2 críticos detectados y mitigados, B-04 / B-11: RLS faltante en organizations table, B-CRIT-01: XSS explotable vía upload SVG (CVSS 8.0 HIGH), B-CRIT-02: Backup ausente + Supabase plan Free (sin PITR ni daily backups), D-05: SECURITY.md documentaba estado FALSO (descubierto en Fase D)
+Cohesion: 0.50
+Nodes (4): 🔐 3. Seguridad y Multi-tenancy, Aislamiento por Middleware, Modo Dios (Superadmin), Roles Micro
 
 ### Community 40 - "Security Tests"
 Cohesion: 0.50
@@ -374,8 +374,8 @@ Cohesion: 0.06
 Nodes (34): 0. Resumen Ejecutivo, 10. Lecciones aprendidas del proceso audit, 11. SHAs commits del audit (orden cronológico), 12. Cierre formal — 2026-05-28, 1. Conteo total, 2. Hallazgos críticos abiertos (16), 3. Hallazgos críticos mitigados durante audit, 4. Roadmap por sprints (2 semanas cada uno) (+26 more)
 
 ### Community 59 - "ADR (Architecture Decision Records)"
-Cohesion: 0.07
-Nodes (30): 🏗️ 1. Descripción General, 📁 2. Jerarquía de Datos, 🔐 3. Seguridad y Multi-tenancy, 💾 4. Esquema de Base de Datos (Core), 🚀 5. Flujo de Despliegue, 📝 6. Referencias, 📖 7. Registro de Decisiones Arquitectónicas (ADR), ADR-011: Consolidación de Marca e Identidad (+22 more)
+Cohesion: 0.12
+Nodes (16): ADR-011: Consolidación de Marca e Identidad, ADR-012: Estabilización del Entorno de Tests (Jest Downgrade), ADR-014: Alineación Estricta de Permisos GUI/API y Sesión Efímera, ADR-015: Invitación Admin Resiliente ante Sesiones y Estados Parciales, ADR-016: Aislamiento Estricto de Clientes Supabase en Backend, ADR-017: Contexto de Workspace Explícito para Operaciones de Tarjeta, ADR-018: Contrato Único para Overlays, Confirmaciones y Navegación Compacta, ADR-019: Digest Contextual por Workspace y Email Derivado de Auth (+8 more)
 
 ### Community 60 - "Runbook — Rotación de claves y secretos"
 Cohesion: 0.07
@@ -386,40 +386,40 @@ Cohesion: 0.08
 Nodes (25): 10. Considerar UptimeRobot (free, 5 min), 11. Setup retention cron (workflow para aplicar plazos política), 1. ✅ Rotar/extender token Cloudflare `aglaya-kanban-r2-bootstrap`, 2.1 Supabase (5 min), 2.2 Resend (5 min), 2.3 Railway (5 min), 2.4 Netlify (5 min), 2.5 Cloudflare (5 min — **más urgente** post-B-CRIT-02) (+17 more)
 
 ### Community 62 - "INCIDENTS.md — Registro de Incidencias y Correctivos"
-Cohesion: 0.14
-Nodes (14): 2026-04-13 — Acciones destructivas sin confirmación consistente, 2026-04-13 — Borrado de tarjetas devolvía `400 Contexto de workspace no encontrado`, 2026-04-13 — Botón de digest en workspace apuntando al flujo equivocado, 2026-04-13 — Invitaciones admin con `500` desde la GUI, 2026-04-13 — Invitaciones admin fallaban con JWT desfasado o perfil parcial, 2026-04-13 — Modal de categorías sin cierre por `Escape`, 2026-04-13 — Navegación interior del workspace demasiado cargada en resoluciones pequeñas, 2026-04-27 — Cron jobs de digest no ejecutan en Railway (UTC vs. Brasil) (+6 more)
+Cohesion: 0.08
+Nodes (25): 2026-04-13 — Acciones destructivas sin confirmación consistente, 2026-04-13 — Borrado de tarjetas devolvía `400 Contexto de workspace no encontrado`, 2026-04-13 — Botón de digest en workspace apuntando al flujo equivocado, 2026-04-13 — Invitaciones admin con `500` desde la GUI, 2026-04-13 — Invitaciones admin fallaban con JWT desfasado o perfil parcial, 2026-04-13 — Modal de categorías sin cierre por `Escape`, 2026-04-13 — Navegación interior del workspace demasiado cargada en resoluciones pequeñas, 2026-04-27 — Cron jobs de digest no ejecutan en Railway (UTC vs. Brasil) (+17 more)
 
 ### Community 63 - "SECURITY — AGLAYA Kanban Desk"
 Cohesion: 0.08
 Nodes (25): API (Railway), Autenticación y autorización, Backup + Restore (post B-CRIT-02), Claves y secretos, CORS, CORS y Headers, Cuentas privilegiadas (superadmin), Estado general post-audit Mariana (+17 more)
 
 ### Community 64 - "App.jsx"
-Cohesion: 0.14
-Nodes (15): App(), AuthenticatedApp(), restoreSession(), SIZE_CLASSES, Spinner(), useAuth(), CategoriesContext, useBoardData() (+7 more)
+Cohesion: 0.16
+Nodes (13): App(), AuthenticatedApp(), restoreSession(), SIZE_CLASSES, Spinner(), useAuth(), CategoriesContext, useBoardData() (+5 more)
 
 ### Community 65 - "Runbook — Restore DB Supabase desde backup R2"
 Cohesion: 0.10
 Nodes (20): Backup file > 1 GB, Backup workflow falló con `pg_dump: FATAL: password authentication failed`, Contexto, Inventario de backups, Mejoras pendientes (backlog), Opción A: GitHub UI, Opción B: gh CLI, Pasos (+12 more)
 
 ### Community 66 - "client.js"
-Cohesion: 0.24
+Cohesion: 0.26
 Nodes (17): fetchWithAuth(), getToken(), refreshAccessToken(), request(), AuthContext, AuthProvider(), clearAuthSession(), clearAuthToken() (+9 more)
 
 ### Community 67 - "api"
-Cohesion: 0.12
-Nodes (20): api, Sidebar(), BoardMoveModal(), ColumnPickerModal(), formatNotification(), NotificationBell(), AddMemberModal(), ROLE_LABELS (+12 more)
+Cohesion: 0.18
+Nodes (11): api, BoardMoveModal(), ColumnPickerModal(), AddMemberModal(), ROLE_LABELS, WorkspaceMembers(), WS_ROLES, EMOJIS (+3 more)
 
 ### Community 68 - "PRD (Product Requirements Document) — AGLAYA Kanban Desk"
 Cohesion: 0.12
 Nodes (16): 1. Visión Estratégica, 2. Stack Técnico, 3. Estructura de Datos (Core), 4. Usuarios Objetivo, 5. Modelo de Negocio (Freemium), 6. Funcionalidades Core, 7. Criterios de Aceptación, Board (+8 more)
 
 ### Community 69 - "🚀 2. Despliegue en Producción"
-Cohesion: 0.20
-Nodes (10): 🛠️ 1. Desarrollo Local, 🔍 3. Diagnóstico y Mantenimiento, Arrancar la Aplicación, Consultar Historial de Incidencias, Ejecutar Tareas Manuales, Instalación Inicial, Limpieza de Caché y Reinstalación, ⚠️ Reglas Críticas de Operación (+2 more)
+Cohesion: 0.40
+Nodes (5): 🔍 3. Diagnóstico y Mantenimiento, Consultar Historial de Incidencias, Ejecutar Tareas Manuales, Limpieza de Caché y Reinstalación, Verificar Salud del Sistema
 
 ### Community 70 - "AdminPage.jsx"
-Cohesion: 0.31
-Nodes (5): AvatarCropModal(), DigestPreferences(), formatLocalHour(), utcHourToLocal(), UserMenu()
+Cohesion: 0.17
+Nodes (9): AvatarCropModal(), DigestPreferences(), formatLocalHour(), utcHourToLocal(), UserMenu(), AdminPage(), ASSIGNABLE_ROLES, InviteModal() (+1 more)
 
 ### Community 71 - "Audit B — Backend + Datos"
 Cohesion: 0.14
@@ -446,8 +446,8 @@ Cohesion: 0.17
 Nodes (12): [0.8.0] — 2026-03-27 — Sesión 7: Sub-fase 2.1 + bug sweep + performance, Asignación y filtros en tarjetas (Bani #1 y #3), Bug sweep, Categorías por tablero, Espacios de trabajo — identidad visual, Foto de perfil, Infraestructura, Performance (+4 more)
 
 ### Community 78 - "Sidebar.jsx"
-Cohesion: 0.36
-Nodes (4): SortableCard(), Column(), SortableColumn(), IconButton()
+Cohesion: 0.25
+Nodes (5): SortableCard(), Column(), SortableColumn(), Sidebar(), IconButton()
 
 ### Community 79 - "Audit A — Addendum"
 Cohesion: 0.20
@@ -554,21 +554,21 @@ Cohesion: 0.50
 Nodes (4): [1.2.0] — 2026-04-10 — Workspace UX · Movilidad de tableros · Digest personal, Added, Chore, Fixed
 
 ## Knowledge Gaps
-- **734 isolated node(s):** `Identidad del proyecto`, `Carpeta local`, `Puertos exclusivos de este proyecto`, `Dónde vive el estado del proyecto`, `Endpoint interno: cómo crear cards sin UI` (+729 more)
+- **737 isolated node(s):** `Identidad del proyecto`, `Carpeta local`, `Puertos exclusivos de este proyecto`, `Dónde vive el estado del proyecto`, `Endpoint interno: cómo crear cards sin UI` (+732 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **77 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useCategories()` connect `App.jsx` to `Category Management`?**
-  _High betweenness centrality (0.056) - this node is a cross-community bridge._
-- **Why does `createCategory()` connect `Category Management` to `App.jsx`, `Express App & Routers`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
-- **Why does `updateCategory()` connect `Category Management` to `App.jsx`, `Express App & Routers`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+- **Why does `useCategories()` connect `Category Management` to `App.jsx`?**
+  _High betweenness centrality (0.059) - this node is a cross-community bridge._
+- **Why does `createCategory()` connect `Category Management` to `Express App & Routers`?**
+  _High betweenness centrality (0.020) - this node is a cross-community bridge._
+- **Why does `updateCategory()` connect `Category Management` to `Express App & Routers`?**
+  _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **What connects `Identidad del proyecto`, `Carpeta local`, `Puertos exclusivos de este proyecto` to the rest of the system?**
-  _734 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _737 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Card & Board API` be split into smaller, more focused modules?**
   _Cohesion score 0.09098639455782313 - nodes in this community are weakly interconnected._
 - **Should `React & UI Dependencies` be split into smaller, more focused modules?**
