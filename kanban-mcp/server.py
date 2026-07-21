@@ -174,6 +174,11 @@ def list_workspaces() -> dict[str, Any]:
     que usa `POST /api/internal/create-card`. Preguntar aquí y concluir que algo
     no existe es preguntarle al custodio equivocado.
 
+    CONSECUENCIA OPERATIVA: el alcance del riel se mantiene A MANO. Si se crea un
+    workspace y no se añade a `kanban-rail@aglaya.biz` como miembro, el riel se
+    queda ciego a él EN SILENCIO — no hay error de permiso, simplemente no sale en
+    la lista y ninguna nave de la flota puede dejar cards ahí.
+
     Each: id, name, emoji, type, boards, members."""
     rows = _request("GET", "/workspaces") or []
     items = [{"id": w["id"], "name": w["name"], "emoji": w.get("emoji"), "type": w.get("type"),

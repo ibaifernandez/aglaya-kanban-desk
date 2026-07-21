@@ -80,6 +80,13 @@ expect_red "badge de tests"                  '![Tests](https://img.shields.io/ba
 expect_red "conteo en tabla de stack"        '| Tests | Jest + Supertest (106 tests · 13 suites) |'
 expect_red "conteo en prosa"                 '106 tests en 13 suites — 102 en verde, 4 skip documentados.'
 expect_red "conteo de suites suelto"         'La suite cubre 14 suites.'
+# V2 se escribió a medida de los tests y dejó pasar cualquier otro conteo. El README
+# decía "7 índices" cuando había 13, y el guardián no sonó. La forma es «cifra +
+# sustantivo en plural», no «cifra + una lista de sustantivos que se me ocurrieron».
+expect_red "conteo de índices"               '- 7 índices de rendimiento en columnas de alta frecuencia'
+expect_red "conteo de tablas"                'El schema tiene 10 tablas con RLS.'
+expect_red "conteo de rutas"                 'El backend expone 12 endpoints REST.'
+expect_red "config con cifra (custodio: el código)" '- JWT con expiración de 7 días'
 
 echo
 echo "V3 · estado de fase/backlog (custodio: docs/ROADMAP.md · docs/BACKLOG.md)"
@@ -97,6 +104,34 @@ expect_green "badge de CI derivado del runner" \
 expect_green "prosa sin mediciones"          'Kanban multi-tenant para equipos que trabajan con clientes.'
 expect_green "puerto, no versión"            'Servidor → http://localhost:3003'
 expect_green "enlace al custodio"            'Corre `npm test` para el estado real de la suite.'
+
+echo
+echo "PORTS · tabla de puertos ↔ .claude/launch.json (cruzado, no regex)"
+# Antes esto era una confesión escrita: "no modificar launch.json sin actualizar
+# este archivo". Una copia que documenta su propio procedimiento manual sigue
+# siendo una copia: el día que nadie se acuerde, nadie lo nota.
+ports_case() {
+  local name="$1" md_port="$2" json_port="$3" expect="$4"
+  local d="$TMP/ports"; rm -rf "$d"; mkdir -p "$d/.claude"
+  printf '| Server (Express) | **%s** |\n| Client (Vite) | **5175** |\n' "$md_port" >"$d/CLAUDE.md"
+  printf '{"configurations":[{"port":%s},{"port":5175}]}\n' "$json_port" >"$d/.claude/launch.json"
+
+  local code
+  DOCS_GUARD_PORTS_MD="$d/CLAUDE.md" DOCS_GUARD_PORTS_JSON="$d/.claude/launch.json" \
+    bash "$GUARD" --only-ports >"$TMP/out.txt" 2>&1
+  code=$?
+
+  if [ "$expect" = "red" ] && [ "$code" != "0" ]; then
+    echo "  ✅ ROJO (esperado) — $name"; PASS=$((PASS + 1))
+  elif [ "$expect" = "green" ] && [ "$code" = "0" ]; then
+    echo "  ✅ VERDE (esperado) — $name"; PASS=$((PASS + 1))
+  else
+    echo "  ❌ $name — esperaba $expect, exit=$code"
+    sed 's/^/     /' "$TMP/out.txt"; FAIL=$((FAIL + 1))
+  fi
+}
+ports_case "puerto del doc distinto del de launch.json" 3003 9999 red
+ports_case "puertos coincidentes"                       3003 3003 green
 
 echo
 echo "=== $PASS ok · $FAIL fallos ==="

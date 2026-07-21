@@ -27,20 +27,20 @@ kill_rule() {
   local mutant="$TMP/docs-guard.mutant.sh"
 
   awk -v id="$id" '
-    /^RULES=\(/ {
-      line = $0
-      sub(/^RULES=\(/, "", line); sub(/\)[[:space:]]*$/, "", line)
+    /^(RULES|CROSSCHECKS)=\(/ {
+      name = $0; sub(/=\(.*/, "", name)          # RULES | CROSSCHECKS
+      line = $0; sub(/^[A-Z]+=\(/, "", line); sub(/\)[[:space:]]*$/, "", line)
       n = split(line, a, " ")
       out = ""
       for (i = 1; i <= n; i++) if (a[i] != id) out = out (out == "" ? "" : " ") a[i]
-      print "RULES=(" out ")"
+      print name "=(" out ")"
       next
     }
     { print }
   ' "$GUARD" >"$mutant"
 
   if cmp -s "$GUARD" "$mutant"; then
-    echo "  ❌ no se pudo amputar $id de la tabla RULES= — mutación no aplicada"
+    echo "  ❌ no se pudo amputar $id de RULES=/CROSSCHECKS= — mutación no aplicada"
     FAIL=$((FAIL + 1))
     return
   fi
@@ -60,6 +60,7 @@ echo
 kill_rule V1 "V1 (versión literal)"
 kill_rule V2 "V2 (conteos de tests)"
 kill_rule V3 "V3 (estado fase/backlog)"
+kill_rule PORTS "PORTS (tabla de puertos ↔ launch.json)"
 
 echo
 echo "Guardián íntegro debe pasar su propio sello:"

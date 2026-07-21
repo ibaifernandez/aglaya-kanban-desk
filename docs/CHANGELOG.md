@@ -7,6 +7,33 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
+- **`docs-guard` · regla PORTS** (cruzada, no regex): compara la tabla de puertos de
+  `CLAUDE.md` contra `.claude/launch.json`. Sustituye a la confesión escrita que había
+  en `CLAUDE.md` («no modificar launch.json sin actualizar este archivo») — una copia
+  documentando su propio procedimiento manual sigue siendo una copia.
+- **Alcance del riel documentado** (`CLAUDE.md`, `kanban-mcp/server.py`): las dos puertas
+  de entrada de trabajo tienen alcance distinto — el MCP solo alcanza los workspaces de
+  los que el riel es **miembro**; el endpoint HTTP alcanza todos (`service_role`). Y el
+  alcance del riel se mantiene **a mano**: un workspace nuevo sin el riel dentro queda
+  invisible en silencio y ninguna nave puede dejar cards ahí.
+
+### Fixed
+- **`docs-guard` · V2 ampliada.** Nació mirando `tests|suites|pruebas` — una lista escrita
+  a mano, que es el vicio que este guardián persigue. Dejaba pasar cualquier otro conteo.
+  Ahora la forma es «cifra + sustantivo en plural»; los números en palabra («tres tipos de
+  workspace») no muerden, porque describen diseño. En su primera pasada cazó dos derivas
+  vivas en `README.md` que la versión estrecha no veía:
+  - «7 índices de rendimiento» — hay **13** (`pg_indexes`).
+  - «JWT con expiración de 7 días» — fósil pre-B-02: hoy es access de 15 min + refresh de
+    30 días (`ACCESS_TTL` / `REFRESH_TTL` en `server/routes/auth.js`). Es el modelo de
+    seguridad, no un conteo cosmético.
+- **`README.md`**: retirados esos dos datos y el valor único de rate limiting (hay varios
+  limitadores; nombrar uno daba a entender que era el que hay). Todos apuntan a su custodio.
+- **`CLAUDE.md`**: retirada la ruta absoluta en disco y el host de Supabase tecleado — el
+  host ahora se **deriva** de `SUPABASE_URL` en el propio snippet de `psql` (verificado:
+  conecta).
+
+### Added
 - **Guardián `docs-guard`** (CI): impide que vuelva a entrar estado copiado en `README.md`
   y `CLAUDE.md` — versiones literales (V1), conteos de tests/suites (V2) y fase/backlog
   duplicados de `ROADMAP.md`/`BACKLOG.md` (V3). Ámbito estrecho a propósito; excluidos
