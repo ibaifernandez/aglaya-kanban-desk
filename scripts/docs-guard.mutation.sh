@@ -60,7 +60,8 @@ echo
 kill_rule V1 "V1 (versión literal)"
 kill_rule V2 "V2 (conteos de tests)"
 kill_rule V3 "V3 (estado fase/backlog)"
-kill_rule PORTS "PORTS (tabla de puertos ↔ launch.json)"
+kill_rule PORTS "PORTS (puertos ↔ código)"
+kill_rule LINKS "LINKS (enlaces ↔ sistema de ficheros)"
 
 echo
 echo "Guardián íntegro debe pasar su propio sello:"

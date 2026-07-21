@@ -48,29 +48,35 @@ Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo inter
 
 ```
 client/  (React 18 + Vite · Netlify · puerto 5175)
-├── src/
-│   ├── pages/          ← LoginPage, WorkspaceDashboard, ResetPasswordPage
-│   ├── components/     ← Board, Card, CardModal, Sidebar, Toolbar, NotificationBell…
-│   ├── context/        ← AuthContext, CategoriesContext
-│   ├── hooks/          ← useBoardData, useWorkspaces, useBoards…
-│   └── api/client.js   ← interceptor JWT · todas las peticiones
+└── src/
+    ├── pages/          ← vistas de ruta completa
+    ├── components/     ← UI de tablero, tarjeta, workspace y navegación
+    ├── context/        ← estado transversal (sesión, categorías)
+    ├── hooks/          ← acceso a datos por entidad
+    └── api/client.js   ← cliente HTTP único · interceptor JWT + refresh
 
 server/  (Express 4 · Railway · puerto 3003)
-├── app.js              ← Express config, rutas, middlewares, 404 y error handler
-├── index.js            ← Entry point: valida config y arranca listen()
-├── routes/             ← auth, boards, cards, columns, categories, workspaces,
-│                          notifications, media, digest, admin, internal
-├── middleware/         ← requireAuth, requireRole, requireWorkspaceMember
-├── services/digest/    ← admin.js · user.js · shared.js (lógica de digests)
-└── utils/              ← supabase (admin service_role + anon), mailer (Resend),
-                           sentry, digestLogging, smtpConfig, userProfile
+├── app.js              ← Express sin listen(): rutas, middlewares, 404, error handler
+├── index.js            ← Entry point: valida config y arranca listen()   (ADR-024)
+├── routes/             ← una por recurso de la API
+├── middleware/         ← seguridad concéntrica: auth → rol → membresía de workspace
+├── services/           ← lógica de dominio extraída de las rutas
+└── utils/              ← clientes Supabase, email, observabilidad
 
-         React ←──── JWT / HTTPS ────→ Express
+kanban-mcp/  (Python · stdio)
+└── server.py           ← riel MCP: el orquestador opera el kanban por la API
+                          con una cuenta de servicio dedicada   (ADR-026)
+
+         React ←──── JWT / HTTPS ────→ Express ←──── MCP (stdio) ──── orquestador
                                            │
                                       Supabase
                                (PostgreSQL + RLS + Auth
                                 + Storage + Admin API)
 ```
+
+> El árbol describe **la forma**, no el inventario. Qué ficheros hay exactamente en
+> cada carpeta lo custodia el sistema de ficheros: `ls server/routes/`. Aquí llegó a
+> estar la lista de rutas enumerada, y ya se había quedado corta.
 
 **Aislamiento de datos:** Row Level Security activa en todas las tablas. El servidor usa `service_role` (bypasa RLS para operaciones administrativas); el cliente nunca toca la DB directamente.
 

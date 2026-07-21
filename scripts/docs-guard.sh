@@ -45,7 +45,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 #   RULES       — regex, se aplican a cada fichero vigilado
 #   CROSSCHECKS — cruzan dos fuentes; corren una vez, no por fichero
 RULES=(V1 V2 V3)
-CROSSCHECKS=(PORTS)
+CROSSCHECKS=(PORTS LINKS)
 
 # V1 · versión literal. Cualquier semver x.y.z tecleado es una copia de
 # package.json — incluida la que hoy acierta. Usa un badge derivado:
@@ -82,33 +82,116 @@ fi
 
 FAIL=0
 
-# PORTS · la tabla de puertos de CLAUDE.md contra .claude/launch.json.
-# No es regex: ningún patrón sabe si «3003» sigue siendo el puerto. Aquí antes
-# había una confesión —«no modificar launch.json sin actualizar este archivo»—,
-# que es una copia documentando su propio procedimiento manual. Esto lo comprueba.
+# PORTS · todo puerto tecleado en los docs, contra el CÓDIGO que lo custodia.
+#
+# No es regex sobre el doc: ningún patrón sabe si «3003» sigue siendo el puerto.
+# Hay que cruzar dos fuentes. El canon lo fija el código —vite.config.js y
+# server/index.js— y launch.json debe coincidir con él; el doc solo puede repetirlo.
+#
+# La primera versión de esta regla miraba SOLO la tabla `**NNNN**`: dos de los
+# dieciséis sitios donde el puerto está escrito, y se le escapaban dos en el mismo
+# fichero, cuatro líneas por debajo de la tabla. Construir el cruce y apuntarlo a
+# la instancia más bonita es no construirlo.
+#
+# Ancla por CONTEXTO, no por forma: solo mira líneas que hablan de puertos
+# (`puerto`/`port`/`localhost`). Medido antes de adoptarlo — `ISO 8601` y el `5432`
+# de Postgres viven en estos docs y no son puertos nuestros.
 check_PORTS() {
-  local md="${DOCS_GUARD_PORTS_MD:-$REPO_ROOT/CLAUDE.md}"
-  local json="${DOCS_GUARD_PORTS_JSON:-$REPO_ROOT/.claude/launch.json}"
-  [ -f "$md" ] && [ -f "$json" ] || { echo "docs-guard[PORTS]: falta $md o $json — omitido."; return 0; }
+  local root="${DOCS_GUARD_PORTS_ROOT:-$REPO_ROOT}"
+  local vite="$root/client/vite.config.js"
+  local index="$root/server/index.js"
+  local json="$root/.claude/launch.json"
 
-  local doc_ports json_ports
-  doc_ports="$(grep -oE '\*\*[0-9]{2,5}\*\*' "$md" | tr -d '*' | sort -u | tr '\n' ' ')"
-  json_ports="$(grep -oE '"port"[[:space:]]*:[[:space:]]*[0-9]+' "$json" \
-                | grep -oE '[0-9]+$' | sort -u | tr '\n' ' ')"
+  local docs
+  if [ -n "${DOCS_GUARD_PORTS_DOCS:-}" ]; then
+    read -r -a docs <<<"$DOCS_GUARD_PORTS_DOCS"
+  else
+    docs=("$root/CLAUDE.md" "$root/README.md")
+  fi
 
-  if [ "$doc_ports" != "$json_ports" ]; then
-    echo "::error file=${md#"$REPO_ROOT"/}::docs-guard[PORTS]: la tabla de puertos no coincide con launch.json."
-    echo "  doc:          ${doc_ports:-(ninguno)}"
-    echo "  launch.json:  ${json_ports:-(ninguno)}"
-    echo "    → custodio: .claude/launch.json (y vite.config.js / server/index.js)"
+  for f in "$vite" "$index" "$json"; do
+    [ -f "$f" ] || { echo "docs-guard[PORTS]: falta $f — omitido."; return 0; }
+  done
+
+  # Canon: lo que declara el código.
+  local canon
+  canon="$( { grep -oE 'port:[[:space:]]*[0-9]{4}' "$vite" | grep -oE '[0-9]{4}'
+              grep -oE 'localhost:[0-9]{4}'         "$vite" | grep -oE '[0-9]{4}'
+              grep -oE 'PORT[^0-9]{0,6}[0-9]{4}'    "$index" | grep -oE '[0-9]{4}'
+            } | sort -u | tr '\n' ' ')"
+
+  # launch.json debe repetir el canon, no ampliarlo.
+  local jports
+  jports="$(grep -oE '"port"[[:space:]]*:[[:space:]]*[0-9]{4}' "$json" | grep -oE '[0-9]{4}' | sort -u | tr '\n' ' ')"
+  if [ "$jports" != "$canon" ]; then
+    echo "::error file=.claude/launch.json::docs-guard[PORTS]: launch.json no coincide con el código."
+    echo "  código (vite.config.js · server/index.js): ${canon:-(ninguno)}"
+    echo "  launch.json:                               ${jports:-(ninguno)}"
     FAIL=1
   fi
+
+  # Todo puerto citado en los docs debe estar en el canon.
+  for md in "${docs[@]}"; do
+    [ -f "$md" ] || continue
+    local rel="${md#"$root"/}"
+    while IFS=: read -r lineno text; do
+      [ -n "$lineno" ] || continue
+      for p in $(printf '%s' "$text" | grep -oE '\b[0-9]{4}\b'); do
+        case " $canon " in
+          *" $p "*) ;;
+          *) echo "::error file=${rel},line=${lineno}::docs-guard[PORTS]: puerto ${p} no existe en el código."
+             echo "  ${rel}:${lineno}: ${text}"
+             echo "    → custodio: client/vite.config.js · server/index.js (canon: ${canon})"
+             FAIL=1 ;;
+        esac
+      done
+    done < <(grep -nE '(\*\*[0-9]{4}\*\*|[Pp]uertos?[^0-9]{0,3}[0-9]{4}|[Pp]ort[^0-9]{0,3}[0-9]{4}|PORT=[0-9]{4}|localhost:[0-9]{4})' "$md" || true)
+  done
 }
 
-if [ "$ONLY_PORTS" = "1" ]; then
-  for id in "${CROSSCHECKS[@]}"; do "check_$id"; done
+# LINKS · todo enlace relativo de los docs vigilados debe resolver en disco.
+# Es la parte tratable de la clase «el documento nombra algo que puede no existir»:
+# un fichero sí se puede comprobar, un nombre de workspace no. Los externos (http)
+# se ignoran: su custodio está fuera del repo.
+check_LINKS() {
+  local root="${DOCS_GUARD_LINKS_ROOT:-$REPO_ROOT}"
+  local docs
+  if [ -n "${DOCS_GUARD_LINKS_DOCS:-}" ]; then
+    read -r -a docs <<<"$DOCS_GUARD_LINKS_DOCS"
+  else
+    docs=("$root/CLAUDE.md" "$root/README.md")
+  fi
+
+  for md in "${docs[@]}"; do
+    [ -f "$md" ] || continue
+    local rel="${md#"$root"/}"
+    while IFS=: read -r lineno target; do
+      [ -n "$target" ] || continue
+      target="${target#./}"
+      target="${target%%#*}"                      # descarta anclas #seccion
+      [ -n "$target" ] || continue
+      if [ ! -e "$root/$target" ]; then
+        echo "::error file=${rel},line=${lineno}::docs-guard[LINKS]: el enlace apunta a algo que no existe: ${target}"
+        echo "  ${rel}:${lineno} → ${target}"
+        echo "    → custodio: el sistema de ficheros"
+        FAIL=1
+      fi
+    done < <(grep -noE '\]\((\./)?[A-Za-z0-9_][A-Za-z0-9_./#-]*\)' "$md" \
+             | sed -E 's/\]\(//; s/\)$//' || true)
+  done
+}
+
+# Ejecutar UN solo crosscheck (lo usa el sello). Va por la tabla CROSSCHECKS a
+# propósito: si la mutación amputa un id, aquí no se llama a nada y el sello lo
+# nota. Llamar a check_<ID> directamente haría el sello inmune al destripamiento,
+# que es justo el fallo que este proyecto persigue.
+[ "$ONLY_PORTS" = "1" ] && DOCS_GUARD_ONLY=PORTS
+if [ -n "${DOCS_GUARD_ONLY:-}" ]; then
+  for id in "${CROSSCHECKS[@]}"; do
+    [ "$id" = "$DOCS_GUARD_ONLY" ] && "check_$id"
+  done
   [ "$FAIL" = "0" ] || exit 1
-  echo "docs-guard[PORTS]: OK"
+  echo "docs-guard[${DOCS_GUARD_ONLY}]: OK"
   exit 0
 fi
 
