@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# docs-guard.sh — un documento puede describir diseño y decisiones; no puede
+# describir estado. Si hace falta estado, se consulta.
+#
+# Ante cada línea la pregunta es: ¿es este documento el CUSTODIO de este dato,
+# o lo copia? Una copia siempre acaba divergiendo — y la copia con suerte (la
+# que hoy acierta) es la peor, porque nadie la comprueba.
+#
+# Causa raíz que previene (2026-07-21, auditoría del orquestador de flota):
+#   · README declaraba «106 tests · 13 suites · 102 en verde». El runner decía
+#     14 suites / 107 tests / 103 verde. Las tres cifras fósiles desde que entró
+#     `digest-personal-filter.test.js`. Ninguna estaba «mal» al escribirse.
+#   · README tecleaba la versión en un badge Y dentro de la propia frase que
+#     nombraba `package.json` como fuente única. La cita prestaba credibilidad
+#     a la copia.
+#   · CLAUDE.md duplicaba fase y backlog, que viven en docs/ROADMAP.md y
+#     docs/BACKLOG.md. AGENTS.md se declaraba «resumen» de CLAUDE.md y acabó
+#     afirmando lo contrario que él.
+#
+# ÁMBITO — deliberadamente estrecho. Una alarma ruidosa acaba apagándola alguien.
+#   Vigila:   README.md · CLAUDE.md   (puertas de entrada al repo)
+#   NO vigila:
+#     docs/CHANGELOG.md  → versiones y fechas son su oficio, es el custodio.
+#                          Un hito histórico («migrado en la 1.1.0») va AHÍ.
+#     docs/legal/        → bajo Art. 30 RGPD el RAT DEBE fechar y describir
+#                          tratamientos: ahí la regla se aplica al revés
+#     docs/ROADMAP.md    → custodio de la fase
+#     docs/BACKLOG.md    → custodio de la cola
+#     docs/audits/       → observaciones fechadas; un informe de mayo DEBE
+#                          llevar las cifras de mayo
+#
+# Sellado por scripts/docs-guard.test.sh (sabotea cada forma vigilada y exige
+# rojo) y por scripts/docs-guard.mutation.sh (destripa cada regla y exige que
+# el sello lo note). Si añades una regla aquí, añade su sabotaje allí.
+#
+# Uso: bash scripts/docs-guard.sh [fichero...]   (por defecto: README.md CLAUDE.md)
+
+set -uo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# --- tabla de reglas -------------------------------------------------------
+# El orden de esta lista es el orden de evaluación. La mutación amputa reglas
+# quitando ids de aquí, así que no la conviertas en algo más listo.
+RULES=(V1 V2 V3)
+
+# V1 · versión literal. Cualquier semver x.y.z tecleado es una copia de
+# package.json — incluida la que hoy acierta. Usa un badge derivado:
+#   img.shields.io/github/package-json/v/<owner>/<repo>
+# `React 18` o `Node.js 20+` no son semver y no muerden.
+RULE_V1_PATTERN='[vV]?[0-9]+\.[0-9]+\.[0-9]+'
+RULE_V1_CUSTODIAN='package.json (o docs/CHANGELOG.md si es un hito histórico)'
+RULE_V1_WHY='versión literal tecleada'
+
+# V2 · conteos de tests/suites. Los cuenta el runner, gratis y sin envejecer.
+RULE_V2_PATTERN='(tests-[0-9]+|[0-9]+[[:space:]]*(tests?|suites?|pruebas?)\b|[0-9]+[[:space:]]+en[[:space:]]+verde)'
+RULE_V2_CUSTODIAN='el runner (`npm test`) y el badge de CI'
+RULE_V2_WHY='conteo de tests/suites escrito a mano'
+
+# V3 · estado de fase/backlog: checkbox de progreso o columna «Estado».
+RULE_V3_PATTERN='(^[[:space:]]*[-*][[:space:]]*\[[ xX]\]|\|[[:space:]]*Estado[[:space:]]*\|)'
+RULE_V3_CUSTODIAN='docs/ROADMAP.md (fase) y docs/BACKLOG.md (cola)'
+RULE_V3_WHY='estado de fase/backlog duplicado'
+# ---------------------------------------------------------------------------
+
+if [ "$#" -gt 0 ]; then
+  FILES=("$@")
+else
+  FILES=("$REPO_ROOT/README.md" "$REPO_ROOT/CLAUDE.md")
+fi
+
+FAIL=0
+
+# report <fichero> <regex> <custodio> <por qué>
+report() {
+  local file="$1" pattern="$2" custodian="$3" why="$4"
+  local hits
+  hits="$(grep -nE "$pattern" "$file" 2>/dev/null || true)"
+  [ -z "$hits" ] && return 0
+
+  local rel="${file#"$REPO_ROOT"/}"
+  while IFS= read -r line; do
+    local lineno="${line%%:*}"
+    local text="${line#*:}"
+    echo "::error file=${rel},line=${lineno}::docs-guard: ${why} — el custodio es ${custodian}, no este documento."
+    echo "  ${rel}:${lineno}: ${text}"
+    echo "    → custodio: ${custodian}"
+  done <<<"$hits"
+  FAIL=1
+}
+
+for f in "${FILES[@]}"; do
+  [ -f "$f" ] || { echo "docs-guard: no existe $f — nada que vigilar."; continue; }
+  echo "--- ${f#"$REPO_ROOT"/}"
+  for id in "${RULES[@]}"; do
+    p="RULE_${id}_PATTERN"; c="RULE_${id}_CUSTODIAN"; w="RULE_${id}_WHY"
+    report "$f" "${!p}" "${!c}" "${!w}"
+  done
+done
+
+if [ "$FAIL" != "0" ]; then
+  echo
+  echo "docs-guard: hay estado escrito donde su custodio contesta gratis."
+  echo "Borra el dato y enlaza/consulta la fuente. Si el dato es imprescindible aquí,"
+  echo "es que este documento debería ser su custodio — y entonces discútelo, no lo copies."
+  exit 1
+fi
+
+echo "docs-guard: OK — ningún documento vigilado se hace dueño de un estado ajeno."
