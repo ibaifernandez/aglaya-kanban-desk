@@ -7,6 +7,15 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
+- **Riel · `update_board`** — renombra un tablero conservando columnas y tarjetas. Antes,
+  la única vía por el riel era `delete_board` + recrear, que arrastra todas las cards
+  dentro: eso no es renombrar, es pérdida de datos con otro nombre. Mover un tablero
+  **entre** workspaces queda deliberadamente fuera: cambia quién ve el trabajo.
+- **Riel · `update_workspace`** — renombra un workspace (`name`, `emoji`, `description`).
+  **`type` queda deliberadamente fuera:** pasar un espacio de `interno` a `externo` lo hace
+  visible a las cuentas `cliente`. Eso es una decisión de visibilidad, no un renombrado, y
+  en la práctica no se deshace una vez alguien lo ha visto. La UI lo confirma con un aviso;
+  una llamada del riel no lo haría.
 - **Guardián `docs-guard`** (CI): impide que vuelva a entrar estado copiado en `README.md`
   y `CLAUDE.md` — versiones literales (V1), conteos (V2) y fase/backlog duplicados de
   `ROADMAP.md`/`BACKLOG.md` (V3). Ámbito estrecho a propósito; excluidos por diseño
@@ -36,6 +45,17 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   `require('./app')`.
 
 ### Fixed
+- **`create_card` · `workspace_id` era decorativo.** Estaba declarado en la firma y **no
+  se usaba para nada**: quien lo pasara creyendo que dirigía la card a un espacio no
+  dirigía nada, y recibía `201`. Tercer parámetro tragado en silencio de la semana, tras
+  `description` y el default de `workspaceName`. Ahora es **obligatorio y validado** contra
+  la columna: si la columna no pertenece a ese espacio, no se escribe nada y el error
+  muestra los dos IDs. Fijado por `kanban-mcp/test_validation.py`, que corre en CI con un
+  `python3` pelado (`validation.py` no importa terceros a propósito).
+- **`list_cards` no devolvía `description`.** El API la entrega; el MCP la descartaba al
+  construir la lista. Quien escribe por el riel no podía leer lo que escribió — verificar
+  que un brief había entrado obligaba a crear una tarjeta de prueba y pedirle a un humano
+  que la abriera.
 - **Las portadas de workspace (y los avatares) no se podían cambiar tras la primera vez.**
   Reportado por Ibai. La ruta en Storage es determinista (`workspace-covers/<id><ext>`,
   `avatars/<id><ext>`) y la subida usa `upsert: true`: el fichero **sí** se sobrescribía,
