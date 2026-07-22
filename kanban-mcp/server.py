@@ -37,6 +37,8 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
+from validation import missing_workspace_error, workspace_mismatch_error
+
 mcp = FastMCP("aglaya-kanban-desk")
 
 _ROW_CAP = 500
@@ -140,6 +142,13 @@ def _board_of_column(column_id: str) -> str:
     return rows[0]["board_id"]
 
 
+def _workspace_of_board(board_id: str) -> str | None:
+    """Espacio real al que pertenece un tablero. `None` si no se puede leer —
+    el llamante NO debe dar por bueno un destino que no se pudo comprobar."""
+    rows = _pg_get("boards", f"id=eq.{board_id}&select=workspace_id")
+    return rows[0]["workspace_id"] if rows else None
+
+
 def _resolve_user(user: str) -> str:
     """Map an email / name / uuid to a user id. Prefers exact email match."""
     u = (user or "").strip()
@@ -214,7 +223,11 @@ def list_cards(board_id: str | None = None, column_id: str | None = None) -> dic
             return {"error": "pass board_id or column_id"}
         board_id = _board_of_column(column_id)
     rows = _request("GET", f"/boards/{board_id}/cards") or []
+    # `description` va incluida: quien escribe por el riel tiene que poder LEER
+    # lo que escribió. Sin esto, verificar que un brief entró de verdad obligaba
+    # a crear una tarjeta de prueba y pedirle a un humano que la abriera.
     items = [{"id": c["id"], "title": c.get("title"),
+              "description": c.get("description") or "",
               "column_id": c.get("columnId") or c.get("column_id"),
               "assignee_id": c.get("assigneeId") or c.get("assignee_id"),
               "priority": c.get("priority"), "order": c.get("order"),
@@ -270,20 +283,35 @@ def create_card(
     workspace_id: str | None = None,
     description: str | None = None,
 ) -> dict[str, Any]:
-    """Pin a card (comanda) in a column. `board_id` is OPTIONAL — derived from
-    `column_id` if omitted. The BRIEF goes in `description_md` (markdown);
-    `description` is accepted as an alias (same field). priority ∈
-    urgent|high|medium|low|none. `checklist` = list of item texts. `due_date` =
-    ISO (YYYY-MM-DD). `assignee` = email/name/id → set as owner AND notified.
+    """Pin a card (comanda) in a column. `workspace_id` is REQUIRED and is
+    VALIDATED against the column: if the column does not belong to that space,
+    nothing is written.
 
-    NOTE the brief param is `description_md` (alias `description`). The HTTP
-    endpoint POST /api/internal/create-card calls it `description`. Both persist
-    now; passing neither leaves the brief empty (that was a silent footgun:
-    callers passing an unknown kwarg got a 201 with no brief)."""
+    ROUTING RULE (summary — the manual is the custodian, not this docstring):
+    the destination space is the one owning the ARTEFACT to be touched, and a
+    task lives in ONE space only, never mirrored. Full rule and destination IDs:
+    `atlas/gobierno/kanban-manual.md` in the aglaya-orchestrator repo. Live IDs:
+    `list_workspaces` here.
+
+    `board_id` is OPTIONAL — derived from `column_id` if omitted. The BRIEF goes
+    in `description_md` (markdown); `description` is an alias for the same field.
+    priority ∈ urgent|high|medium|low|none. `checklist` = list of item texts.
+    `due_date` = ISO (YYYY-MM-DD). `assignee` = email/name/id → owner AND notified."""
     if priority not in ("urgent", "high", "medium", "low", "none"):
         return {"error": "priority must be urgent|high|medium|low|none"}
+
+    # El destino se exige ANTES de tocar la red, y se comprueba DESPUÉS de
+    # derivar el tablero. Exigirlo sin validarlo daría sensación de control sin
+    # control — la misma forma que el default que mandaba cards al espacio
+    # personal devolviendo 201.
+    err = missing_workspace_error(workspace_id)
+    if err:
+        return err
     if not board_id:
         board_id = _board_of_column(column_id)
+    err = workspace_mismatch_error(workspace_id, _workspace_of_board(board_id), column_id)
+    if err:
+        return err
     brief = description if description is not None else (description_md or "")
     body: dict[str, Any] = {"columnId": column_id, "boardId": board_id, "title": title,
                             "description": brief, "priority": priority}
@@ -388,6 +416,49 @@ def update_card(
     card = _request("PUT", f"/cards/{card_id}", body)
     return {"updated": "card", "id": card_id, "fields": list(body.keys()),
             "title": (card or {}).get("title")}
+
+
+@mcp.tool()
+def update_board(board_id: str, title: str) -> dict[str, Any]:
+    """RENAME a board, keeping its columns and cards. Wraps PUT /api/boards/:id.
+
+    Until this existed, the only way to rename a board through the rail was
+    `delete_board` + recreate — which drags every card in it. That is not a
+    rename, it is data loss under another name.
+
+    Moving a board BETWEEN workspaces is deliberately NOT exposed here: it
+    changes who can see the work. Do that in the UI, where it is confirmed."""
+    if not title or not title.strip():
+        return {"error": "title es obligatorio para renombrar"}
+    board = _request("PUT", f"/boards/{board_id}", {"title": title.strip()})
+    return {"updated": "board", "id": board_id,
+            "title": (board or {}).get("title") or title.strip()}
+
+
+@mcp.tool()
+def update_workspace(
+    workspace_id: str,
+    name: str | None = None,
+    emoji: str | None = None,
+    description: str | None = None,
+) -> dict[str, Any]:
+    """RENAME / retouch a workspace (name, emoji, description). Wraps
+    PATCH /api/workspaces/:id. Requires owner or admin on that workspace.
+
+    `type` is deliberately NOT exposed. Flipping a workspace interno → externo
+    makes it visible to `cliente` accounts: that is a VISIBILITY decision, not a
+    rename, and in practice it is not reversible once someone has seen it. The
+    UI asks for confirmation before doing it; a rail call would not. Change the
+    type in the UI, on purpose, or not at all."""
+    body: dict[str, Any] = {}
+    if name is not None:        body["name"] = name
+    if emoji is not None:       body["emoji"] = emoji
+    if description is not None: body["description"] = description
+    if not body:
+        return {"error": "nothing to update — pass at least one of name|emoji|description"}
+    ws = _request("PATCH", f"/workspaces/{workspace_id}", body)
+    return {"updated": "workspace", "id": workspace_id, "fields": list(body.keys()),
+            "name": (ws or {}).get("name")}
 
 
 # ---------------------------------------------------------------------------
