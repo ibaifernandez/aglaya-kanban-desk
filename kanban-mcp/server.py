@@ -268,18 +268,25 @@ def create_card(
     assignee: str | None = None,
     board_id: str | None = None,
     workspace_id: str | None = None,
+    description: str | None = None,
 ) -> dict[str, Any]:
     """Pin a card (comanda) in a column. `board_id` is OPTIONAL — derived from
-    `column_id` if omitted. The BRIEF goes in `description_md` (markdown).
-    priority ∈ urgent|high|medium|low|none. `checklist` = list of item texts.
-    `due_date` = ISO (YYYY-MM-DD). `assignee` = email/name/id → set as owner AND
-    notified (in-app)."""
+    `column_id` if omitted. The BRIEF goes in `description_md` (markdown);
+    `description` is accepted as an alias (same field). priority ∈
+    urgent|high|medium|low|none. `checklist` = list of item texts. `due_date` =
+    ISO (YYYY-MM-DD). `assignee` = email/name/id → set as owner AND notified.
+
+    NOTE the brief param is `description_md` (alias `description`). The HTTP
+    endpoint POST /api/internal/create-card calls it `description`. Both persist
+    now; passing neither leaves the brief empty (that was a silent footgun:
+    callers passing an unknown kwarg got a 201 with no brief)."""
     if priority not in ("urgent", "high", "medium", "low", "none"):
         return {"error": "priority must be urgent|high|medium|low|none"}
     if not board_id:
         board_id = _board_of_column(column_id)
+    brief = description if description is not None else (description_md or "")
     body: dict[str, Any] = {"columnId": column_id, "boardId": board_id, "title": title,
-                            "description": description_md or "", "priority": priority}
+                            "description": brief, "priority": priority}
     if checklist:
         body["checklist"] = [{"id": secrets.token_hex(6), "text": str(t), "done": False, "assignees": []}
                              for t in checklist]
@@ -351,6 +358,36 @@ def move_card(card_id: str, column_id: str, order: int | None = None) -> dict[st
         order = len(_request("GET", f"/columns/{column_id}/cards") or [])
     _request("PUT", f"/cards/{card_id}/move", {"columnId": column_id, "order": order})
     return {"moved": "card", "id": card_id, "to_column": column_id, "order": order}
+
+
+@mcp.tool()
+def update_card(
+    card_id: str,
+    title: str | None = None,
+    description: str | None = None,
+    priority: str | None = None,
+    due_date: str | None = None,
+) -> dict[str, Any]:
+    """Edit an EXISTING card's fields, without deleting and re-creating it.
+    Only the fields you pass change; the rest are left as they are. Use this to
+    fix a card whose brief (`description`) came out empty, or to retitle,
+    re-prioritise or set a due date.
+
+    `description` is the markdown brief. priority ∈ urgent|high|medium|low|none.
+    `due_date` = ISO (YYYY-MM-DD). Wraps PUT /api/cards/:id (server/routes/cards.js
+    → updateCard), which is the same endpoint the UI uses."""
+    if priority is not None and priority not in ("urgent", "high", "medium", "low", "none"):
+        return {"error": "priority must be urgent|high|medium|low|none"}
+    body: dict[str, Any] = {}
+    if title is not None:       body["title"] = title
+    if description is not None: body["description"] = description
+    if priority is not None:    body["priority"] = priority
+    if due_date is not None:    body["dueDate"] = due_date
+    if not body:
+        return {"error": "nothing to update — pass at least one of title|description|priority|due_date"}
+    card = _request("PUT", f"/cards/{card_id}", body)
+    return {"updated": "card", "id": card_id, "fields": list(body.keys()),
+            "title": (card or {}).get("title")}
 
 
 # ---------------------------------------------------------------------------
