@@ -10,6 +10,41 @@ Registro granular de tareas por fase (producto). Actualizar al completar o añad
 
 ---
 
+## Riel MCP — `description` tragada + falta `update_card` *(2026-07-22)*
+
+Reportado por el orquestador: cards clavadas por el MCP con descripción salían
+vacías. Verificado en DB: 4 cards de esta semana, las 4 con `description` vacía.
+
+**No es un bug de guardado.** Reproducido: `create_card(..., description_md="…")`
+persiste (109 chars en DB). El camino API funciona (`POST /cards` lee `description`
+y la inserta, `server/routes/cards.js:134`).
+
+**Es un desajuste de nombre de parámetro, silencioso.** La tool MCP se llamaba
+`description_md`; la ficha del riel y el endpoint HTTP `/api/internal/create-card`
+lo llaman `description`. Quien pasaba `description` a la tool MCP veía el kwarg
+descartado, `description_md` caía a `""`, y la card salía con brief vacío
+devolviendo `201`. La peor forma de fallar es la que devuelve éxito.
+
+- [x] **`create_card` acepta `description` como alias** de `description_md` — mata
+      el footgun. Ambos persisten; los dos apuntan al mismo campo
+- [x] **`update_card` nuevo** (`kanban-mcp/server.py`): edita `title` / `description`
+      / `priority` / `due_date` de una card existente sin borrar y recrear. Envuelve
+      `PUT /api/cards/:id` (`updateCard`), la misma ruta que usa la UI. Antes no había
+      forma de corregir una descripción por el riel salvo borrar y re-crear
+- [ ] **⚠️ REQUIERE REINICIO DEL MCP.** El servidor en marcha cargó el `server.py`
+      anterior; ni el alias ni `update_card` están vivos hasta reiniciarlo. Workaround
+      inmediato mientras tanto: pasar **`description_md`** (no `description`)
+- [ ] **Ficha del capitán** (`aglaya-orchestrator/.../aglaya-kanban-desk.md`): documenta
+      el parámetro como `description` para la tool MCP. Es del capitán; señalado para que
+      lo alinee — ahora ambos nombres valen, así que ya no miente, pero conviene nombrar
+      el canónico
+
+El lado API (`updateCard`) ya está cubierto por `cards-validation.test.js`. El cambio
+del MCP es un envoltorio fino en Python sin harness de test en este repo; verificado
+por ejecución contra la DB.
+
+---
+
 ## Phase 0 — Limpieza y preparación *(Completada)*
 
 - [x] Backup de `tasks.json` original → `tasks.personal-backup.json`
