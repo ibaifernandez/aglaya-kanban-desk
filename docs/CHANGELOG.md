@@ -36,6 +36,16 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   `require('./app')`.
 
 ### Fixed
+- **Las portadas de workspace (y los avatares) no se podían cambiar tras la primera vez.**
+  Reportado por Ibai. La ruta en Storage es determinista (`workspace-covers/<id><ext>`,
+  `avatars/<id><ext>`) y la subida usa `upsert: true`: el fichero **sí** se sobrescribía,
+  la DB **sí** se actualizaba y la respuesta era `200` — pero `getPublicUrl()` devolvía
+  siempre la **misma URL**, así que el navegador y el CDN seguían sirviendo la imagen
+  cacheada. Nada fallaba; por eso nadie lo detectó. Confirmado con una predicción falsable:
+  subir la misma imagen con otra extensión sí funcionaba, porque cambia la ruta.
+  Arreglado con `server/utils/mediaUrl.js` (`withCacheBuster`), que versiona la URL en cada
+  subida. La ruta sigue siendo determinista a propósito — no acumula ficheros huérfanos.
+  Fijado por `server/tests/media-cache-busting.test.js`.
 - **`docs-guard` · V2 ampliada.** Nació mirando `tests|suites|pruebas` — una lista escrita
   a mano, que es el vicio que este guardián persigue. Dejaba pasar cualquier otro conteo.
   Ahora la forma es «cifra + sustantivo en plural»; los números en palabra («tres tipos de

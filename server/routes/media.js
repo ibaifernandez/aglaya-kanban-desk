@@ -4,6 +4,7 @@ const path    = require('path');
 const { supabaseAdmin }        = require('../utils/supabase');
 const { requireAuth }          = require('../middleware/auth');
 const { requireWorkspaceMember, requireWorkspaceRole } = require('../middleware/workspace');
+const { withCacheBuster }      = require('../utils/mediaUrl');
 
 const router = express.Router();
 
@@ -44,14 +45,18 @@ router.post('/users/me/avatar', requireAuth, upload.single('file'), async (req, 
     .from('media')
     .getPublicUrl(filePath);
 
+  // La ruta es determinista y `upsert` la sobrescribe, así que la URL sería
+  // idéntica y el navegador seguiría sirviendo la imagen vieja. Ver utils/mediaUrl.
+  const versionedUrl = withCacheBuster(publicUrl);
+
   const { error: updateError } = await supabaseAdmin
     .from('users')
-    .update({ avatar_url: publicUrl })
+    .update({ avatar_url: versionedUrl })
     .eq('id', req.user.id);
 
   if (updateError) { console.error('[media] avatar update user:', updateError.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
-  res.json({ data: { avatarUrl: publicUrl } });
+  res.json({ data: { avatarUrl: versionedUrl } });
 });
 
 // ── POST /api/media/workspaces/:workspaceId/cover ─────────────────────────────
@@ -83,14 +88,18 @@ router.post(
       .from('media')
       .getPublicUrl(filePath);
 
+    // Sin esto la URL no cambia entre subidas y el navegador sigue mostrando la
+    // portada anterior — el bug que hacía parecer que no se guardaba nada.
+    const versionedUrl = withCacheBuster(publicUrl);
+
     const { error: updateError } = await supabaseAdmin
       .from('workspaces')
-      .update({ cover_url: publicUrl })
+      .update({ cover_url: versionedUrl })
       .eq('id', workspaceId);
 
     if (updateError) { console.error('[media] cover update workspace:', updateError.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
-    res.json({ data: { coverUrl: publicUrl } });
+    res.json({ data: { coverUrl: versionedUrl } });
   }
 );
 
