@@ -1,6 +1,6 @@
 # RUNBOOK.md — Guía de Operaciones AGLAYA
 
-**Última actualización:** 2026-07-13 (v1.4.0 - Operativa sincronizada)
+**Última actualización:** 2026-07-13 (operativa sincronizada)
 
 Este documento centraliza toda la operativa técnica de AGLAYA Kanban Desk, tanto para desarrollo local como para puesta en producción en infraestructura soberana de AGLAYA.
 

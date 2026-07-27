@@ -63,6 +63,7 @@ kill_rule V3 "V3 (estado fase/backlog)"
 kill_rule PORTS "PORTS (puertos ↔ código)"
 kill_rule LINKS "LINKS (enlaces ↔ sistema de ficheros)"
 kill_rule ELIDED "ELIDED (rutas con la parte de en medio elidida)"
+kill_rule ATLAS "ATLAS (rutas dentro del repo del capitán)"
 
 echo
 echo "Guardián íntegro debe pasar su propio sello:"

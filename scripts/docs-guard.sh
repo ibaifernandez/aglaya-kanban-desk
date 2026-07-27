@@ -20,6 +20,20 @@
 # ÁMBITO — deliberadamente estrecho. Una alarma ruidosa acaba apagándola alguien.
 #   Vigila:   README.md · CLAUDE.md   (puertas de entrada al repo)
 #             kanban-mcp/server.py · kanban-mcp/validation.py
+#             docs/SECURITY.md · docs/PERMISSIONS.md · docs/RUNBOOK.md ·
+#             docs/PRD.md   — SOLO bajo V1: ver la tabla DOCS_V1_ONLY
+#
+#   El ámbito se amplió el 2026-07-27 después de correr estas mismas reglas
+#   sobre los docs que NO vigilaba: cinco tenían la versión tecleada, y
+#   `SECURITY.md` la escribía dentro de la frase que nombraba `package.json`
+#   como fuente única — la causa raíz de este guardián, textual, en un fichero
+#   fuera de su alcance. El ámbito estrecho está bien argumentado; lo que no
+#   estaba comprobado es dónde vivía el vicio.
+#
+#   Los crosschecks tienen su propio ámbito, más ancho, y cada uno lo explica
+#   en su función: PORTS y LINKS miran las dos puertas del repo; ELIDED y ATLAS
+#   miran todo el markdown versionado, porque ningún documento tiene derecho a
+#   un puntero que no se puede seguir.
 #
 #   Las fuentes del riel entraron el 2026-07-27. La descripción de `list_workspaces`
 #   afirmaba cuántas filas veía el riel de cuántas hay — un estado, escrito DENTRO de
@@ -59,7 +73,65 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 #   RULES       — regex, se aplican a cada fichero vigilado
 #   CROSSCHECKS — cruzan dos fuentes; corren una vez, no por fichero
 RULES=(V1 V2 V3)
-CROSSCHECKS=(PORTS LINKS ELIDED)
+CROSSCHECKS=(PORTS LINKS ELIDED ATLAS)
+
+# Documentos que entran SOLO bajo V1 (la versión), no bajo V2 ni V3.
+#
+# No es una concesión: es que la respuesta a «¿es este documento el custodio?»
+# depende del dato, y estos cuatro custodian unos sí y otros no.
+#
+#   · La VERSIÓN no la custodia ninguno. Nunca. La custodia `package.json`, y la
+#     tenían tecleada los cuatro. `SECURITY.md` además la escribía dentro de la
+#     frase que nombraba `package.json` como fuente única — la misma forma exacta
+#     que motivó este guardián, en un fichero que el guardián no miraba.
+#
+#   · Sus CIFRAS, en cambio, sí son suyas en su mayoría: «retención 30 días» es
+#     una política, «79 hallazgos» es un registro fechado de auditoría, «3
+#     tableros en el plan Free» es la especificación del producto. V2 no sabe
+#     distinguir eso de un fósil, así que meterlos bajo V2 obligaría a contorsionar
+#     un documento de compliance para que pase un regex. Una regla que obliga a
+#     contorsionar acaba desactivada.
+#
+#   · Y sus cifras que SÍ eran fósiles —«9/9 tablas con RLS» cuando eran 10/10,
+#     «4 residuales» cuando `npm audit` decía cinco— se quitaron a mano el
+#     2026-07-27, sustituidas por el nombre de su custodio. Eso lo arregla un
+#     humano leyendo, no un regex, y queda dicho aquí para que conste que no
+#     están vigiladas.
+DOCS_V1_ONLY=(docs/SECURITY.md docs/PERMISSIONS.md docs/RUNBOOK.md docs/PRD.md
+              docs/PUERTA-EXTERNA.md)
+# Sobrescribible para que el sello pueda probar la SELECCIÓN de reglas, no solo
+# las reglas. Sin esta costura, «V2 no se aplica aquí» sería una afirmación del
+# comentario de arriba y de nadie más.
+if [ -n "${DOCS_GUARD_V1_ONLY:-}" ]; then
+  DOCS_V1_ONLY=(); while IFS= read -r l; do [ -n "$l" ] && DOCS_V1_ONLY+=("$l")
+                  done <<<"$DOCS_GUARD_V1_ONLY"
+fi
+
+# NO entran, y por qué:
+#   docs/ARCHITECTURE.md      → registro de decisiones (ADR). «Downgrade a
+#                               jest@29.7.0» ES la decisión: la versión es el
+#                               contenido, no una copia. Su cabecera sí llevaba
+#                               la versión del producto y se quitó.
+#   docs/operator-checklist.md→ evidencia de compliance RGPD, fechada y
+#                               referenciada por documentos inmutables. Sus
+#                               cifras son las del audit que las midió. Además es
+#                               una checklist: V3 mordería sus casillas, que son
+#                               su forma legítima.
+
+# rules_for <ruta relativa> — qué reglas aplican a este fichero.
+# Se intersecta siempre con RULES para que amputar una regla de la tabla la
+# apague en TODAS partes; si no, la mutación creería haberla quitado y seguiría
+# viva por esta puerta.
+rules_for() {
+  local rel="$1" f id
+  for f in "${DOCS_V1_ONLY[@]}"; do
+    if [ "$rel" = "$f" ]; then
+      for id in "${RULES[@]}"; do [ "$id" = "V1" ] && printf '%s\n' "$id"; done
+      return
+    fi
+  done
+  printf '%s\n' "${RULES[@]}"
+}
 
 # V1 · versión literal. Cualquier semver x.y.z tecleado es una copia de
 # package.json — incluida la que hoy acierta. Usa un badge derivado:
@@ -93,6 +165,7 @@ if [ "$#" -gt 0 ]; then
 else
   FILES=("$REPO_ROOT/README.md" "$REPO_ROOT/CLAUDE.md"
          "$REPO_ROOT/kanban-mcp/server.py" "$REPO_ROOT/kanban-mcp/validation.py")
+  for f in "${DOCS_V1_ONLY[@]}"; do FILES+=("$REPO_ROOT/$f"); done
 fi
 
 FAIL=0
@@ -291,6 +364,58 @@ check_ELIDED() {
   done
 }
 
+# ATLAS · una ruta que entra en el repo del capitán. Al capitán se le PREGUNTA,
+# no se le cita.
+#
+# Es el agujero que quedaba después de ELIDED, y se descubrió probándolo: se
+# escribió una ruta ENTERA del atlas en un documento y el guardián dio verde por
+# los dos lados. ELIDED solo mira la elisión interior. Y LINKS la ignora a
+# propósito —su primer segmento no es un directorio de este repo, «será de otro
+# repo, no lo custodio yo»—, que es justo por donde se cuela. Cerrar la mitad
+# elidida y dejar abierta la entera es no cerrar la clase.
+#
+# Por qué una ruta suya no vale aunque hoy exista: el capitán reorganiza su
+# atlas cuando quiere y aquí nadie se entera. La ruta no se rompe, que sería
+# tolerable — deja de apuntar a lo que decía, en silencio. El nombre del repo y
+# la pregunta (`ficha`, `contrato`, `donde_pregunto`) no caducan; la ruta sí.
+#
+# La forma es la BARRA. `aglaya-orchestrator` a secas es el nombre del repo y es
+# legítimo —hay que poder decir de quién hablamos—; `aglaya-orchestrator/algo`
+# ya es un puntero. Igual con `aglaya-atlas`, que es el nombre del MCP, frente a
+# `atlas/algo`, que es un camino dentro de su árbol. Medido antes de adoptarla:
+# «atlas» y «aglaya-atlas» aparecen en prosa por todo el repo y ninguna muerde.
+#
+# ÁMBITO ANCHO, como ELIDED y por el mismo motivo: ningún documento tiene
+# derecho a un puntero que no se puede seguir ni comprobar desde aquí, y eso
+# incluye a CHANGELOG, ROADMAP y BACKLOG, que sí son custodios de otras cosas.
+# Incluye además las fuentes del riel: sus docstrings son lo que el modelo lee
+# ANTES de llamar a la tool, así que una ruta caducada ahí se lee como autoridad.
+check_ATLAS() {
+  local root="${DOCS_GUARD_ATLAS_ROOT:-$REPO_ROOT}"
+  local docs
+  if [ -n "${DOCS_GUARD_ATLAS_DOCS:-}" ]; then
+    docs=(); while IFS= read -r l; do [ -n "$l" ] && docs+=("$l"); done <<<"$DOCS_GUARD_ATLAS_DOCS"
+  else
+    docs=(); while IFS= read -r l; do [ -n "$l" ] && docs+=("$root/$l")
+            done < <(cd "$root" && git ls-files --cached --others --exclude-standard \
+                       '*.md' 'kanban-mcp/*.py' 2>/dev/null)
+  fi
+
+  for md in "${docs[@]}"; do
+    [ -f "$md" ] || continue
+    local rel="${md#"$root"/}"
+    while IFS=: read -r lineno text; do
+      [ -n "$lineno" ] || continue
+      echo "::error file=${rel},line=${lineno}::docs-guard[ATLAS]: ruta dentro del repo del capitán — se le pregunta, no se le cita."
+      echo "  ${rel}:${lineno}: ${text}"
+      echo "    → custodio: el capitán. Pregúntale por la puerta (MCP aglaya-atlas):"
+      echo "      ficha(nave) · contrato(nombre) · donde_pregunto(tema) — contestan citando su fuente viva."
+      echo "      El nombre del repo sí puede escribirse; la ruta dentro de él caduca en silencio."
+      FAIL=1
+    done < <(grep -nE '(aglaya-orchestrator|aglaya-atlas|\batlas)/[A-Za-z0-9_.-]' "$md" || true)
+  done
+}
+
 # Ejecutar UN solo crosscheck (lo usa el sello). Va por la tabla CROSSCHECKS a
 # propósito: si la mutación amputa un id, aquí no se llama a nada y el sello lo
 # nota. Llamar a check_<ID> directamente haría el sello inmune al destripamiento,
@@ -325,11 +450,13 @@ report() {
 
 for f in "${FILES[@]}"; do
   [ -f "$f" ] || { echo "docs-guard: no existe $f — nada que vigilar."; continue; }
-  echo "--- ${f#"$REPO_ROOT"/}"
-  for id in "${RULES[@]}"; do
+  rel="${f#"$REPO_ROOT"/}"
+  echo "--- ${rel}"
+  while IFS= read -r id; do
+    [ -n "$id" ] || continue
     p="RULE_${id}_PATTERN"; c="RULE_${id}_CUSTODIAN"; w="RULE_${id}_WHY"
     report "$f" "${!p}" "${!c}" "${!w}"
-  done
+  done < <(rules_for "$rel")
 done
 
 for id in "${CROSSCHECKS[@]}"; do "check_$id"; done

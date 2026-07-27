@@ -152,14 +152,31 @@ describe('POST /api/auth/login', () => {
     }));
   });
 
-  // SKIP audit Mariana 2026-05-27: el test ASUME que login acepta cualquier dominio.
-  // Realidad actual: POST /api/auth/register tiene domain guard (@aglaya.biz / @ibaifernandez.com).
-  // El test contradice el comportamiento de prod — necesita decisión de producto:
-  // ¿login también debería filtrar por dominio? (hoy login acepta cualquier email confirmado en Supabase Auth).
-  // Backlog #22.
-  it.skip('does NOT restrict login by domain — any email can authenticate', async () => {
+  // Reactivado 2026-07-27, sin tocar el comportamiento. Estuvo apagado desde el
+  // audit de 2026-05-27 esperando una decisión de producto: ¿debería el login
+  // filtrar por dominio, como hace el registro?
+  //
+  // Decisión de Ibai: NO. El candado está donde se crean las cuentas, no donde
+  // se entra. Para llegar al login hay que tener ya una cuenta confirmada en
+  // Supabase Auth, y esas las da él. Filtrar aquí por dominio no habría añadido
+  // defensa —hay que pasar por el registro igualmente— y sí habría dejado fuera
+  // a Món, cuyo correo es de gmail: el dominio nunca fue la regla, la regla es
+  // la lista de cuentas autorizadas.
+  //
+  // Lo que este test fija, entonces, es lo que HOY es verdad, para que si alguien
+  // añade el filtro «por higiene» salte antes de dejar a alguien en la calle.
+  it('does NOT restrict login by domain — any email can authenticate', async () => {
     profileState = { ...TEST_PROFILE, email: 'user@gmail.com' };
     supabaseAdmin.auth.signInWithPassword.mockResolvedValue({
+      data: { user: { id: 'user-1', email: 'user@gmail.com' } },
+      error: null,
+    });
+    // Supabase Auth es la autoridad sobre el email: el login repara la deriva de
+    // `public.users` contra ella (`getSyncedUserProfile`). Sin mockear también
+    // esto, el mock decía que la cuenta era corporativa y «reparaba» el gmail
+    // hasta hacerlo desaparecer — el test fallaba por su propio montaje, no por
+    // el comportamiento. El 200 ya demostraba que el dominio no bloquea nada.
+    supabaseAdmin.auth.admin.getUserById.mockResolvedValue({
       data: { user: { id: 'user-1', email: 'user@gmail.com' } },
       error: null,
     });

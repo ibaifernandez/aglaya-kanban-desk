@@ -1,0 +1,21 @@
+# Espacios que el riel NO ve, a sabiendas.
+#
+# Este fichero no lista espacios: lista DECISIONES. El custodio de qué espacios
+# existen es la base de datos, y `rail-blindspot.sh` se lo pregunta a ella. Lo
+# que la DB no puede contestar es si que un espacio esté ciego está BIEN.
+#
+# Por eso las excepciones se escriben a mano y las comprobaciones no: añadir una
+# excepción tiene que costar un acto deliberado y dejar rastro de quién y por
+# qué. Un espacio ciego que nadie ha justificado se pone rojo.
+#
+# Se identifica por UUID, no por nombre: renombrar un espacio no debe reabrir
+# una decisión ya tomada, y el nombre no es su identidad.
+#
+# Los `personal` NO hacen falta aquí: el script los excluye por REGLA, no por
+# lista — son intocables por decisión dura y el riel no debe escribir ahí nunca.
+# Una regla cubre también los que se creen mañana; una lista, no.
+#
+# Formato:  <uuid>  # <por qué, y quién lo decidió>
+
+e7672c25-da5d-4fa2-94be-f879d320266e  # «3» — espacio de pruebas de Món. Ibai decidió el 2026-07-21 que se queda: es suyo, no es basura. Ver docs/BACKLOG.md, sección «Workspaces 3 y 4».
+64b39930-f12d-440b-a0d3-f39f73a63f98  # «4» — de Món, vacío. Misma decisión y misma fecha: que esté vacío no lo hace cruft, lo hace suyo y vacío.
