@@ -7,6 +7,80 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
+- **El punto ciego del riel, implementado** (`scripts/rail-blindspot.sh` + su sello +
+  `scripts/rail-blindspot.allowed`, en CI). Estaba diseñado en `docs/BACKLOG.md` desde el
+  2026-07-27 por la mañana. Un espacio sin `kanban-rail@aglaya.biz` dentro queda invisible
+  para toda la flota **sin dar error**, y el riel no puede contestar esa pregunta sobre sí
+  mismo: sus puntos ciegos no salen en su propia lista, por definición. Lo contesta la DB
+  con el secret `DATABASE_URL`, que ya existía para el backup. **Quién custodia qué:** la
+  DB dice qué espacios existen; el fichero `.allowed` dice cuáles están ciegos a sabiendas,
+  por UUID —renombrar no reabre una decisión— y con el porqué; los `personal` se excluyen
+  por **regla en el SQL**, no por lista, para que cubra también los que se creen mañana.
+  Estrenó verde, medido antes de escribirlo. **No se salta en verde si le faltan
+  credenciales**: un guardián que se omite cuando no puede mirar es el falso negativo
+  silencioso que este repo persigue, y ya pasó una vez con `PORTS`.
+- **`docs-guard` · regla ATLAS** (cruzada): una ruta dentro del repo del capitán se pone
+  roja. Era el agujero que quedaba tras ELIDED, y se descubrió **probándolo**: se escribió
+  una ruta entera del atlas en un documento y el guardián dio verde por los dos lados —
+  ELIDED solo mira la elisión interior, y LINKS ignora a propósito lo que no es de este
+  repo, que es justo por donde se cuela. La forma es la **barra**: el nombre del repo a
+  secas es legítimo y hay que poder decirlo; en cuanto lleva una barra detrás y un segmento
+  más, es un puntero que caduca en silencio cuando él reorganiza. *(Esta entrada no puede
+  escribir el ejemplo sin que la muerda su propia regla, igual que le pasa a la de ELIDED
+  justo debajo. Es correcto: la excepción «lo decía de ejemplo» mata guardianes.)*
+  Ámbito ancho como ELIDED, más las
+  fuentes del riel, porque un docstring es lo que el modelo lee antes de llamar a la tool.
+- **`docs/contracts/CONTRACT.md`** — el contrato de inyección de comandas, declarado por su
+  dueño. El registro del capitán lo listaba como propiedad de esta nave y no tenía dónde
+  vivir salvo su descripción del endpoint. Mismo patrón que las otras naves dueñas, y con
+  versión propia, que es lo que `firmas()` sabe leer. Un contrato **sí** es custodio de su
+  versión: por eso no entra bajo V1.
+- **`docs/PARTE-AL-CAPITAN.md`** — qué debe actualizar el orquestador en su extremo, con
+  una tabla de cómo comprobar cada afirmación sin creerse ninguna.
+- **`docs/PUERTA-EXTERNA.md`** — inventario de qué probar para poder afirmar que la puerta
+  de cliente externo sigue abriendo. Comprobado que **abre hoy**: el filtro de dominio vive
+  solo en el registro self-service, no en la invitación de admin ni en el login.
+
+### Changed
+- **El brief del riel, extraído y sellado.** El alias `description` ↔ `description_md` se
+  añadió tras las cuatro cards que salieron vacías devolviendo `201`, pero vivía dentro de
+  `create_card`, que necesita red: **nadie lo probaba**. Ahora es función pura en
+  `validation.py`. De paso, una precedencia que reproducía el mismo fallo por otra puerta —
+  era por `is not None`, así que un `description=""` explícito tapaba un `description_md`
+  con texto. Y como no hay lista de nombres que prevenga el tercero que alguien invente,
+  `create_card` avisa por **resultado** (la card salió sin contenido), no por nombre.
+- **`docs-guard` amplía ámbito** a `docs/SECURITY.md`, `PERMISSIONS.md`, `RUNBOOK.md`,
+  `PRD.md` y `PUERTA-EXTERNA.md`, **solo bajo V1**, con su costura de prueba para que «aquí
+  V2 no se aplica» no lo sostenga únicamente un comentario. La versión no la custodia
+  ningún documento; sus otras cifras sí son suyas —una política de retención, un registro
+  fechado de auditoría, la especificación del plan Free— y V2 no sabe distinguirlas de un
+  fósil. Fuera con motivo escrito: `ARCHITECTURE.md` (un ADR que dice «downgrade a
+  jest@29.7.0» tiene la versión como contenido, no como copia) y `operator-checklist.md`
+  (evidencia RGPD fechada, y una checklist cuyas casillas mordería V3).
+- **`CLAUDE.md` deja de copiar el contrato** del endpoint interno. Tenía la tabla del
+  payload al lado del custodio recién creado.
+
+### Fixed
+- **Cifras fósiles en `docs/SECURITY.md`**, sustituidas por el nombre de su custodio:
+  decía «9/9 tablas con RLS» en una línea y «10/10» catorce líneas más abajo — el documento
+  contradiciéndose a sí mismo en la misma página—; decía cuatro vulnerabilidades residuales
+  donde el runner dice cinco; y contaba a mano los casos de un fichero de tests. La versión
+  la tenía tecleada **dentro de la frase que nombraba `package.json` como fuente única**:
+  la causa raíz de este guardián, textual, en un fichero fuera de su alcance.
+- **Versión tecleada** también en `ARCHITECTURE.md`, `PERMISSIONS.md`, `RUNBOOK.md` y
+  `PRD.md` (que además duplicaba la fase, custodiada por `ROADMAP.md`). Las cinco acertaban
+  hoy, que es la forma más difícil de detectar.
+- **`docs/BACKLOG.md` decía «🔴 Bug vivo»** de un bug cerrado seis días antes, con el
+  checkbox de debajo dándolo por cerrado. Ser custodio de la cola no da autoridad sobre si
+  un bug respira: eso lo custodia el código.
+- **Los cuatro tests apagados desde el audit de mayo, encendidos.** Solo uno esperaba de
+  verdad una decisión de producto —si el login debe filtrar por dominio; decisión de Ibai:
+  **no**, el candado está en el registro, y filtrar aquí habría dejado fuera a Món y tapiado
+  la puerta de cliente externo—. Los otros tres eran mocks viejos: apagar un test por un
+  mock viejo deja sin vigilancia el comportamiento, no el mock. Uno se reescribió porque su
+  premisa había dejado de ser verdad: esperaba que la ruta reconstruyera un perfil huérfano
+  y hoy devuelve 409, que es mejor — adoptar en silencio una cuenta de auth que nadie sabe
+  de dónde salió es justo lo que no puede pasar sin un humano delante.
 - **`docs-guard` · regla ELIDED** (cruzada): caza la ruta que sustituye su parte de **en
   medio** por puntos suspensivos, dejando un segmento a cada lado. Era el agujero de LINKS
   y se colaba por sus dos escapes a la vez — parece un placeholder rellenable y su primer
