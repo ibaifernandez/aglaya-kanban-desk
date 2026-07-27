@@ -97,7 +97,8 @@ CROSSCHECKS=(PORTS LINKS ELIDED ATLAS)
 #     2026-07-27, sustituidas por el nombre de su custodio. Eso lo arregla un
 #     humano leyendo, no un regex, y queda dicho aquí para que conste que no
 #     están vigiladas.
-DOCS_V1_ONLY=(docs/SECURITY.md docs/PERMISSIONS.md docs/RUNBOOK.md docs/PRD.md)
+DOCS_V1_ONLY=(docs/SECURITY.md docs/PERMISSIONS.md docs/RUNBOOK.md docs/PRD.md
+              docs/PUERTA-EXTERNA.md)
 # Sobrescribible para que el sello pueda probar la SELECCIÓN de reglas, no solo
 # las reglas. Sin esta costura, «V2 no se aplica aquí» sería una afirmación del
 # comentario de arriba y de nadie más.
