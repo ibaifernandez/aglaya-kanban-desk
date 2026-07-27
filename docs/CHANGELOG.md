@@ -35,8 +35,14 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   vivir salvo su descripción del endpoint. Mismo patrón que las otras naves dueñas, y con
   versión propia, que es lo que `firmas()` sabe leer. Un contrato **sí** es custodio de su
   versión: por eso no entra bajo V1.
-- **`docs/PARTE-AL-CAPITAN.md`** — qué debe actualizar el orquestador en su extremo, con
-  una tabla de cómo comprobar cada afirmación sin creerse ninguna.
+- **Parte al capitán** — qué debía actualizar el orquestador en su extremo, con una tabla
+  de cómo comprobar cada afirmación sin creerse ninguna. **Entregado, aplicado y borrado el
+  mismo día:** era un documento de un solo uso, y conservarlo lo habría convertido en una
+  descripción del atlas viviendo aquí — la misma copia que venía a quitar, en espejo.
+  Queda el rastro en este registro, que es su sitio.
+  *(Lo que la tabla de comprobación sirvió para pillar: el capitán apuntó su registro y su
+  ficha a una puerta nueva sin cablearla, así que resolvía al registro entero y parecía
+  funcionar. Un puntero roto se lee mejor que una copia mala y engaña más.)*
 - **`docs/PUERTA-EXTERNA.md`** — inventario de qué probar para poder afirmar que la puerta
   de cliente externo sigue abriendo. Comprobado que **abre hoy**: el filtro de dominio vive
   solo en el registro self-service, no en la invitación de admin ni en el login.
