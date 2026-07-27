@@ -1,5 +1,5 @@
 # Modelos de Roles y Permisos — AGLAYA Kanban Desk
-**Versión:** v1.4.0 · **Fecha:** 2026-07-13
+**Fecha:** 2026-07-13 · La versión la custodia `package.json`
 
 Este documento es la fuente de verdad única sobre la jerarquía, privacidad y capacidades del sistema.
 

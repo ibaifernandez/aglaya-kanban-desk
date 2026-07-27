@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — Arquitectura Técnica AGLAYA Kanban Desk
 
-**Última actualización:** 2026-07-13 (v1.4.0 — riel MCP + digest sin personal + reconciliación)
+**Última actualización:** 2026-07-13 (riel MCP + digest sin personal + reconciliación)
 
 ---
 
