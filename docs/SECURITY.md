@@ -3,7 +3,11 @@
 Estado real de seguridad y superficie de ataque. Este documento se sincroniza con cada audit/cambio relevante.
 
 **Última actualización:** 2026-07-13 (fixes del audit aplicados + reconciliación DB + riel MCP)
-**Versión actual:** v1.4.0 (fuente única: raíz `package.json`).
+
+> La versión ya no se escribe aquí. Estaba tecleada dentro de la propia frase que
+> nombraba `package.json` como fuente única — la cita le prestaba credibilidad a
+> la copia, y la copia acertaba, que es la forma más difícil de detectar. Si
+> necesitas la versión, léela de `package.json`.
 
 > **Nota importante:** versiones anteriores de este documento contenían afirmaciones inexactas detectadas durante audit Mariana (D-05). Esta versión refleja el estado real post-mitigaciones.
 
@@ -25,17 +29,17 @@ Estado real de seguridad y superficie de ataque. Este documento se sincroniza co
 | CORS | ✅ | Origins estrictos (`localhost:5175` dev / `kanban.aglaya.biz` prod) |
 | **Rate limiting** | ✅ RESUELTO (B-06) | Global 300 req/15min en todo `/api/*` + estricto en `/api/auth` (20/15min) y `/api/internal` (10/min). `6c31670` |
 | **Internal route `/api/internal/*`** | ✅ RESUELTO (B-09) | `x-task-secret` + rate limit dedicado (10/min) anti secret-guessing. `6c31670` |
-| **Row Level Security (RLS)** | ✅ post-audit | 9/9 tablas con RLS habilitada (organizations habilitada en migración `migration-organizations-rls.sql` durante audit). 8 tablas con políticas SELECT explícitas; WRITE policies parciales (B-12, MEDIO) |
+| **Row Level Security (RLS)** | ✅ post-audit | RLS habilitada en todas las tablas de `public` (organizations se habilitó en `migration-organizations-rls.sql` durante el audit). Políticas SELECT explícitas; WRITE parciales (B-12, MEDIO). **Cuántas tablas hay y cuáles la tienen lo custodia la DB** (`pg_tables.rowsecurity`), no este documento: la cifra que había aquí decía 9/9 cuando ya eran 10/10, y el resumen de abajo decía 10/10 en la misma página |
 | Aislamiento Supabase clients | ✅ | `auth` y `admin` usan clientes frescos por request |
 | **Railway URL pública** | 🟠 PARCIAL (B-03) | Monitor activo que loguea acceso directo a la URL Railway (`app.js`). Custom domain + Cloudflare WAF pendientes. `66ca5eb` |
 | **Uploads XSS** | ✅ MITIGADO | Hallazgo B-CRIT-01 (CVSS 8.0) detectado y resuelto durante audit. SHA fix `402b0d7`. 4-layer defense: ext blocklist + MIME blocklist + allowlist + magic-bytes |
 | **Backup strategy** | ✅ MITIGADO quick-win | B-CRIT-02 resuelto: GitHub Actions cron daily → Cloudflare R2. SHA `3ae6541`. Pendiente upgrade Supabase Pro estructural |
-| **npm audit** | 🟡 4 residuales (B-08) | Remediado 27→4 (2026-07-12): CRÍTICA + todas las HIGH cerradas. Residuales: 2 moderate server (file-type ESM-blocked, uuid no-aplica) + 2 dev-only client (vite/esbuild). Ver INCIDENTS.md |
+| **npm audit** | 🟡 residuales justificadas (B-08) | Remediación del 2026-07-12: la CRÍTICA y todas las HIGH de entonces, cerradas. Quedan residuales conocidas y argumentadas — server (`file-type` bloqueado por ESM, `uuid` no aplica) y client (`vite`/`esbuild`, solo dev, no llegan a producción). Ver INCIDENTS.md. **La cifra la da `npm audit`, no este documento:** la que había escrita decía cuatro y el runner decía cinco |
 
 ### Resumen estado
 
-- **Verde:** auth flow + JWT refresh 15m (B-02), autorización middleware, re-validación de claims (B-07), helmet API + CSP HTML Netlify (B-05), CORS, rate limiting completo (B-06/B-09), RLS 10/10 + GRANTs (anon sin escritura), sesión en sessionStorage, uploads XSS resuelto, backup resuelto.
-- **Amarillo abierto:** Railway URL sin gateway (B-03 parcial), 4 vulns residuales de deps (B-08), WRITE policies RLS parciales (B-12).
+- **Verde:** auth flow + JWT refresh 15m (B-02), autorización middleware, re-validación de claims (B-07), helmet API + CSP HTML Netlify (B-05), CORS, rate limiting completo (B-06/B-09), RLS habilitada en `public` + GRANTs (anon sin escritura), sesión en sessionStorage, uploads XSS resuelto, backup resuelto.
+- **Amarillo abierto:** Railway URL sin gateway (B-03 parcial), vulnerabilidades residuales de dependencias (B-08), WRITE policies RLS parciales (B-12).
 - **Mitigado durante audit + cierre:** B-CRIT-01 (XSS uploads), B-CRIT-02 (backup), B-04/B-11 (organizations RLS), y B-02/03/05/06/07/09.
 
 ---
@@ -47,7 +51,7 @@ La mayoría de los ALTOS del audit se cerraron en el cierre formal (ver `docs/au
 | ID | Severidad | Estado |
 |---|---|---|
 | B-03 | ALTO | **Parcial** — monitor activo; falta custom domain `api.kanban.aglaya.biz` + Cloudflare WAF |
-| B-08 | MEDIO | **Remediado a 4 residuales** justificados (2 moderate server + 2 dev-only client) |
+| B-08 | MEDIO | **Remediado a residuales justificadas** (server: `file-type`, `uuid`; client: `vite`/`esbuild`, solo dev). La cifra viva la da `npm audit` |
 | B-12 | MEDIO | Policies WRITE explícitas por tabla (hoy RLS por-organización) |
 
 ## Cuentas privilegiadas (superadmin)
@@ -182,7 +186,7 @@ Capa de datos (post-audit Mariana):
 
 > **Patrón actual:** servidor usa `service_role` (bypass RLS) para todas las queries. RLS funciona como defense-in-depth ante futuros usos directos con anon key desde cliente. Cliente actual NO consulta tablas directamente (verificado audit).
 >
-> **B-12 abierto:** policies WRITE incompletas en 5 tablas. Si futuro cliente intenta write via anon key, falla silenciosamente. Documentar modelo (service-role-only writes) o añadir policies WRITE explícitas.
+> **B-12 abierto:** hay tablas sin policy WRITE explícita. Si un futuro cliente intenta escribir con la anon key, falla silenciosamente. Decidir entre documentar el modelo (escrituras solo por `service_role`) o añadir policies WRITE explícitas. **Cuáles y cuántas lo custodia la DB** (`pg_policies`): la cifra que había aquí no la comprobaba nadie.
 
 ---
 
@@ -195,11 +199,11 @@ Capa de datos (post-audit Mariana):
 1. **Extension blocklist:** `svg|html?|xhtml|js|mjs|swf|exe|bat|cmd|sh|ps1|vbs`
 2. **MIME blocklist:** `image/svg+xml`, `text/html`, `application/xhtml+xml`, `application/javascript`, `text/javascript`, `application/x-shockwave-flash`, `application/x-msdownload`
 3. **MIME allowlist:** `image/png`, `image/jpeg`, `image/webp`, `image/gif`, `application/pdf`, `text/csv`, `text/plain`
-4. **Magic-bytes validation** via `file-type@16.5.4` (excepto text/csv + text/plain, sin magic bytes detectables)
+4. **Magic-bytes validation** via `file-type` (excepto text/csv + text/plain, sin magic bytes detectables). La versión la custodia `package.json`
 
 **Error handler:** `FILE_TYPE_FORBIDDEN` (400), `FILE_TYPE_NOT_ALLOWED` (400), `FILE_MAGIC_MISMATCH` (400), `FILE_TOO_LARGE` (413).
 
-**Tests:** `server/tests/uploads.test.js` con 5 casos (SVG, HTML, JS-spoofed, PNG legítimo, sin auth).
+**Tests:** `server/tests/uploads.test.js` cubre SVG, HTML, JS con extensión falseada, PNG legítimo y petición sin auth. Cuántos casos hay lo dice el fichero.
 
 **Endpoint público de servido:** `GET /uploads/<uuid>.<ext>` — sin auth. Proxiado vía Netlify `/uploads/*` → Railway. Filenames son UUID v4 (no enumerable). Files solo accesibles para quien tenga la URL.
 

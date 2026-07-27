@@ -45,6 +45,52 @@ def missing_workspace_error(workspace_id):
     }
 
 
+def resolve_brief(description, description_md):
+    """El texto que va dentro de la tarjeta, venga por el nombre que venga.
+
+    La tool acepta DOS nombres para el mismo campo porque el endpoint HTTP usa
+    `description` y el riel documentaba `description_md`. Quien viniera del otro
+    lado pasaba el nombre del otro lado.
+
+    Factura que lo enseñó: cuatro tarjetas salieron VACÍAS devolviendo 201. El
+    kwarg desconocido se descartaba en silencio y la respuesta de éxito tapaba
+    el hueco. El alias se añadió después — pero vivía dentro de `create_card`,
+    que necesita red, así que NADIE lo comprobaba. Un arreglo sin test es un
+    arreglo que dura hasta el próximo refactor.
+
+    Devuelve el primer valor con contenido. Antes la precedencia era por
+    `is not None`, y eso dejaba que un `description=""` explícito tapara un
+    `description_md` con texto de verdad: la misma tarjeta vacía, por otra
+    puerta. Un campo vacío no gana a uno lleno.
+    """
+    for value in (description, description_md):
+        if value is not None and str(value).strip():
+            return str(value)
+    return ""
+
+
+def empty_brief_notice(brief):
+    """`None` si la tarjeta lleva contenido; aviso si sale vacía.
+
+    No es un error: una tarjeta solo-título es legítima a veces. Es que deje de
+    PARECERSE a una que salió bien.
+
+    El alias de arriba cierra los dos nombres que conocemos. No cierra el
+    tercero: quien invente `brief`, `body` o `description_markdown` seguirá
+    perdiendo el texto, y no hay lista de nombres que lo prevenga —enumerar
+    nombres es el vicio, no el remedio. Así que esto no mira el NOMBRE que vino,
+    mira el RESULTADO: la tarjeta salió sin contenido. Esa forma no caduca.
+    """
+    if brief and str(brief).strip():
+        return None
+    return (
+        "brief vacío: la tarjeta se creó SIN contenido. Si esperabas texto, el "
+        "nombre del parámetro no llegó — el brief va en `description_md` (o su "
+        "alias `description`). Compruébalo en la UI: la respuesta de éxito no "
+        "distingue una tarjeta con brief de una sin él, y por eso se avisa aquí."
+    )
+
+
 def workspace_mismatch_error(given, actual, column_id):
     """`None` si `given` es de verdad el espacio de `column_id`; error si no.
 

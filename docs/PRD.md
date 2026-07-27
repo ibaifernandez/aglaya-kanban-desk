@@ -1,7 +1,10 @@
 # PRD (Product Requirements Document) — AGLAYA Kanban Desk
-**Phase 4 (completada) · v1.4.0**
 **Owner:** AGLAYA · info@ibaifernandez.com
 **Fecha:** 2026-07-12 (Sincronizado con codebase)
+
+> Aquí ponía la fase y la versión. Ninguna de las dos las custodia este
+> documento: la fase la custodia `docs/ROADMAP.md` y la versión `package.json`.
+> Un PRD dice qué debe hacer el producto, no en qué punto está.
 
 ---
 

@@ -70,6 +70,27 @@ jobs:
         working-directory: ./kanban-mcp
         run: python3 test_validation.py
 
+  rail-blindspot:
+    name: Riel — ¿hay algún espacio inalcanzable?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # El sello va ANTES y no toca la DB: si el guardián está destripado, se
+      # sabe aquí y no hace falta ni preguntar. Mismo orden que docs-guard.
+      - name: Sello — ¿muerde con un espacio ciego sin justificar?
+        run: bash scripts/rail-blindspot.test.sh
+
+      # Le pregunta a la DB porque el riel NO puede contestar esto: sus puntos
+      # ciegos no salen en su propia lista, por definición. Mismo secret que usa
+      # db-backup.yml — el alcance de `service_role`, que salta RLS.
+      - name: Guardián — cruce contra la base de datos
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: bash scripts/rail-blindspot.sh
+
   client-build:
     name: Client build (vite)
     runs-on: ubuntu-latest

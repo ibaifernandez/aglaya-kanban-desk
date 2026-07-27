@@ -427,11 +427,21 @@ Cuarta clase de estado copiado, **fuera del alcance de `docs-guard`**: no hay re
 sepa si un nombre existe. Detectada aplicando el método del capitán — comprobar el ejemplo
 contra la realidad en vez de leerlo.
 
-### 🔴 Bug vivo — `internalRoute.js:34`
+### ✅ Cerrado — el default de `workspaceName` (era `internalRoute.js:34`)
 
 ```js
 workspaceName = 'Ibai Fernández',   // .ilike('name', `%…%`) con service_role
 ```
+
+> **Este titular decía «🔴 Bug vivo» hasta el 2026-07-27**, cuando el campo llevaba
+> obligatorio desde el día 21 y el propio checkbox de abajo lo daba por cerrado.
+> El cuerpo estaba bien; el titular es lo que se lee primero y lo que se cita.
+>
+> Es el mismo vicio que persigue `docs-guard`, aquí dentro: un documento
+> afirmando el estado de un código que ya no dice eso. Y por qué no lo cazó el
+> guardián: `BACKLOG.md` está fuera de su ámbito, con razón —es el custodio de la
+> cola— pero ser custodio de la cola no le da autoridad sobre si un bug respira.
+> Eso lo custodia el código. Hoy exige el campo y devuelve 400 (`internalRoute.js`).
 
 > **Corrección (2026-07-21).** Una versión anterior de esta sección, y el commit `7f61ba7`,
 > afirmaban que ese workspace **no existía** y que omitir el campo daba **404**. Es falso.
