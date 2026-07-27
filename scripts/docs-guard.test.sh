@@ -28,6 +28,7 @@ FAIL=0
 run_guard() {
   DOCS_GUARD_LINKS_ROOT="$TMP" DOCS_GUARD_LINKS_DOCS="$1" \
   DOCS_GUARD_PORTS_ROOT="$TMP" DOCS_GUARD_PORTS_DOCS="$1" \
+  DOCS_GUARD_ELIDED_ROOT="$TMP" DOCS_GUARD_ELIDED_DOCS="$1" \
     bash "$GUARD" "$1" >"$TMP/out.txt" 2>&1
   echo $?
 }
@@ -226,7 +227,51 @@ links_case "ruta entre backticks, existe"          'Mira `docs/EXISTE.md` para e
 links_case "ruta entre backticks, no existe"       'Mira `docs/FANTASMA.md`.'          red
 links_case "placeholder <nombre> se ignora"        'psql -f docs/migration-<n>.sql'    green
 links_case "ruta gitignoreada se ignora"           'edita .env con tus valores'        green
-links_case "ruta de otro repo se ignora"           'vive en `atlas/kanban-manual.md`'  green
+# Ruta INVENTADA a propósito. La versión anterior usaba una ruta real del atlas del
+# capitán, y un fixture es un sitio donde se escribe igual que en cualquier otro: si
+# los docs no citan rutas del atlas porque caducan en silencio, el sello tampoco. Con
+# una inventada el caso prueba exactamente lo mismo —primer segmento que no es un
+# directorio de este repo— y no envejece cuando el capitán reorganice lo suyo.
+links_case "ruta de otro repo se ignora"           'vive en `repo-vecino/manual.md`'   green
+
+echo
+echo "ELIDED · ruta con los puntos suspensivos EN MEDIO (no se puede seguir)"
+# El agujero exacto que dejan las dos líneas de arriba juntas: `placeholder se ignora`
+# y `ruta de otro repo se ignora`. Una elisión se cuela por AMBAS — parece un hueco
+# rellenable y su primer segmento es de otro repo — y a diferencia de las dos, nunca
+# apunta a nada. Sin estos casos, LINKS podría amputarse a medias sin que el sello suene.
+elided_case() {
+  local name="$1" doc_line="$2" expect="$3"
+  local d="$TMP/elided"; rm -rf "$d"; mkdir -p "$d"
+  printf '%s\n' "$doc_line" >"$d/DOC.md"
+
+  local code
+  DOCS_GUARD_ONLY=ELIDED DOCS_GUARD_ELIDED_ROOT="$d" DOCS_GUARD_ELIDED_DOCS="$d/DOC.md" \
+    bash "$GUARD" >"$TMP/out.txt" 2>&1
+  code=$?
+
+  if [ "$expect" = "red" ] && [ "$code" != "0" ]; then
+    echo "  ✅ ROJO (esperado) — $name"; PASS=$((PASS + 1))
+  elif [ "$expect" = "green" ] && [ "$code" = "0" ]; then
+    echo "  ✅ VERDE (esperado) — $name"; PASS=$((PASS + 1))
+  else
+    echo "  ❌ $name — esperaba $expect, exit=$code"
+    sed 's/^/     /' "$TMP/out.txt"; FAIL=$((FAIL + 1))
+  fi
+}
+# La forma real que motivó la regla (docs/BACKLOG.md, ficha del capitán).
+elided_case "elisión con tres puntos"     'Ficha en `aglaya-orchestrator/.../aglaya-kanban-desk.md`' red
+elided_case "elisión con carácter …"      'Ficha en `aglaya-orchestrator/…/aglaya-kanban-desk.md`'   red
+elided_case "elisión sin extensión"       'Vive en `repo-vecino/.../fichas/` según él'               red
+# Truncar para MOSTRAR no es elidir para APUNTAR: no hay que seguir nada.
+elided_case "truncado al final (mostrar)" 'Este repo vive en `/Users/AGLAYA/Local Sites/…`'          green
+# Comillas dobles + backticks escapados: la línea real de audit-B.md lleva comillas
+# simples dentro, y en la primera versión de este caso los backticks SIN escapar se
+# ejecutaron como sustitución de comandos. El caso daba VERDE sin haber probado nada
+# — verde por vacío, que es el fallo que este harness existe para no cometer.
+elided_case "idioma de código /api/..." "Resto de \`app.use('/api/...')\` sin limiter"               green
+elided_case "ruta entera no muerde"       'Ver `docs/BACKLOG.md` para la cola'                       green
+elided_case "placeholder sigue permitido" 'psql -f docs/migration-<n>.sql'                           green
 
 echo
 echo "=== $PASS ok · $FAIL fallos ==="
