@@ -128,11 +128,12 @@ dejar cards ahí. Al crear un workspace destinado a recibir comandas, añadir al
 Quién es miembro de qué lo custodia la tabla `workspace_members`, no este archivo.
 
 **Y a qué tablero va cada cosa, tampoco lo custodia este repo.** El criterio de
-enrutado —qué trabajo entra como card y a qué workspace/tablero pertenece— vive en el
-atlas del capitán (`atlas/kanban-manual.md`). Desde aquí se pregunta:
-`ficha("aglaya-kanban-desk")` o `donde_pregunto("enrutado de cards")` en el MCP
-`aglaya-atlas`. No lo adivines: el match es `ilike` parcial y un nombre aproximado
-aterriza en el sitio equivocado devolviendo `201`.
+enrutado —qué trabajo entra como card y a qué workspace/tablero pertenece— lo custodia
+el capitán. Se pregunta, no se cita: `donde_pregunto("enrutado de cards")` o
+`ficha("aglaya-kanban-desk")` en el MCP `aglaya-atlas`, que contestan citando su fuente
+en vivo. No apuntamos aquí la ruta de su atlas: la reorganiza cuando quiere y una ruta
+copiada caduca en silencio. No lo adivines: el match es `ilike` parcial y un nombre
+aproximado aterriza en el sitio equivocado devolviendo `201`.
 
 ---
 
@@ -198,7 +199,7 @@ Este _repo_ es una **nave de la flota AGLAYA**: el riel de comandas de los human
 
 Reglas para cualquier hilo que trabaje aquí:
 
-- **Antes de un cambio estructural** (schema de cards, tools del MCP `aglaya-kanban-desk`, workspaces/boards), consultar el registro de contratos del atlas: el capitán inyecta cards por ese contrato y un cambio unilateral lo rompe.
+- **Antes de un cambio estructural** (schema de cards, tools del MCP `aglaya-kanban-desk`, workspaces/boards), pregunta el contrato con `contrato(nombre)` en el MCP `aglaya-atlas`: el capitán inyecta cards por ese contrato y un cambio unilateral lo rompe.
 - **Si el capitán toca docs de este repo**, debería estar registrado en commits debidamente identificados y todos los cambios deberían quedar registrados en `docs/CHANGELOG.md`.
 - **Solo estas tres cuentas están autorizadas**, mientras no cambie el paradigma de uso de esta aplicación: Ibai (`info@ibaifernandez.com`), Món (`mmontufarq@gmail.com`) y Kanban Rail (`kanban-rail@aglaya.biz`). No dar de alta a nadie sin OK de Ibai. Esto es una **decisión**, no un informe: dice quién *puede* existir. Quién existe de hecho lo custodia la tabla `users` — si no coinciden, el hallazgo es que hay que reconciliarlas, no que este archivo esté desactualizado.
 
