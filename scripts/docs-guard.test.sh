@@ -274,6 +274,96 @@ elided_case "ruta entera no muerde"       'Ver `docs/BACKLOG.md` para la cola'  
 elided_case "placeholder sigue permitido" 'psql -f docs/migration-<n>.sql'                           green
 
 echo
+echo "ATLAS · ruta dentro del repo del capitán (se le pregunta, no se le cita)"
+
+atlas_case() {
+  local name="$1" doc_line="$2" expect="$3"
+  local d="$TMP/atlas"; rm -rf "$d"; mkdir -p "$d"
+  printf '%s\n' "$doc_line" >"$d/DOC.md"
+
+  local code
+  DOCS_GUARD_ONLY=ATLAS DOCS_GUARD_ATLAS_ROOT="$d" DOCS_GUARD_ATLAS_DOCS="$d/DOC.md" \
+    bash "$GUARD" >"$TMP/out.txt" 2>&1
+  code=$?
+
+  if [ "$expect" = "red" ] && [ "$code" != "0" ]; then
+    echo "  ✅ ROJO (esperado) — $name"; PASS=$((PASS + 1))
+  elif [ "$expect" = "green" ] && [ "$code" = "0" ]; then
+    echo "  ✅ VERDE (esperado) — $name"; PASS=$((PASS + 1))
+  else
+    echo "  ❌ $name — esperaba $expect, exit=$code"
+    sed 's/^/     /' "$TMP/out.txt"; FAIL=$((FAIL + 1))
+  fi
+}
+
+# La forma que motivó la regla: se escribió la ruta ENTERA en un documento de
+# prueba y el guardián dio verde por ELIDED y por LINKS a la vez.
+atlas_case "ruta entera al fichero de la ficha" \
+  'La ficha vive en `aglaya-orchestrator/atlas/flota/repos/aglaya-kanban-desk.md`'  red
+atlas_case "ruta parcial dentro del atlas" \
+  'El manual del riel: `atlas/gobierno/kanban-manual.md`'                           red
+atlas_case "ruta sin extensión (carpeta)" \
+  'Las fichas están en `aglaya-orchestrator/atlas/flota/`'                          red
+atlas_case "ruta al MCP por su nombre de repo" \
+  'Ver `aglaya-atlas/server.py` para el catálogo'                                   red
+atlas_case "URL de GitHub al atlas" \
+  'https://github.com/ibaifernandez/aglaya-orchestrator/blob/main/atlas/ficha.md'   red
+
+# Lo que SÍ puede escribirse: hay que poder decir de quién hablamos y por dónde
+# se le pregunta. Ninguna de estas caduca cuando el capitán reorganiza.
+atlas_case "nombre del repo a secas" \
+  'Existe un orquestador (repo `aglaya-orchestrator`) que enruta la flota'          green
+atlas_case "nombre del MCP a secas" \
+  'Se pregunta con `ficha("aglaya-kanban-desk")` en el MCP `aglaya-atlas`'          green
+atlas_case "la palabra atlas en prosa" \
+  'Responde leyendo el atlas en vivo y citando su fuente'                           green
+atlas_case "la puerta, no la ruta" \
+  'El manual lo custodia el capitán: `donde_pregunto("tarea")`'                     green
+# Una ruta de ESTE repo con la palabra dentro no es territorio ajeno.
+atlas_case "ruta propia que menciona el atlas" \
+  'Ver `docs/BACKLOG.md` para lo que el atlas no contesta'                          green
+
+echo
+echo "SELECCIÓN · los docs de docs/ entran solo bajo V1, y eso hay que probarlo"
+# El comentario del guardián dice «aquí V2 no se aplica». Sin este bloque, esa
+# frase solo la sostiene el comentario. Se prueba en las dos direcciones: que V1
+# muerde donde debe Y que V2/V3 no muerden donde se dijo que no — una regla
+# apagada de más es tan mala como una encendida de menos.
+sel_case() {
+  local name="$1" content="$2" v1only="$3" expect="$4"
+  local f="$TMP/SEL.md"
+  printf '%s\n' "$content" >"$f"
+  local only=""; [ "$v1only" = "si" ] && only="$f"
+  local code
+  DOCS_GUARD_V1_ONLY="$only" \
+  DOCS_GUARD_LINKS_ROOT="$TMP" DOCS_GUARD_LINKS_DOCS="$f" \
+  DOCS_GUARD_PORTS_ROOT="$TMP" DOCS_GUARD_PORTS_DOCS="$f" \
+  DOCS_GUARD_ELIDED_ROOT="$TMP" DOCS_GUARD_ELIDED_DOCS="$f" \
+  DOCS_GUARD_ATLAS_ROOT="$TMP" DOCS_GUARD_ATLAS_DOCS="$f" \
+    bash "$GUARD" "$f" >"$TMP/out.txt" 2>&1
+  code=$?
+  if [ "$expect" = "red" ] && [ "$code" != "0" ]; then
+    echo "  ✅ ROJO (esperado) — $name"; PASS=$((PASS + 1))
+  elif [ "$expect" = "green" ] && [ "$code" = "0" ]; then
+    echo "  ✅ VERDE (esperado) — $name"; PASS=$((PASS + 1))
+  else
+    echo "  ❌ $name — esperaba $expect, exit=$code"
+    sed 's/^/     /' "$TMP/out.txt"; FAIL=$((FAIL + 1))
+  fi
+}
+
+# La versión no la custodia NINGÚN documento: muerde también en el ámbito nuevo.
+sel_case "V1 muerde en un doc de solo-V1"   '**Versión:** v1.4.0'            si  red
+# Y estas dos son las que justifican que el ámbito sea estrecho: una política y
+# un registro fechado de auditoría, que sí son suyos.
+sel_case "V2 NO muerde en un doc de solo-V1" 'Retention: 30 días automática' si  green
+sel_case "V3 NO muerde en un doc de solo-V1" '- [x] B-CRIT-01 mitigado'      si  green
+# Fuera de esa lista, el ámbito normal sigue entero: si esto diera verde, la
+# selección estaría apagando reglas en sitios donde nadie lo decidió.
+sel_case "V2 SÍ muerde fuera de la lista"    'Suite con 107 tests'           no  red
+sel_case "V3 SÍ muerde fuera de la lista"    '- [x] B-CRIT-01 mitigado'      no  red
+
+echo
 echo "=== $PASS ok · $FAIL fallos ==="
 [ "$FAIL" = "0" ] || { echo "El guardián NO muerde en todas sus formas. No lo confíes."; exit 1; }
 echo "El guardián muerde en todas las formas que dice vigilar."
