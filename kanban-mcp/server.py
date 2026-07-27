@@ -175,8 +175,8 @@ def list_workspaces() -> dict[str, Any]:
     """List the workspaces the rail is a MEMBER of — NOT every workspace that exists.
 
     `GET /workspaces` parte de `workspace_members` filtrando por `user_id`
-    (server/routes/workspaces.js). Ser superadmin no concede nada en esa ruta.
-    Al 2026-07-21 el riel ve 3 de las 6 filas de la tabla.
+    (server/routes/workspaces.js). Ser superadmin no concede nada en esa ruta:
+    el rol no es membresía, y esta lista puede ser un subconjunto de la tabla.
 
     Esta tool NO puede contestar "¿existe un workspace llamado X?". Para eso el
     custodio es la DB vía `service_role`, que salta RLS — que es justamente lo
