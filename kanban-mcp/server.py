@@ -37,7 +37,8 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-from validation import missing_workspace_error, workspace_mismatch_error
+from validation import (empty_brief_notice, missing_workspace_error, resolve_brief,
+                        workspace_mismatch_error)
 
 mcp = FastMCP("aglaya-kanban-desk")
 
@@ -314,7 +315,7 @@ def create_card(
     err = workspace_mismatch_error(workspace_id, _workspace_of_board(board_id), column_id)
     if err:
         return err
-    brief = description if description is not None else (description_md or "")
+    brief = resolve_brief(description, description_md)
     body: dict[str, Any] = {"columnId": column_id, "boardId": board_id, "title": title,
                             "description": brief, "priority": priority}
     if checklist:
@@ -325,6 +326,11 @@ def create_card(
     card = _request("POST", "/cards", body)
     out = {"created": "card", "id": card["id"], "title": card.get("title"),
            "board_id": board_id, "column_id": column_id, "priority": card.get("priority")}
+    # Una tarjeta sin contenido se creó igual, pero deja de parecerse a una que
+    # salió bien. Es lo único que distingue el 201 honesto del 201 que miente.
+    notice = empty_brief_notice(brief)
+    if notice:
+        out["warning"] = notice
     if assignee:
         out["assigned"] = assign_card(card["id"], assignee).get("notified")
     return out
