@@ -11,6 +11,12 @@ jest.mock('../utils/supabase', () => ({
         createUser: jest.fn(),
         deleteUser: jest.fn(),
         listUsers: jest.fn(),
+        // La ruta de invitación usa `inviteUserByEmail` (atómica: crea el usuario
+        // de auth y manda el correo). El mock se quedó en `createUser`, de antes
+        // del cambio, así que los dos tests que la ejercitaban se apagaron en vez
+        // de actualizarse. Apagar un test por un mock viejo deja sin vigilancia el
+        // comportamiento, no el mock.
+        inviteUserByEmail: jest.fn(),
       },
       resetPasswordForEmail: jest.fn(),
     },
@@ -104,6 +110,10 @@ beforeEach(() => {
     data: { user: { id: 'user-2' } },
     error: null,
   });
+  supabaseAdmin.auth.admin.inviteUserByEmail.mockResolvedValue({
+    data: { user: { id: 'invited-1' } },
+    error: null,
+  });
   supabaseAdmin.auth.resetPasswordForEmail.mockResolvedValue({ error: null });
   supabaseAdmin.auth.admin.deleteUser.mockResolvedValue({ error: null });
   supabaseAdmin.auth.admin.listUsers.mockImplementation(async () => ({
@@ -159,11 +169,11 @@ describe('POST /api/admin/users/invite', () => {
     expect(res.body.error).toMatch(/Rol no válido/i);
   });
 
-  // SKIP audit Mariana 2026-05-27: mock no expone adminClient.auth.admin.inviteUserByEmail.
-  // El código de prod sí usa esa API (Supabase Auth), pero el mock de este test fue escrito
-  // antes del refactor. Arreglar requiere reescribir el mock setup completo.
-  // Backlog audit-mariana-sprint1 item #22.
-  it.skip('uses the organization from the database even if the JWT carries a stale organization id', async () => {
+  // Reactivado 2026-07-27. Lo que fija: un JWT viejo no puede meter a alguien en
+  // la organización equivocada. La organización se resuelve contra la DB
+  // (`resolveRequesterOrganizationId`), no contra el claim, que puede llevar
+  // meses caducado en la sesión de quien invita.
+  it('uses the organization from the database even if the JWT carries a stale organization id', async () => {
     const res = await request(app)
       .post('/api/admin/users/invite')
       .set('Authorization', `Bearer ${makeToken({ organizationId: 'stale-org' })}`)
@@ -173,9 +183,18 @@ describe('POST /api/admin/users/invite', () => {
     expect(mockState.usersByEmail['fresh@aglaya.biz'].organization_id).toBe('org-1');
   });
 
-  // SKIP audit Mariana 2026-05-27: mismo mock issue que el test anterior —
-  // adminClient.auth.admin.inviteUserByEmail no está stubbed. Backlog #22.
-  it.skip('rebuilds the public profile when the auth user exists but the profile row is missing', async () => {
+  // Reactivado 2026-07-27, y REESCRITO: su premisa había dejado de ser verdad.
+  //
+  // El test esperaba que la ruta RECONSTRUYERA el perfil cuando existe el usuario
+  // de auth pero falta la fila en `public.users`. La ruta hoy hace lo contrario:
+  // devuelve 409 y manda borrarlo a mano desde el panel de Supabase.
+  //
+  // Y es mejor así, que es lo que hace que valga la pena fijarlo en vez de
+  // «arreglar» el test hacia atrás: reconstruir en silencio un perfil sobre un
+  // usuario de auth que nadie sabe de dónde salió es adoptar una cuenta huérfana
+  // sin que nadie la mire. En una nave donde solo tres cuentas están autorizadas,
+  // eso es exactamente lo que no puede pasar sin un humano delante.
+  it('refuses to adopt an auth user that has no profile, and says how to fix it', async () => {
     mockState.authUsers = [
       { id: 'auth-only-user', email: 'partial@aglaya.biz' },
     ];
@@ -185,15 +204,14 @@ describe('POST /api/admin/users/invite', () => {
       .set('Authorization', `Bearer ${makeToken()}`)
       .send({ email: 'partial@aglaya.biz', name: 'Partial User', role: 'colaborador' });
 
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(409);
+    // El mensaje tiene que decir QUÉ hacer: quien se lo coma está mirando un
+    // estado inconsistente que no creó y no puede resolver adivinando.
+    expect(res.body.error).toMatch(/Supabase Auth/i);
+    // Y sobre todo: no se crea nada. Ni cuenta nueva, ni perfil adoptado.
+    expect(supabaseAdmin.auth.admin.inviteUserByEmail).not.toHaveBeenCalled();
     expect(supabaseAdmin.auth.admin.createUser).not.toHaveBeenCalled();
-    expect(mockState.usersByEmail['partial@aglaya.biz']).toMatchObject({
-      id: 'auth-only-user',
-      email: 'partial@aglaya.biz',
-      name: 'Partial User',
-      role: 'colaborador',
-      organization_id: 'org-1',
-    });
+    expect(mockState.usersByEmail['partial@aglaya.biz']).toBeUndefined();
   });
 
   it('returns 409 instead of 500 when the public profile email already exists', async () => {
