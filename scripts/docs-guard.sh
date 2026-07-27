@@ -19,6 +19,20 @@
 #
 # ÁMBITO — deliberadamente estrecho. Una alarma ruidosa acaba apagándola alguien.
 #   Vigila:   README.md · CLAUDE.md   (puertas de entrada al repo)
+#             kanban-mcp/server.py · kanban-mcp/validation.py
+#
+#   Las fuentes del riel entraron el 2026-07-27. La descripción de `list_workspaces`
+#   afirmaba cuántas filas veía el riel de cuántas hay — un estado, escrito DENTRO de
+#   una puerta. Se leía como autoridad porque es lo que el modelo lee antes de llamar
+#   a la tool, y este guardián no lo cazaba por una sola razón: no era un markdown.
+#   V2 sí muerde esa línea (`6 filas` es «cifra + plural»); nunca se la habíamos puesto
+#   delante. Medido antes de adoptarlo: los tres ficheros del riel dan verde hoy.
+#
+#   Ojo con lo que esto es: un regex por línea sobre TODO el fichero, no un parser de
+#   docstrings. Vigila también el código y los comentarios — y está bien, porque un
+#   conteo a mano en un comentario es el mismo vicio. Pero si algún día una línea de
+#   código legítima muerde, el arreglo es discutir la regla, no ampliar excepciones.
+#
 #   NO vigila:
 #     docs/CHANGELOG.md  → versiones y fechas son su oficio, es el custodio.
 #                          Un hito histórico («migrado en la 1.1.0») va AHÍ.
@@ -45,7 +59,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 #   RULES       — regex, se aplican a cada fichero vigilado
 #   CROSSCHECKS — cruzan dos fuentes; corren una vez, no por fichero
 RULES=(V1 V2 V3)
-CROSSCHECKS=(PORTS LINKS)
+CROSSCHECKS=(PORTS LINKS ELIDED)
 
 # V1 · versión literal. Cualquier semver x.y.z tecleado es una copia de
 # package.json — incluida la que hoy acierta. Usa un badge derivado:
@@ -77,7 +91,8 @@ if [ "${1:-}" = "--only-ports" ]; then ONLY_PORTS=1; shift; fi
 if [ "$#" -gt 0 ]; then
   FILES=("$@")
 else
-  FILES=("$REPO_ROOT/README.md" "$REPO_ROOT/CLAUDE.md")
+  FILES=("$REPO_ROOT/README.md" "$REPO_ROOT/CLAUDE.md"
+         "$REPO_ROOT/kanban-mcp/server.py" "$REPO_ROOT/kanban-mcp/validation.py")
 fi
 
 FAIL=0
@@ -173,8 +188,9 @@ check_PORTS() {
 #   · externos (http…), que no custodia este repo
 #   · plantillas con <>, $ o * — no son rutas, son huecos
 #   · rutas gitignoreadas (`.env`): no se espera que existan en un clon limpio
-#   · rutas cuyo primer segmento no es un directorio de este repo (`atlas/…` es del
-#     capitán). Se autodetecta: sin listas blancas que envejezcan.
+#   · rutas cuyo primer segmento no es un directorio de este repo (son de otra nave).
+#     Se autodetecta: sin listas blancas que envejezcan. Ni siquiera aquí se teclea una
+#     ruta real del atlas del capitán: un comentario también caduca.
 check_LINKS() {
   local root="${DOCS_GUARD_LINKS_ROOT:-$REPO_ROOT}"
   local docs
@@ -221,6 +237,57 @@ check_LINKS() {
         fi
       done
     done < <(grep -nE "[A-Za-z0-9_.][A-Za-z0-9_./-]*\.($exts)\b" "$md" | grep -v 'https\?://' || true)
+  done
+}
+
+# ELIDED · una ruta que sustituye su parte de EN MEDIO por puntos suspensivos, dejando
+# un segmento a cada lado. (Este comentario vive en un .sh, que no se vigila; en un .md
+# no se podría escribir el ejemplo sin morderse. Es deliberado: la regla no distingue
+# usar de citar, igual que V1 muerde la versión escrita dentro de la frase que nombra a
+# package.json como fuente. La excepción «lo decía de ejemplo» mata guardianes.)
+#
+# Es el agujero de LINKS, y no por descuido: una ruta elidida se cuela por sus DOS
+# escapes a la vez. No la mira porque el primer segmento no es un directorio de este
+# repo («será de otro repo, no lo custodio yo»), y aunque la mirara, nunca existiría.
+# Se le parece a un placeholder (`docs/migration-<n>.sql`) y no lo es: un placeholder
+# es un hueco que el lector RELLENA — sabe qué poner. Una elisión es un hueco donde
+# estaba el dato, y el lector no puede recuperarlo. Parece que apunta a algo; no apunta.
+#
+# La forma es la elisión INTERIOR — algo antes, algo después. `ruta/...` al final es
+# otra cosa: es truncar para mostrar («este repo vive en `/Users/AGLAYA/Local Sites/…`»,
+# `app.use('/api/...')`), y truncar honestamente no engaña a nadie. Medido sobre todos
+# los markdown versionados antes de adoptar la regla: la forma interior aparecía UNA vez
+# y era la que motivó la regla; las tres truncadas son legítimas. Un guardián que nace
+# rojo se normaliza y acaba apagándolo alguien.
+#
+# ÁMBITO ANCHO, al revés que V1/V2/V3, y por un motivo: aquellas son estrechas porque
+# CHANGELOG, ROADMAP, BACKLOG y audits SON custodios de estado — tienen derecho a las
+# cifras que las otras no. Ninguno tiene derecho a un puntero que no se puede seguir.
+# La lista sale de `git ls-files`: se mantiene sola, sin listas blancas que envejezcan.
+check_ELIDED() {
+  local root="${DOCS_GUARD_ELIDED_ROOT:-$REPO_ROOT}"
+  local docs
+  if [ -n "${DOCS_GUARD_ELIDED_DOCS:-}" ]; then
+    docs=(); while IFS= read -r l; do [ -n "$l" ] && docs+=("$l"); done <<<"$DOCS_GUARD_ELIDED_DOCS"
+  else
+    # `--others --exclude-standard` incluye los markdown NUEVOS aún sin commitear:
+    # el momento útil para cazar una elisión es antes de que entre, no en el CI del
+    # día siguiente. Respeta .gitignore, así que node_modules y graphify-out no entran.
+    docs=(); while IFS= read -r l; do [ -n "$l" ] && docs+=("$root/$l")
+            done < <(cd "$root" && git ls-files --cached --others --exclude-standard '*.md' 2>/dev/null)
+  fi
+
+  for md in "${docs[@]}"; do
+    [ -f "$md" ] || continue
+    local rel="${md#"$root"/}"
+    while IFS=: read -r lineno text; do
+      [ -n "$lineno" ] || continue
+      echo "::error file=${rel},line=${lineno}::docs-guard[ELIDED]: ruta con la parte de en medio elidida — no se puede seguir."
+      echo "  ${rel}:${lineno}: ${text}"
+      echo "    → no hay custodio que arregle esto: pregunta por la puerta (MCP aglaya-atlas)"
+      echo "      o cita una ruta entera de ESTE repo. Media ruta no es una ruta."
+      FAIL=1
+    done < <(grep -nE '[A-Za-z0-9_.-]+/(\.\.\.|…)/[A-Za-z0-9_.-]' "$md" || true)
   done
 }
 

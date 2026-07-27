@@ -7,12 +7,21 @@ Una comprobación que no corre en CI es decoración.
 REGLA DE ENRUTADO — el resumen va aquí, el manual NO se copia:
   El espacio de destino es el del DUEÑO DEL ARTEFACTO que hay que tocar, y una
   tarea vive en UN SOLO espacio: nunca espejada en dos.
-  El custodio de la regla completa y de los IDs de destino es
-  `aglaya-orchestrator/atlas/gobierno/kanban-manual.md`. Aquí solo el puntero:
-  una copia del manual dentro del MCP se desincronizaría del manual.
+  El custodio de la regla completa y de los IDs de destino lo tiene el capitán,
+  en el repo `aglaya-orchestrator`. Aquí solo el puntero: una copia del manual
+  dentro del MCP se desincronizaría del manual.
+
+  Y el puntero es a la PUERTA, no a la ruta. Una ruta del atlas caduca en
+  silencio —el capitán lo reorganiza cuando quiere y nadie aquí se entera—
+  mientras que el nombre del repo y la pregunta no caducan. `donde_pregunto`
+  resuelve al manual vivo y cita su fuente; una ruta tecleada solo puede
+  acertar hasta que deje de hacerlo.
 """
 
-_MANUAL = "atlas/gobierno/kanban-manual.md (repo aglaya-orchestrator)"
+# Cómo se llega al manual, no dónde está. Se devuelve en el texto de los errores
+# de abajo, así que tiene que seguir diciendo a dónde ir incluso —sobre todo—
+# cuando el capitán haya movido las cosas de sitio.
+_MANUAL = 'donde_pregunto("tarea") en el MCP aglaya-atlas (repo aglaya-orchestrator)'
 
 
 def missing_workspace_error(workspace_id):
@@ -30,7 +39,7 @@ def missing_workspace_error(workspace_id):
             "clavando trabajo donde no toca y devolviendo 201 como si fuera bien.\n"
             "Regla: el espacio es el del dueño del artefacto que hay que tocar, y "
             "una tarea vive en un solo espacio, nunca espejada.\n"
-            f"Manual de ruta (custodio): {_MANUAL}\n"
+            f"Regla completa (se pregunta, no se cita): {_MANUAL}\n"
             "Los IDs vivos los da list_workspaces en este mismo MCP."
         )
     }
@@ -65,6 +74,6 @@ def workspace_mismatch_error(given, actual, column_id):
             "para que veas cuál.\n"
             "Regla: el espacio es el del dueño del artefacto que hay que tocar, y "
             "una tarea vive en un solo espacio, nunca espejada.\n"
-            f"Manual de ruta (custodio): {_MANUAL}"
+            f"Regla completa (se pregunta, no se cita): {_MANUAL}"
         )
     }

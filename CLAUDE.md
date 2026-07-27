@@ -125,6 +125,12 @@ al riel como miembro, el riel se queda ciego a él en silencio** — no dará «
 miembro», simplemente ese workspace no aparecerá en la lista y ninguna nave podrá
 dejar cards ahí. Al crear un workspace destinado a recibir comandas, añadir al riel.
 
+Cómo se detecta eso sin depender de que alguien se acuerde está **diseñado y sin
+implementar** en [`docs/BACKLOG.md`](docs/BACKLOG.md) («El punto ciego del riel»).
+La pieza que hay que saber aquí: **el riel no puede contestar esta pregunta**. Sus
+puntos ciegos no salen en su propia lista, por definición. Contesta la DB vía
+`service_role` — el mismo alcance que usa `POST /api/internal/create-card`.
+
 Quién es miembro de qué lo custodia la tabla `workspace_members`, no este archivo.
 
 **Y a qué tablero va cada cosa, tampoco lo custodia este repo.** El criterio de
@@ -179,17 +185,6 @@ Reglas:
 
 - Migración de referencia: `migrations/add_explicit_grants.sql`.
 - Schema actualizado: `docs/schema/supabase-schema.sql`.
-
-## graphify
-
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
-
-Rules:
-
-- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
 
 ---
 

@@ -41,12 +41,12 @@ supabase/.branches/
 .claude/settings.local.json
 .claude/worktrees/
 
-# ── Graphify output (commit graph + report only) ──────────
-graphify-out/*
-!graphify-out/graph.json
-!graphify-out/GRAPH_REPORT.md
-!graphify-out/manifest.json
-!graphify-out/cost.json
+# ── Graphify output — derivado, nunca versionado ──────────
+# Decisión de flota: ningún repo guarda su grafo. Nada del código lee uno, y un
+# derivado commiteado envejece con pinta de autoridad — se lee como el estado de
+# la codebase cuando es una foto del día que se construyó. El grafo se corre a
+# demanda (`graphify update .`) y vive solo en local.
+graphify-out/
 
 # Local Netlify folder
 .netlify
