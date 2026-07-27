@@ -172,9 +172,21 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   enrutador, y declara explícitamente que mandan las tools disponibles, no la tabla.
 
 ### Removed
-- **Las rutas del atlas del capitán, también las escritas en pasado.** Fuera la elidida de
-  `docs/BACKLOG.md` y fuera la ruta real que quedaba en la sección «Las lecciones», más los
-  fixtures y comentarios de `docs-guard` que tecleaban una. Al capitán **se le pregunta, no
+- **Las rutas del atlas del capitán, en todo el repo — incluido el código del riel.**
+  `kanban-mcp/server.py` y `kanban-mcp/validation.py` tecleaban la ruta del manual de
+  enrutado, y una de ellas (`_MANUAL`) **se devuelve dentro del texto de error** de una
+  validación fallida. Ahora dicen el **repo** (`aglaya-orchestrator`, que no caduca) y la
+  **pregunta**: `donde_pregunto("tarea")` en el MCP `aglaya-atlas`, que resuelve al manual
+  vivo y cita su fuente. Comprobado contra la puerta real.
+  Un error tiene que seguir diciendo a dónde ir —quien se lo come no puede navegar a otro
+  sitio— y ese es justamente el argumento **a favor** del cambio, no en contra: una ruta
+  muerta en un mensaje de error manda a la nada y encima suena autorizada.
+  `test_validation.py` fijaba el nombre del fichero del atlas; ahora fija la pregunta y
+  exige que no aparezca ninguna ruta. Cerraba la mitad floja del problema (que no se copiara
+  el manual) dejando abierta la que de verdad rompe: que el capitán lo mueva.
+- **Las rutas del atlas en los documentos, también las escritas en pasado.** Fuera la
+  elidida de `docs/BACKLOG.md` y fuera la ruta real que quedaba en la sección «Las
+  lecciones», más los fixtures y comentarios de `docs-guard` que tecleaban una. Al capitán **se le pregunta, no
   se le cita**. La defensa que se le dio a la segunda —«es relato fechado, no un puntero»—
   es la misma excepción que se había rechazado unas líneas antes al morder `ELIDED` un
   ejemplo puesto a propósito en este mismo fichero: si «lo decía de ejemplo» no vale, «lo
