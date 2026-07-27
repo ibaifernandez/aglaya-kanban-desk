@@ -38,11 +38,19 @@ class MissingWorkspace(unittest.TestCase):
     def test_el_error_nombra_el_campo(self):
         self.assertIn("workspace_id", missing_workspace_error(None)["error"])
 
-    def test_el_error_apunta_al_manual_sin_copiarlo(self):
+    def test_el_error_apunta_a_la_puerta_no_a_una_ruta(self):
         # El manual es el custodio de a qué espacio va cada cosa. Aquí va el
         # puntero, no una copia: una copia se desincroniza.
+        #
+        # Y el puntero es la PUERTA, no la ruta. Antes este test fijaba el nombre
+        # del fichero del atlas: cerraba la mitad floja del problema —que no se
+        # copiara el manual— dejando abierta la que de verdad rompe, que es que
+        # el capitán mueva el fichero. Un error que nombra una ruta muerta manda
+        # a la nada y encima suena autorizado. Se fija la pregunta, que no caduca.
         msg = missing_workspace_error(None)["error"]
-        self.assertIn("kanban-manual.md", msg)
+        self.assertIn("donde_pregunto", msg)
+        self.assertIn("aglaya-atlas", msg)
+        self.assertNotIn(".md", msg)
 
     def test_el_error_dice_como_averiguar_el_valor(self):
         self.assertIn("list_workspaces", missing_workspace_error(None)["error"])

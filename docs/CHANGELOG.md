@@ -7,6 +7,54 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
+- **`docs-guard` · regla ELIDED** (cruzada): caza la ruta que sustituye su parte de **en
+  medio** por puntos suspensivos, dejando un segmento a cada lado. Era el agujero de LINKS
+  y se colaba por sus dos escapes a la vez — parece un placeholder rellenable y su primer
+  segmento es de otro repo — con la diferencia de que nunca apunta a nada. Distingue elidir
+  de **truncar**: los puntos al **final** son mostrar, no apuntar, y no muerden
+  (`/Users/AGLAYA/Local Sites/…`, `app.use('/api/...')`). Nótese que esta misma entrada no
+  puede escribir un ejemplo de la forma prohibida sin que el guardián la muerda, y **eso es
+  correcto**: la regla no distingue usar de citar, igual que V1 muerde la versión escrita
+  dentro de la frase que nombra `package.json` como fuente. Una excepción para «lo decía de
+  ejemplo» es por donde se mueren los guardianes. Ámbito **ancho** al revés que V1/V2/V3,
+  y a propósito: aquéllas
+  son estrechas porque CHANGELOG, ROADMAP, BACKLOG y audits **son** custodios de estado y
+  tienen derecho a sus cifras; ninguno tiene derecho a un puntero que no se puede seguir.
+  La lista sale de `git ls-files` (incluidos los `.md` nuevos sin commitear), así que se
+  mantiene sola. Medido antes de adoptarla: la forma interior aparecía una sola vez en todo
+  el repo, y era la que la motivó.
+- **`docs-guard` vigila también las fuentes del riel** (`kanban-mcp/server.py`,
+  `kanban-mcp/validation.py`). La descripción de `list_workspaces` afirmaba cuántas filas
+  veía el riel de cuántas había: un estado escrito **dentro de una puerta**, que es donde
+  peor envejece, porque es lo que el modelo lee justo antes de llamar a la tool. V2 sí
+  mordía esa línea; nunca se la habíamos puesto delante, y no por sutileza: por no ser un
+  markdown. Ojo con lo que esto es — un regex por línea sobre todo el fichero, no un parser
+  de docstrings. Los tres ficheros del riel dan verde hoy.
+- **Diseño del detector de puntos ciegos del riel** — `docs/BACKLOG.md`, sección «El punto
+  ciego del riel». La membresía del riel se mantiene a mano y falla en silencio: un espacio
+  sin el riel dentro no da error, sencillamente no existe para la flota. El cruce va en
+  ambas direcciones —punto ciego **y** fuga— y lo contesta `service_role`, **nunca el riel**,
+  que por definición no ve sus propios puntos ciegos.
+  **Criterio de alcance, resuelto por Ibai:** manda la **propiedad**, no el tipo. El riel
+  debe estar en los espacios cuyo owner es Ibai, salvo los que él tipe como `personal`; todo
+  lo demás queda fuera por definición, sin mirarlo. Descartado el criterio por tipo, que era
+  la primera propuesta: habría hecho depender el alcance del riel de cómo tipe Món sus
+  propios espacios, es decir, habría convertido el detector en una petición permanente a otra
+  persona. De las dos columnas de propiedad manda `workspace_members.role = 'owner'` y no
+  `created_by`: hoy coinciden, pero coincidir no es corroborar — `created_by` no se mueve
+  cuando la propiedad sí, y entonces exigiría meter el riel en un espacio ajeno.
+  Comprobado con `service_role` antes de escribirlo: **cero desviaciones, nace verde**. El
+  criterio por tipo habría nacido rojo, y no porque la realidad estuviera sucia: porque
+  pedía meter el riel donde no debe entrar. El rojo era el síntoma; la causa era la medida.
+  Implementación (endpoint, workflow, test) pendiente en el backlog.
+- **`docs/INVENTARIO-MULTI-TENANT.md`** — inventario de la maquinaria multi-tenant que
+  quedó sin usuarios (tipos de espacio, rol `cliente`, `organizationId`, invitaciones), con
+  coste de conservar frente a retirar. **No se retira nada**; la decisión es de Ibai. El
+  resultado principal es que las piezas no son la misma clase de cosa: `type` y la
+  membresía nacieron multi-tenant pero hoy **son** el sistema nervioso del riel; el rol
+  `cliente` es el único de verdad sin usar, y el único con un argumento de seguridad a
+  favor de retirarlo (su aislamiento vive solo en la capa Express — ninguna política RLS
+  lo codifica).
 - **Riel · `update_board`** — renombra un tablero conservando columnas y tarjetas. Antes,
   la única vía por el riel era `delete_board` + recrear, que arrastra todas las cards
   dentro: eso no es renombrar, es pérdida de datos con otro nombre. Mover un tablero
@@ -124,6 +172,40 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   enrutador, y declara explícitamente que mandan las tools disponibles, no la tabla.
 
 ### Removed
+- **Las rutas del atlas del capitán, en todo el repo — incluido el código del riel.**
+  `kanban-mcp/server.py` y `kanban-mcp/validation.py` tecleaban la ruta del manual de
+  enrutado, y una de ellas (`_MANUAL`) **se devuelve dentro del texto de error** de una
+  validación fallida. Ahora dicen el **repo** (`aglaya-orchestrator`, que no caduca) y la
+  **pregunta**: `donde_pregunto("tarea")` en el MCP `aglaya-atlas`, que resuelve al manual
+  vivo y cita su fuente. Comprobado contra la puerta real.
+  Un error tiene que seguir diciendo a dónde ir —quien se lo come no puede navegar a otro
+  sitio— y ese es justamente el argumento **a favor** del cambio, no en contra: una ruta
+  muerta en un mensaje de error manda a la nada y encima suena autorizada.
+  `test_validation.py` fijaba el nombre del fichero del atlas; ahora fija la pregunta y
+  exige que no aparezca ninguna ruta. Cerraba la mitad floja del problema (que no se copiara
+  el manual) dejando abierta la que de verdad rompe: que el capitán lo mueva.
+- **Las rutas del atlas en los documentos, también las escritas en pasado.** Fuera la
+  elidida de `docs/BACKLOG.md` y fuera la ruta real que quedaba en la sección «Las
+  lecciones», más los fixtures y comentarios de `docs-guard` que tecleaban una. Al capitán **se le pregunta, no
+  se le cita**. La defensa que se le dio a la segunda —«es relato fechado, no un puntero»—
+  es la misma excepción que se había rechazado unas líneas antes al morder `ELIDED` un
+  ejemplo puesto a propósito en este mismo fichero: si «lo decía de ejemplo» no vale, «lo
+  decía en pasado» tampoco. Los fixtures del sello pasan a rutas **inventadas**
+  (`repo-vecino/manual.md`): prueban exactamente lo mismo —primer segmento que no es un
+  directorio de este repo— y no caducan cuando el capitán reorganice lo suyo.
+- **El grafo de graphify deja de estar versionado.** Decisión de flota: ningún repo guarda
+  su grafo. Desinstalado el hook de git que lo reconstruía en cada commit y cada cambio de
+  rama, `graphify-out/` fuera del índice y dentro de `.gitignore`, y retirada la sección
+  `## graphify` de `CLAUDE.md`. **Nada del código lee un grafo**: era un derivado commiteado
+  que envejece con pinta de autoridad — se lee como el estado de la codebase cuando es una
+  foto del día que se construyó, y la misma clase de copia que este repo lleva un mes
+  retirando de sus documentos. Se corre a demanda; no se mantiene. Se conserva
+  `.graphifyignore`, que es configuración de una corrida, no un derivado.
+- **El hook de Claude Code de graphify en `.claude/settings.json`.** Obligaba a consultar el
+  grafo antes de cada `Bash`, `Read` y `Glob`. Contradice lo anterior de la forma más
+  directa posible —«a demanda» y «obligatorio en cada llamada» no caben juntos— y además
+  apuntaba a una ruta de la máquina de Ibai (`/Users/AGLAYA/.local/bin/`) estando
+  versionado, así que en cualquier otro clon era un hook roto en cada herramienta.
 - **`AGENTS.md`**: se declaraba «resumen de CLAUDE.md». Un resumen es una copia, y una copia
   diverge: llegó a afirmar Phase 4 completada mientras `CLAUDE.md` la daba pendiente.
 - **Default de `workspaceName`** en `POST /api/internal/create-card`. Apuntaba a

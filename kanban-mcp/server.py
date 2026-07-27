@@ -175,8 +175,8 @@ def list_workspaces() -> dict[str, Any]:
     """List the workspaces the rail is a MEMBER of — NOT every workspace that exists.
 
     `GET /workspaces` parte de `workspace_members` filtrando por `user_id`
-    (server/routes/workspaces.js). Ser superadmin no concede nada en esa ruta.
-    Al 2026-07-21 el riel ve 3 de las 6 filas de la tabla.
+    (server/routes/workspaces.js). Ser superadmin no concede nada en esa ruta:
+    el rol no es membresía, y esta lista puede ser un subconjunto de la tabla.
 
     Esta tool NO puede contestar "¿existe un workspace llamado X?". Para eso el
     custodio es la DB vía `service_role`, que salta RLS — que es justamente lo
@@ -289,9 +289,11 @@ def create_card(
 
     ROUTING RULE (summary — the manual is the custodian, not this docstring):
     the destination space is the one owning the ARTEFACT to be touched, and a
-    task lives in ONE space only, never mirrored. Full rule and destination IDs:
-    `atlas/gobierno/kanban-manual.md` in the aglaya-orchestrator repo. Live IDs:
-    `list_workspaces` here.
+    task lives in ONE space only, never mirrored. For the full rule, ASK — do
+    not follow a path: `donde_pregunto("tarea")` in the `aglaya-atlas` MCP
+    (repo `aglaya-orchestrator`) resolves to the live manual and cites it. A
+    typed-out atlas path expires silently when the captain reorganises; the
+    repo name and the question do not. Live IDs: `list_workspaces` here.
 
     `board_id` is OPTIONAL — derived from `column_id` if omitted. The BRIEF goes
     in `description_md` (markdown); `description` is an alias for the same field.

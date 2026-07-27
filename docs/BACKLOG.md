@@ -34,14 +34,116 @@ devolviendo `201`. La peor forma de fallar es la que devuelve éxito.
 - [ ] **⚠️ REQUIERE REINICIO DEL MCP.** El servidor en marcha cargó el `server.py`
       anterior; ni el alias ni `update_card` están vivos hasta reiniciarlo. Workaround
       inmediato mientras tanto: pasar **`description_md`** (no `description`)
-- [ ] **Ficha del capitán** (`aglaya-orchestrator/.../aglaya-kanban-desk.md`): documenta
-      el parámetro como `description` para la tool MCP. Es del capitán; señalado para que
-      lo alinee — ahora ambos nombres valen, así que ya no miente, pero conviene nombrar
-      el canónico
+- [ ] **Ficha del capitán**: documenta el parámetro como `description` para la tool MCP.
+      Es del capitán; señalado para que lo alinee — ahora ambos nombres valen, así que ya
+      no miente, pero conviene nombrar el canónico. Se consulta por la puerta
+      (`ficha("aglaya-kanban-desk")` · `contrato(...)` · `donde_pregunto(...)` en el MCP
+      `aglaya-atlas`), no por ruta: aquí había una con los puntos suspensivos en medio,
+      que ni resolvía ni se podía completar. El capitán reorganiza su atlas cuando quiere;
+      una ruta copiada caduca en silencio y una elidida nace caducada. Lo caza
+      `docs-guard[ELIDED]`
 
 El lado API (`updateCard`) ya está cubierto por `cards-validation.test.js`. El cambio
 del MCP es un envoltorio fino en Python sin harness de test en este repo; verificado
 por ejecución contra la DB.
+
+---
+
+## El punto ciego del riel — cómo se detecta *(2026-07-27 · diseñado, sin implementar)*
+
+**La fragilidad.** La membresía del riel se mantiene a mano y falla en silencio. Si se
+crea un espacio y no se añade `kanban-rail@aglaya.biz` como miembro, `GET /workspaces`
+—que filtra por `workspace_members`, no por rol— no lo devuelve. El riel no da «no eres
+miembro»: ese espacio sencillamente no está en la lista, ninguna nave de la flota puede
+dejar cards ahí, y nada lo dice. En un SaaS esto sería un detalle de permisos. Aquí el
+riel **es** el producto: un espacio invisible para el riel es un espacio que no existe.
+
+### La mitad que faltaba: quién custodia la intención
+
+Para decir «este espacio debería recibir comandas y no las recibe» hace falta saber cuáles
+*deberían*. Resuelto por Ibai el 2026-07-27, y la respuesta es **la propiedad**:
+
+> El riel debe ser miembro de los espacios cuyo **owner es Ibai**, excluidos los que **él**
+> tipe como `personal`. Todo lo demás queda fuera del alcance **por definición** — sin
+> mirarlo y sin preguntar.
+
+**Por qué NO el tipo, que fue la primera propuesta y era incorrecta.** El riel no debe ver
+los espacios de Món: son suyos, igual que el espacio personal de Ibai es de Ibai. Un criterio
+por tipo haría que el alcance del riel dependiera de **cómo tipe Món sus propios espacios** —
+convertiría el detector en una petición permanente a otra persona, y la pondría a mantener a
+mano una cosa que ni siquiera es suya. El tipo sigue en el criterio, pero solo dentro de lo
+que ya es de Ibai: ahí sí es él quien elige, y elegir `personal` es decir «esto no».
+
+**Cuál de las dos columnas de propiedad manda.** Hay dos candidatas y hoy coinciden en cada
+fila: `workspaces.created_by` y el miembro con `workspace_members.role = 'owner'`. Coincidir
+no las hace intercambiables — esa es la lección de «tres copias coincidiendo no es
+corroboración», más abajo. **Manda `workspace_members.role = 'owner'`**, que es lo que
+protege el código de permisos. `created_by` es un hecho del pasado y no se mueve: si algún
+día Ibai cede un espacio a Món, `created_by` seguiría diciendo Ibai y el detector exigiría
+meter el riel en un espacio ajeno — justo lo que este criterio existe para no hacer.
+
+### El cruce, en dos piezas
+
+**1 · Es mecánico, y va en las DOS direcciones.**
+Un solo lado no basta: el olvido silencioso tiene un gemelo, que es el riel metido donde
+no debe. Los dos se leen del mismo `JOIN`:
+
+- en alcance **y** el riel NO es miembro → **punto ciego**. Nada puede aterrizar ahí, y nadie
+  se entera.
+- fuera de alcance **y** el riel SÍ es miembro → **fuga**. El riel puede escribir en zona
+  ajena o protegida, que es exactamente el agujero que cerró el `400` de `workspaceName`.
+
+**2 · Quién contesta: `service_role`, no el riel.**
+Esto es lo único que no se puede negociar. El riel **no puede ver sus propios puntos ciegos**
+— por definición no salen en su lista. Preguntárselo a `list_workspaces` es repetir el error
+que ya está documentado más abajo («Un alcance no contesta por otro»): esa tool contesta «de
+qué soy miembro», no «qué hay». El custodio es la DB vía `service_role`, que es el mismo
+alcance que usa `POST /api/internal/create-card`. La consulta:
+
+```sql
+WITH alcance AS (
+  SELECT w.id, w.name, w.type,
+         EXISTS (SELECT 1 FROM workspace_members m JOIN users u ON u.id = m.user_id
+                 WHERE m.workspace_id = w.id AND u.email = 'kanban-rail@aglaya.biz') AS riel_dentro,
+         EXISTS (SELECT 1 FROM workspace_members o JOIN users x ON x.id = o.user_id
+                 WHERE o.workspace_id = w.id AND o.role = 'owner'
+                   AND x.email = 'info@ibaifernandez.com') AND w.type <> 'personal' AS deberia
+  FROM workspaces w)
+SELECT name, type,
+       CASE WHEN deberia THEN 'PUNTO CIEGO' ELSE 'FUGA' END AS desviacion
+FROM alcance WHERE deberia <> riel_dentro;
+```
+
+Devolver **cero filas** es el estado sano. Cualquier fila es una desviación con su nombre.
+
+**Forma de entrega propuesta:** `GET /api/internal/rail-scope-drift`, autenticado con
+`x-task-secret` igual que `create-card` (mismo secreto, mismo alcance, misma puerta), que
+devuelve las desviaciones de las dos direcciones. Encima, un workflow programado calcado de
+[`digest-cron.yml`](../.github/workflows/digest-cron.yml): `curl` al endpoint, y si devuelve
+desviaciones, el job se pone rojo. Se descarta una tool MCP nueva para esto por la pieza 3 —
+sería preguntarle al alcance equivocado.
+
+### Estrena verde — comprobado antes de escribir esto
+
+Corrida la consulta de arriba contra la DB con `service_role` (2026-07-27): **cero filas**.
+Ni un punto ciego ni una fuga. El criterio por propiedad nace verde donde el criterio por
+tipo, que fue la primera propuesta, habría nacido rojo sobre los espacios de Món.
+
+Esa diferencia no es suerte y conviene no perderla: el criterio por tipo nacía rojo **porque
+estaba mal**, no porque la realidad estuviera sucia. Pedía meter el riel donde no debe entrar.
+El rojo era el síntoma; la causa era el criterio. Un guardián que nace rojo se normaliza hasta
+que alguien lo apaga — pero antes de negociar el listón, conviene mirar si lo que falla es lo
+medido o la medida.
+
+- [ ] **Endpoint `GET /api/internal/rail-scope-drift`** — `x-task-secret`, `service_role`,
+      devuelve las desviaciones de ambas direcciones. Vacío = sano
+- [ ] **Workflow programado** calcado de `digest-cron.yml`: lo consulta y se pone rojo con
+      cualquier desviación
+- [ ] **Test que fija el criterio**, en la línea de `internal-create-card.test.js`: que la
+      propiedad manda sobre el tipo, que el custodio es `role = 'owner'` y no `created_by`,
+      y que los espacios ajenos quedan fuera **sin mirarlos**. Sin ese test, el día que
+      alguien «simplifique» el detector a un criterio por tipo volverá a ser silencioso, y
+      volverá silencioso, que es como llegó
 
 ---
 
@@ -402,8 +504,15 @@ mismo fallo el mismo día contando las tools de su MCP en el módulo en vez de e
 
 **Tres copias coincidiendo no es corroboración.** El nombre muerto vivía a la vez en el
 código, en el `CLAUDE.md` de este repo y en la ficha del atlas, de acuerdo entre sí, mientras
-`atlas/kanban-manual.md` —el custodio que la propia ficha señala— tenía el nombre bueno.
-Mismo mecanismo que hacía fiable el badge `1.4.0`: coincidía.
+el manual que la propia ficha señala como custodio tenía el nombre bueno. Mismo mecanismo que
+hacía fiable el badge `1.4.0`: coincidía.
+
+Aquí había una ruta del atlas escrita. Se retiró el 2026-07-27, con el mismo argumento con el
+que se retiró la elidida de más arriba: al capitán **se le pregunta, no se le cita**. La
+defensa de esta —«es relato fechado, no un puntero»— es la misma excepción que se rechazó dos
+párrafos antes al morder `docs-guard[ELIDED]` un ejemplo escrito a propósito en `CHANGELOG.md`.
+Si «lo decía de ejemplo» no vale, «lo decía en pasado» tampoco. El relato se entiende igual sin
+la ruta; la ruta es lo único que caduca.
 
 **Corolario para el test de ejemplos** (ver más abajo): debe validar contra `service_role`,
 no contra el riel, o hereda este mismo punto ciego.
