@@ -123,6 +123,30 @@ jobs:
 
           CONTRACT_GUARD_CHANGED="$CAMBIADOS" bash scripts/contract-guard.sh
 
+  grants-guard:
+    name: ¿Alguna tabla se abrió al rol anónimo?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # El sello va ANTES y no toca la DB: si el guardián está destripado se sabe
+      # aquí, sin gastar una consulta. Mismo orden que docs-guard y rail-blindspot.
+      #
+      # Ojo con lo que ese sello cubre: la DECISIÓN sobre las filas, no la
+      # consulta. Está escrito en su cabecera y comprobado por mutación.
+      - name: Sello — ¿muerde con una tabla abierta?
+        run: bash scripts/grants-guard.test.sh
+
+      # Le pregunta a la base porque el esquema documentado NO puede contestar
+      # esto: describe lo que se concedió a mano, y el defecto es justamente lo
+      # que se concede solo. Mismo secret que usa db-backup.yml.
+      - name: Guardián — cruce contra la base de datos
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: bash scripts/grants-guard.sh
+
   rail-blindspot:
     name: Riel — ¿hay algún espacio inalcanzable?
     runs-on: ubuntu-latest

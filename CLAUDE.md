@@ -190,13 +190,32 @@ Reglas:
 - Al mover una tarjeta a una columna de tipo "hecho/entregado/completado": establecer `priority` a `"none"` automáticamente.
 - Idioma del código: inglés. Idioma de documentación, commits y las cards en sí mismas: español.
 - Antes de implementar _features_, leer siempre `docs/ARCHITECTURE.md`.
-- **Supabase GRANTs (deadline Oct 30, 2026):** toda migración SQL que cree tabla nueva en `public` debe incluir GRANTs explícitos + RLS, o fallará vía supabase-js. Patrón obligatorio:
+- **Supabase GRANTs (deadline Oct 30, 2026):** toda migración SQL que cree tabla nueva en `public` debe **recortar primero y conceder después**, más RLS. Patrón obligatorio:
 
 ```sql
+  -- 1. RECORTAR. Va PRIMERO, y no es simetría: este proyecto tiene DEFAULT
+  --    PRIVILEGES en `public` que conceden a `anon` los SIETE privilegios sobre
+  --    TODA tabla nueva. Cuando tu GRANT se ejecuta, lo que sobra YA está puesto.
+  REVOKE ALL ON public.<tabla> FROM anon;
+
+  -- 2. Conceder solo lo que hace falta. `anon` se queda en SELECT, que es lo que
+  --    docs/schema/supabase-schema.sql declara para todas las tablas.
+  GRANT SELECT ON public.<tabla> TO anon;
   GRANT SELECT, INSERT, UPDATE, DELETE ON public.<tabla> TO authenticated;
   GRANT SELECT, INSERT, UPDATE, DELETE ON public.<tabla> TO service_role;
+
   ALTER TABLE public.<tabla> ENABLE ROW LEVEL SECURITY;
 ```
+
+  **Por qué el paso 1 y por qué va primero.** Este patrón concedía sin recortar, y
+  el 6-ago-2026 una tabla creada siguiéndolo al pie de la letra nació con siete
+  privilegios para el rol anónimo mientras sus hermanas tenían uno. Nadie lo iba a
+  ver: el esquema documentado decía una cosa y la base decía otra. Un `GRANT` no
+  quita nada — solo añade.
+
+  **Y ya no depende de que alguien se acuerde:** [`scripts/grants-guard.sh`](scripts/grants-guard.sh)
+  corre en CI, le pregunta a la base y se pone rojo si alguna tabla de `public` da
+  a `anon` más de lo que el esquema declara. Tiene su propio sello.
 
 - Migración de referencia: `migrations/add_explicit_grants.sql`.
 - Schema actualizado: `docs/schema/supabase-schema.sql`.
