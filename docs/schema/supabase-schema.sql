@@ -200,6 +200,19 @@ CREATE TABLE IF NOT EXISTS public.cards (
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Historial de la descripción de una tarjeta (migration-card-description-history.sql).
+-- Guarda la versión ANTERIOR cada vez que `cards.description` cambia por
+-- `PUT /api/cards/:id`. Existe porque esa puerta reemplaza la descripción entera
+-- y no había rastro: un llamante que no leyera antes de escribir destruía lo que
+-- había y recibía éxito.
+CREATE TABLE IF NOT EXISTS public.card_description_history (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  card_id         UUID NOT NULL REFERENCES public.cards(id) ON DELETE CASCADE,
+  description     TEXT NOT NULL,        -- como estaba ANTES del cambio
+  changed_by      UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  changed_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS public.categories (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
@@ -257,6 +270,8 @@ CREATE INDEX IF NOT EXISTS idx_digest_logs_user_id       ON public.digest_logs(u
 CREATE INDEX IF NOT EXISTS idx_digest_logs_recipient     ON public.digest_logs(recipient);
 CREATE INDEX IF NOT EXISTS idx_digest_logs_type_status   ON public.digest_logs(type, status);
 CREATE INDEX IF NOT EXISTS idx_digest_logs_created_at    ON public.digest_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_card_description_history_card
+  ON public.card_description_history(card_id, changed_at DESC);
 
 
 -- ── 9. GRANTs ───────────────────────────────────────────────
@@ -286,6 +301,7 @@ ALTER TABLE public.cards             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.digest_logs       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.card_description_history ENABLE ROW LEVEL SECURITY;
 
 -- organizations
 CREATE POLICY "Users see their own organization" ON public.organizations
@@ -373,6 +389,17 @@ CREATE POLICY "Usuarios borran tarjetas de su org" ON public.cards
   FOR DELETE USING (EXISTS (
     SELECT 1 FROM public.columns col JOIN public.boards b ON b.id = col.board_id
     WHERE col.id = cards.column_id AND b.organization_id = get_my_org_id()));
+
+-- card_description_history (⚠️ scope: el MISMO que la tarjeta de la que cuelga)
+-- Sin política de INSERT/UPDATE/DELETE a propósito: escribe el servidor con
+-- `service_role`, que salta RLS. Un historial que el usuario puede reescribir no
+-- prueba nada.
+CREATE POLICY "Usuarios ven el historial de las tarjetas de su org" ON public.card_description_history
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM public.cards c
+      JOIN public.columns col ON col.id = c.column_id
+      JOIN public.boards  b   ON b.id   = col.board_id
+    WHERE c.id = card_description_history.card_id AND b.organization_id = get_my_org_id()));
 
 -- categories (scope: organización)
 CREATE POLICY "Usuarios ven categorías de su org" ON public.categories
