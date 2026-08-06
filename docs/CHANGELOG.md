@@ -8,7 +8,7 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ### Fixed
 - **El guardián del contrato deriva qué vigila en vez de tenerlo tecleado** (PR
-  [#34](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/34)). Su lista
+  [#34](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/35)). Su lista
   eran tres rutas escritas a mano, y **envejeció el mismo día que se escribió**:
   ese 6-ago-2026 el PR [#22](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/22)
   sacó las prioridades válidas a `server/constants/priorities.js` —hoy el único
