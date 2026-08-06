@@ -37,6 +37,35 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     es que se ponga sola.
 
 ### Fixed
+- **El guardián del contrato deriva qué vigila en vez de tenerlo tecleado** (PR
+  [#35](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/35)). Su lista
+  eran tres rutas escritas a mano, y **envejeció el mismo día que se escribió**:
+  ese 6-ago-2026 el PR [#22](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/22)
+  sacó las prioridades válidas a `server/constants/priorities.js` —hoy el único
+  sitio donde vive el conjunto que decide el `400` y el texto del error, los dos
+  declarados en el contrato— y el PR
+  [#24](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/24) montó el
+  guardián sobre la lista de antes. **Ninguno de los dos estaba mal por su
+  cuenta: se encontraron mal.** Quitar `urgent` de ese fichero cambiaba la forma
+  de la Puerta 2 y CI se quedaba en verde.
+  - **Ahora se parte de las dos puertas y se sigue lo que importan**, y lo que
+    importan ellas, hasta agotar. Si mañana alguien saca otro trozo de la forma
+    de una puerta a un fichero nuevo, el guardián lo hereda solo.
+  - **El cierre son cinco ficheros**, no tres. El quinto es
+    `server/utils/supabase.js`, y no es sobre-inclusión: el contrato declara que
+    la Puerta 2 usa `service_role` y salta RLS, y ahí es donde se elige la llave.
+    Cambiar `SERVICE_ROLE_KEY` por `ANON_KEY` cambiaría el alcance prometido, en
+    verde. Dos commits en toda su vida, así que no cuesta falsos rojos.
+  - **Cierra además un hueco que la tarjeta no pedía:** una puerta que se moviera
+    de sitio se caía de la lista **en silencio** y el guardián seguía dando verde
+    con lo que quedara. Ahora se declara roto.
+  - **Estrena verde, medido:** corrido contra los PR #13–#33, ninguno cambia de
+    veredicto. El único que toca los dos ficheros nuevos es el #22, y ya salía
+    rojo con la lista de antes.
+  - **Lo que el cierre no ve, y está en su cabecera:** sigue imports estáticos y
+    literales. Un `require(variable)`, un import dentro de una función o un
+    `importlib` se le escapan. Barrido hoy: no hay ninguno en las puertas.
+
 - **`update_card` dejaba caer el brief en silencio si venía con su nombre
   documentado** (PR [#32](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/32),
   contrato del riel a **v3.2.0**). `create_card` aceptaba el brief por sus dos
@@ -52,6 +81,31 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     el brief de cualquier tarjeta a la que solo se le cambiara el título.
   - **El contrato afirmaba lo de los dos nombres sin acotar**, cierto para crear y
     falso para actualizar. Ahora es cierto para las dos puertas.
+
+- **El fallo de la copia de seguridad deja de ser silencioso** (PR
+  [#31](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/31)). El aviso era
+  un `::error::` en el log y un `TODO`: la copia —**la única red bajo esta nave**—
+  fallaba exactamente de la forma contra la que se montó, la que nadie ve hasta
+  que hace falta la copia. Ahora abre una **incidencia** en el repo, y **comenta
+  en la abierta si ya existe** en vez de abrir una por día: una racha tiene que
+  leerse como una racha, no como veinte avisos que se aprenden a ignorar.
+  - **Por qué una incidencia y no un correo ni una tarjeta:** medido —los secretos
+    de este repo son seis y **no incluyen `TASK_SECRET` ni `RESEND_API_KEY`**, así
+    que no se puede clavar una tarjeta en el riel ni mandar correo. `GITHUB_TOKEN`
+    siempre está. Lo nativo de la flota sería una tarjeta, y para eso hace falta
+    un acto humano que queda dicho en la tarjeta, no simulado aquí.
+
+### Added
+- **El volcado se verifica ANTES de subirlo** (PR #31). `pg_dump` puede terminar
+  en `0` y escribir casi nada, y a partir de ahí lo que hay en R2 es **un fichero
+  con el nombre correcto y sin copia dentro** — que no se nota hasta el único día
+  en que importa. Ahora se exige un suelo de tamaño (20 KB, un orden de magnitud
+  por debajo de los 195 KB medidos) **y** que el volcado contenga las tablas
+  esperadas: el tamaño dice que hay bytes, las tablas dicen que son los de esta
+  base.
+  - **No sustituye a una restauración de prueba**, que sigue sin hacerse nunca y
+    tiene su propia deuda. Es la comprobación más barata que separa «hay un
+    fichero» de «hay una copia».
 
 ### Fixed
 - **El presupuesto de tiempo de las pruebas vive en un solo sitio** (PR
