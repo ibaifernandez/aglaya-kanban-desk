@@ -13,13 +13,32 @@ function verifySecret(req, res, next) {
 }
 
 // ── GET /api/internal/list-workspaces ──────────────────────────────────────────
-// Lee todos los workspaces (service_role, sin membresía).
-// Permite a una nave externa verificar destinos antes de clavar trabajo.
+// Lee los workspaces (service_role, sin membresía) para que una nave externa
+// pueda verificar destinos antes de clavar trabajo.
+//
+// Excluye `type = 'personal'` POR REGLA, no por lista. Es la tercera superficie
+// automática de esta nave que lo hace, y las otras dos ya estaban: el digest los
+// excluye (fijado por su propio test) y `scripts/rail-blindspot.sh` los saca de
+// su consulta con `WHERE w.type <> 'personal'`. La doctrina está escrita en
+// `scripts/rail-blindspot.allowed`: «son intocables por decisión dura y el riel
+// no debe escribir ahí nunca. Una regla cubre también los que se creen mañana;
+// una lista, no».
+//
+// Qué cierra en concreto: esta puerta se autentica con TASK_SECRET, que es llave
+// maestra y vive FUERA de esta máquina. Sin este filtro entregaba el UUID del
+// espacio personal de Ibai a cualquiera que tuviese el secreto — y el UUID es
+// justo lo que hace falta para apuntar ahí. El PR original lo listaba: decía
+// tener «la misma amplitud que la puerta de escritura», y es cierto para
+// escribir, pero enumerar no es escribir. Antes había que adivinar el nombre.
+//
+// Lo que este filtro NO arregla: la puerta de escritura sigue aceptando un
+// `workspaceName` que resuelva a un personal. Ahí queda deuda, con tarjeta.
 
 router.get('/list-workspaces', verifySecret, async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from('workspaces')
     .select('id, name, type, emoji, organization_id')
+    .neq('type', 'personal')
     .order('name', { ascending: true });
 
   if (error) {

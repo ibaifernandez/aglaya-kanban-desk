@@ -7,6 +7,55 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
+- **Puerta de lectura del riel HTTP** (PR [#13](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/13),
+  obrero automático, 2026-08-06): `GET /api/internal/list-workspaces` y
+  `GET /api/internal/list-boards?workspaceId=…`, con el mismo `x-task-secret` que la puerta
+  de escritura. Cierran un hueco real: el contrato **exige** listar destinos antes de clavar
+  y no había forma de listarlos desde fuera de esta máquina — el riel lista por membresía y
+  solo aquí, la puerta HTTP alcanzaba todo pero solo escribía. Una nave externa tenía llave
+  y ningún mapa. **Corregido al aceptarlo:** excluyen `type = 'personal'` por regla. El PR
+  los listaba, alegando «la misma amplitud que la puerta de escritura» — cierto para
+  escribir, falso como equivalencia: `TASK_SECRET` vive fuera de esta máquina y enumerar
+  entregaba el UUID del espacio personal de Ibai, que es justo lo que hace falta para
+  apuntar ahí. Antes había que adivinar el nombre; un UUID no se adivina.
+
+### Changed
+- **Contrato del riel a v2.0.0** ([`docs/contracts/CONTRACT.md`](contracts/CONTRACT.md)).
+  Dos cambios incompatibles y uno aditivo, todos ya en el código:
+  - `priority` inválida ya **no se corrige en silencio a `medium`**: devuelve 400 con las
+    válidas (PR [#15](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/15)).
+  - `workspaceName` ambiguo ya **no aterriza en el primero devolviendo `201`**: devuelve 400
+    con `candidates` (PR [#14](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/14)).
+    Medido contra la base real: **7 de 13 espacios casan con `%AGLAYA%`**, sobre un `ilike`
+    sin `ORDER BY`. Era una moneda al aire, no un riesgo teórico.
+  - El acuse devuelve los **tres destinos resueltos** (`workspace_id`/`board_id`/`column_id`
+    + nombres canónicos). Antes `workspace` devolvía la entrada sin resolver: el único campo
+    por el que se puede aterrizar mal era el único que no se podía comprobar.
+
+### Fixed
+- **Ratas en las pruebas de los tres PR del obrero**, retiradas al aceptarlos. Los tres
+  llegaron en verde y con recuentos de pruebas en la descripción; el verde y los recuentos
+  eran ciertos, y aun así seis mutaciones sobre código que las pruebas decían vigilar
+  **seguían pasando**:
+  - `internal-create-card-defects.test.js` afirmaba en verde **idempotencia que el código no
+    tiene** — pasaba solo porque el mock devolvía el literal `'card-123'` en toda inserción;
+    basta con que devuelva un id distinto por inserción, como hace una DB real, para que se
+    ponga roja. El propio PR decía en su descripción que dejaba la idempotencia sin tocar:
+    la suite contradecía al PR, y quien leyera la suite habría concluido que estaba resuelto.
+    Junto a ella, un `expect(true).toBe(true)` para el defecto de orden. Ambas retiradas: una
+    deuda se lleva en su tarjeta, donde se puede priorizar; un test que no puede fallar no es
+    un recordatorio, es una afirmación falsa con palomita.
+  - Borrar entero el payload `candidates` —la mitad útil del 400 nuevo— pasaba en verde.
+  - En `internal-read.test.js`, el mock ignoraba `.select()` y `.eq()`: quitar `emoji` de la
+    proyección **o quitar el filtro `workspace_id`** —fuga de tableros entre espacios— no
+    rompía nada.
+  - En `internal-create-card-contract.test.js`, la única prueba del acuse iba envuelta en
+    `if (res.status === 201)` y asertaba un campo de cuatro: borrar `board_id` y `column_id`,
+    o revertir la resolución del nombre de espacio —el defecto exacto que el PR decía
+    cerrar— pasaba en verde.
+
+  Mocks fieles (proyección y filtros reales) y las aserciones que faltaban. Las seis
+  mutaciones ahora muerden, verificadas una a una.
 - **El punto ciego del riel, implementado** (`scripts/rail-blindspot.sh` + su sello +
   `scripts/rail-blindspot.allowed`, en CI). Estaba diseñado en `docs/BACKLOG.md` desde el
   2026-07-27 por la mañana. Un espacio sin `kanban-rail@aglaya.biz` dentro queda invisible
