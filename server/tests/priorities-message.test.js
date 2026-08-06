@@ -125,6 +125,7 @@ describe('las dos puertas aceptan el mismo conjunto', () => {
       boardName: 'Tablero',
       workspaceName: 'Espacio',
       assignee: 'rail@aglaya.biz',
+      caller: 'banco-de-pruebas',
       priority: p,
     });
     // Puede fallar por otras cosas del doble, pero NUNCA por la prioridad.

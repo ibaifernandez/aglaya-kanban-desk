@@ -209,10 +209,18 @@ CREATE TABLE IF NOT EXISTS public.cards (
   attachments     JSONB DEFAULT '[]'::jsonb,
   tags            JSONB DEFAULT '[]'::jsonb,
   assignee_id     UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  -- Nave declarada que la creó por POST /api/internal/create-card. NO es
+  -- autenticación: quien tiene TASK_SECRET declara el nombre que quiera. NULL en
+  -- las creadas por la UI, por el riel, o antes del 2026-08-06.
+  created_by_caller TEXT,
   "order"         INTEGER NOT NULL DEFAULT 0,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE INDEX IF NOT EXISTS idx_cards_created_by_caller
+  ON public.cards(created_by_caller, created_at DESC)
+  WHERE created_by_caller IS NOT NULL;
 
 -- Historial de la descripción de una tarjeta (migration-card-description-history.sql).
 -- Guarda la versión ANTERIOR cada vez que `cards.description` cambia por

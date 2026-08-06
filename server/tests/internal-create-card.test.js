@@ -59,6 +59,7 @@ const CUERPO_COMPLETO = {
   workspaceName: '⭐ AGLAYA 2.0',
   priority:      'medium',
   assignee:      'kanban-rail@aglaya.biz',
+  caller: 'banco-de-pruebas',
 };
 
 const sin = (...campos) => {

@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.1.0
+- **Versión:** 4.0.0
 - **Última modificación:** 2026-08-06
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -140,6 +140,7 @@ Crea una tarjeta sin JWT y sin login.
 | `workspaceName` | sí | — | **Sin default, por diseño.** Omitirlo → 400 |
 | `priority` | sí | — | `urgent`\|`high`\|`medium`\|`low`\|`none`. **Ausente → 400** *(v3.0.0; antes caía a `medium` en silencio)*. **Inválida → 400** con la lista de válidas *(v2.0.0)* |
 | `assignee` | sí | — | *(v3.0.0, campo nuevo)* Email, nombre exacto o UUID del responsable. Ausente → 400; sin match → 404; nombre que casa con varios → 400 con `candidates` |
+| `caller` | sí | — | *(v4.0.0, campo nuevo)* Qué **nave** clava esto. Ausente o vacío → 400. Se guarda con la tarjeta y vuelve en el acuse. **NO es autenticación** — ver abajo |
 | `description` | no | `""` | El brief |
 | `dueDate` | no | `null` | ISO 8601 |
 
@@ -245,6 +246,40 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**v4.0.0 — 2026-08-06 · MAYOR.** Un cambio, incompatible: **`caller` pasa a ser
+obligatorio** en `POST /api/internal/create-card`.
+
+**Qué cierra.** Esta puerta se autentica con UN secreto compartido. Con dos
+llamantes no molesta; con N naves **todo lo clavado dice lo mismo**, así que
+cuando algo aparece mal puesto no hay a quién preguntar. Ahora cada tarjeta
+conserva qué nave dijo estar clavándola, y vuelve en el acuse para que el
+llamante vea con qué quedó registrado.
+
+**⚠️ Lo que NO es, y conviene no leerlo al revés: no es autenticación.** Quien
+tiene el secreto declara el nombre que quiera, incluido el de otro. Sirve para
+saber quién **dice** ser — que es exactamente lo que hace falta para cruzar «lo
+que las naves dieron por entregado» contra «lo que hay en un tablero», y esa
+comprobación sin esto no se puede ni escribir. Atar el nombre a credenciales por
+nave es la otra mitad, y vive en su propia tarjeta.
+
+**Por qué obligatorio y sin default**, que es la cuarta vez que esta puerta toma
+la misma decisión: un default —«desconocido», el nombre del riel— convertiría «no
+lo sabemos» en una **atribución falsa**, y una atribución falsa no se lee como
+hueco. El hueco avisa; el valor inventado, no. Las tarjetas anteriores a este
+cambio se quedan en `NULL` por el mismo motivo: rellenarlas sería inventar.
+
+**Rompe a todos los llamantes actuales.** Los dos documentados —el `curl` de
+`CLAUDE.md` y el paso de verificación de `docs/runbooks/key-rotation.md`— se
+arreglan **en el mismo cambio que los invalida**, para que no exista ni un commit
+en el que el contrato y sus ejemplos digan cosas distintas.
+
+**Lo que NO decide el constructor:** si esta ruptura necesita ventana de
+deprecación. La anterior (v3.0.0) no la llevó porque el radio medido eran tres
+llamantes y los tres documentación. **Aquí el radio es el mismo tipo de cosa —dos
+ficheros, ningún servicio— pero la decisión es de quien tenga que cambiar sus
+propias llamadas.**
+
 
 **v3.1.0 — 2026-08-06 · MENOR.** Aditivo: `update_column` y `delete_column` en la
 Puerta 1, y la numeración de columnas normalizada a 1..N. Es nota de contrato y no
