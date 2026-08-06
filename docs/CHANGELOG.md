@@ -54,6 +54,30 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     del vigilante; lo que cierra es el caso en que **nadie miró**.
 
 ### Added
+- **El envoltorio del riel entra en CI** (`kanban-mcp/test_server.py`, 17 casos).
+  `validation.py` —la lógica pura— estaba sellada; las **666 líneas** que la rodean
+  se verificaban a mano contra la base. *Lo que no corre en CI es decoración*, y era
+  justo la capa donde han vivido los fallos que este repo ha pagado.
+  - **Sin `pip install`, que era la razón por la que no existía.** `server.py`
+    importa `httpx` y `mcp`, y ese trabajo corre con un `python3` pelado a
+    propósito. La salida no fue aflojar esa regla: el banco **sustituye los dos
+    módulos por dobles antes de importar**, y `mcp.tool()` pasa a devolver la
+    función tal cual, así que las tools quedan invocables como funciones normales.
+  - **Lo que se fija no es el valor devuelto, es si salió algo a la red.** Un dict
+    de error se parece mucho a otro; la diferencia entre «no se creó nada» y «se
+    creó a medias y me lo callé» solo se ve mirando las escrituras. La prueba
+    principal es la que esa tarjeta existía para poder escribir: **un `assignee`
+    que no resuelve no deja la tarjeta escrita**.
+  - Cubre además las **compuertas destructivas** —`delete_card`, `delete_board`,
+    `delete_workspace`, `clear_workspace` sin `confirm` no emiten una sola
+    escritura—, el enrutado de `list_cards` y el rechazo de prioridades inválidas.
+  - **Lo que NO cubre, dicho en voz alta:** solo comportamiento correcto. Los
+    defectos conocidos —la ventana entre crear y asignar, el `description_md` que
+    `update_card` descarta— tienen tarjeta propia y **no se fijan aquí**: un test
+    que afirma en verde un defecto es una afirmación falsa con palomita, y esta
+    casa ya pagó una hoy.
+
+### Added
 - **Las columnas se pueden renombrar y borrar desde el riel, y los números dejan de
   chocar** (PR [#19](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/19),
   obrero automático, 2026-08-06). Contrato del riel a **v3.1.0**, aditivo.
