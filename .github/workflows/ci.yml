@@ -152,6 +152,23 @@ jobs:
   # workflow solo se dispara con empujes y PR, y eso dejaba un espacio creado
   # sin tocar el repo invisible para toda la flota hasta el siguiente commit.
 
+  hook-guard:
+    name: ¿Sigue declarado el enganche de permisos?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # El sello va ANTES, como en los demás: si el guardián está destripado se
+      # sabe aquí. Mismo orden que docs-guard, contract-guard y grants-guard.
+      - name: Sello — ¿muerde con el enganche quitado?
+        run: bash scripts/hook-guard.test.sh
+
+      # Sobre el fichero real. Barato y sin secretos: solo lee JSON.
+      - name: Guardián — sobre .claude/settings.json
+        run: bash scripts/hook-guard.sh
+
   client-build:
     name: Client build (vite)
     runs-on: ubuntu-latest
