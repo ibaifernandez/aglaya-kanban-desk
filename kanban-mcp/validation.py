@@ -1,4 +1,8 @@
-"""Validación de destino del riel — lógica PURA, sin red ni dependencias.
+"""Validación de entrada del riel — lógica PURA, sin red ni dependencias.
+
+Empezó siendo solo el DESTINO (a qué espacio va la tarjeta) y hoy cubre también
+lo que la hace PROCESABLE: responsable y prioridad. Los tres tienen la misma
+forma de fallo — un campo que falta y una tarjeta que se crea igual.
 
 Está separada de `server.py` a propósito, y sin imports de terceros, para que
 `test_validation.py` corra en CI con un `python3` pelado, sin instalar nada.
@@ -22,6 +26,77 @@ REGLA DE ENRUTADO — el resumen va aquí, el manual NO se copia:
 # de abajo, así que tiene que seguir diciendo a dónde ir incluso —sobre todo—
 # cuando el capitán haya movido las cosas de sitio.
 _MANUAL = 'donde_pregunto("tarea") en el MCP aglaya-atlas (repo aglaya-orchestrator)'
+
+# La lista vive aquí, en el módulo puro, para que la comprueben los tests sin red.
+# Estaba escrita a mano en dos sitios de `server.py`; una copia de una lista de
+# valores válidos es la forma barata de que una puerta acepte lo que la otra
+# rechaza.
+VALID_PRIORITIES = ("urgent", "high", "medium", "low", "none")
+
+
+def priority_error(priority):
+    """`None` si viene una prioridad utilizable; dict de error si falta o no vale.
+
+    Cubre los DOS fallos, y el segundo es el que motivó esta función:
+
+    · **Inválida** ya se rechazaba antes.
+    · **Ausente** caía a `medium` en silencio. Quien creía no haber decidido
+      había decidido, y su tarjeta se ordenaba contra las demás con un valor que
+      nadie eligió. Es la forma exacta del default de `workspaceName`: implícito,
+      plausible y callado.
+
+    No juzga si la prioridad es la ACERTADA — eso es criterio y no vive en una
+    puerta. Solo que venga y que exista.
+    """
+    p = str(priority).strip() if priority is not None else ""
+
+    if not p:
+        return {
+            "error": (
+                "priority es obligatoria: di explícitamente qué urgencia tiene la "
+                "tarjeta. No hay default por diseño — antes caía a `medium` sin "
+                "decirlo, así que quien creía no haber decidido había decidido.\n"
+                f"Válidas: {', '.join(VALID_PRIORITIES)}."
+            )
+        }
+
+    if p not in VALID_PRIORITIES:
+        return {
+            "error": (
+                f'priority inválida: "{priority}". '
+                f"Válidas: {', '.join(VALID_PRIORITIES)}."
+            )
+        }
+
+    return None
+
+
+def missing_assignee_error(assignee):
+    """`None` si viene un responsable; dict de error si falta.
+
+    Comprueba PRESENCIA, no existencia: que el valor resuelva a un usuario real
+    lo mira quien tiene red. Aquí se corta antes de tocarla.
+
+    Factura que lo enseñó (6-ago-2026): tres tarjetas bien escritas nacieron sin
+    responsable. Un obrero filtra por ese campo, así que **no existían para
+    nadie** — envejeciendo en el backlog con pinta de trabajo pendiente. Nadie se
+    entera de esto nunca: no hay error que leer ni tarjeta perdida que buscar,
+    hay una fila correcta que ningún proceso mira.
+
+    Tampoco juzga QUIÉN debe ser el responsable. Que sea un obrero o un humano es
+    criterio; que el campo venga, no.
+    """
+    if assignee is not None and str(assignee).strip():
+        return None
+    return {
+        "error": (
+            "assignee es obligatorio: di explícitamente de quién es la tarjeta. "
+            "No hay default por diseño — una tarjeta sin responsable no la coge "
+            "nadie, y no falla: envejece pareciendo trabajo pendiente.\n"
+            "Acepta email, nombre exacto o id. Los usuarios vivos los da "
+            "list_members en este mismo MCP."
+        )
+    }
 
 
 def missing_workspace_error(workspace_id):

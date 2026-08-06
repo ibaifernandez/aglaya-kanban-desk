@@ -186,8 +186,19 @@ Por ahora, mantener native R2 API (cfut_ Bearer auth) en workflow `db-backup.yml
    ```bash
    curl -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
      -H "x-task-secret: $TASK_SECRET" -H "Content-Type: application/json" \
-     -d '{"title":"rotation-test","boardName":"Backlog","priority":"low","workspaceName":"⭐ AGLAYA 2.0"}'
+     -d '{"title":"rotation-test","boardName":"Backlog","priority":"low","assignee":"kanban-rail@aglaya.biz","workspaceName":"⭐ AGLAYA 2.0"}'
    ```
+
+   > **Qué esperar:** `201`. Un `400` que hable de un campo del payload NO es un
+   > fallo de rotación — es este comando desactualizado. La forma de la puerta la
+   > custodia [`docs/contracts/CONTRACT.md`](../contracts/CONTRACT.md); esto es
+   > una copia y, como toda copia, caduca. Lo que confirma la rotación es no
+   > recibir **`401`**, que es lo único que mide el secreto.
+   >
+   > Este paso ya se equivocó una vez en la otra dirección: omitía
+   > `workspaceName` cuando ese campo tenía default, así que la tarjeta de prueba
+   > aterrizaba en el espacio **personal** de Ibai y devolvía `201`. Verificaba
+   > escribiendo donde no debía.
 
 ---
 
