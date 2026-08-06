@@ -70,6 +70,19 @@ jobs:
         working-directory: ./kanban-mcp
         run: python3 test_validation.py
 
+      # El ENVOLTORIO, que hasta hoy no corría en CI: se verificaba a mano contra
+      # la base. Ahí viven los fallos que este repo ha pagado —el acuse sin
+      # resolver, la prioridad corregida en silencio, el responsable que se
+      # resolvía después de crear la tarjeta—, así que quedaba la capa más cara
+      # sin red debajo.
+      #
+      # Sigue SIN `pip install`, que era la razón por la que no existía: el banco
+      # sustituye `httpx` y `mcp` por dobles antes de importar. La regla del
+      # trabajo anterior no se afloja para que quepa el nuevo.
+      - name: Tests del envoltorio del riel
+        working-directory: ./kanban-mcp
+        run: python3 test_server.py
+
   contract-guard:
     name: ¿Cambió una puerta sin tocar su contrato?
     runs-on: ubuntu-latest
