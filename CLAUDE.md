@@ -187,7 +187,24 @@ Reglas:
 
 - No matar procesos en puertos 3003/5175 sin verificar que son de AGLAYA Kanban Desk.
 - No modificar `.claude/launch.json` sin actualizar este archivo.
-- Al mover una tarjeta a una columna de tipo "hecho/entregado/completado": establecer `priority` a `"none"` automáticamente.
+- **La prioridad de una tarjeta se conserva al cerrarla.** Aquí decía lo contrario
+  —«al mover a una columna de tipo hecho/entregado/completado, establecer
+  `priority` a `"none"` automáticamente»— y esa regla **se retira**.
+
+  Se borraba un dato para arreglar una vista, y la vista ya tenía arreglo sin
+  pérdida: quien ordena por prioridad puede filtrar por columna, que es lo que
+  hace [`server/services/digest/user.js`](server/services/digest/user.js). Una
+  prioridad borrada no se recupera —no tiene historial— y **es la única señal de
+  cuánto importaba** aquel trabajo, justo en la columna que lee quien audita: sin
+  ella no se puede decir si lo cerrado fue lo urgente o lo cómodo.
+
+  **Y lo que la retira no es esta línea: es una prueba.** El código nunca borró
+  la prioridad —se comprobaron los cinco escritores— porque esta regla la
+  ejecutaban **a mano las sesiones que leían este archivo**. La retirada la
+  sostiene [`server/tests/move-card-preserva-prioridad.test.js`](server/tests/move-card-preserva-prioridad.test.js),
+  que se pone roja si alguien vuelve a implementarla.
+
+  `none` sigue siendo una prioridad válida. Lo que se retira es que se ponga sola.
 - Idioma del código: inglés. Idioma de documentación, commits y las cards en sí mismas: español.
 - Antes de implementar _features_, leer siempre `docs/ARCHITECTURE.md`.
 - **Supabase GRANTs (deadline Oct 30, 2026):** toda migración SQL que cree tabla nueva en `public` debe **recortar primero y conceder después**, más RLS. Patrón obligatorio:
