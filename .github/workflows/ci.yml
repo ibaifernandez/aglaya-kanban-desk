@@ -83,6 +83,46 @@ jobs:
         working-directory: ./kanban-mcp
         run: python3 test_server.py
 
+  contract-guard:
+    name: ¿Cambió una puerta sin tocar su contrato?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Historial completo: hace falta el diff contra la base del PR, no el
+      # árbol. Mismo motivo que schema-guard.
+      - name: Checkout (historial completo para diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # El sello va ANTES y no necesita el diff: si el guardián está destripado,
+      # se sabe aquí y da igual lo que conteste luego. Mismo orden que
+      # docs-guard y rail-blindspot.
+      - name: Sello — ¿muerde con una puerta tocada sin contrato?
+        run: bash scripts/contract-guard.test.sh
+
+      - name: Guardián — sobre los ficheros de este cambio
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+
+          # Primer push a un branch nuevo: BASE all-zeros → comparar con árbol vacío
+          if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE="$(git hash-object -t tree /dev/null)"
+          fi
+
+          CAMBIADOS="$(git diff --name-only "$BASE" "$HEAD")"
+          echo "Ficheros cambiados:"; echo "$CAMBIADOS"; echo "---"
+
+          CONTRACT_GUARD_CHANGED="$CAMBIADOS" bash scripts/contract-guard.sh
+
   rail-blindspot:
     name: Riel — ¿hay algún espacio inalcanzable?
     runs-on: ubuntu-latest

@@ -6,6 +6,53 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Fixed
+- **El mensaje de prioridad inválida omitía `urgent`, que sí es válida**
+  (`server/routes/cards.js`). El conjunto aceptaba `urgent` y el `400` respondía
+  «priority must be low, medium, high, or none» — dos listas separadas por seis
+  líneas, y la escrita a mano ya había divergido.
+  **Por qué no era cosmético:** el mensaje de error es la única documentación que
+  lee quien acaba de fallar. Quien lo recibía concluía que `urgent` no existe y
+  bajaba su tarjeta a `high` — la misma degradación silenciosa que el contrato
+  v2.0.0 se puso a evitar, cometida por el llamante en vez de por el servidor y
+  por eso invisible desde este lado.
+
+### Changed
+- **Las prioridades válidas viven en un solo sitio** (`server/constants/priorities.js`).
+  Había **tres** copias en JavaScript, no dos: el `Set` de `cards.js`, el `Set` de
+  `internalRoute.js` y el texto del error. Ahora el mensaje **se deriva** del
+  conjunto — no se escribe al lado— y las dos puertas leen la misma lista.
+  Prueba nueva con dos aserciones que no son la misma: que el mensaje nombra
+  **todas** las válidas (escrita como bucle sobre la lista viva, no contra un
+  literal, que sería otra copia), y que **las dos puertas aceptan el mismo
+  conjunto**, para que separarlas otra vez se ponga rojo antes de que un llamante
+  descubra que una acepta lo que la otra rechaza.
+  **Lo que NO cierra:** `kanban-mcp/validation.py` mantiene su copia — es otro
+  lenguaje y otro proceso. Que las dos digan lo mismo no lo garantiza nadie.
+
+### Added
+- **Guardián contrato ↔ código en CI** (`scripts/contract-guard.sh` + su sello, PR
+  [#24](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/24), obrero
+  automático). Se pone **rojo** si un cambio toca la forma de una puerta
+  —`server/routes/internalRoute.js`, `kanban-mcp/server.py`,
+  `kanban-mcp/validation.py`— y **no** toca `docs/contracts/CONTRACT.md`.
+  - **Cierra el agujero que costó tres PR seguidos.** #13, #14 y #15 cambiaron
+    códigos de error y forma de respuesta sin tocar el contrato, los tres pasaron
+    CI en verde, y lo cazó una persona leyendo diffs. Medido contra los ficheros
+    reales de esos PR: **los tres en rojo**; #16 a #21, verdes.
+  - **Estrenó verde**, que era la condición: un guardián que nace rojo se
+    normaliza hasta que deja de mirarse.
+  - **Exige tocar el fichero, no subir la versión.** Un refactor interno no mueve
+    SemVer, y exigirlo enseñaría a inflar versiones para pasar el guardián. Para
+    ese caso el error pide una línea en el historial — que **es** el aviso al
+    capitán que el contrato ya pedía.
+  - **El sello corre ANTES que el guardián** en el mismo job: si el guardián está
+    destripado se sabe ahí, y da igual lo que conteste después.
+  - **Lo que NO puede hacer, declarado en su cabecera y en el contrato:** comprueba
+    que alguien **tocó** el documento, no que fuera honesto al tocarlo. Un espacio
+    en blanco lo satisface. Que el texto describa el código sigue siendo trabajo
+    del vigilante; lo que cierra es el caso en que **nadie miró**.
+
 ### Added
 - **El envoltorio del riel entra en CI** (`kanban-mcp/test_server.py`, 17 casos).
   `validation.py` —la lógica pura— estaba sellada; las **666 líneas** que la rodean
