@@ -7,18 +7,18 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Changed
-- **Actions deja de cobrar por trabajo que nadie mira** (`concurrency` en los seis
-  workflows + filtro de rutas en los tres guardianes). **Medido, no estimado:**
-  hoy 6-ago-2026 este repo hizo **231 corridas**, contra 11-16 los días previos —
-  quince veces lo normal—, con 512 minutos facturados.
+- **CI deja de correr trabajo que nadie mira** (`concurrency` en los seis
+  workflows + filtro de rutas en los tres guardianes). **No es ahorro de dinero:**
+  este repo es **público**, y en los públicos Actions con corredores estándar es
+  gratis. Lo que se recorta es **espera** — cada revisión aguarda esos minutos, y
+  hoy 6-ago-2026 el repo hizo **231 corridas** contra 11-16 los días previos.
   - **`concurrency` con cancelación**, agrupando por workflow + rama. Tres
-    empujones seguidos pagaban tres corridas enteras y las dos primeras ya no le
-    importaban a nadie. **`ci.yml` ya lo tenía**, así que el ahorro aquí es de los
-    otros cinco — y eso mismo dice que los 349 minutos de `ci.yml` no los arregla
-    este flag.
+    empujones seguidos lanzaban tres corridas enteras y las dos primeras ya no le
+    importaban a nadie. **`ci.yml` ya lo tenía**, así que el cambio aquí es de los
+    otros cinco — y eso mismo dice que sus 349 minutos no los arregla este flag.
   - **La cancelación es solo en `pull_request`, a propósito.** En `main` la corrida
     **es** el registro de que lo puesto pasó sus comprobaciones; cancelarla lo
-    borra para ahorrar calderilla.
+    borra a cambio de nada.
   - **Filtro de rutas por las ENTRADAS reales de cada guardián**, no por
     conveniencia: `docs-guard` lee cinco ficheros —incluidos `client/vite.config.js`
     y `server/index.js`, porque su regla de puertos extrae el canon del código—,
@@ -33,16 +33,15 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     le faltaba `docs-guard` (nueve checks frente a diez) porque su corrida se
     perdió en la caída de Actions, y GitHub daba el PR por `CLEAN` igual. A partir
     de ahora **la ausencia de un guardián es normal** y ya no distingue «no
-    aplica» de «no corrió». Medido antes de decidirlo: este repo **no tiene
-    protección de rama** —el plan no la permite en privado— así que ninguna
-    comprobación era obligatoria y filtrar no puede dejar ningún PR sin mergear.
-  - **`digest-cron` NO baja de cadencia, y está razonado en su cabecera.** Es el
-    cron más caro (~744 corridas/mes) pero la hora la elige cada usuario
+    aplica» de «no corrió». Medido antes de decidirlo: `main` **no está
+    protegida** (`branches/main` → `protected: false`, con permiso de admin
+    confirmado), así que ninguna comprobación es obligatoria y filtrar no puede
+    dejar ningún PR sin mergear. **Lo único que impide mergear en rojo es que
+    alguien mire.**
+  - **`digest-cron` NO cambia de cadencia.** La hora la elige cada usuario
     (`users.digest_hour`): correr menos veces no manda menos correo, manda **cero**
-    a quien tenga una hora que ya no se visita, y sin error. Lo que lo arregla no
-    es la cadencia sino sacarlo de Actions: es un despertador para un servidor que
-    ya está encendido las 24 horas.
-
+    a quien tenga una hora que ya no se visita, y sin error. La consulta que haría
+    falta para decidirlo queda escrita en su cabecera.
 
 ### Fixed
 - **`update_card` dejaba caer el brief en silencio si venía con su nombre

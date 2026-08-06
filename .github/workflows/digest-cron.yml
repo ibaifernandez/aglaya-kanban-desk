@@ -1,31 +1,21 @@
 name: Digest horario
 
-# CADENCIA: se queda EN CADA HORA, y no es un descuido. Medido el 6-ago-2026.
+# CADENCIA: cada hora, y NO se baja sin un dato que aquí no se tiene.
 #
-# Es el cron más caro de la casa —24 corridas al día, ~744 al mes, y GitHub
-# factura un minuto mínimo por trabajo aunque el `curl` tarde ocho segundos—.
-# Aun así no se baja, y conviene saber por qué antes de bajarlo:
+# La hora la elige cada usuario: `users.digest_hour` (0-23 UTC) decide a quién le
+# toca en cada pasada y el servidor filtra. Correr menos veces no manda menos
+# correo: manda CERO correo a quien tenga configurada una hora que ya no se
+# visita. Y no falla — nadie recibe un error, simplemente deja de llegarle. Es la
+# forma que esta nave persigue: no rompe, desaparece.
 #
-# **La hora la elige cada usuario.** `users.digest_hour` (0-23 UTC) decide a
-# quién le toca en cada pasada; el servidor filtra. Correr menos veces no manda
-# menos correo: manda CERO correo a quien tenga configurada una hora que ya no
-# se visita. Y no falla — nadie recibe un error, simplemente deja de llegarle.
-# Es la forma exacta que esta nave persigue: no rompe, desaparece.
-#
-# Cuáles son las horas realmente en uso NO se puede leer desde aquí, y hace
-# falta para decidir. Una consulta lo contesta:
+# Cuáles son las horas realmente en uso no se puede leer desde aquí, y hace falta
+# para decidir:
 #
 #   SELECT digest_hour, count(*) FROM public.users
 #    WHERE digest_enabled GROUP BY 1 ORDER BY 1;
 #
-# Si todas caen en una sola hora, este cron puede ser esa hora y nada más.
-#
-# LO QUE DE VERDAD LO ARREGLA, y no es la cadencia: esto es un despertador que
-# le da un toque a un servidor que YA ESTÁ ENCENDIDO. Railway corre el proceso
-# de Express las 24 horas; programar ahí dentro el aviso horario cuesta cero
-# minutos de Actions en vez de 744 al mes, y encima deja de depender de que un
-# runner ajeno esté disponible a las en punto. Eso es cambio de servidor, no de
-# workflow, y por eso no entra en este PR.
+# Queda escrito para quien tenga esa respuesta. Este workflow no la tiene, así
+# que no toca la cadencia.
 
 on:
   schedule:
