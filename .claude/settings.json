@@ -1,1 +1,15 @@
-{}
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"/Users/AGLAYA/Local Sites/aglaya-orchestrator/.claude/hooks/permiso.py\""
+          }
+        ]
+      }
+    ]
+  }
+}
