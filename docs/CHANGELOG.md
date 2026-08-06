@@ -31,6 +31,29 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   lenguaje y otro proceso. Que las dos digan lo mismo no lo garantiza nadie.
 
 ### Added
+- **Guardián contrato ↔ código en CI** (`scripts/contract-guard.sh` + su sello, PR
+  [#24](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/24), obrero
+  automático). Se pone **rojo** si un cambio toca la forma de una puerta
+  —`server/routes/internalRoute.js`, `kanban-mcp/server.py`,
+  `kanban-mcp/validation.py`— y **no** toca `docs/contracts/CONTRACT.md`.
+  - **Cierra el agujero que costó tres PR seguidos.** #13, #14 y #15 cambiaron
+    códigos de error y forma de respuesta sin tocar el contrato, los tres pasaron
+    CI en verde, y lo cazó una persona leyendo diffs. Medido contra los ficheros
+    reales de esos PR: **los tres en rojo**; #16 a #21, verdes.
+  - **Estrenó verde**, que era la condición: un guardián que nace rojo se
+    normaliza hasta que deja de mirarse.
+  - **Exige tocar el fichero, no subir la versión.** Un refactor interno no mueve
+    SemVer, y exigirlo enseñaría a inflar versiones para pasar el guardián. Para
+    ese caso el error pide una línea en el historial — que **es** el aviso al
+    capitán que el contrato ya pedía.
+  - **El sello corre ANTES que el guardián** en el mismo job: si el guardián está
+    destripado se sabe ahí, y da igual lo que conteste después.
+  - **Lo que NO puede hacer, declarado en su cabecera y en el contrato:** comprueba
+    que alguien **tocó** el documento, no que fuera honesto al tocarlo. Un espacio
+    en blanco lo satisface. Que el texto describa el código sigue siendo trabajo
+    del vigilante; lo que cierra es el caso en que **nadie miró**.
+
+### Added
 - **Las columnas se pueden renombrar y borrar desde el riel, y los números dejan de
   chocar** (PR [#19](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/19),
   obrero automático, 2026-08-06). Contrato del riel a **v3.1.0**, aditivo.
