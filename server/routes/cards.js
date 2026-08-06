@@ -165,15 +165,58 @@ const updateCard = async (req, res) => {
     return res.status(400).json({ error: 'dueDate must be a valid date string' });
   }
 
-  // Fetch previous state for notification diff (checklist mentions + assignee change)
+  // Fetch previous state for notification diff (checklist mentions + assignee
+  // change) and for the description history below.
   let prevCard = null;
-  if (checklist !== undefined || assigneeId !== undefined) {
+  if (checklist !== undefined || assigneeId !== undefined || description !== undefined) {
     const { data: prev } = await supabaseAdmin
       .from('cards')
-      .select('checklist, board_id, title, assignee_id')
+      .select('checklist, board_id, title, assignee_id, description')
       .eq('id', req.params.id)
       .single();
     prevCard = prev;
+  }
+
+  // ── Historial de la descripción ────────────────────────────────────────────
+  // Esta puerta recibe la descripción COMPLETA y la reemplaza. No hay forma de
+  // añadir sin arriesgarse a borrar, así que un llamante que no lea antes de
+  // escribir destruye lo que había — y recibe éxito. Pagado el 6-ago-2026: un
+  // obrero automático sustituyó la descripción de una tarjeta por el texto de
+  // otra, y se recuperó por casualidad porque alguien tenía el original en su
+  // contexto. Con naves escribiendo de noche, esa casualidad no se repite.
+  //
+  // Va ANTES del update, y su fallo ABORTA el update. Es la diferencia entre una
+  // garantía y un apaño: un historial "fire-and-forget" puede fallar en silencio
+  // justo en la escritura que había que poder deshacer, y entonces no hay
+  // historial — hay la sensación de tenerlo, que es peor que no tenerlo.
+  //
+  // El precio, dicho en voz alta: si esta tabla no está disponible, no se puede
+  // editar la descripción de ninguna tarjeta. Se acepta a conciencia — perder la
+  // edición es recuperable, perder el texto anterior no.
+  const prevDescription = prevCard?.description;
+  const descriptionChanges =
+    description !== undefined &&
+    typeof prevDescription === 'string' &&
+    prevDescription.trim().length > 0 &&
+    prevDescription !== description;
+
+  if (descriptionChanges) {
+    const { error: histError } = await supabaseAdmin
+      .from('card_description_history')
+      .insert({
+        card_id:     req.params.id,
+        description: prevDescription,
+        changed_by:  req.user.id,
+      });
+
+    if (histError) {
+      console.error('[cards] historial de descripción:', histError.message);
+      return res.status(500).json({
+        error:
+          'No se pudo guardar la versión anterior de la descripción, así que no ' +
+          'se ha sobrescrito nada. Reintenta; si persiste, la tarjeta sigue intacta.',
+      });
+    }
   }
 
   const update = { updated_at: new Date().toISOString() };
@@ -343,6 +386,55 @@ const searchCards = async (req, res) => {
   });
 };
 
+// ── GET /api/cards/:id/history ────────────────────────────────────────────────
+// Las versiones anteriores de la descripción, la más reciente primero.
+//
+// Sin esto el historial es una tabla que nadie puede alcanzar, y «se puede
+// deshacer» sería falso: guardar el texto y no dar forma de leerlo es tenerlo
+// perdido en otro sitio. Deshacer se hace desde aquí — se lee la versión que
+// toca y se vuelve a mandar por `PUT /api/cards/:id`. No hay endpoint de
+// restauración aparte a propósito: restaurar ES una edición, y debe dejar su
+// propia entrada en el historial como cualquier otra.
+const getCardHistory = async (req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('card_description_history')
+    .select('id, description, changed_by, changed_at')
+    .eq('card_id', req.params.id)
+    .order('changed_at', { ascending: false });
+
+  if (error) {
+    console.error('[cards] getCardHistory:', error.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+
+  const rows = data || [];
+
+  // Se devuelve el nombre además del id, por el mismo motivo que el acuse de la
+  // puerta interna devuelve los destinos resueltos: un id suelto obliga a otra
+  // consulta para saber quién fue, y quien lee un historial busca justamente eso.
+  const authorIds = [...new Set(rows.map((r) => r.changed_by).filter(Boolean))];
+  let nameById = {};
+  if (authorIds.length) {
+    const { data: users } = await supabaseAdmin
+      .from('users')
+      .select('id, name')
+      .in('id', authorIds);
+    nameById = Object.fromEntries((users || []).map((u) => [u.id, u.name]));
+  }
+
+  res.json({
+    data: rows.map((r) => ({
+      id:          r.id,
+      description: r.description,
+      changedAt:   r.changed_at,
+      changedById: r.changed_by,
+      // `null` cuando la cuenta que la sustituyó ya no existe: se pierde el
+      // quién, nunca el qué. El texto es lo que hace falta para recuperar.
+      changedBy:   r.changed_by ? (nameById[r.changed_by] ?? null) : null,
+    })),
+  });
+};
+
 module.exports = {
   getCardsByBoard,
   getCardsByColumn,
@@ -351,4 +443,5 @@ module.exports = {
   moveCard,
   deleteCard,
   searchCards,
+  getCardHistory,
 };
