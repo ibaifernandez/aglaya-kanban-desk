@@ -1,9 +1,8 @@
 const express        = require('express');
 const { supabaseAdmin } = require('../utils/supabase');
+const { VALID_PRIORITY_SET: VALID_PRIORITIES, priorityList } = require('../constants/priorities');
 
 const router = express.Router();
-
-const VALID_PRIORITIES = new Set(['urgent', 'high', 'medium', 'low', 'none']);
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -147,12 +146,12 @@ router.post('/create-card', verifySecret, async (req, res) => {
       error:
         'priority es obligatoria. No hay default por diseño: antes caía a ' +
         '"medium" sin decirlo, así que quien creía no haber decidido había ' +
-        `decidido. Válidas: ${Array.from(VALID_PRIORITIES).join(', ')}`,
+        `decidido. Válidas: ${priorityList()}`,
     });
   }
   if (!VALID_PRIORITIES.has(priority.trim())) {
     return res.status(400).json({
-      error: `priority inválida: "${priority}". Válidas: ${Array.from(VALID_PRIORITIES).join(', ')}`,
+      error: `priority inválida: "${priority}". Válidas: ${priorityList()}`,
     });
   }
 

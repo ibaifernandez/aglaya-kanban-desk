@@ -6,6 +6,30 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Fixed
+- **El mensaje de prioridad inválida omitía `urgent`, que sí es válida**
+  (`server/routes/cards.js`). El conjunto aceptaba `urgent` y el `400` respondía
+  «priority must be low, medium, high, or none» — dos listas separadas por seis
+  líneas, y la escrita a mano ya había divergido.
+  **Por qué no era cosmético:** el mensaje de error es la única documentación que
+  lee quien acaba de fallar. Quien lo recibía concluía que `urgent` no existe y
+  bajaba su tarjeta a `high` — la misma degradación silenciosa que el contrato
+  v2.0.0 se puso a evitar, cometida por el llamante en vez de por el servidor y
+  por eso invisible desde este lado.
+
+### Changed
+- **Las prioridades válidas viven en un solo sitio** (`server/constants/priorities.js`).
+  Había **tres** copias en JavaScript, no dos: el `Set` de `cards.js`, el `Set` de
+  `internalRoute.js` y el texto del error. Ahora el mensaje **se deriva** del
+  conjunto — no se escribe al lado— y las dos puertas leen la misma lista.
+  Prueba nueva con dos aserciones que no son la misma: que el mensaje nombra
+  **todas** las válidas (escrita como bucle sobre la lista viva, no contra un
+  literal, que sería otra copia), y que **las dos puertas aceptan el mismo
+  conjunto**, para que separarlas otra vez se ponga rojo antes de que un llamante
+  descubra que una acepta lo que la otra rechaza.
+  **Lo que NO cierra:** `kanban-mcp/validation.py` mantiene su copia — es otro
+  lenguaje y otro proceso. Que las dos digan lo mismo no lo garantiza nadie.
+
 ### Added
 - **Las columnas se pueden renombrar y borrar desde el riel, y los números dejan de
   chocar** (PR [#19](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/19),
