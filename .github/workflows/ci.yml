@@ -47,11 +47,13 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: test_service_role
           SUPABASE_ANON_KEY: test_anon_key
         run: |
+          # Sin --testTimeout: el presupuesto lo custodia package.json y aquí no
+          # se repite. Estuvieron desalineados —10000 en package.json, 15000
+          # aquí— así que `npm test` y CI juzgaban con reglas distintas.
           npx jest server/tests \
             --runInBand \
             --no-watchman \
             --forceExit \
-            --testTimeout=15000 \
             --ci
 
   rail-validation:
