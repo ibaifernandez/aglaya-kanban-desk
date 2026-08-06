@@ -427,6 +427,26 @@ def update_card(
 
 
 @mcp.tool()
+def card_history(card_id: str) -> dict[str, Any]:
+    """PREVIOUS versions of a card's description, newest first — the undo.
+
+    `update_card` REPLACES the description; it cannot append. A caller that does
+    not read before writing destroys what was there and gets success back. That
+    happened on 2026-08-06 and was recovered only by luck. Since then the server
+    stores the previous text on every change, and this is how you reach it.
+
+    TO UNDO: read the version you want from here and send it back with
+    `update_card(card_id, description=…)`. There is no separate restore call on
+    purpose — restoring IS an edit, and it must leave its own history entry like
+    any other.
+
+    Only covers changes made through the API (the UI and this rail). A write made
+    straight to the database does not pass through it."""
+    rows = _request("GET", f"/cards/{card_id}/history") or []
+    return {"card_id": card_id, "count": len(rows), "versions": rows}
+
+
+@mcp.tool()
 def update_board(board_id: str, title: str) -> dict[str, Any]:
     """RENAME a board, keeping its columns and cards. Wraps PUT /api/boards/:id.
 
