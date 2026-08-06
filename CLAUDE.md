@@ -85,6 +85,7 @@ curl -s -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
     "title":      "Título de la tarea",
     "boardName":  "Nombre del tablero",
     "priority":   "high",
+    "assignee":   "kanban-rail@aglaya.biz",
     "workspaceName": "<nombre exacto del workspace destino>"
   }'
 ```
@@ -107,6 +108,12 @@ Lo único que se repite aquí es lo que hace daño si no lo lees a tiempo:
 - **Y no le preguntes al riel si un workspace existe.** `list_workspaces` lista
   aquello de lo que el riel es **miembro**, no lo que hay en la tabla. Son dos
   alcances distintos y confundirlos costó un diagnóstico entero.
+- **`assignee` y `priority` son obligatorios, y por el mismo motivo que
+  `workspaceName`.** Una tarjeta a la que le falte cualquiera de los dos no la
+  coge nadie — y **no falla**: envejece pareciendo trabajo pendiente. Es peor que
+  aterrizar mal, porque aterrizar mal se nota tarde y nacer invisible no se nota
+  nunca. `priority` tuvo default `medium` y ya no lo tiene: quien creía no haber
+  decidido, había decidido.
 
 ---
 
@@ -121,8 +128,10 @@ de la otra.
 | `POST /api/internal/create-card` | quien tenga `TASK_SECRET` — también desde fuera de esta máquina | **todos** (usa `service_role`, salta RLS) | nombre |
 
 Camino por MCP: `list_workspaces()` → `list_boards(workspace_id)` →
-`list_columns(board_id)` → `create_card(column_id, title, description_md, …)`.
-Asignar responsable dispara la notificación in-app real.
+`list_columns(board_id)` → `create_card(column_id, title, description_md,
+priority, assignee, …)`. **`priority` y `assignee` no son opcionales por ninguna
+de las dos puertas** — sin ellos la tarjeta sería invisible para el sistema de
+trabajo. Y asignar dispara la notificación in-app real: no es etiquetar.
 
 ⚠️ **El alcance del riel se mantiene a mano.** La cuenta `kanban-rail@aglaya.biz` es
 superadmin **por rol**, pero `GET /workspaces` filtra por **membresía** y no mira el
