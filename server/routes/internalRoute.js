@@ -68,6 +68,15 @@ router.post('/create-card', verifySecret, async (req, res) => {
   if (wsError || !workspaces?.length) {
     return res.status(404).json({ error: `Workspace "${workspaceName}" no encontrado.` });
   }
+
+  // Detectar ambigüedad: si hay múltiples matches, rechazar
+  if (workspaces.length > 1) {
+    return res.status(400).json({
+      error: `Ambigüedad: "${workspaceName}" casó con múltiples workspaces. Sé explícito.`,
+      candidates: workspaces.map(w => ({ id: w.id, name: w.name })),
+    });
+  }
+
   const workspace = workspaces[0];
 
   // 2. Tablero por nombre dentro del workspace (partial match para tolerar emojis)
