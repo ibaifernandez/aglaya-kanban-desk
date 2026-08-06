@@ -25,7 +25,8 @@ Uso:  python3 kanban-mcp/test_validation.py
 """
 import unittest
 
-from validation import (empty_brief_notice, missing_workspace_error, resolve_brief,
+from validation import (cards_listing_plan, empty_brief_notice,
+                        missing_workspace_error, resolve_brief, row_cap_notice,
                         workspace_mismatch_error)
 
 WS_A = "f93867a7-8cfa-40e1-883a-55eb62776253"
@@ -157,6 +158,88 @@ class EmptyBriefNotice(unittest.TestCase):
         # vicio, no el remedio. Lo que se vigila es que la card salió vacía.
         inventado = resolve_brief(None, "")   # el kwarg raro ni llegó
         self.assertIsNotNone(empty_brief_notice(inventado))
+
+
+COL = "9535f5bd-13f4-4285-959a-cc52ab685d5f"
+BOARD = "07a43aca-cee6-4c9d-8cab-397ca297a581"
+
+
+class CardsListingPlan(unittest.TestCase):
+    """Que pedir por columna pregunte POR LA COLUMNA.
+
+    Factura del 6-ago-2026: `column_id` se usaba solo para derivar el tablero y
+    luego se tiraba. Pedir «🔍 Por revisar» y pedir «🛡 Auditado» —vacía— devolvía
+    la MISMA respuesta byte a byte: el tablero entero. 19 tarjetas las dos veces.
+    El protocolo de obra arranca los cuatro papeles con «coge de tal columna», así
+    que mientras eso pasara el tablero no repartía nada.
+
+    Se lo saltó una revisión entera porque la respuesta era un SUPERCONJUNTO: se
+    puede filtrar en el cliente y seguir, o sea que la tool funcionaba lo bastante
+    bien como para que nadie la mirara.
+    """
+
+    def test_con_columna_pregunta_por_la_columna(self):
+        # LA prueba. Si alguien vuelve a derivar el tablero, esto se pone rojo.
+        plan = cards_listing_plan(None, COL)
+        self.assertEqual(plan["path"], f"/columns/{COL}/cards")
+
+    def test_con_columna_NO_pregunta_por_el_tablero(self):
+        # Dicho al revés a propósito: el defecto no era «faltaba un filtro», era
+        # «preguntaba al sitio equivocado». Un superconjunto pasa desapercibido.
+        plan = cards_listing_plan(None, COL)
+        self.assertNotIn("/boards/", plan["path"])
+
+    def test_solo_tablero_pregunta_por_el_tablero(self):
+        plan = cards_listing_plan(BOARD, None)
+        self.assertEqual(plan["path"], f"/boards/{BOARD}/cards")
+
+    def test_si_vienen_los_dos_manda_la_columna(self):
+        # El más estrecho gana. Devolver el tablero cuando te han dado una
+        # columna es el defecto otra vez, por la puerta de al lado.
+        plan = cards_listing_plan(BOARD, COL)
+        self.assertEqual(plan["path"], f"/columns/{COL}/cards")
+        self.assertEqual(plan["scope"], "column")
+
+    def test_el_acuse_dice_QUIEN_contesto(self):
+        # Sin esto, quien reciba la respuesta no puede distinguir «esto es tu
+        # columna» de «esto es el tablero entero». Es lo único que convierte un
+        # superconjunto silencioso en algo comprobable desde fuera.
+        self.assertEqual(cards_listing_plan(None, COL)["scope"], "column")
+        self.assertEqual(cards_listing_plan(BOARD, None)["scope"], "board")
+
+    def test_si_vienen_los_dos_el_acuse_los_devuelve_ambos(self):
+        plan = cards_listing_plan(BOARD, COL)
+        self.assertEqual(plan["board_id"], BOARD)
+        self.assertEqual(plan["column_id"], COL)
+
+    def test_sin_ninguno_es_error(self):
+        self.assertIn("error", cards_listing_plan(None, None))
+
+    def test_cadenas_vacias_cuentan_como_ausentes(self):
+        self.assertIn("error", cards_listing_plan("", "   "))
+
+    def test_tolera_espacios_alrededor(self):
+        self.assertEqual(cards_listing_plan(None, f"  {COL}  ")["path"],
+                         f"/columns/{COL}/cards")
+
+
+class RowCapNotice(unittest.TestCase):
+    """Que un listado recortado deje de parecer completo."""
+
+    def test_si_cabe_todo_no_avisa(self):
+        self.assertIsNone(row_cap_notice(10, 500))
+
+    def test_justo_en_el_tope_no_avisa(self):
+        self.assertIsNone(row_cap_notice(500, 500))
+
+    def test_pasarse_avisa(self):
+        self.assertIsNotNone(row_cap_notice(501, 500))
+
+    def test_el_aviso_dice_cuantas_hay_y_cuantas_van(self):
+        # Un aviso que solo dice «hay más» obliga a adivinar cuánto falta.
+        msg = row_cap_notice(842, 500)
+        self.assertIn("842", msg)
+        self.assertIn("500", msg)
 
 
 if __name__ == "__main__":

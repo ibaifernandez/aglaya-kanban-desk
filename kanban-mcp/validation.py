@@ -24,6 +24,60 @@ REGLA DE ENRUTADO — el resumen va aquí, el manual NO se copia:
 _MANUAL = 'donde_pregunto("tarea") en el MCP aglaya-atlas (repo aglaya-orchestrator)'
 
 
+def cards_listing_plan(board_id, column_id):
+    """A qué endpoint se le pregunta un listado de tarjetas, y a qué alcance
+    responde. Lógica PURA: decide la ruta, no la recorre.
+
+    Está aquí y no dentro de `list_cards` justamente porque `list_cards` necesita
+    red y no se puede probar en CI. La decisión —«si me dan una columna, pregunto
+    por la columna»— sí se puede, y es exactamente donde estaba el defecto.
+
+    Factura que lo enseñó (6-ago-2026): `column_id` se usaba SOLO para derivar el
+    tablero y luego se tiraba, así que pedir «🔍 Por revisar» y pedir «🛡 Auditado»
+    —vacía— devolvía la misma respuesta byte a byte: el tablero entero. Es la
+    misma forma que esta casa ya documentó en `list_workspaces`: **un alcance
+    contestando por otro**, con una respuesta que parece correcta porque es un
+    superconjunto. Y el protocolo de obra arranca los CUATRO papeles con «coge de
+    tal columna», así que mientras eso pase el tablero no reparte nada.
+
+    El arreglo no es filtrar en el cliente: el servidor **ya** tiene un endpoint
+    que filtra por columna (`GET /columns/:id/cards`). Bastaba con preguntarle a
+    él. Filtrar en cliente habría heredado además el tope de filas, que se aplica
+    ANTES de filtrar: en un tablero grande, las tarjetas de la columna pedida
+    pueden quedar fuera del corte y devolverse cero, en verde.
+
+    Si vienen los dos, manda `column_id` por ser el más estrecho — y el acuse
+    devuelve ambos para que se vea quién contestó.
+    """
+    b = str(board_id).strip() if board_id is not None else ""
+    c = str(column_id).strip() if column_id is not None else ""
+
+    if not b and not c:
+        return {"error": "pass board_id or column_id"}
+
+    if c:
+        return {"path": f"/columns/{c}/cards", "scope": "column",
+                "column_id": c, "board_id": b or None}
+
+    return {"path": f"/boards/{b}/cards", "scope": "board",
+            "board_id": b, "column_id": None}
+
+
+def row_cap_notice(total, cap):
+    """`None` si cabía todo; aviso si el listado se cortó.
+
+    Un tope que recorta en silencio es un conteo que miente: quien lea `count`
+    creerá que eso es todo lo que hay. Da igual que el tope sea razonable — lo
+    que no puede es no decirse.
+    """
+    if total <= cap:
+        return None
+    return (
+        f"listado recortado: hay {total} y se devuelven {cap}. El resto NO está "
+        "en esta respuesta — acota por columna, o cuenta contra la base."
+    )
+
+
 def missing_workspace_error(workspace_id):
     """`None` si viene un destino utilizable; dict de error si falta.
 
