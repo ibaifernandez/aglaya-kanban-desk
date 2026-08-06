@@ -6,6 +6,27 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Added
+- **Guardián del enganche de permisos en CI** (`scripts/hook-guard.sh` + su sello,
+  PR [#29](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/29)). CI se
+  pone rojo si `.claude/settings.json` deja de declarar un `PreToolUse` que
+  invoque el script de permisos.
+  - **Pagado en carne propia el mismo día:** el enganche se instaló, se verificó
+    que denegaba subir a la rama principal, y **al cambiar de rama volvió a `{}`**
+    — el cambio vivía en una rama y la principal aún no lo tenía. La protección
+    existía en todas partes **menos justo donde había ocurrido el incidente que
+    la motivó**, y no dio aviso: un fichero de configuración que se queda vacío
+    no se queja.
+  - **Lo que un verde aquí significa, y está escrito en su cabecera:** «el fichero
+    declara el enganche», **no** «el enganche está vivo». No comprueba que el
+    script exista —vive en el repo del capitán y CI solo tiene este— ni que el
+    enganche esté **cargado** en la sesión, que solo se ve intentando una
+    operación denegada. Menos de lo que suena, y más de lo que había.
+  - **Lo que queda abierto es una decisión, no código:** dejar el script
+    compartido en un solo sitio (y aceptar que si allí lo mueven, el enganche
+    muere en silencio) o vendorizarlo aquí (y crear la novena copia de una
+    política de flota). Sigue en la tarjeta `56c215cf`.
+
 ### Fixed
 - **El paso que verifica la rotación de `TASK_SECRET` pasa a verificar de verdad**
   (`docs/runbooks/key-rotation.md`, PR
