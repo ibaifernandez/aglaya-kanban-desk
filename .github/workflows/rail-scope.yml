@@ -22,9 +22,32 @@ on:
     - cron: '41 6 * * *'
   push:
     branches: [main]
+    paths:
+      # En push/PR solo cambia algo si cambia el propio guardián o su lista de
+      # excepciones. Lo que de verdad vigila —la base— lo mira el `schedule`,
+      # que NO lleva filtro y sigue corriendo a diario.
+      - 'scripts/rail-blindspot*'
+      - '.github/workflows/rail-scope.yml'
   pull_request:
     branches: [main]
+    paths:
+      # En push/PR solo cambia algo si cambia el propio guardián o su lista de
+      # excepciones. Lo que de verdad vigila —la base— lo mira el `schedule`,
+      # que NO lleva filtro y sigue corriendo a diario.
+      - 'scripts/rail-blindspot*'
+      - '.github/workflows/rail-scope.yml'
   workflow_dispatch:
+
+# Una rama que recibe tres empujones seguidos pagaba tres corridas enteras, y las
+# dos primeras ya no le importaban a nadie. Se agrupa por workflow + rama y se
+# cancela la que quede obsoleta.
+#
+# `cancel-in-progress` solo en pull_request A PROPÓSITO: en `main` la corrida ES
+# el registro de que lo que hay puesto pasó sus comprobaciones. Cancelarla deja
+# un `main` sin ese registro y ahorrando calderilla.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   rail-scope:

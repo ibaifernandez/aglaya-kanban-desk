@@ -10,6 +10,12 @@ on:
     - cron: '17 3 * * *'   # 03:17 UTC daily (off-peak Madrid/Santiago)
   workflow_dispatch:        # trigger manual desde Actions UI
 
+# Sin cancelación: aquí no hay corrida obsoleta que tirar — hay una tarea que o
+# se hace o no se hace. El grupo solo evita que dos se pisen.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   backup:
     runs-on: ubuntu-latest

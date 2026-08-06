@@ -12,8 +12,33 @@ name: schema-guard
 on:
   push:
     branches: [main]
+    paths:
+      # Solo hay algo que comprobar si cambia una migración o el documento que
+      # las migraciones deben mantener al día.
+      - 'migrations/**'
+      - 'docs/schema/**'
+      - 'scripts/schema-guard*'
+      - '.github/workflows/schema-guard.yml'
   pull_request:
     branches: [main]
+    paths:
+      # Solo hay algo que comprobar si cambia una migración o el documento que
+      # las migraciones deben mantener al día.
+      - 'migrations/**'
+      - 'docs/schema/**'
+      - 'scripts/schema-guard*'
+      - '.github/workflows/schema-guard.yml'
+
+# Una rama que recibe tres empujones seguidos pagaba tres corridas enteras, y las
+# dos primeras ya no le importaban a nadie. Se agrupa por workflow + rama y se
+# cancela la que quede obsoleta.
+#
+# `cancel-in-progress` solo en pull_request A PROPÓSITO: en `main` la corrida ES
+# el registro de que lo que hay puesto pasó sus comprobaciones. Cancelarla deja
+# un `main` sin ese registro y ahorrando calderilla.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   guard:
