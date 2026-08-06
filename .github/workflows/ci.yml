@@ -15,8 +15,10 @@ on:
 
 # Cancela runs anteriores si llega un nuevo push al mismo branch
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.head_ref || github.ref }}
+  # Solo en pull_request: en `main` la corrida ES el registro de que lo que
+  # hay puesto pasó sus comprobaciones, y cancelarla lo borra.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   server-tests:

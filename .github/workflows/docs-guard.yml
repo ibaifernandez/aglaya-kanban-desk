@@ -23,9 +23,42 @@ name: docs-guard
 on:
   push:
     branches: [main]
+    paths:
+      # Sus ENTRADAS, no una lista de conveniencia: el guardián lee estos cinco
+      # ficheros. Los tres últimos porque la regla PORTS extrae el canon del
+      # CÓDIGO y exige que launch.json y los documentos coincidan.
+      - 'CLAUDE.md'
+      - 'README.md'
+      - '.claude/launch.json'
+      - 'client/vite.config.js'
+      - 'server/index.js'
+      - 'scripts/docs-guard*'
+      - '.github/workflows/docs-guard.yml'
   pull_request:
     branches: [main]
+    paths:
+      # Sus ENTRADAS, no una lista de conveniencia: el guardián lee estos cinco
+      # ficheros. Los tres últimos porque la regla PORTS extrae el canon del
+      # CÓDIGO y exige que launch.json y los documentos coincidan.
+      - 'CLAUDE.md'
+      - 'README.md'
+      - '.claude/launch.json'
+      - 'client/vite.config.js'
+      - 'server/index.js'
+      - 'scripts/docs-guard*'
+      - '.github/workflows/docs-guard.yml'
   workflow_dispatch:
+
+# Una rama que recibe tres empujones seguidos pagaba tres corridas enteras, y las
+# dos primeras ya no le importaban a nadie. Se agrupa por workflow + rama y se
+# cancela la que quede obsoleta.
+#
+# `cancel-in-progress` solo en pull_request A PROPÓSITO: en `main` la corrida ES
+# el registro de que lo que hay puesto pasó sus comprobaciones. Cancelarla deja
+# un `main` sin ese registro y ahorrando calderilla.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   guard:
