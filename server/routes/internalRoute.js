@@ -101,7 +101,14 @@ router.post('/create-card', verifySecret, async (req, res) => {
     });
   }
 
-  const safePriority = VALID_PRIORITIES.has(priority) ? priority : 'medium';
+  // Validar prioridad: rechazar en lugar de corregir en silencio
+  if (priority && !VALID_PRIORITIES.has(priority)) {
+    return res.status(400).json({
+      error: `priority inválida: "${priority}". Válidas: ${Array.from(VALID_PRIORITIES).join(', ')}`,
+    });
+  }
+
+  const safePriority = priority || 'medium';
 
   // 1. Workspace por nombre (partial match para tolerar emojis en el título)
   const { data: workspaces, error: wsError } = await supabaseAdmin
@@ -189,12 +196,15 @@ router.post('/create-card', verifySecret, async (req, res) => {
   res.status(201).json({
     ok:    true,
     card: {
-      id:        card.id,
-      title:     card.title,
-      priority:  card.priority,
-      column:    targetColumn.title,
-      board:     board.title,
-      workspace: workspaceName,
+      id:           card.id,
+      title:        card.title,
+      priority:     card.priority,
+      workspace_id: workspace.id,
+      workspace:    workspace.name,
+      board_id:     board.id,
+      board:        board.title,
+      column_id:    targetColumn.id,
+      column:       targetColumn.title,
     },
   });
 });
