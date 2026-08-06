@@ -25,6 +25,7 @@ const {
   moveCard,
   deleteCard,
   searchCards,
+  getCardHistory,
 } = require('./routes/cards');
 const { getCategories, createCategory, updateCategory, deleteCategory } = require('./routes/categories');
 const { uploadImage, deleteImage } = require('./routes/uploads');
@@ -173,6 +174,7 @@ app.delete('/api/columns/:id',           requireAuth, requireWorkspaceMember, de
 
 // ── Cards ─────────────────────────────────────────────────
 app.get('/api/cards/search',              requireAuth, searchCards);   // must come before /:id routes
+app.get('/api/cards/:id/history',         requireAuth, requireWorkspaceMember, getCardHistory);
 app.get('/api/boards/:boardId/cards',     requireAuth, requireWorkspaceMember, getCardsByBoard);
 app.get('/api/columns/:columnId/cards',   requireAuth, requireWorkspaceMember, getCardsByColumn);
 app.post('/api/cards',                    requireAuth, requireWorkspaceMember, createCard);

@@ -37,7 +37,9 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-from validation import (empty_brief_notice, missing_workspace_error, resolve_brief,
+from validation import (VALID_PRIORITIES, cards_listing_plan, empty_brief_notice,
+                        missing_assignee_error, missing_workspace_error,
+                        priority_error, resolve_brief, row_cap_notice,
                         workspace_mismatch_error)
 
 mcp = FastMCP("aglaya-kanban-desk")
@@ -217,13 +219,22 @@ def list_columns(board_id: str) -> dict[str, Any]:
 
 @mcp.tool()
 def list_cards(board_id: str | None = None, column_id: str | None = None) -> dict[str, Any]:
-    """List cards of a board. Pass `board_id`, OR pass `column_id` and the board
-    is derived from it."""
-    if not board_id:
-        if not column_id:
-            return {"error": "pass board_id or column_id"}
-        board_id = _board_of_column(column_id)
-    rows = _request("GET", f"/boards/{board_id}/cards") or []
+    """List cards. `column_id` returns ONLY that column's cards; `board_id`
+    returns the whole board. If both are given, the column wins (narrower).
+
+    It did not use to. `column_id` was used only to derive the board and then
+    thrown away, so asking for one column and asking for an empty one returned
+    the same answer byte for byte: the entire board. A scope answering for
+    another, with a superset that looks right — the same shape this house
+    already documents for `list_workspaces`. It matters because the work
+    protocol starts all four roles with "take from such-and-such column".
+
+    The response says which scope answered, so a caller can tell."""
+    plan = cards_listing_plan(board_id, column_id)
+    if "error" in plan:
+        return plan
+
+    rows = _request("GET", plan["path"]) or []
     # `description` va incluida: quien escribe por el riel tiene que poder LEER
     # lo que escribió. Sin esto, verificar que un brief entró de verdad obligaba
     # a crear una tarjeta de prueba y pedirle a un humano que la abriera.
@@ -233,7 +244,16 @@ def list_cards(board_id: str | None = None, column_id: str | None = None) -> dic
               "assignee_id": c.get("assigneeId") or c.get("assignee_id"),
               "priority": c.get("priority"), "order": c.get("order"),
               "due_date": c.get("dueDate") or c.get("due_date")} for c in rows[:_ROW_CAP]]
-    return {"board_id": board_id, "count": len(items), "cards": items}
+
+    out: dict[str, Any] = {"scope": plan["scope"], "board_id": plan["board_id"],
+                           "column_id": plan["column_id"], "count": len(items),
+                           "cards": items}
+    # El tope existía y recortaba callando. Un conteo recortado sin avisar es un
+    # conteo que miente: quien lea `count` creerá que eso es todo lo que hay.
+    notice = row_cap_notice(len(rows), _ROW_CAP)
+    if notice:
+        out["warning"] = notice
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -332,7 +352,7 @@ def create_card(
     column_id: str,
     title: str,
     description_md: str = "",
-    priority: str = "medium",
+    priority: str | None = None,
     checklist: list[str] | None = None,
     due_date: str | None = None,
     assignee: str | None = None,
@@ -352,28 +372,42 @@ def create_card(
     typed-out atlas path expires silently when the captain reorganises; the
     repo name and the question do not. Live IDs: `list_workspaces` here.
 
+    `priority` and `assignee` are BOTH REQUIRED: a card missing either is
+    invisible to the work system — nobody picks it up and it does not fail, it
+    just ages in the backlog looking like pending work. The contract is the
+    custodian of when and why (`docs/contracts/CONTRACT.md`).
+
     `board_id` is OPTIONAL — derived from `column_id` if omitted. The BRIEF goes
     in `description_md` (markdown); `description` is an alias for the same field.
     priority ∈ urgent|high|medium|low|none. `checklist` = list of item texts.
     `due_date` = ISO (YYYY-MM-DD). `assignee` = email/name/id → owner AND notified."""
-    if priority not in ("urgent", "high", "medium", "low", "none"):
-        return {"error": "priority must be urgent|high|medium|low|none"}
-
-    # El destino se exige ANTES de tocar la red, y se comprueba DESPUÉS de
-    # derivar el tablero. Exigirlo sin validarlo daría sensación de control sin
-    # control — la misma forma que el default que mandaba cards al espacio
-    # personal devolviendo 201.
-    err = missing_workspace_error(workspace_id)
-    if err:
-        return err
+    # Todo lo que se puede juzgar sin red se juzga antes de tocarla. El destino se
+    # comprueba DESPUÉS de derivar el tablero porque necesita leerlo; exigirlo sin
+    # validarlo daría sensación de control sin control — la misma forma que el
+    # default que mandaba cards al espacio personal devolviendo 201.
+    for err in (priority_error(priority),
+                missing_assignee_error(assignee),
+                missing_workspace_error(workspace_id)):
+        if err:
+            return err
     if not board_id:
         board_id = _board_of_column(column_id)
     err = workspace_mismatch_error(workspace_id, _workspace_of_board(board_id), column_id)
     if err:
         return err
+
+    # El responsable se resuelve ANTES de crear. Si se dejara para después —que es
+    # donde estaba— un assignee que no resuelve dejaba la tarjeta ya escrita y sin
+    # dueño: exactamente la tarjeta invisible que este campo existe para impedir,
+    # creada por el propio guardián.
+    try:
+        assignee_id = _resolve_user(assignee)
+    except RuntimeError as exc:
+        return {"error": f"assignee no resuelve: {exc}. No se ha creado nada."}
+
     brief = resolve_brief(description, description_md)
     body: dict[str, Any] = {"columnId": column_id, "boardId": board_id, "title": title,
-                            "description": brief, "priority": priority}
+                            "description": brief, "priority": str(priority).strip()}
     if checklist:
         body["checklist"] = [{"id": secrets.token_hex(6), "text": str(t), "done": False, "assignees": []}
                              for t in checklist]
@@ -387,8 +421,12 @@ def create_card(
     notice = empty_brief_notice(brief)
     if notice:
         out["warning"] = notice
-    if assignee:
-        out["assigned"] = assign_card(card["id"], assignee).get("notified")
+    # Se asigna por el PUT, no por el POST, porque es el update el que dispara la
+    # notificación in-app. El id ya está resuelto arriba: llamar a `assign_card`
+    # aquí volvería a pedir la lista de usuarios para averiguar lo que ya sabemos.
+    _request("PUT", f"/cards/{card['id']}", {"assigneeId": assignee_id})
+    out["assignee_id"] = assignee_id
+    out["assigned"] = assignee
     return out
 
 
@@ -468,8 +506,12 @@ def update_card(
     `description` is the markdown brief. priority ∈ urgent|high|medium|low|none.
     `due_date` = ISO (YYYY-MM-DD). Wraps PUT /api/cards/:id (server/routes/cards.js
     → updateCard), which is the same endpoint the UI uses."""
-    if priority is not None and priority not in ("urgent", "high", "medium", "low", "none"):
-        return {"error": "priority must be urgent|high|medium|low|none"}
+    # Aquí `priority` SÍ es opcional —no pasarla significa «no la cambies», que es
+    # distinto de crearla sin decidirla—, así que no vale `priority_error`: esa
+    # exige presencia. Lo que sí se comparte es la LISTA, para que las dos puertas
+    # no puedan divergir en qué valores aceptan.
+    if priority is not None and str(priority).strip() not in VALID_PRIORITIES:
+        return {"error": f"priority must be {'|'.join(VALID_PRIORITIES)}"}
     body: dict[str, Any] = {}
     if title is not None:       body["title"] = title
     if description is not None: body["description"] = description
@@ -480,6 +522,26 @@ def update_card(
     card = _request("PUT", f"/cards/{card_id}", body)
     return {"updated": "card", "id": card_id, "fields": list(body.keys()),
             "title": (card or {}).get("title")}
+
+
+@mcp.tool()
+def card_history(card_id: str) -> dict[str, Any]:
+    """PREVIOUS versions of a card's description, newest first — the undo.
+
+    `update_card` REPLACES the description; it cannot append. A caller that does
+    not read before writing destroys what was there and gets success back. That
+    happened on 2026-08-06 and was recovered only by luck. Since then the server
+    stores the previous text on every change, and this is how you reach it.
+
+    TO UNDO: read the version you want from here and send it back with
+    `update_card(card_id, description=…)`. There is no separate restore call on
+    purpose — restoring IS an edit, and it must leave its own history entry like
+    any other.
+
+    Only covers changes made through the API (the UI and this rail). A write made
+    straight to the database does not pass through it."""
+    rows = _request("GET", f"/cards/{card_id}/history") or []
+    return {"card_id": card_id, "count": len(rows), "versions": rows}
 
 
 @mcp.tool()
