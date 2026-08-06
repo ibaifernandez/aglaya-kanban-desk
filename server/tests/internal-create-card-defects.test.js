@@ -49,6 +49,13 @@ jest.mock('../utils/supabase', () => {
     { id: 'col-2', board_id: 'board-2', title: 'Backlog', order: 1 },
   ];
 
+  // La ruta resuelve el responsable antes de escribir (lo exige el contrato).
+  // Este archivo no prueba esa resolución —tiene la suya— pero sin un usuario
+  // que resolver ninguna petición llegaría al código de ambigüedad.
+  const mockUsersData = [
+    { id: 'user-rail', name: 'Kanban Rail', email: 'kanban-rail@aglaya.biz' },
+  ];
+
   return {
     supabaseAdmin: {
       from: (table) => {
@@ -56,6 +63,7 @@ jest.mock('../utils/supabase', () => {
         if (table === 'workspaces') data = JSON.parse(JSON.stringify(mockWorkspacesData));
         if (table === 'boards')     data = JSON.parse(JSON.stringify(mockBoardsData));
         if (table === 'columns')    data = JSON.parse(JSON.stringify(mockColumnsData));
+        if (table === 'users')      data = JSON.parse(JSON.stringify(mockUsersData));
 
         const chain = {
           select: () => chain,
@@ -63,12 +71,14 @@ jest.mock('../utils/supabase', () => {
             if (col === 'workspace_id')   data = data.filter(b => b.workspace_id === val);
             else if (col === 'board_id')  data = data.filter(c => c.board_id === val);
             else if (col === 'column_id') data = data.filter(c => c.column_id === val);
+            else if (col === 'id')        data = data.filter(r => r.id === val);
             return chain;
           },
           ilike: (col, val) => {
             const searchTerm = val.replace(/%/g, '').toLowerCase();
             if (col === 'name')       data = data.filter(w => w.name.toLowerCase().includes(searchTerm));
             else if (col === 'title') data = data.filter(b => b.title.toLowerCase().includes(searchTerm));
+            else if (col === 'email') data = data.filter(u => u.email.toLowerCase() === searchTerm);
             return chain;
           },
           order: () => chain,
@@ -111,6 +121,8 @@ describe('POST /api/internal/create-card — ambigüedad de workspace', () => {
       title: 'Tarea',
       boardName: 'Operaciones',
       workspaceName: 'AGLAYA', // Casa con "AGLAYA" y "AGLAYA Docs"
+      priority: 'medium',
+      assignee: 'kanban-rail@aglaya.biz',
     });
     // Antes: 201, cogiendo el primero de un orden que nadie fija.
     expect(res.status).toBe(400);
@@ -125,6 +137,8 @@ describe('POST /api/internal/create-card — ambigüedad de workspace', () => {
       title: 'Tarea',
       boardName: 'Operaciones',
       workspaceName: 'AGLAYA',
+      priority: 'medium',
+      assignee: 'kanban-rail@aglaya.biz',
     });
     expect(res.status).toBe(400);
     expect(Array.isArray(res.body.candidates)).toBe(true);
@@ -141,6 +155,8 @@ describe('POST /api/internal/create-card — ambigüedad de workspace', () => {
       title: 'Tarea única',
       boardName: 'Operaciones',
       workspaceName: 'AGLAYA Docs', // Único match
+      priority: 'medium',
+      assignee: 'kanban-rail@aglaya.biz',
     });
     expect(res.status).toBe(201);
     expect(res.body.card).toBeDefined();

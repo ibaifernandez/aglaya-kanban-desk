@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 2.0.0
+- **Versión:** 3.0.0
 - **Última modificación:** 2026-08-06
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -43,6 +43,10 @@ Lo que el catálogo no te dice, y este contrato sí:
   lo comprueba contra la columna: si la columna no pertenece a ese espacio, **no
   se escribe nada**. Exigirlo sin comprobarlo daría sensación de control sin
   control.
+- **El responsable y la prioridad también son obligatorios** *(v3.0.0)*.
+  `create_card` exige `assignee` y `priority` explícitos, y sin ellos no escribe
+  nada. `priority` tuvo default `medium`; ya no lo tiene. Ver
+  [«Por qué responsable y prioridad no tienen default»](#por-qué-responsable-y-prioridad-no-tienen-default).
 - **El brief llega por cualquiera de sus dos nombres.** `description_md` es el
   documentado; `description` es alias del mismo campo, porque así se llama en la
   Puerta 2 y quien venga de allí pasará ese nombre. Si los dos traen texto, gana
@@ -112,7 +116,8 @@ Crea una tarjeta sin JWT y sin login.
 | `title` | sí | — | Se hace `trim()`; vacío → 400 |
 | `boardName` | sí | — | Match parcial case-insensitive; vacío → 400, sin match → 404 |
 | `workspaceName` | sí | — | **Sin default, por diseño.** Omitirlo → 400 |
-| `priority` | no | `medium` | `urgent`\|`high`\|`medium`\|`low`\|`none`. **Inválido → 400** con la lista de válidas *(v2.0.0; antes caía a `medium` en silencio)* |
+| `priority` | sí | — | `urgent`\|`high`\|`medium`\|`low`\|`none`. **Ausente → 400** *(v3.0.0; antes caía a `medium` en silencio)*. **Inválida → 400** con la lista de válidas *(v2.0.0)* |
+| `assignee` | sí | — | *(v3.0.0, campo nuevo)* Email, nombre exacto o UUID del responsable. Ausente → 400; sin match → 404; nombre que casa con varios → 400 con `candidates` |
 | `description` | no | `""` | El brief |
 | `dueDate` | no | `null` | ISO 8601 |
 
@@ -129,6 +134,11 @@ resolver**, que era justo el campo por el que se puede aterrizar mal y el único
 que el acuse no permitía comprobar. **Cambio incompatible:** un consumidor que
 comparase `workspace` con lo que envió ahora recibe el nombre canónico.
 
+Desde v3.0.0 trae además el **responsable resuelto**: `assignee_id`/`assignee`
+(id y nombre canónico), por el mismo motivo que los tres destinos — es un campo
+por el que se puede aterrizar mal, y quien mandó un nombre parcial necesita ver
+en quién cayó.
+
 **Ambigüedad de TABLERO — abierta, y se declara aquí para que no se lea como
 cerrada.** El `400` de arriba cubre el espacio, no el tablero: dos tableros con
 nombres solapados dentro del mismo espacio siguen resolviendo al primero y
@@ -140,6 +150,37 @@ apuntaba al espacio **personal de Ibai**, zona intocable. Omitirlo no fallaba:
 devolvía `201` y la tarjeta aterrizaba ahí. Un `400` avisa; un `201` miente. Hay
 un test que se pone rojo si alguien lo repone «por comodidad»
 ([`server/tests/internal-create-card.test.js`](../../server/tests/internal-create-card.test.js)).
+
+---
+
+## Por qué responsable y prioridad no tienen default
+
+*(v3.0.0. Aplica a las DOS puertas, y por eso está aquí y no dentro de una.)*
+
+El sistema de trabajo agéntico reparte por **responsable** —hay juez mecánico, o
+hace falta criterio humano— y ordena por **prioridad**. Una tarjeta a la que le
+falte cualquiera de los dos **no la coge nadie**: no es de nadie, o no tiene
+sitio en la cola. Envejece en el backlog **pareciendo trabajo pendiente**.
+
+**Es la misma familia que el `201` que miente, un piso más arriba.** Aterrizar
+mal se nota tarde; nacer invisible no se nota nunca. No hay error que leer, no
+hay tarjeta perdida que buscar: hay una fila correcta que ningún proceso mira.
+
+Y el default de `priority` era el caso agudo: caía a `medium` sin decirlo, así
+que quien creía **no haber decidido** había decidido `medium`, y su tarjeta se
+ordenaba contra las demás con un valor que nadie eligió. Es exactamente la forma
+del default de `workspaceName` — implícito, plausible y silencioso.
+
+**Lo que las puertas comprueban, y lo que NO.** Comprueban que los campos vengan
+y que resuelvan: `priority` contra la lista de válidas, `assignee` contra un
+usuario real. **No** comprueban la semántica —quién es obrero y quién es humano,
+o si esta tarjeta merece `urgent`—: eso es criterio, y no vive en una puerta.
+Exigir el campo es lo que la puerta puede garantizar; acertar con él, no.
+
+Hay pruebas que se ponen rojas si alguien repone cualquiera de los dos defaults
+«por comodidad», en las dos puertas
+([`server/tests/internal-create-card.test.js`](../../server/tests/internal-create-card.test.js)
+y [`kanban-mcp/test_validation.py`](../../kanban-mcp/test_validation.py)).
 
 ---
 
@@ -165,6 +206,29 @@ un consumidor que pasa un nombre que ya no existe recibe un `201` con la tarjeta
 medias, y esa es exactamente la factura que este repo ya pagó.
 
 ### Historial de versiones
+
+**v3.0.0 — 2026-08-06 · MAYOR.** Dos cambios, los dos incompatibles, en **las dos
+puertas**.
+
+- *(rompe)* **`priority` deja de tener default.** Antes ausente → `medium` en
+  silencio; ahora **400** (Puerta 2) / error (Puerta 1). v2.0.0 ya había
+  convertido la prioridad *inválida* en 400; esto cierra la *ausente*, que era la
+  mitad silenciosa.
+- *(rompe)* **el responsable pasa a ser obligatorio.** Puerta 1 exigía `assignee`
+  como opcional; ahora sin él no escribe. Puerta 2 **no tenía el campo siquiera**:
+  se añade `assignee` y se exige — de modo que para ella esto es campo nuevo *y*
+  obligatorio a la vez.
+
+**⚠️ Rompe a todos los llamantes actuales, el capitán incluido.** Cualquier
+llamada que hoy omita `priority` o `assignee` empieza a fallar el día que esto se
+mergee. No hay ventana de deprecación en este cambio, y **si hace falta una, es
+decisión de Ibai, no de esta rama**: la alternativa —aceptar la ausencia con un
+aviso durante N días— está descrita aquí y sin implementar a propósito.
+
+**Por qué se rompe en vez de avisar.** Un aviso no cierra el defecto: la tarjeta
+invisible se crea igual y nadie lee el aviso a las 3 de la mañana. Es el mismo
+razonamiento que quitó el default de `workspaceName`, y la misma frase: **un
+`400` avisa, un `201` miente.** El precio es real y se paga una vez.
 
 **v2.0.0 — 2026-08-06 · MAYOR.** Tres cambios, dos incompatibles.
 

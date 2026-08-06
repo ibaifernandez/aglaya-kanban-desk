@@ -6,6 +6,28 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Changed — INCOMPATIBLE
+- **Contrato del riel a v3.0.0: responsable y prioridad pasan a ser obligatorios en
+  las dos puertas** ([`docs/contracts/CONTRACT.md`](contracts/CONTRACT.md), obrero
+  automático, 2026-08-06).
+  - `priority` **deja de tener default**. Antes ausente → `medium` en silencio; ahora
+    error por las dos puertas. La prioridad *inválida* ya se rechazaba desde v2.0.0:
+    esto cierra la mitad callada del mismo defecto — quien creía no haber decidido
+    había decidido, y su tarjeta se ordenaba con un valor que nadie eligió.
+  - **El responsable pasa a ser obligatorio.** El riel lo tenía como opcional; la
+    puerta HTTP **no tenía el campo siquiera**, así que para ella es campo nuevo *y*
+    obligatorio a la vez, con el responsable resuelto por email, nombre exacto o id,
+    escrito en la tarjeta y devuelto resuelto en el acuse.
+  - **Por qué:** el sistema de trabajo reparte por responsable y ordena por prioridad.
+    A una tarjeta a la que le falte cualquiera de los dos no la coge nadie, y **no
+    falla**: envejece pareciendo trabajo pendiente. Pasó de verdad el 6-ago-2026 —
+    tres tarjetas bien escritas nacieron sin responsable y las asignó el capitán a
+    mano al detectarlo. Es la peor variante del `201` que miente: aterrizar mal se
+    nota tarde, nacer invisible no se nota nunca.
+  - ⚠️ **Rompe a todos los llamantes actuales, el capitán incluido.** No hay ventana
+    de deprecación, y si hace falta una es decisión de Ibai: la alternativa queda
+    descrita en el contrato y sin implementar a propósito.
+
 ### Added
 - **Puerta de lectura del riel HTTP** (PR [#13](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/13),
   obrero automático, 2026-08-06): `GET /api/internal/list-workspaces` y

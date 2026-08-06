@@ -5,6 +5,8 @@ const router = express.Router();
 
 const VALID_PRIORITIES = new Set(['urgent', 'high', 'medium', 'low', 'none']);
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function verifySecret(req, res, next) {
   const secret = process.env.TASK_SECRET;
   if (!secret) return res.status(500).json({ error: 'TASK_SECRET no configurado.' });
@@ -82,7 +84,8 @@ router.get('/list-boards', verifySecret, async (req, res) => {
 // Body:
 //   title        {string}  requerido
 //   boardName    {string}  requerido — nombre exacto (case-insensitive) del tablero
-//   priority     {string}  opcional — urgent|high|medium|low|none (default: medium)
+//   priority     {string}  REQUERIDO — urgent|high|medium|low|none, sin default (ver abajo)
+//   assignee     {string}  REQUERIDO — email, nombre exacto o id del responsable
 //   description  {string}  opcional
 //   dueDate      {string}  opcional — ISO 8601
 //   workspaceName {string} REQUERIDO — sin default, a propósito (ver abajo)
@@ -97,11 +100,27 @@ router.get('/list-boards', verifySecret, async (req, res) => {
 // avisa, un 201 miente. Fijado por server/tests/internal-create-card.test.js — si
 // alguien repone el default por comodidad, ese test se pone rojo.
 
+// Por qué `priority` y `assignee` tampoco tienen default (2026-08-06, contrato v3.0.0):
+// El sistema de trabajo reparte por RESPONSABLE y ordena por PRIORIDAD. A una
+// tarjeta que le falte cualquiera de los dos no la coge nadie — y no falla:
+// envejece en el backlog pareciendo trabajo pendiente. Es la misma familia que el
+// 201 que miente, un piso más arriba: aterrizar mal se nota tarde, nacer invisible
+// no se nota nunca, porque no hay error que leer ni tarjeta perdida que buscar.
+//
+// `priority` tuvo default `medium` y era el caso agudo: quien creía no haber
+// decidido había decidido, y su tarjeta se ordenaba contra las demás con un valor
+// que nadie eligió. `assignee` no existía siquiera en esta puerta.
+//
+// Lo que esto comprueba es que los campos VENGAN y que RESUELVAN. Que sean los
+// acertados —si esta tarjeta es de un obrero o de un humano, si merece urgent— es
+// criterio, y el criterio no vive en una puerta.
+
 router.post('/create-card', verifySecret, async (req, res) => {
   const {
     title,
     boardName,
-    priority     = 'medium',
+    priority,
+    assignee,
     description  = '',
     dueDate      = null,
     workspaceName,
@@ -120,14 +139,78 @@ router.post('/create-card', verifySecret, async (req, res) => {
     });
   }
 
-  // Validar prioridad: rechazar en lugar de corregir en silencio
-  if (priority && !VALID_PRIORITIES.has(priority)) {
+  // Prioridad: ausente e inválida son el mismo rechazo, no un default y un error.
+  // Hasta v2.0.0 la inválida caía a `medium` en silencio; ahora tampoco cae la
+  // ausente, que era la mitad callada del mismo defecto.
+  if (!priority?.trim()) {
+    return res.status(400).json({
+      error:
+        'priority es obligatoria. No hay default por diseño: antes caía a ' +
+        '"medium" sin decirlo, así que quien creía no haber decidido había ' +
+        `decidido. Válidas: ${Array.from(VALID_PRIORITIES).join(', ')}`,
+    });
+  }
+  if (!VALID_PRIORITIES.has(priority.trim())) {
     return res.status(400).json({
       error: `priority inválida: "${priority}". Válidas: ${Array.from(VALID_PRIORITIES).join(', ')}`,
     });
   }
 
-  const safePriority = priority || 'medium';
+  const safePriority = priority.trim();
+
+  if (!assignee?.trim()) {
+    return res.status(400).json({
+      error:
+        'assignee es obligatorio: di de quién es la tarjeta. Sin responsable no ' +
+        'la coge nadie, y no falla — envejece pareciendo trabajo pendiente. ' +
+        'Acepta email, nombre exacto o id.',
+    });
+  }
+
+  // 0. Responsable. Se resuelve ANTES de escribir nada: un assignee que no
+  // resuelve tiene que dejar la tarjeta sin crear, no crearla sin dueño — que es
+  // justo la tarjeta invisible que este campo existe para impedir.
+  //
+  // El match es EXACTO, sin comodines, al revés que el de workspace y tablero.
+  // Ahí el parcial se tolera para no pelear con los emojis del título; aquí no
+  // hay nada que tolerar y un parcial engancharía a la persona de al lado.
+  const assigneeInput = assignee.trim();
+  let users, userError;
+
+  if (UUID_RE.test(assigneeInput)) {
+    ({ data: users, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id, name, email')
+      .eq('id', assigneeInput));
+  } else {
+    ({ data: users, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id, name, email')
+      .ilike('email', assigneeInput));
+
+    if (!userError && !users?.length) {
+      ({ data: users, error: userError } = await supabaseAdmin
+        .from('users')
+        .select('id, name, email')
+        .ilike('name', assigneeInput));
+    }
+  }
+
+  if (userError || !users?.length) {
+    return res.status(404).json({ error: `Responsable "${assignee}" no encontrado.` });
+  }
+
+  // Los emails son únicos en la tabla; los nombres no. Un nombre repetido casa
+  // con varios y aterrizaría en uno arbitrario — el mismo defecto que el 400 de
+  // ambigüedad de workspace cierra un piso más arriba.
+  if (users.length > 1) {
+    return res.status(400).json({
+      error: `Ambigüedad: "${assignee}" casó con varios usuarios. Pasa el email o el id.`,
+      candidates: users.map(u => ({ id: u.id, name: u.name, email: u.email })),
+    });
+  }
+
+  const assigneeUser = users[0];
 
   // 1. Workspace por nombre (partial match para tolerar emojis en el título)
   const { data: workspaces, error: wsError } = await supabaseAdmin
@@ -196,6 +279,7 @@ router.post('/create-card', verifySecret, async (req, res) => {
       title:           title.trim(),
       description:     description || '',
       priority:        safePriority,
+      assignee_id:     assigneeUser.id,
       due_date:        dueDate || null,
       tags:            [],
       checklist:       [],
@@ -210,7 +294,10 @@ router.post('/create-card', verifySecret, async (req, res) => {
     return res.status(500).json({ error: 'Error al crear la card.' });
   }
 
-  console.log(`[internal/create-card] "${card.title}" → ${board.title} / ${targetColumn.title}`);
+  console.log(
+    `[internal/create-card] "${card.title}" → ${board.title} / ${targetColumn.title} ` +
+    `· ${assigneeUser.name} · ${safePriority}`,
+  );
 
   res.status(201).json({
     ok:    true,
@@ -224,6 +311,8 @@ router.post('/create-card', verifySecret, async (req, res) => {
       board:        board.title,
       column_id:    targetColumn.id,
       column:       targetColumn.title,
+      assignee_id:  assigneeUser.id,
+      assignee:     assigneeUser.name,
     },
   });
 });
