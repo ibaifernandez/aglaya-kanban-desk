@@ -171,9 +171,21 @@ router.post('/create-card', verifySecret, async (req, res) => {
   // resuelve tiene que dejar la tarjeta sin crear, no crearla sin dueño — que es
   // justo la tarjeta invisible que este campo existe para impedir.
   //
-  // El match es EXACTO, sin comodines, al revés que el de workspace y tablero.
-  // Ahí el parcial se tolera para no pelear con los emojis del título; aquí no
-  // hay nada que tolerar y un parcial engancharía a la persona de al lado.
+  // La INTENCIÓN es match exacto, al revés que el de workspace y tablero: ahí el
+  // parcial se tolera para no pelear con los emojis del título, y aquí un parcial
+  // engancharía a la persona de al lado.
+  //
+  // ⚠️ Y no está conseguido del todo: aquí no se añaden comodines, pero `ilike`
+  // interpreta los `%` y `_` que vengan DENTRO de la entrada. Medido contra la
+  // base real: `assignee: "%aglaya.biz"` casa. Hoy no colisiona con nadie —hay
+  // tres usuarios y ninguno se solapa— así que es latente, no vivo; con más
+  // cuentas empieza a elegir por su cuenta y a devolver `201`.
+  //
+  // Lo encontró el vigilante revisando esto, y **el arreglo (escapar `%` y `_`)
+  // va en su propia tarjeta**, no aquí. Lo que sí se corrige en el acto es este
+  // comentario, que afirmaba «EXACTO, sin comodines» — una promesa que el código
+  // de abajo no cumple. Un comentario que miente sobre su código es peor que no
+  // tenerlo: el siguiente lo lee y deja de mirar.
   const assigneeInput = assignee.trim();
   let users, userError;
 
