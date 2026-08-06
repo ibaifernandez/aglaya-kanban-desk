@@ -164,10 +164,16 @@ describe('un responsable que no resuelve no escribe nada', () => {
     expect(__inserted).toHaveLength(0);
   });
 
-  it('el match es EXACTO: un email a medias no engancha', async () => {
+  it('un email a medias, sin comodines, no engancha', async () => {
     // `kanban-rail` es prefijo de `kanban-rail@aglaya.biz`. Si la ruta buscara
     // con `%valor%` —como sí hace con espacio y tablero— esto devolvería 201
     // sobre una persona que nadie nombró, y el acuse diría que todo fue bien.
+    //
+    // ⚠️ Esta prueba se llamaba «el match es EXACTO» y sobreafirmaba. Cubre la
+    // entrada SIN comodines, que es la mitad que el código sí resuelve bien. NO
+    // cubre una entrada CON `%` o `_`: `ilike` los interpreta, así que
+    // `"%aglaya.biz"` casa. Lo midió el vigilante y tiene tarjeta propia; el
+    // nombre se corrige ya para que la suite no jure lo que no vigila.
     const res = await post({ ...BASE, assignee: 'kanban-rail' });
     expect(res.status).toBe(404);
     expect(__inserted).toHaveLength(0);
