@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.1.0
+- **Versión:** 3.2.0
 - **Última modificación:** 2026-08-06
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -47,10 +47,20 @@ Lo que el catálogo no te dice, y este contrato sí:
   `create_card` exige `assignee` y `priority` explícitos, y sin ellos no escribe
   nada. `priority` tuvo default `medium`; ya no lo tiene. Ver
   [«Por qué responsable y prioridad no tienen default»](#por-qué-responsable-y-prioridad-no-tienen-default).
-- **El brief llega por cualquiera de sus dos nombres.** `description_md` es el
-  documentado; `description` es alias del mismo campo, porque así se llama en la
-  Puerta 2 y quien venga de allí pasará ese nombre. Si los dos traen texto, gana
-  el alias explícito. Un campo vacío nunca tapa a uno con contenido.
+- **El brief llega por cualquiera de sus dos nombres, al crear Y al actualizar.**
+  `description_md` es el documentado; `description` es alias del mismo campo,
+  porque así se llama en la Puerta 2 y quien venga de allí pasará ese nombre. Si
+  los dos traen texto, gana el alias explícito. Un campo vacío nunca tapa a uno
+  con contenido.
+
+  **Esta línea era falsa para `update_card` hasta el 6-ago-2026**, y se afirmaba
+  sin acotar: aquella tool solo aceptaba el alias, y el texto que llegaba con el
+  nombre documentado —el que este contrato recomienda— **se descartaba en
+  silencio**. Ahora es cierta para las dos.
+
+  **Y al actualizar, «no mandarlo» y «mandarlo vacío» son órdenes distintas:** lo
+  primero deja la descripción como está, lo segundo la vacía. Confundirlas
+  borraría el brief de cualquier tarjeta a la que solo se le cambie el título.
 - **Una tarjeta sin contenido lo dice.** Si el brief sale vacío, la respuesta trae
   un `warning`. No es un error —una tarjeta solo-título es legítima a veces— pero
   deja de parecerse a una que salió bien.
@@ -260,6 +270,29 @@ el defecto fue de la clase que este documento persigue: **una copia de una lista
 que envejece**. Nada lo habría cazado — el guardián vigila que se toque este
 fichero cuando cambia una puerta, y aquí no cambió ninguna puerta. Lo destapó
 leer en vivo lo que el capitán sirve y compararlo con el código.
+
+**v3.2.0 — 2026-08-06 · MENOR.** Aditivo: `update_card` acepta el brief por sus
+**dos** nombres, como ya hacía `create_card`. Hasta hoy solo aceptaba el alias, y
+el texto enviado con el nombre **documentado** se descartaba **en silencio** — con
+un `title` al lado, el título se actualizaba, el brief se perdía y la respuesta
+decía que todo fue bien.
+
+Y al actualizar, **«no mandarlo» y «mandarlo vacío» pasan a ser órdenes
+distintas**: la primera deja la descripción como está, la segunda la vacía.
+Confundirlas borraría el brief de cualquier tarjeta a la que solo se le cambiara
+el título.
+
+**La línea de arriba de este contrato afirmaba lo primero sin acotar**, y era
+cierta para crear y falsa para actualizar. Quien viniera de crear con el nombre
+documentado lo reutilizaba aquí y perdía el texto.
+
+**El número lo puso el vigilante al revisar.** El PR tocó este fichero —y por eso
+`contract-guard` dio verde— pero dejó la versión en 3.1.0. **Es la primera vez
+que se ve en vivo la limitación que ese guardián declara en su propia cabecera:**
+comprueba que alguien *tocó* el documento, no que fuera *honesto* al tocarlo.
+Verificar que el texto describe el código, y que el número describe el cambio,
+sigue siendo trabajo del vigilante.
+
 
 **v3.1.0 — 2026-08-06 · MENOR.** Aditivo: `update_column` y `delete_column` en la
 Puerta 1, y la numeración de columnas normalizada a 1..N. Es nota de contrato y no
