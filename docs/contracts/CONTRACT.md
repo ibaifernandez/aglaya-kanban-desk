@@ -227,6 +227,23 @@ Lo que **no** se hace es cambiarlo en el código y confiar en que alguien lo not
 un consumidor que pasa un nombre que ya no existe recibe un `201` con la tarjeta a
 medias, y esa es exactamente la factura que este repo ya pagó.
 
+**Y desde el 6-ago-2026 eso ya no depende de que alguien se acuerde.** Hay un
+guardián en CI ([`scripts/contract-guard.sh`](../../scripts/contract-guard.sh))
+que se pone **rojo** si un cambio toca la forma de una puerta
+—`server/routes/internalRoute.js`, `kanban-mcp/server.py`,
+`kanban-mcp/validation.py`— y **no** toca este fichero. Tiene su propio sello
+([`contract-guard.test.sh`](../../scripts/contract-guard.test.sh)), porque un
+guardián que da verde estando destripado es peor que no tenerlo.
+
+Lo que ese guardián **no** puede hacer: comprueba que alguien tocó este
+documento, no que fuera honesto al tocarlo. Verificar que el texto describe el
+código sigue siendo trabajo del vigilante. Lo que cierra es el caso en que
+**nadie miró** — que es el que pasó tres veces seguidas.
+
+Y si el cambio de verdad **no** altera la forma, se dice igualmente en el
+historial de abajo: esa línea **es** el aviso al capitán que este contrato pide,
+y cuesta un renglón.
+
 ### Historial de versiones
 
 **v3.1.0 — 2026-08-06 · MENOR.** Aditivo: `update_column` y `delete_column` en la
