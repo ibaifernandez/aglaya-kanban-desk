@@ -47,10 +47,20 @@ Lo que el catálogo no te dice, y este contrato sí:
   `create_card` exige `assignee` y `priority` explícitos, y sin ellos no escribe
   nada. `priority` tuvo default `medium`; ya no lo tiene. Ver
   [«Por qué responsable y prioridad no tienen default»](#por-qué-responsable-y-prioridad-no-tienen-default).
-- **El brief llega por cualquiera de sus dos nombres.** `description_md` es el
-  documentado; `description` es alias del mismo campo, porque así se llama en la
-  Puerta 2 y quien venga de allí pasará ese nombre. Si los dos traen texto, gana
-  el alias explícito. Un campo vacío nunca tapa a uno con contenido.
+- **El brief llega por cualquiera de sus dos nombres, al crear Y al actualizar.**
+  `description_md` es el documentado; `description` es alias del mismo campo,
+  porque así se llama en la Puerta 2 y quien venga de allí pasará ese nombre. Si
+  los dos traen texto, gana el alias explícito. Un campo vacío nunca tapa a uno
+  con contenido.
+
+  **Esta línea era falsa para `update_card` hasta el 6-ago-2026**, y se afirmaba
+  sin acotar: aquella tool solo aceptaba el alias, y el texto que llegaba con el
+  nombre documentado —el que este contrato recomienda— **se descartaba en
+  silencio**. Ahora es cierta para las dos.
+
+  **Y al actualizar, «no mandarlo» y «mandarlo vacío» son órdenes distintas:** lo
+  primero deja la descripción como está, lo segundo la vacía. Confundirlas
+  borraría el brief de cualquier tarjeta a la que solo se le cambie el título.
 - **Una tarjeta sin contenido lo dice.** Si el brief sale vacío, la respuesta trae
   un `warning`. No es un error —una tarjeta solo-título es legítima a veces— pero
   deja de parecerse a una que salió bien.
