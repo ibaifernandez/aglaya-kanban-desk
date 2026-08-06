@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.0.0
+- **Versión:** 3.1.0
 - **Última modificación:** 2026-08-06
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -58,6 +58,18 @@ Lo que el catálogo no te dice, y este contrato sí:
   No desactivar la compuerta.
 - **Asignar suena.** Asignar no es etiquetar: dispara la notificación in-app real
   a un humano.
+- **Las columnas se pueden renombrar y borrar, y el tablero queda 1..N** *(v3.1.0)*.
+  `update_column` renombra y reposiciona; `delete_column` borra, **con compuerta**.
+  Tras cualquier cambio el tablero queda numerado **contiguo y sin repetidos**: no
+  se parchea la fila tocada, se renumera el tablero entero.
+  **Modo de fallo nuevo: borrar una columna CON tarjetas devuelve `409` y no borra
+  nada.** No es cortesía — `cards.column_id` es `ON DELETE CASCADE`, así que sin esa
+  guarda la llamada se llevaría las tarjetas por delante y contestaría éxito. No
+  molestaba mientras solo se borraba desde la interfaz, donde quien borra ve lo que
+  hay dentro; el riel no ve nada.
+  **Lo que NO sostiene:** no hay restricción `UNIQUE` en la base, así que una
+  escritura directa puede volver a romper la numeración. Ponerla sin diferir
+  rompería el reordenado legítimo a medio camino.
 - **Sobrescribir una descripción deja rastro, y puede fallar** *(v2.1.0)*.
   `update_card` reemplaza la descripción entera; ahora guarda la anterior antes
   de escribir. **Modo de fallo nuevo: si esa copia no se puede guardar, el
@@ -233,6 +245,18 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**v3.1.0 — 2026-08-06 · MENOR.** Aditivo: `update_column` y `delete_column` en la
+Puerta 1, y la numeración de columnas normalizada a 1..N. Es nota de contrato y no
+solo entrada de changelog por el **modo de fallo nuevo**: `409` al borrar una
+columna con tarjetas dentro.
+
+**La escribió el vigilante al mergear, y es la segunda vez seguida.** El obrero
+entregó el PR sin tocar este fichero; en el #18 pasó igual, allí por un motivo
+bueno —había dos ramas en vuelo y cualquier número era falso— y aquí sin motivo.
+Que dos PR de tres lleguen sin su nota **no es despiste: es que nada lo impide**.
+La tarjeta `8407f7bc` pide justo ese guardián, y cada vez que esto pasa sube su
+precio.
 
 **v3.0.0 — 2026-08-06 · MAYOR.** Dos cambios, los dos incompatibles, en **las dos
 puertas**.
