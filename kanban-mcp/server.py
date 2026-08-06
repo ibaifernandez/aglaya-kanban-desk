@@ -37,7 +37,8 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-from validation import (empty_brief_notice, missing_workspace_error, resolve_brief,
+from validation import (cards_listing_plan, empty_brief_notice,
+                        missing_workspace_error, resolve_brief, row_cap_notice,
                         workspace_mismatch_error)
 
 mcp = FastMCP("aglaya-kanban-desk")
@@ -217,13 +218,22 @@ def list_columns(board_id: str) -> dict[str, Any]:
 
 @mcp.tool()
 def list_cards(board_id: str | None = None, column_id: str | None = None) -> dict[str, Any]:
-    """List cards of a board. Pass `board_id`, OR pass `column_id` and the board
-    is derived from it."""
-    if not board_id:
-        if not column_id:
-            return {"error": "pass board_id or column_id"}
-        board_id = _board_of_column(column_id)
-    rows = _request("GET", f"/boards/{board_id}/cards") or []
+    """List cards. `column_id` returns ONLY that column's cards; `board_id`
+    returns the whole board. If both are given, the column wins (narrower).
+
+    It did not use to. `column_id` was used only to derive the board and then
+    thrown away, so asking for one column and asking for an empty one returned
+    the same answer byte for byte: the entire board. A scope answering for
+    another, with a superset that looks right — the same shape this house
+    already documents for `list_workspaces`. It matters because the work
+    protocol starts all four roles with "take from such-and-such column".
+
+    The response says which scope answered, so a caller can tell."""
+    plan = cards_listing_plan(board_id, column_id)
+    if "error" in plan:
+        return plan
+
+    rows = _request("GET", plan["path"]) or []
     # `description` va incluida: quien escribe por el riel tiene que poder LEER
     # lo que escribió. Sin esto, verificar que un brief entró de verdad obligaba
     # a crear una tarjeta de prueba y pedirle a un humano que la abriera.
@@ -233,7 +243,16 @@ def list_cards(board_id: str | None = None, column_id: str | None = None) -> dic
               "assignee_id": c.get("assigneeId") or c.get("assignee_id"),
               "priority": c.get("priority"), "order": c.get("order"),
               "due_date": c.get("dueDate") or c.get("due_date")} for c in rows[:_ROW_CAP]]
-    return {"board_id": board_id, "count": len(items), "cards": items}
+
+    out: dict[str, Any] = {"scope": plan["scope"], "board_id": plan["board_id"],
+                           "column_id": plan["column_id"], "count": len(items),
+                           "cards": items}
+    # El tope existía y recortaba callando. Un conteo recortado sin avisar es un
+    # conteo que miente: quien lea `count` creerá que eso es todo lo que hay.
+    notice = row_cap_notice(len(rows), _ROW_CAP)
+    if notice:
+        out["warning"] = notice
+    return out
 
 
 # ---------------------------------------------------------------------------

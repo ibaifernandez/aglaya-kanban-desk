@@ -69,7 +69,7 @@ o en un `.mcp.json` de proyecto:
 
 | Grupo | Tool | Notas |
 |-------|------|-------|
-| Lectura | `list_workspaces` · `list_boards(ws)` · `list_columns(board)` · `list_cards(board?,column?)` · `list_members(ws)` | `list_cards` acepta `board_id` **o** `column_id` (deriva el board) |
+| Lectura | `list_workspaces` · `list_boards(ws)` · `list_columns(board)` · `list_cards(board?,column?)` · `list_members(ws)` | `list_cards`: con `column_id` devuelve **solo esa columna**; con `board_id`, el tablero entero. Si vienen los dos gana la columna, y la respuesta trae `scope` diciendo quién contestó. **Antes `column_id` solo servía para derivar el tablero y luego se tiraba**, así que pedir una columna devolvía el tablero — y pedir una columna vacía, también |
 | Estructura | `create_workspace(name,type)` · `create_board(ws,name)` · `create_column(board,name,order?)` | board auto-siembra columnas por defecto |
 | Comanda | `create_card(column,title,description_md,priority,checklist[],due_date,assignee?,board_id?)` | el BRIEF va en `description_md`; **`board_id` OPCIONAL** (se deriva de `column`); `assignee` fija responsable + notifica |
 | Asignar | `assign_card(card_id,user)` · `assign_checklist_item(card_id,item,user)` | `user` = email/nombre/id; `item` = índice o texto; **dispara notificación in-app** |
