@@ -49,7 +49,19 @@ por ejecución contra la DB.
 
 ---
 
-## El punto ciego del riel — cómo se detecta *(2026-07-27 · diseñado, sin implementar)*
+## El punto ciego del riel — cómo se detecta *(2026-07-27 · diseñado · IMPLEMENTADO el 6-ago-2026)*
+
+> **Esta sección ya no es un plan: describe algo que corre.** `scripts/rail-blindspot.sh`
+> implementa el cruce de abajo **en las dos direcciones**, con el alcance derivado de la
+> PROPIEDAD como se decidió aquí, y `.github/workflows/rail-scope.yml` lo despierta **por
+> reloj** además de con los empujes.
+>
+> Se conserva el diseño entero porque explica **por qué** el criterio es la propiedad y no
+> el tipo — y eso no lo cuenta el código.
+>
+> El encabezado decía «sin implementar» y llevaba horas siendo falso: la primera mitad
+> entró esta misma mañana. Un documento de diseño que no dice cuándo dejó de ser un plan
+> manda a alguien a construir lo que ya existe.
 
 **La fragilidad.** La membresía del riel se mantiene a mano y falla en silencio. Si se
 crea un espacio y no se añade `kanban-rail@aglaya.biz` como miembro, `GET /workspaces`

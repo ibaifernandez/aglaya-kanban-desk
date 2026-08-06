@@ -6,6 +6,38 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Changed
+- **El detector de alcance del riel mira ahora las DOS direcciones, y corre por
+  reloj** (`scripts/rail-blindspot.sh` + `.github/workflows/rail-scope.yml`).
+  Implementa el diseño que llevaba escrito en `docs/BACKLOG.md` desde el 2026-07-27.
+  - **La dirección que faltaba es la que protege lo ajeno.** Antes solo vigilaba
+    que no *faltara* alcance —un espacio al que el riel no llega—; ahora también
+    que no *sobre*: el riel metido en un espacio fuera de su alcance puede escribir
+    donde no le toca, y eso no da error — da una tarjeta en casa de otro. Es la
+    mitad que importa el día que haya un cliente.
+  - **El alcance se deriva de la PROPIEDAD, no del tipo.** El criterio anterior
+    —«todo lo que no sea `personal`»— hacía que el alcance del riel dependiera de
+    cómo tipe Món sus propios espacios. Ahora es: los espacios cuyo `owner` es
+    Ibai, excluidos los que **él** tipe como `personal`. Y manda
+    `workspace_members.role = 'owner'`, no `workspaces.created_by`: el segundo es
+    un hecho del pasado y no se mueve, así que el día que un espacio cambiara de
+    dueño el detector exigiría meter el riel en casa ajena.
+  - **Los dos errores dicen remedios opuestos** —meter al riel dentro, o sacarlo—
+    así que el mensaje distingue cuál es cuál. Uno que no lo hiciera mandaría a
+    quien lo lea a hacer justo lo contrario.
+  - **Sale de `ci.yml` a su propio workflow con `schedule`.** `ci.yml` solo se
+    dispara con empujes y PR: un espacio creado un martes, sin que nadie tocara el
+    repo, quedaba invisible para toda la flota hasta el siguiente commit. El
+    guardián existía para que un olvido no pasara desapercibido, y estaba atado a
+    que hubiera trabajo.
+  - **Lo que NO está verificado, y lo decide el revisor:** la consulta nueva **no
+    se ha corrido contra la base real** — en esta sesión no hay credenciales, así
+    que todo el sello va por inyección de filas. El criterio nuevo puede sacar
+    desviaciones que el criterio por tipo tapaba con entradas en
+    `rail-blindspot.allowed`. **Antes de mergear hay que correrlo contra
+    producción**: si sale rojo es un hallazgo, no un fallo del guardián — pero un
+    guardián no puede estrenar en rojo.
+
 ### Fixed
 - **El mensaje de prioridad inválida omitía `urgent`, que sí es válida**
   (`server/routes/cards.js`). El conjunto aceptaba `urgent` y el `400` respondía
