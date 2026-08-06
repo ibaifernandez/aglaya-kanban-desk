@@ -259,13 +259,69 @@ def create_board(workspace_id: str, name: str) -> dict[str, Any]:
 
 @mcp.tool()
 def create_column(board_id: str, name: str, order: int | None = None) -> dict[str, Any]:
-    """Add a column to a board (appended). If `order` is given, reposition to it."""
-    col = _request("POST", f"/boards/{board_id}/columns", {"title": name})
+    """Add a column to a board. Appended unless `order` is given (1 = first).
+
+    Positioning happens server-side in ONE call now. It used to be create-then-PUT
+    from here, and the PUT wrote the requested number on top of whoever held it:
+    building the work protocol on the Operaciones board that way left two columns
+    sharing a number, and from then on the visual order was decided by the UI's
+    tie-break rather than by what was asked."""
+    body: dict[str, Any] = {"title": name}
     if order is not None:
-        _request("PUT", f"/columns/{col['id']}", {"order": order})
-        col["order"] = order
+        body["order"] = order
+    col = _request("POST", f"/boards/{board_id}/columns", body)
     return {"created": "column", "id": col["id"], "name": col.get("title") or col.get("name"),
             "board_id": board_id, "order": col.get("order")}
+
+
+@mcp.tool()
+def update_column(column_id: str, name: str | None = None,
+                  order: int | None = None) -> dict[str, Any]:
+    """RENAME a column and/or MOVE it to a position (1 = first). Non-destructive.
+
+    Until this existed, a column built wrong through the rail stayed wrong: the
+    only fix was the UI. A column that says the wrong thing is worse than a
+    missing one — the board IS the protocol, so a stale column name is a state
+    with an owner that nobody actually owns.
+
+    Repositioning renumbers the whole board, so no two columns can end up sharing
+    a number through this door."""
+    body: dict[str, Any] = {}
+    if name is not None:
+        if not name.strip():
+            return {"error": "name cannot be empty — pass a title or omit the argument"}
+        body["title"] = name.strip()
+    if order is not None:
+        if not isinstance(order, int) or order < 1:
+            return {"error": "order must be a positive integer (1 = first column)"}
+        body["order"] = order
+    if not body:
+        return {"error": "nothing to update — pass at least one of name|order"}
+    col = _request("PUT", f"/columns/{column_id}", body)
+    return {"updated": "column", "id": column_id, "fields": list(body.keys()),
+            "name": (col or {}).get("title"), "order": (col or {}).get("order")}
+
+
+@mcp.tool()
+def delete_column(column_id: str, confirm: bool = False) -> dict[str, Any]:
+    """DELETE an empty column. GATED: refuses unless confirm=true.
+
+    A column WITH cards is refused by the server (409) — it does not empty it for
+    you. That guard matters more here than in the UI: `cards.column_id` is ON
+    DELETE CASCADE, so without it this call would take the cards with it and
+    answer success. Whoever deletes from the UI sees what is inside; the rail
+    sees nothing.
+
+    Move the cards out first with `move_card`, then delete."""
+    cols = _request("GET", f"/columns/{column_id}/cards") or []
+    if not confirm:
+        return {"would_delete": "column", "column_id": column_id,
+                "cards_inside": len(cols),
+                "warning": ("Pass confirm=true to proceed. If there are cards inside the "
+                            "server will refuse anyway — move them out first."),
+                "confirm_required": True}
+    _request("DELETE", f"/columns/{column_id}")
+    return {"deleted": "column", "column_id": column_id}
 
 
 # ---------------------------------------------------------------------------
