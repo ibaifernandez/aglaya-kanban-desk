@@ -12,6 +12,50 @@ function verifySecret(req, res, next) {
   next();
 }
 
+// ── GET /api/internal/list-workspaces ──────────────────────────────────────────
+// Lee todos los workspaces (service_role, sin membresía).
+// Permite a una nave externa verificar destinos antes de clavar trabajo.
+
+router.get('/list-workspaces', verifySecret, async (req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('workspaces')
+    .select('id, name, type, emoji, organization_id')
+    .order('name', { ascending: true });
+
+  if (error) {
+    console.error('[internal/list-workspaces]', error.message);
+    return res.status(500).json({ error: 'Error al listar workspaces.' });
+  }
+
+  res.json({ workspaces: data || [] });
+});
+
+// ── GET /api/internal/list-boards ─────────────────────────────────────────────
+// Lee tableros de un workspace (service_role).
+
+router.get('/list-boards', verifySecret, async (req, res) => {
+  const { workspaceId } = req.query;
+
+  if (!workspaceId?.trim()) {
+    return res.status(400).json({
+      error: 'workspaceId es obligatorio. Usa GET /api/internal/list-workspaces para obtener IDs.',
+    });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('boards')
+    .select('id, title, workspace_id, order')
+    .eq('workspace_id', workspaceId)
+    .order('order', { ascending: true });
+
+  if (error) {
+    console.error('[internal/list-boards]', error.message);
+    return res.status(500).json({ error: 'Error al listar tableros.' });
+  }
+
+  res.json({ boards: data || [] });
+});
+
 // ── POST /api/internal/create-card ────────────────────────────────────────────
 // Crea una card en el Backlog del tablero indicado, sin JWT.
 // Autenticado con x-task-secret header.
