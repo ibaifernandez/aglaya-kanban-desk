@@ -7,6 +7,22 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Fixed
+- **`update_card` dejaba caer el brief en silencio si venía con su nombre
+  documentado** (PR [#32](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/32),
+  contrato del riel a **v3.2.0**). `create_card` aceptaba el brief por sus dos
+  nombres —`description_md` y `description`—; `update_card` **solo aceptaba el
+  alias**, y lo que llegaba con el otro se descartaba sin avisar.
+  - **Cómo se descubrió:** en carne propia, actualizando tarjetas de este mismo
+    tablero. Solo saltó un error porque no iba ningún otro campo. **Con un `title`
+    acompañando, el título se habría actualizado, el brief se habría perdido, y la
+    respuesta habría dicho que fue bien.**
+  - **Y al actualizar, «no mandarlo» y «mandarlo vacío» pasan a ser órdenes
+    distintas** — la primera deja la descripción como está, la segunda la vacía.
+    Se distinguen con un centinela, porque `None` no puede: confundirlas borraría
+    el brief de cualquier tarjeta a la que solo se le cambiara el título.
+  - **El contrato afirmaba lo de los dos nombres sin acotar**, cierto para crear y
+    falso para actualizar. Ahora es cierto para las dos puertas.
+
 - **El fallo de la copia de seguridad deja de ser silencioso** (PR
   [#31](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/31)). El aviso era
   un `::error::` en el log y un `TODO`: la copia —**la única red bajo esta nave**—
