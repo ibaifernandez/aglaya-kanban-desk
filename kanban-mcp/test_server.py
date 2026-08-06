@@ -249,6 +249,46 @@ class ActualizarTarjeta(RielTestCase):
         self.assertEqual(len(puts), 1)
         self.assertEqual(puts[0][2]["priority"], "urgent")
 
+    # El brief por su nombre DOCUMENTADO. Antes se descartaba en silencio: la
+    # tool solo aceptaba el alias. Se mira lo que SALE A LA RED, no lo que
+    # devuelve — un valor de retorno contento no dice si el texto viajó.
+    def test_el_brief_llega_por_su_nombre_documentado(self):
+        server.update_card(card_id="card-1", description_md="# Brief nuevo")
+        puts = [c for c in self.writes if c[0] == "PUT"]
+        self.assertEqual(len(puts), 1)
+        self.assertEqual(puts[0][2]["description"], "# Brief nuevo")
+
+    def test_el_brief_llega_por_el_alias(self):
+        server.update_card(card_id="card-1", description="por el alias")
+        puts = [c for c in self.writes if c[0] == "PUT"]
+        self.assertEqual(puts[0][2]["description"], "por el alias")
+
+    # LA prueba del caso que se pagó: con un `title` acompañando, el título se
+    # actualizaba, el brief se tiraba, y la respuesta decía que todo fue bien.
+    # Sin un `title` delante, el fallo era ruidoso —«nothing to update»— y por eso
+    # se descubrió por suerte.
+    def test_con_titulo_al_lado_el_brief_ya_NO_se_pierde(self):
+        server.update_card(card_id="card-1", title="Otro título",
+                           description_md="# Brief que antes se perdía")
+        puts = [c for c in self.writes if c[0] == "PUT"]
+        self.assertEqual(len(puts), 1)
+        self.assertEqual(puts[0][2]["title"], "Otro título")
+        self.assertEqual(puts[0][2]["description"], "# Brief que antes se perdía")
+
+    # Actualizar solo el título NO puede tocar la descripción. Si el resolutor
+    # devolviera "" en vez de «no lo toques», cada retitulado borraría el brief —
+    # el mismo daño que esta puerta ya hizo por otro camino.
+    def test_actualizar_solo_el_titulo_no_manda_descripcion(self):
+        server.update_card(card_id="card-1", title="Solo el título")
+        puts = [c for c in self.writes if c[0] == "PUT"]
+        self.assertNotIn("description", puts[0][2])
+
+    # Y vaciar sigue siendo posible: es una orden distinta de «no lo toques».
+    def test_vaciar_la_descripcion_sigue_siendo_posible(self):
+        server.update_card(card_id="card-1", description="")
+        puts = [c for c in self.writes if c[0] == "PUT"]
+        self.assertEqual(puts[0][2]["description"], "")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
