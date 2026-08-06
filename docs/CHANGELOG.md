@@ -42,6 +42,31 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     tarjeta.
 
 ### Added
+- **Columna `cards.created_by_caller`, sola y sin nadie que la lea todavía**
+  (`docs/schema/migration-card-caller.sql`). `TEXT` NULLable, más un índice
+  parcial. Guardará qué nave clavó cada tarjeta por `POST
+  /api/internal/create-card`, que hoy se autentica con **un** secreto compartido:
+  con N naves, todo lo clavado dice lo mismo y no hay a quién preguntar cuando
+  algo aparece mal puesto. **No es autenticación** — quien tiene el secreto
+  declara el nombre que quiera.
+  - **Por qué entra sola, antes que el código que la usa.** Nació junto a su
+    código en un solo PR, y así montado tenía un orden obligatorio: mergear el
+    código antes de aplicar la migración deja la puerta escribiendo en una
+    columna que no existe, es decir producción rota. Ese orden estaba **escrito
+    en un aviso dentro del PR**, y un aviso compite con las prisas de quien
+    mergea. Partido en dos, la dependencia deja de existir: esta mitad es inerte
+    —columna NULLable que nadie lee, índice parcial sobre nada— y se puede
+    aplicar y mergear en cualquier orden sin romper nada. Una dependencia que ya
+    no existe no compite con nada.
+  - **`NULL` es el valor correcto para lo anterior, y se queda.** Rellenarlo con
+    algo inventado convertiría «no lo sabemos» en «lo clavó fulano». El hueco se
+    lee; una atribución falsa, no.
+  - **Sin GRANT ni RLS nuevos, a propósito:** es una columna sobre una tabla que
+    ya los tiene. El patrón obligatorio de `CLAUDE.md` aplica a tablas **nuevas**.
+  - **Lo que un verde de `schema-guard` aquí NO significa:** que la columna exista
+    en la base. Ese guardián compara la migración con el esquema **documentado**,
+    no con el servidor. Aplicarla sigue siendo un paso humano — y esa asimetría
+    tiene tarjeta propia en el Backlog.
 - **Guardián del enganche de permisos en CI** (`scripts/hook-guard.sh` + su sello,
   PR [#29](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/29)). CI se
   pone rojo si `.claude/settings.json` deja de declarar un `PreToolUse` que
