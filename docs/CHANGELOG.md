@@ -7,6 +7,35 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Fixed
+- **El guardián del contrato deriva qué vigila en vez de tenerlo tecleado** (PR
+  [#35](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/35)). Su lista
+  eran tres rutas escritas a mano, y **envejeció el mismo día que se escribió**:
+  ese 6-ago-2026 el PR [#22](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/22)
+  sacó las prioridades válidas a `server/constants/priorities.js` —hoy el único
+  sitio donde vive el conjunto que decide el `400` y el texto del error, los dos
+  declarados en el contrato— y el PR
+  [#24](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/24) montó el
+  guardián sobre la lista de antes. **Ninguno de los dos estaba mal por su
+  cuenta: se encontraron mal.** Quitar `urgent` de ese fichero cambiaba la forma
+  de la Puerta 2 y CI se quedaba en verde.
+  - **Ahora se parte de las dos puertas y se sigue lo que importan**, y lo que
+    importan ellas, hasta agotar. Si mañana alguien saca otro trozo de la forma
+    de una puerta a un fichero nuevo, el guardián lo hereda solo.
+  - **El cierre son cinco ficheros**, no tres. El quinto es
+    `server/utils/supabase.js`, y no es sobre-inclusión: el contrato declara que
+    la Puerta 2 usa `service_role` y salta RLS, y ahí es donde se elige la llave.
+    Cambiar `SERVICE_ROLE_KEY` por `ANON_KEY` cambiaría el alcance prometido, en
+    verde. Dos commits en toda su vida, así que no cuesta falsos rojos.
+  - **Cierra además un hueco que la tarjeta no pedía:** una puerta que se moviera
+    de sitio se caía de la lista **en silencio** y el guardián seguía dando verde
+    con lo que quedara. Ahora se declara roto.
+  - **Estrena verde, medido:** corrido contra los PR #13–#33, ninguno cambia de
+    veredicto. El único que toca los dos ficheros nuevos es el #22, y ya salía
+    rojo con la lista de antes.
+  - **Lo que el cierre no ve, y está en su cabecera:** sigue imports estáticos y
+    literales. Un `require(variable)`, un import dentro de una función o un
+    `importlib` se le escapan. Barrido hoy: no hay ninguno en las puertas.
+
 - **`update_card` dejaba caer el brief en silencio si venía con su nombre
   documentado** (PR [#32](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/32),
   contrato del riel a **v3.2.0**). `create_card` aceptaba el brief por sus dos
