@@ -6,6 +6,24 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Fixed
+- **El presupuesto de tiempo de las pruebas vive en un solo sitio** (PR
+  [#30](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/30)).
+  `package.json` decía `10000` y CI pasaba `--testTimeout=15000`, así que
+  **`npm test` y CI juzgaban con reglas distintas** según dónde se corriera. Ahora
+  el valor lo custodia `package.json` (15000) y CI no lo repite.
+  - **Y corrige una medición del vigilante, no solo la configuración.** La tarjeta
+    `711c6868` afirmaba que la prueba lenta de `digest.test.js` pasaba «con margen
+    ~0» contra el timeout global. **Es falso:** esa prueba declara su propio
+    presupuesto (`}, 20000`), que **anula el global**, así que nunca usó el de
+    `package.json`. Comprobado corriendo la suite con `--testTimeout=1000`: sigue
+    pasando, en ~10 s. El margen real es **~2×**. Se había medido contra la
+    constante equivocada.
+  - **Lo que sigue abierto:** esos ~10 s son más de la mitad de lo que tarda la
+    suite entera, y son de reloj real. Recuperarlos pide temporizadores falsos
+    mezclados con `supertest`, que abre un socket de verdad — otro riesgo, otra
+    tarjeta.
+
 ### Added
 - **Guardián del enganche de permisos en CI** (`scripts/hook-guard.sh` + su sello,
   PR [#29](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/29)). CI se
