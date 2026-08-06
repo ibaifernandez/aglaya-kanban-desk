@@ -24,9 +24,14 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     tres tarjetas bien escritas nacieron sin responsable y las asignó el capitán a
     mano al detectarlo. Es la peor variante del `201` que miente: aterrizar mal se
     nota tarde, nacer invisible no se nota nunca.
-  - ⚠️ **Rompe a todos los llamantes actuales, el capitán incluido.** No hay ventana
-    de deprecación, y si hace falta una es decisión de Ibai: la alternativa queda
-    descrita en el contrato y sin implementar a propósito.
+  - ⚠️ **Rompe a todos los llamantes actuales, el capitán incluido.** **Sin ventana de
+    deprecación, por decisión tomada** (Ibai, delegada en el capitán): el radio medido
+    son **tres llamantes, los tres DOCUMENTACIÓN y ninguno un servicio** — el `curl` de
+    `CLAUDE.md`, el paso de verificación de `docs/runbooks/key-rotation.md` (el más
+    dañino: una rotación correcta habría parecido fallida) y la firma en
+    `kanban-mcp/README.md`, que anunciaba `assignee?` como opcional. No se cae nada, así
+    que la ventana solo compraría tiempo para nadie. Los tres se arreglan **en el mismo
+    cambio** que los invalida.
 
 ### Added
 - **Puerta de lectura del riel HTTP** (PR [#13](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/13),

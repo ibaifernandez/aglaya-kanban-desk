@@ -71,7 +71,7 @@ o en un `.mcp.json` de proyecto:
 |-------|------|-------|
 | Lectura | `list_workspaces` · `list_boards(ws)` · `list_columns(board)` · `list_cards(board?,column?)` · `list_members(ws)` | `list_cards` acepta `board_id` **o** `column_id` (deriva el board) |
 | Estructura | `create_workspace(name,type)` · `create_board(ws,name)` · `create_column(board,name,order?)` | board auto-siembra columnas por defecto |
-| Comanda | `create_card(column,title,description_md,priority,checklist[],due_date,assignee?,board_id?)` | el BRIEF va en `description_md`; **`board_id` OPCIONAL** (se deriva de `column`); `assignee` fija responsable + notifica |
+| Comanda | `create_card(column,title,description_md,priority,assignee,checklist[],due_date,board_id?)` | el BRIEF va en `description_md`; **`board_id` OPCIONAL** (se deriva de `column`); **`priority` y `assignee` OBLIGATORIOS** — sin ellos la tarjeta no la coge nadie y no falla, envejece pareciendo pendiente; `assignee` fija responsable **y notifica** |
 | Asignar | `assign_card(card_id,user)` · `assign_checklist_item(card_id,item,user)` | `user` = email/nombre/id; `item` = índice o texto; **dispara notificación in-app** |
 | Flujo | `move_card(card_id,column,order?)` | append por defecto |
 | Destructivas 🔒 | `delete_card` · `delete_board` · `delete_workspace` · `clear_workspace` · `remove_member(ws,user)` | **GATED: exigen `confirm=true`**; `remove_member` quita membresía (no borra la cuenta) |
