@@ -7,6 +7,35 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
+- **Las columnas se pueden renombrar y borrar desde el riel, y los números dejan de
+  chocar** (PR [#19](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/19),
+  obrero automático, 2026-08-06). Contrato del riel a **v3.1.0**, aditivo.
+  - Tools `update_column` (renombra y reposiciona) y `delete_column` (**con
+    compuerta `confirm=true`**). El servidor ya tenía `updateColumn`/`deleteColumn`:
+    lo que faltaban eran las tools.
+  - **La numeración se normaliza a 1..N tras cualquier cambio.** No se parchea la
+    fila tocada; se renumera el tablero entero — más escritura y ningún estado
+    intermedio que pueda quedarse. Antes se insertaba con el número pedido encima de
+    quien lo tuviera, y dos columnas acababan compartiendo posición, con el orden
+    visual decidido por el desempate de la interfaz.
+  - Migración que limpia el único par repetido que había en la base.
+
+### Fixed
+- **Borrar una columna con tarjetas dentro se las llevaba por delante y devolvía
+  éxito** (PR #19). `cards.column_id` es `ON DELETE CASCADE`. Ahora devuelve **`409`
+  y no borra nada**, diciendo cuántas tarjetas hay.
+  **No estaba en la tarjeta: apareció al medir.** Llevaba ahí sin molestar porque
+  solo se podía borrar desde la interfaz, donde quien borra ve lo que hay dentro —
+  pero la tarjeta pedía dársela al riel, que no ve nada, así que el agujero lo abría
+  el propio cambio. La guarda entró en el mismo commit que la herramienta, no
+  después.
+
+### Changed
+- **`order` sale del parche de `updateColumn`** (PR #19). Escribirlo ahí era el
+  defecto: ponía el número pedido sin mirar quién lo ocupaba. Reposicionar es ahora
+  un solo camino — renumerar el tablero entero.
+
+### Added
 - **Historial de la descripción de una tarjeta: sobrescribir deja rastro y se puede
   deshacer** (PR [#18](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/18),
   obrero automático, 2026-08-06). Contrato del riel a **v2.1.0**, aditivo.
