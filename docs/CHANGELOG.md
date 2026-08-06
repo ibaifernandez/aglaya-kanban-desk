@@ -6,6 +6,25 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Fixed
+- **El paso que verifica la rotación de `TASK_SECRET` pasa a verificar de verdad**
+  (`docs/runbooks/key-rotation.md`, PR
+  [#27](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/27)). Era un
+  `POST` a `create-card` que **fallaba por tres motivos a la vez**, acumulados por
+  dos arreglos sucesivos del mismo comando: un espacio inexistente, un `boardName`
+  que en realidad es una **columna**, y el responsable ausente desde v3.0.0.
+  Un paso de verificación que siempre falla **enseña a ignorar el fallo**, y era
+  justo el que comprueba que la llave nueva sirve.
+  - **El arreglo no es corregir el destino: es quitarlo.** Pasa a ser un `GET` a
+    `list-workspaces`. Los tres endpoints de `/api/internal/*` comparten el mismo
+    `verifySecret`, así que **una lectura prueba el header igual que una escritura
+    y no deja nada detrás**. La forma más segura de que un ejemplo no caduque es
+    que no tenga destino que acertar.
+  - **Y había un motivo nuevo que no existía cuando se escribió el paso:** con el
+    responsable ya obligatorio, una tarjeta de prueba a nombre de la cuenta de
+    servicio **la coge un obrero automático y se pone a trabajarla**. Verificar una
+    rotación no puede inyectar trabajo falso en la cola.
+
 ### Added
 - **Guardián de privilegios del rol anónimo en CI** (`scripts/grants-guard.sh` + su
   sello, PR [#25](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/25),
