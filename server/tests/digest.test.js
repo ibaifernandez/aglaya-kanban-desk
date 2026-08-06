@@ -159,6 +159,24 @@ describe('POST /api/digest/send-my-digest', () => {
     expect(res.body.error).toContain('SMTP connection failed');
   });
 
+  // ⏱ ESTA PRUEBA TARDA ~10 s DE RELOJ, y es la única de la suite que lo hace:
+  // la siguiente más lenta tarda 24 ms. No usa temporizadores falsos — espera de
+  // verdad a que salte el timeout de 10 s del código de producción.
+  //
+  // Su presupuesto propio (`}, 20000` abajo) NO es adorno: **anula el global**,
+  // así que esta prueba nunca ha usado el `testTimeout` de `package.json`.
+  // Comprobado corriendo la suite con `--testTimeout=1000`: sigue pasando, en
+  // 10008 ms. El margen real es ~2×, no el margen ~0 que se le atribuyó.
+  //
+  // Lo que sí era cierto y ya está corregido: `package.json` decía 10000 y CI
+  // pasaba `--testTimeout=15000`, así que las demás pruebas se juzgaban con
+  // reglas distintas según dónde corrieran. Ahora el presupuesto vive en un solo
+  // sitio.
+  //
+  // Queda abierto, y NO se arregla aquí: los ~10 s son más de la mitad de lo que
+  // tarda la suite entera. Con temporizadores falsos se recuperarían, pero
+  // mezclarlos con `supertest` —que abre un socket de verdad— es un cambio con
+  // su propio riesgo y merece su propia tarjeta.
   it('returns error if digest send exceeds 10s timeout', async () => {
     // Mock sendUserDigest to hang indefinitely
     sendUserDigest.mockImplementationOnce(() =>
