@@ -1,4 +1,5 @@
 const { supabaseAdmin } = require('../utils/supabase');
+const { isValidPriority, priorityList } = require('../constants/priorities');
 
 // ── Checklist notification helper ─────────────────────────────────────────────
 
@@ -149,14 +150,14 @@ const createCard = async (req, res) => {
   res.status(201).json({ data: toCard(data) });
 };
 
-const VALID_PRIORITIES = new Set(['urgent', 'high', 'medium', 'low', 'none']);
-
 const updateCard = async (req, res) => {
   const { title, description, category, priority, dueDate, tags, checklist, checklistTitle, attachments, assigneeId } = req.body;
 
   // Input validation
-  if (priority !== undefined && !VALID_PRIORITIES.has(priority)) {
-    return res.status(400).json({ error: 'priority must be low, medium, high, or none' });
+  // El mensaje se DERIVA del conjunto. Escribirlo al lado es lo que había, y ya
+  // había divergido: el conjunto aceptaba `urgent` y el texto no lo nombraba.
+  if (priority !== undefined && !isValidPriority(priority)) {
+    return res.status(400).json({ error: `priority must be one of: ${priorityList()}` });
   }
   if (title !== undefined && (typeof title !== 'string' || title.trim().length === 0 || title.length > 255)) {
     return res.status(400).json({ error: 'title must be a non-empty string under 255 chars' });
