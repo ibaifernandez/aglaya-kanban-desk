@@ -37,6 +37,23 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     es que se ponga sola.
 
 ### Fixed
+- **`update_card` dejaba caer el brief en silencio si venía con su nombre
+  documentado** (PR [#32](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/32),
+  contrato del riel a **v3.2.0**). `create_card` aceptaba el brief por sus dos
+  nombres —`description_md` y `description`—; `update_card` **solo aceptaba el
+  alias**, y lo que llegaba con el otro se descartaba sin avisar.
+  - **Cómo se descubrió:** en carne propia, actualizando tarjetas de este mismo
+    tablero. Solo saltó un error porque no iba ningún otro campo. **Con un `title`
+    acompañando, el título se habría actualizado, el brief se habría perdido, y la
+    respuesta habría dicho que fue bien.**
+  - **Y al actualizar, «no mandarlo» y «mandarlo vacío» pasan a ser órdenes
+    distintas** — la primera deja la descripción como está, la segunda la vacía.
+    Se distinguen con un centinela, porque `None` no puede: confundirlas borraría
+    el brief de cualquier tarjeta a la que solo se le cambiara el título.
+  - **El contrato afirmaba lo de los dos nombres sin acotar**, cierto para crear y
+    falso para actualizar. Ahora es cierto para las dos puertas.
+
+### Fixed
 - **El presupuesto de tiempo de las pruebas vive en un solo sitio** (PR
   [#30](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/30)).
   `package.json` decía `10000` y CI pasaba `--testTimeout=15000`, así que
@@ -55,6 +72,31 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     tarjeta.
 
 ### Added
+- **Columna `cards.created_by_caller`, sola y sin nadie que la lea todavía**
+  (`docs/schema/migration-card-caller.sql`). `TEXT` NULLable, más un índice
+  parcial. Guardará qué nave clavó cada tarjeta por `POST
+  /api/internal/create-card`, que hoy se autentica con **un** secreto compartido:
+  con N naves, todo lo clavado dice lo mismo y no hay a quién preguntar cuando
+  algo aparece mal puesto. **No es autenticación** — quien tiene el secreto
+  declara el nombre que quiera.
+  - **Por qué entra sola, antes que el código que la usa.** Nació junto a su
+    código en un solo PR, y así montado tenía un orden obligatorio: mergear el
+    código antes de aplicar la migración deja la puerta escribiendo en una
+    columna que no existe, es decir producción rota. Ese orden estaba **escrito
+    en un aviso dentro del PR**, y un aviso compite con las prisas de quien
+    mergea. Partido en dos, la dependencia deja de existir: esta mitad es inerte
+    —columna NULLable que nadie lee, índice parcial sobre nada— y se puede
+    aplicar y mergear en cualquier orden sin romper nada. Una dependencia que ya
+    no existe no compite con nada.
+  - **`NULL` es el valor correcto para lo anterior, y se queda.** Rellenarlo con
+    algo inventado convertiría «no lo sabemos» en «lo clavó fulano». El hueco se
+    lee; una atribución falsa, no.
+  - **Sin GRANT ni RLS nuevos, a propósito:** es una columna sobre una tabla que
+    ya los tiene. El patrón obligatorio de `CLAUDE.md` aplica a tablas **nuevas**.
+  - **Lo que un verde de `schema-guard` aquí NO significa:** que la columna exista
+    en la base. Ese guardián compara la migración con el esquema **documentado**,
+    no con el servidor. Aplicarla sigue siendo un paso humano — y esa asimetría
+    tiene tarjeta propia en el Backlog.
 - **Guardián del enganche de permisos en CI** (`scripts/hook-guard.sh` + su sello,
   PR [#29](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/29)). CI se
   pone rojo si `.claude/settings.json` deja de declarar un `PreToolUse` que
