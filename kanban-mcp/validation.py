@@ -1,4 +1,8 @@
-"""Validación de destino del riel — lógica PURA, sin red ni dependencias.
+"""Validación de entrada del riel — lógica PURA, sin red ni dependencias.
+
+Empezó siendo solo el DESTINO (a qué espacio va la tarjeta) y hoy cubre también
+lo que la hace PROCESABLE: responsable y prioridad. Los tres tienen la misma
+forma de fallo — un campo que falta y una tarjeta que se crea igual.
 
 Está separada de `server.py` a propósito, y sin imports de terceros, para que
 `test_validation.py` corra en CI con un `python3` pelado, sin instalar nada.
@@ -22,6 +26,131 @@ REGLA DE ENRUTADO — el resumen va aquí, el manual NO se copia:
 # de abajo, así que tiene que seguir diciendo a dónde ir incluso —sobre todo—
 # cuando el capitán haya movido las cosas de sitio.
 _MANUAL = 'donde_pregunto("tarea") en el MCP aglaya-atlas (repo aglaya-orchestrator)'
+
+# La lista vive aquí, en el módulo puro, para que la comprueben los tests sin red.
+# Estaba escrita a mano en dos sitios de `server.py`; una copia de una lista de
+# valores válidos es la forma barata de que una puerta acepte lo que la otra
+# rechaza.
+VALID_PRIORITIES = ("urgent", "high", "medium", "low", "none")
+
+
+def priority_error(priority):
+    """`None` si viene una prioridad utilizable; dict de error si falta o no vale.
+
+    Cubre los DOS fallos, y el segundo es el que motivó esta función:
+
+    · **Inválida** ya se rechazaba antes.
+    · **Ausente** caía a `medium` en silencio. Quien creía no haber decidido
+      había decidido, y su tarjeta se ordenaba contra las demás con un valor que
+      nadie eligió. Es la forma exacta del default de `workspaceName`: implícito,
+      plausible y callado.
+
+    No juzga si la prioridad es la ACERTADA — eso es criterio y no vive en una
+    puerta. Solo que venga y que exista.
+    """
+    p = str(priority).strip() if priority is not None else ""
+
+    if not p:
+        return {
+            "error": (
+                "priority es obligatoria: di explícitamente qué urgencia tiene la "
+                "tarjeta. No hay default por diseño — antes caía a `medium` sin "
+                "decirlo, así que quien creía no haber decidido había decidido.\n"
+                f"Válidas: {', '.join(VALID_PRIORITIES)}."
+            )
+        }
+
+    if p not in VALID_PRIORITIES:
+        return {
+            "error": (
+                f'priority inválida: "{priority}". '
+                f"Válidas: {', '.join(VALID_PRIORITIES)}."
+            )
+        }
+
+    return None
+
+
+def missing_assignee_error(assignee):
+    """`None` si viene un responsable; dict de error si falta.
+
+    Comprueba PRESENCIA, no existencia: que el valor resuelva a un usuario real
+    lo mira quien tiene red. Aquí se corta antes de tocarla.
+
+    Factura que lo enseñó (6-ago-2026): tres tarjetas bien escritas nacieron sin
+    responsable. Un obrero filtra por ese campo, así que **no existían para
+    nadie** — envejeciendo en el backlog con pinta de trabajo pendiente. Nadie se
+    entera de esto nunca: no hay error que leer ni tarjeta perdida que buscar,
+    hay una fila correcta que ningún proceso mira.
+
+    Tampoco juzga QUIÉN debe ser el responsable. Que sea un obrero o un humano es
+    criterio; que el campo venga, no.
+    """
+    if assignee is not None and str(assignee).strip():
+        return None
+    return {
+        "error": (
+            "assignee es obligatorio: di explícitamente de quién es la tarjeta. "
+            "No hay default por diseño — una tarjeta sin responsable no la coge "
+            "nadie, y no falla: envejece pareciendo trabajo pendiente.\n"
+            "Acepta email, nombre exacto o id. Los usuarios vivos los da "
+            "list_members en este mismo MCP."
+        )
+    }
+
+
+def cards_listing_plan(board_id, column_id):
+    """A qué endpoint se le pregunta un listado de tarjetas, y a qué alcance
+    responde. Lógica PURA: decide la ruta, no la recorre.
+
+    Está aquí y no dentro de `list_cards` justamente porque `list_cards` necesita
+    red y no se puede probar en CI. La decisión —«si me dan una columna, pregunto
+    por la columna»— sí se puede, y es exactamente donde estaba el defecto.
+
+    Factura que lo enseñó (6-ago-2026): `column_id` se usaba SOLO para derivar el
+    tablero y luego se tiraba, así que pedir «🔍 Por revisar» y pedir «🛡 Auditado»
+    —vacía— devolvía la misma respuesta byte a byte: el tablero entero. Es la
+    misma forma que esta casa ya documentó en `list_workspaces`: **un alcance
+    contestando por otro**, con una respuesta que parece correcta porque es un
+    superconjunto. Y el protocolo de obra arranca los CUATRO papeles con «coge de
+    tal columna», así que mientras eso pase el tablero no reparte nada.
+
+    El arreglo no es filtrar en el cliente: el servidor **ya** tiene un endpoint
+    que filtra por columna (`GET /columns/:id/cards`). Bastaba con preguntarle a
+    él. Filtrar en cliente habría heredado además el tope de filas, que se aplica
+    ANTES de filtrar: en un tablero grande, las tarjetas de la columna pedida
+    pueden quedar fuera del corte y devolverse cero, en verde.
+
+    Si vienen los dos, manda `column_id` por ser el más estrecho — y el acuse
+    devuelve ambos para que se vea quién contestó.
+    """
+    b = str(board_id).strip() if board_id is not None else ""
+    c = str(column_id).strip() if column_id is not None else ""
+
+    if not b and not c:
+        return {"error": "pass board_id or column_id"}
+
+    if c:
+        return {"path": f"/columns/{c}/cards", "scope": "column",
+                "column_id": c, "board_id": b or None}
+
+    return {"path": f"/boards/{b}/cards", "scope": "board",
+            "board_id": b, "column_id": None}
+
+
+def row_cap_notice(total, cap):
+    """`None` si cabía todo; aviso si el listado se cortó.
+
+    Un tope que recorta en silencio es un conteo que miente: quien lea `count`
+    creerá que eso es todo lo que hay. Da igual que el tope sea razonable — lo
+    que no puede es no decirse.
+    """
+    if total <= cap:
+        return None
+    return (
+        f"listado recortado: hay {total} y se devuelven {cap}. El resto NO está "
+        "en esta respuesta — acota por columna, o cuenta contra la base."
+    )
 
 
 def missing_workspace_error(workspace_id):

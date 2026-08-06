@@ -46,6 +46,9 @@ jest.mock('../utils/supabase', () => {
       { id: 'col-backlog', board_id: 'board-1', title: 'Backlog',  order: 1 },
       { id: 'col-hecho',   board_id: 'board-1', title: '✅ Hecho', order: 2 },
     ],
+    users: [
+      { id: 'user-rail', name: 'Kanban Rail', email: 'kanban-rail@aglaya.biz' },
+    ],
     cards: [],
   };
 
@@ -57,9 +60,23 @@ jest.mock('../utils/supabase', () => {
         const chain = {
           select: () => chain,
           eq: (col, val) => { data = data.filter(r => r[col] === val); return chain; },
-          ilike: (col, val) => {
-            const term = val.replace(/%/g, '').toLowerCase();
-            data = data.filter(r => String(r[col] ?? '').toLowerCase().includes(term));
+          // ILIKE fiel: un patrón SIN comodines es igualdad, no «contiene». La
+          // ruta usa las dos formas y significan cosas distintas — `%nombre%`
+          // para tolerar emojis en títulos, y exacto para el email del
+          // responsable, donde un parcial engancharía a la persona de al lado.
+          // Un mock que trata las dos igual no puede distinguirlas.
+          ilike: (col, pattern) => {
+            const p = String(pattern);
+            const needle = p.replace(/%/g, '').toLowerCase();
+            const openStart = p.startsWith('%');
+            const openEnd   = p.endsWith('%');
+            data = data.filter(r => {
+              const s = String(r[col] ?? '').toLowerCase();
+              if (openStart && openEnd) return s.includes(needle);
+              if (openStart)            return s.endsWith(needle);
+              if (openEnd)              return s.startsWith(needle);
+              return s === needle;
+            });
             return chain;
           },
           order: () => chain,
@@ -97,6 +114,7 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         boardName: 'Operaciones',
         workspaceName: 'AGLAYA Kanban',
         priority: 'invalid',
+        assignee: 'kanban-rail@aglaya.biz',
       });
       expect(res.status).toBe(400);
       expect(res.body.error).toMatch(/priority/i);
@@ -108,6 +126,7 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         boardName: 'Operaciones',
         workspaceName: 'AGLAYA Kanban',
         priority: 'totally-wrong',
+        assignee: 'kanban-rail@aglaya.biz',
       });
       expect(res.status).toBe(400);
       expect(res.body.error).toMatch(/urgent/);
@@ -120,19 +139,26 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         boardName: 'Operaciones',
         workspaceName: 'AGLAYA Kanban',
         priority: 'high',
+        assignee: 'kanban-rail@aglaya.biz',
       });
       expect(res.status).toBe(201);
       expect(res.body.card.priority).toBe('high');
     });
 
-    it('sin priority, sigue cayendo en medium', async () => {
+    // Esta prueba decía «sin priority, sigue cayendo en medium» y era correcta:
+    // describía el comportamiento anterior. El contrato la invirtió porque ese
+    // comportamiento era el defecto — la mitad CALLADA del mismo problema que el
+    // 400 de prioridad inválida ya cerraba. Se deja escrito el antes para que
+    // quien lo lea vea que es un cambio de contrato, no una prueba que se rompió.
+    it('sin priority, rechaza con 400 — ya no cae en medium', async () => {
       const res = await post({
         title: 'Tarea',
         boardName: 'Operaciones',
         workspaceName: 'AGLAYA Kanban',
+        assignee: 'kanban-rail@aglaya.biz',
       });
-      expect(res.status).toBe(201);
-      expect(res.body.card.priority).toBe('medium');
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/priority/i);
     });
   });
 
@@ -145,6 +171,8 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         title: 'Tarea',
         boardName: 'Operaciones',
         workspaceName: 'Kanban',
+        priority: 'medium',
+        assignee: 'kanban-rail@aglaya.biz',
       });
       expect(res.status).toBe(201);
       expect(res.body.card.workspace_id).toBe('ws-1');
@@ -157,6 +185,8 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         title: 'Tarea',
         boardName: 'Operaciones',
         workspaceName: 'Kanban',
+        priority: 'medium',
+        assignee: 'kanban-rail@aglaya.biz',
       });
       expect(res.status).toBe(201);
       expect(res.body.card.board_id).toBe('board-1');
@@ -170,6 +200,8 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         title: 'Tarea',
         boardName: 'Operaciones',
         workspaceName: 'Kanban',
+        priority: 'medium',
+        assignee: 'kanban-rail@aglaya.biz',
       });
       expect(res.status).toBe(201);
       expect(res.body.card.id).toBe('card-123');

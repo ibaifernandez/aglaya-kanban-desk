@@ -7,6 +7,60 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
+- **Historial de la descripción de una tarjeta: sobrescribir deja rastro y se puede
+  deshacer** (PR [#18](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/18),
+  obrero automático, 2026-08-06). Contrato del riel a **v2.1.0**, aditivo.
+  - Tabla `card_description_history`: guarda la versión **anterior** cada vez que la
+    descripción cambia. `GET /api/cards/:id/history` la lee, la más reciente primero,
+    y la tool `card_history` la expone por el riel.
+  - **Deshacer no tiene endpoint propio a propósito:** se lee la versión que toca y se
+    vuelve a mandar por `PUT /api/cards/:id`, de modo que la restauración deja su
+    propia entrada como cualquier otra edición.
+  - **Qué cierra:** la puerta de actualizar recibe la descripción completa y la
+    reemplaza, así que un llamante que no lea antes de escribir destruía lo que había
+    **devolviendo éxito**. Pagado el 6-ago-2026: un obrero sustituyó la descripción de
+    una tarjeta por el texto de otra, y se recuperó **por casualidad** porque alguien
+    tenía el original en su contexto.
+  - **Lo que NO cubre, dicho en voz alta:** una escritura directa a la base salta este
+    historial. Se eligió la capa que se puede sellar en CI (todas las escrituras de
+    descripción pasan por `PUT /api/cards/:id`, medido) en vez de un trigger, que no se
+    puede probar sin escribir filas de mentira en el tablero vivo.
+
+### Changed
+- **`update_card` tiene un modo de fallo nuevo, y es deliberado** (PR #18). Si la
+  versión anterior no se puede guardar, **el update se aborta con `500` y la tarjeta
+  queda intacta**. Un historial que falla en silencio da la sensación de que se puede
+  deshacer justo en la escritura que había que poder deshacer. **El precio, dicho:** si
+  la tabla de historial no está disponible, no se puede editar ninguna descripción.
+
+### Changed — INCOMPATIBLE
+- **Contrato del riel a v3.0.0: responsable y prioridad pasan a ser obligatorios en
+  las dos puertas** ([`docs/contracts/CONTRACT.md`](contracts/CONTRACT.md), obrero
+  automático, 2026-08-06).
+  - `priority` **deja de tener default**. Antes ausente → `medium` en silencio; ahora
+    error por las dos puertas. La prioridad *inválida* ya se rechazaba desde v2.0.0:
+    esto cierra la mitad callada del mismo defecto — quien creía no haber decidido
+    había decidido, y su tarjeta se ordenaba con un valor que nadie eligió.
+  - **El responsable pasa a ser obligatorio.** El riel lo tenía como opcional; la
+    puerta HTTP **no tenía el campo siquiera**, así que para ella es campo nuevo *y*
+    obligatorio a la vez, con el responsable resuelto por email, nombre exacto o id,
+    escrito en la tarjeta y devuelto resuelto en el acuse.
+  - **Por qué:** el sistema de trabajo reparte por responsable y ordena por prioridad.
+    A una tarjeta a la que le falte cualquiera de los dos no la coge nadie, y **no
+    falla**: envejece pareciendo trabajo pendiente. Pasó de verdad el 6-ago-2026 —
+    tres tarjetas bien escritas nacieron sin responsable y las asignó el capitán a
+    mano al detectarlo. Es la peor variante del `201` que miente: aterrizar mal se
+    nota tarde, nacer invisible no se nota nunca.
+  - ⚠️ **Rompe a todos los llamantes actuales, el capitán incluido.** **Sin ventana de
+    deprecación, por decisión tomada** (Ibai, delegada en el capitán): el radio medido
+    son **tres llamantes, los tres DOCUMENTACIÓN y ninguno un servicio** — el `curl` de
+    `CLAUDE.md`, el paso de verificación de `docs/runbooks/key-rotation.md` (el más
+    dañino: una rotación correcta habría parecido fallida) y la firma en
+    `kanban-mcp/README.md`, que anunciaba `assignee?` como opcional. No se cae nada, así
+    que la ventana solo compraría tiempo para nadie. Los tres se arreglan **en el mismo
+    cambio** que los invalida.
+
+### Added
 - **Puerta de lectura del riel HTTP** (PR [#13](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/13),
   obrero automático, 2026-08-06): `GET /api/internal/list-workspaces` y
   `GET /api/internal/list-boards?workspaceId=…`, con el mismo `x-task-secret` que la puerta
