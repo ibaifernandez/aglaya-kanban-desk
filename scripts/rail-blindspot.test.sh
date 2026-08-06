@@ -145,6 +145,62 @@ else
 fi
 
 echo
+echo "rail-blindspot · la otra dirección: el riel metido donde no debe"
+# La mitad que protege lo AJENO. Sin esto, el guardián solo vigilaba que no
+# faltara alcance — nunca que sobrara. Un espacio fuera del alcance con el riel
+# dentro no da error: da una tarjeta en casa de otro.
+case_is "fuga sin justificar"                  "${NEW_UUID}|Espacio de Món|interno|FUGA"        red
+case_is "fuga ya decidida"                     "${OK_UUID}|Espacio compartido|interno|FUGA"     green
+case_is "punto ciego explícito, sin justificar" "${NEW_UUID}|AGLAYA Scanner|interno|PUNTO CIEGO" red
+case_is "una de cada, ninguna justificada"     "${NEW_UUID}|A|interno|PUNTO CIEGO
+${NEW_UUID}|B|externo|FUGA"                                                                      red
+
+# Una fila de tres campos es de cuando esto solo miraba una dirección. Tiene que
+# seguir mordiendo como PUNTO CIEGO, no colarse por no entenderse: un guardián
+# que descarta lo que no reconoce es el falso negativo que persigue.
+case_is "fila vieja de tres campos, sin justificar" "${NEW_UUID}|Antiguo|interno"                red
+
+# Y el mensaje tiene que decir CUÁL de las dos es. Los dos remedios son opuestos
+# —meter al riel dentro, o sacarlo— así que un error que no distinga manda a
+# quien lo lea a hacer justo lo contrario de lo que toca.
+RAIL_BLINDSPOT_ROWS="${NEW_UUID}|Espacio de Món|interno|FUGA" \
+RAIL_BLINDSPOT_ALLOWED="$TMP/allowed" bash "$GUARD" >"$TMP/fuga.txt" 2>&1 || true
+if grep -q "FUGA" "$TMP/fuga.txt" && grep -q "quita a" "$TMP/fuga.txt"; then
+  echo "  ✅ el error de fuga dice que hay que SACAR al riel"
+  PASS=$((PASS + 1))
+else
+  echo "  ❌ el error de fuga no distingue el remedio"
+  sed 's/^/       /' "$TMP/fuga.txt"
+  FAIL=$((FAIL + 1))
+fi
+
+RAIL_BLINDSPOT_ROWS="${NEW_UUID}|AGLAYA Scanner|interno|PUNTO CIEGO" \
+RAIL_BLINDSPOT_ALLOWED="$TMP/allowed" bash "$GUARD" >"$TMP/ciego.txt" 2>&1 || true
+if grep -q "PUNTO CIEGO" "$TMP/ciego.txt" && grep -q "añade" "$TMP/ciego.txt"; then
+  echo "  ✅ el error de punto ciego dice que hay que METER al riel"
+  PASS=$((PASS + 1))
+else
+  echo "  ❌ el error de punto ciego no distingue el remedio"
+  sed 's/^/       /' "$TMP/ciego.txt"
+  FAIL=$((FAIL + 1))
+fi
+
+echo
+echo "rail-blindspot · el alcance se define por PROPIEDAD, no por tipo"
+# El criterio por tipo fue la primera propuesta y es incorrecto: haría que el
+# alcance del riel dependiera de cómo tipe Món sus propios espacios. Manda
+# `workspace_members.role = 'owner'`, no `workspaces.created_by`: `created_by`
+# es un hecho del pasado y no se mueve, así que el día que un espacio cambie de
+# dueño el detector exigiría meter al riel en casa ajena.
+if grep -q "role = 'owner'" "$GUARD" && grep -q "workspace_members o" "$GUARD"; then
+  echo "  ✅ el alcance sale de la propiedad viva, no de created_by"
+  PASS=$((PASS + 1))
+else
+  echo "  ❌ el alcance no se deriva de workspace_members.role = 'owner'"
+  FAIL=$((FAIL + 1))
+fi
+
+echo
 echo "=== $PASS ok · $FAIL fallos ==="
-[ "$FAIL" = "0" ] || { echo "El guardián del punto ciego NO es de fiar."; exit 1; }
-echo "El guardián muerde cuando un espacio queda inalcanzable."
+[ "$FAIL" = "0" ] || { echo "El guardián del alcance del riel NO es de fiar."; exit 1; }
+echo "El guardián muerde en las dos direcciones: falta de alcance y exceso de alcance."
