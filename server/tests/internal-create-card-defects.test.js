@@ -1,22 +1,41 @@
 /**
- * POST /api/internal/create-card — defectos conocidos.
+ * POST /api/internal/create-card — ambigüedad de destino.
  *
- * Tarjeta operativa: "Tres formas de aterrizar mal devolviendo éxito"
+ * Tarjeta operativa: «Tres formas de aterrizar mal devolviendo éxito».
+ * Este archivo cubre SOLO el defecto 1 (ambigüedad). Los defectos 2
+ * (idempotencia) y 3 (orden / race) siguen ABIERTOS y no se prueban aquí.
  *
- * Las tres faltas que hacen que este endpoint devuelva 201 cuando falló:
- * 1. Ambigüedad: múltiples workspace matches → coge el primero sin error
- * 2. Sin idempotencia: dos POSTs iguales crean dos tarjetas
- * 3. Orden (race): dos inserciones simultáneas reciben el mismo número
+ * POR QUÉ NO HAY PRUEBAS DE LOS DEFECTOS 2 Y 3 (2026-08-06).
+ * Las había, y eran peores que no tenerlas:
+ *
+ *   · La de idempotencia asertaba `res1.card.id === res2.card.id` y pasaba en
+ *     verde. No porque el código sea idempotente —no lo es, no hay clave de
+ *     idempotencia en ninguna parte— sino porque el mock devolvía el literal
+ *     `'card-123'` en todas las inserciones. Comprobado por mutación: basta con
+ *     que el mock devuelva un id distinto por inserción, que es lo que hace una
+ *     base de datos real, para que la prueba se ponga roja. Afirmaba en verde
+ *     una propiedad que el código no tiene, y el propio PR que la traía decía en
+ *     su descripción que dejaba la idempotencia sin tocar. La suite contradecía
+ *     al PR, y ganaba la suite: quien leyera «dos POSTs idénticos deberían
+ *     devolver lo mismo ✓» concluiría que está resuelto.
+ *
+ *   · La del orden era `expect(true).toBe(true)` con un comentario. No mide
+ *     nada; solo sube el recuento de pruebas, que es justo la cifra que se cita
+ *     para decir que algo está cubierto.
+ *
+ * Una deuda se lleva en su tarjeta, que es donde se puede priorizar. Un test que
+ * no puede fallar no es un recordatorio: es una afirmación falsa con palomita.
  */
 const request = require('supertest');
 
 process.env.JWT_SECRET  = 'test-secret';
 process.env.TASK_SECRET = 'test-task-secret';
 
-// Mock que simula ambigüedad: dos workspaces con nombres parciales coincidentes
+// Mock que simula ambigüedad: dos workspaces con nombres parciales coincidentes.
+// En la DB real esto no es hipotético: 7 de 13 espacios casan con `%AGLAYA%`.
 jest.mock('../utils/supabase', () => {
   const mockWorkspacesData = [
-    { id: 'ws-ambig-1', name: 'AGLAYA', type: 'interno', emoji: '🚀', organization_id: 'org-1' },
+    { id: 'ws-ambig-1', name: 'AGLAYA',      type: 'interno', emoji: '🚀', organization_id: 'org-1' },
     { id: 'ws-ambig-2', name: 'AGLAYA Docs', type: 'interno', emoji: '📚', organization_id: 'org-1' },
   ];
 
@@ -34,30 +53,22 @@ jest.mock('../utils/supabase', () => {
     supabaseAdmin: {
       from: (table) => {
         let data = [];
-        let currentTable = table;
         if (table === 'workspaces') data = JSON.parse(JSON.stringify(mockWorkspacesData));
-        if (table === 'boards') data = JSON.parse(JSON.stringify(mockBoardsData));
-        if (table === 'columns') data = JSON.parse(JSON.stringify(mockColumnsData));
+        if (table === 'boards')     data = JSON.parse(JSON.stringify(mockBoardsData));
+        if (table === 'columns')    data = JSON.parse(JSON.stringify(mockColumnsData));
 
         const chain = {
           select: () => chain,
           eq: (col, val) => {
-            if (col === 'workspace_id') {
-              data = data.filter(b => b.workspace_id === val);
-            } else if (col === 'board_id') {
-              data = data.filter(c => c.board_id === val);
-            } else if (col === 'column_id') {
-              data = data.filter(c => c.column_id === val);
-            }
+            if (col === 'workspace_id')   data = data.filter(b => b.workspace_id === val);
+            else if (col === 'board_id')  data = data.filter(c => c.board_id === val);
+            else if (col === 'column_id') data = data.filter(c => c.column_id === val);
             return chain;
           },
           ilike: (col, val) => {
             const searchTerm = val.replace(/%/g, '').toLowerCase();
-            if (col === 'name') {
-              data = data.filter(w => w.name.toLowerCase().includes(searchTerm));
-            } else if (col === 'title') {
-              data = data.filter(b => b.title.toLowerCase().includes(searchTerm));
-            }
+            if (col === 'name')       data = data.filter(w => w.name.toLowerCase().includes(searchTerm));
+            else if (col === 'title') data = data.filter(b => b.title.toLowerCase().includes(searchTerm));
             return chain;
           },
           order: () => chain,
@@ -77,9 +88,7 @@ jest.mock('../utils/supabase', () => {
               }),
             }),
           }),
-          then: (resolve, reject) => {
-            return Promise.resolve({ data, error: null }).then(resolve, reject);
-          },
+          then: (resolve, reject) => Promise.resolve({ data, error: null }).then(resolve, reject),
         };
         return chain;
       },
@@ -96,75 +105,44 @@ const post = (body) =>
     .set('x-task-secret', SECRET)
     .send(body);
 
-describe('POST /api/internal/create-card — defectos conocidos', () => {
-  describe('1. Ambigüedad: múltiples workspace matches', () => {
-    it('rechaza con 400 si workspaceName casa con múltiples workspaces', async () => {
-      const res = await post({
-        title: 'Tarea',
-        boardName: 'Operaciones',
-        workspaceName: 'AGLAYA', // Casa con "AGLAYA" y "AGLAYA Docs"
-      });
-      // Hoy: 201 (coge el primero sin error)
-      // Debería ser: 400 (ambigüedad)
-      expect(res.status).toBe(400);
-      expect(res.body.error).toMatch(/múltiple|ambig|candidato/i);
+describe('POST /api/internal/create-card — ambigüedad de workspace', () => {
+  it('rechaza con 400 si workspaceName casa con múltiples workspaces', async () => {
+    const res = await post({
+      title: 'Tarea',
+      boardName: 'Operaciones',
+      workspaceName: 'AGLAYA', // Casa con "AGLAYA" y "AGLAYA Docs"
     });
-
-    it('cuando hay ambigüedad, el error lista los candidatos', async () => {
-      const res = await post({
-        title: 'Tarea',
-        boardName: 'Operaciones',
-        workspaceName: 'AGLAYA',
-      });
-      if (res.status === 400) {
-        expect(res.body.error).toMatch(/AGLAYA/);
-        // Idealmente también incluir IDs: [id, id]
-      }
-    });
-
-    it('sin ambigüedad, crea la tarjeta correctamente', async () => {
-      const res = await post({
-        title: 'Tarea única',
-        boardName: 'Operaciones',
-        workspaceName: 'AGLAYA Docs', // Único match
-      });
-      expect(res.status).toBe(201);
-      expect(res.body.card).toBeDefined();
-    });
+    // Antes: 201, cogiendo el primero de un orden que nadie fija.
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/múltiple|ambig|candidato/i);
   });
 
-  describe('2. Idempotencia: dos POSTs iguales', () => {
-    it('dos POSTs idénticos deberían devolver lo mismo (no duplicar)', async () => {
-      const payload = {
-        title: 'Tarea idempotente',
-        boardName: 'Operaciones',
-        workspaceName: 'AGLAYA Docs',
-      };
-
-      const res1 = await post(payload);
-      const res2 = await post(payload);
-
-      // Idealmente:
-      // res1.status === 201 && res2.status === 201 (o 409 Conflict)
-      // res1.body.card.id === res2.body.card.id (misma tarjeta)
-      // Hoy: res1 y res2 crean dos tarjetas distintas
-
-      if (res1.status === 201 && res2.status === 201) {
-        // Si ambas crean, al menos deberían tener el mismo ID
-        expect(res1.body.card.id).toEqual(res2.body.card.id);
-      } else if (res2.status === 409) {
-        // O rechazar el segundo con Conflict
-        expect(res2.body.error).toBeDefined();
-      }
+  // Sin aserción sobre `candidates`, borrar el campo entero de la ruta pasaba en
+  // verde — comprobado por mutación. Y `candidates` es la mitad útil del 400:
+  // un error que dice «ambiguo» sin decir entre qué obliga a adivinar otra vez.
+  it('el 400 lista los candidatos, con id y nombre de cada uno', async () => {
+    const res = await post({
+      title: 'Tarea',
+      boardName: 'Operaciones',
+      workspaceName: 'AGLAYA',
     });
+    expect(res.status).toBe(400);
+    expect(Array.isArray(res.body.candidates)).toBe(true);
+    expect(res.body.candidates).toHaveLength(2);
+    for (const candidate of res.body.candidates) {
+      expect(typeof candidate.id).toBe('string');
+      expect(typeof candidate.name).toBe('string');
+    }
+    expect(res.body.candidates.map(c => c.id).sort()).toEqual(['ws-ambig-1', 'ws-ambig-2']);
   });
 
-  describe('3. Orden: race condition en cálculo', () => {
-    it('dos inserciones concurrentes reciben números de orden diferentes', async () => {
-      // Este test es complicado de simular en Jest sin DB real.
-      // Idealmente usaría DB real y Promise.all() para concurrencia.
-      // Por ahora, anotamos el defecto.
-      expect(true).toBe(true); // Placeholder
+  it('sin ambigüedad, crea la tarjeta correctamente', async () => {
+    const res = await post({
+      title: 'Tarea única',
+      boardName: 'Operaciones',
+      workspaceName: 'AGLAYA Docs', // Único match
     });
+    expect(res.status).toBe(201);
+    expect(res.body.card).toBeDefined();
   });
 });
