@@ -1,0 +1,51 @@
+name: rail-scope
+
+# El alcance del riel, vigilado en las DOS direcciones y POR RELOJ.
+#
+# POR QUÉ SALE DE ci.yml. Vivía ahí, y `ci.yml` solo se dispara con empujes y
+# PR contra la rama principal. Eso deja un agujero que no depende del código:
+# **un espacio creado un martes, sin que nadie toque el repo, queda invisible
+# para toda la flota hasta que alguien haga un commit.** El guardián existe para
+# que un olvido no pase desapercibido, y estaba atado a que hubiera trabajo.
+#
+# La forma del disparador por reloj ya existía en esta casa —`digest-cron.yml` y
+# `db-backup.yml`—; es la misma pieza. Aquí se usa tal cual.
+#
+# Se conservan `push` y `pull_request`: un cambio en el guardián o en el fichero
+# de decisiones tiene que medirse antes de entrar, no al día siguiente.
+
+on:
+  schedule:
+    # 06:41 UTC diario. Minuto impar y separado del backup (03:17) a propósito:
+    # dos guardianes que despiertan a la vez comparten cualquier caída del
+    # runner, y entonces el silencio de los dos significa lo mismo.
+    - cron: '41 6 * * *'
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  rail-scope:
+    name: Riel — ¿su alcance es el que debería?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # El sello va ANTES y no toca la DB: si el guardián está destripado, se
+      # sabe aquí y no hace falta ni preguntar. Mismo orden que docs-guard y
+      # contract-guard.
+      - name: Sello — ¿muerde en las dos direcciones?
+        run: bash scripts/rail-blindspot.test.sh
+
+      # Le pregunta a la DB porque el riel NO puede contestar esto: sus puntos
+      # ciegos no salen en su propia lista, por definición. Y su exceso de
+      # alcance tampoco: desde dentro, estar de más se ve igual que estar bien.
+      # Mismo secret que usa db-backup.yml — `service_role`, que salta RLS.
+      - name: Guardián — cruce contra la base de datos
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: bash scripts/rail-blindspot.sh
