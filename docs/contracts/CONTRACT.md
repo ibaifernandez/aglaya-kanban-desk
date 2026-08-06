@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 2.0.0
+- **Versión:** 2.1.0
 - **Última modificación:** 2026-08-06
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -54,6 +54,16 @@ Lo que el catálogo no te dice, y este contrato sí:
   No desactivar la compuerta.
 - **Asignar suena.** Asignar no es etiquetar: dispara la notificación in-app real
   a un humano.
+- **Sobrescribir una descripción deja rastro, y puede fallar** *(v2.1.0)*.
+  `update_card` reemplaza la descripción entera; ahora guarda la anterior antes
+  de escribir. **Modo de fallo nuevo: si esa copia no se puede guardar, el
+  update se aborta con `500` y la tarjeta queda intacta.** Es deliberado — un
+  historial que falla en silencio da la sensación de que se puede deshacer justo
+  en la escritura que había que poder deshacer. El precio, dicho: si la tabla de
+  historial no está disponible, no se puede editar ninguna descripción.
+  `card_history` lee las versiones, la más reciente primero; deshacer es leer la
+  que toque y volver a mandarla por `update_card`, y esa restauración deja su
+  propia entrada como cualquier otra edición.
 - **`list_workspaces` NO contesta «¿existe X?».** Filtra por membresía del riel, no
   por lo que hay en la tabla. Preguntarle si algo existe es preguntarle al
   custodio equivocado; contesta la base de datos.
@@ -165,6 +175,23 @@ un consumidor que pasa un nombre que ya no existe recibe un `201` con la tarjeta
 medias, y esa es exactamente la factura que este repo ya pagó.
 
 ### Historial de versiones
+
+**v2.1.0 — 2026-08-06 · MENOR.** Aditivo: la tool `card_history` y el historial de
+descripciones. Y un **modo de fallo nuevo** en `update_card` —`500` si no se puede
+guardar la versión anterior, dejando la tarjeta intacta—, que es lo que obliga a
+que esto sea nota de contrato y no solo entrada de changelog.
+
+**La escribió el vigilante al mergear, y el obrero la dejó sin escribir a
+propósito.** No fue olvido: cuando hizo la obra había **dos ramas tocando este
+fichero a la vez** —`main` en 2.0.0 y el PR #17 llevándolo a 3.0.0— y cualquier
+número que hubiera puesto habría sido falso bajo uno de los dos órdenes de merge.
+Dejó dicho «quien mergee el segundo, la añade». Al entrar este PR primero, el
+número correcto es 2.1.0.
+
+Eso afila la deuda del guardián que ata código y contrato: no es solo que la nota
+se pueda olvidar — es que **con dos ramas abiertas no hay forma correcta de
+escribirla desde una sola**, y el guardián tendrá que tolerar ese caso o lo hará
+imposible de cumplir.
 
 **v2.0.0 — 2026-08-06 · MAYOR.** Tres cambios, dos incompatibles.
 
