@@ -14,6 +14,12 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Declarado explícitamente: el permiso por defecto del token depende de la
+    # configuración del repo, y un aviso que no puede escribir la incidencia
+    # falla en silencio — que es el defecto que este paso viene a cerrar.
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Install postgresql-client-17
         run: |
@@ -32,7 +38,7 @@ jobs:
           echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
           /usr/lib/postgresql/17/bin/pg_dump --version
 
-      - name: pg_dump + upload via Cloudflare R2 native API
+      - name: pg_dump
         env:
           CF_API_TOKEN:  ${{ secrets.R2_ACCESS_KEY_ID }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
@@ -46,6 +52,50 @@ jobs:
             --no-owner --no-acl --clean --if-exists \
             | gzip -9 > "${DUMP_FILE}"
           ls -lh "${DUMP_FILE}"
+          echo "DUMP_FILE=${DUMP_FILE}" >> "$GITHUB_ENV"
+
+      # Un volcado que sale VACÍO o a medias se sube igual de bien que uno bueno:
+      # `pg_dump` puede terminar en 0 y escribir casi nada, y a partir de ahí lo
+      # que hay en R2 es un fichero con nombre correcto y sin contenido. Nadie lo
+      # nota hasta el día que hace falta restaurar, que es el único día en que
+      # importa.
+      #
+      # No sustituye a una restauración de prueba — eso sigue sin hacerse nunca y
+      # tiene su propia deuda. Es la comprobación más barata que separa «hay un
+      # fichero» de «hay una copia».
+      - name: Comprobar que el volcado tiene contenido, ANTES de subirlo
+        run: |
+          set -euo pipefail
+
+          # Suelo de tamaño. Medido: el volcado del 6-ago-2026 pesaba 195 KB, así
+          # que 20 KB es un orden de magnitud por debajo — no salta por variación
+          # normal, y sí salta con un volcado vacío o truncado.
+          MINIMO=20480
+          TAM=$(stat -c%s "${DUMP_FILE}")
+          echo "Tamaño del volcado: ${TAM} bytes (mínimo exigido: ${MINIMO})"
+          if [ "$TAM" -lt "$MINIMO" ]; then
+            echo "::error::El volcado pesa ${TAM} bytes, por debajo del mínimo de ${MINIMO}. NO se sube: subirlo dejaría en R2 un fichero con nombre correcto y sin copia dentro."
+            exit 1
+          fi
+
+          # Y que dentro esté lo que tiene que estar. El tamaño solo dice que hay
+          # bytes; esto dice que son los bytes de esta base. Si un día el volcado
+          # sale del sitio equivocado, o sale sin datos, aquí se ve.
+          for TABLA in cards columns boards workspaces users; do
+            if ! gunzip -c "${DUMP_FILE}" | grep -q "CREATE TABLE public.${TABLA}"; then
+              echo "::error::El volcado no contiene la tabla «${TABLA}». No es una copia de esta base."
+              exit 1
+            fi
+          done
+          echo "Volcado verificado: pesa lo suyo y contiene las tablas esperadas."
+
+      - name: Subir a Cloudflare R2
+        env:
+          CF_API_TOKEN:  ${{ secrets.R2_ACCESS_KEY_ID }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          R2_BUCKET:     ${{ secrets.R2_BUCKET }}
+        run: |
+          set -euo pipefail
           # Upload via R2 native API (NOT S3-compatible). Token type: cfut_/cfat_.
           HTTP_CODE=$(curl -sS -o /tmp/upload_resp.txt -w "%{http_code}" \
             -X PUT \
@@ -97,8 +147,72 @@ jobs:
           done
           echo "Pruned $deleted object(s) older than 30 days"
 
-      - name: Notify on failure
+      # El aviso de fallo era un `::error::` en el log y un TODO. O sea que la
+      # copia —la única red que hay bajo esta nave— fallaba de la forma exacta
+      # contra la que se montó: la que nadie ve hasta que hace falta la copia.
+      #
+      # POR QUÉ UNA INCIDENCIA Y NO UN CORREO O UNA TARJETA. Medido: los secretos
+      # de este repo son CF_ACCOUNT_ID, DATABASE_URL, DIGEST_CRON_SECRET,
+      # R2_ACCESS_KEY_ID, R2_BUCKET y RAILWAY_SERVER_URL. **No hay TASK_SECRET ni
+      # RESEND_API_KEY**, así que ni se puede clavar una tarjeta en el riel ni
+      # mandar correo. `GITHUB_TOKEN` sí está siempre, y una incidencia es lo
+      # único durable que se puede abrir sin pedir un secreto nuevo.
+      #
+      # Lo nativo de esta flota sería una tarjeta en el tablero. Para eso hace
+      # falta añadir TASK_SECRET a los secretos del repo — que es un acto humano,
+      # y queda dicho en la tarjeta en vez de simulado aquí.
+      #
+      # Se comenta en la incidencia abierta si ya existe, en vez de abrir una por
+      # día: una racha de fallos tiene que leerse como UNA racha, no como veinte
+      # avisos que se aprenden a ignorar.
+      - name: Avisar del fallo, de forma que sobreviva al log
         if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "::error::DB backup failed — manual investigation required"
-          # TODO: integrar Sentry/Slack webhook cuando exista observabilidad
+          set -euo pipefail
+          echo "::error::La copia de seguridad falló. Es la única red bajo esta nave."
+
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+          # El cuerpo se arma línea a línea a propósito. Escrito como una cadena
+          # multilínea, sus líneas quedaban en la columna 0 dentro del bloque
+          # literal de YAML — y eso CIERRA el bloque: el workflow entero deja de
+          # parsearse. Cazado antes de empujarlo, pasando cada bloque `run:` por
+          # `bash -n`. Un paso de aviso que rompe el fichero que lo contiene es
+          # el fallo silencioso perfecto: se descubre el día del primer fallo.
+          printf '%s\n' \
+            "La copia de seguridad de la base de datos ha fallado." \
+            "" \
+            "**Corrida:** ${RUN_URL}" \
+            "**Cuándo:** $(date -u '+%Y-%m-%d %H:%M UTC')" \
+            "" \
+            "Esta copia es la única red bajo esta nave: Supabase en plan gratuito no tiene" \
+            "copias diarias ni recuperación a un punto en el tiempo. Mientras esto falle," \
+            "**no hay copia de hoy**." \
+            "" \
+            "Qué mirar, en orden:" \
+            "" \
+            "1. El log de la corrida — el paso que falló lo dice." \
+            "2. Si falló al **verificar el volcado**: la copia se abortó a propósito antes" \
+            "   de subir un fichero vacío. El problema está en la base o en pg_dump, no en R2." \
+            "3. Si falló al **subir**: mira el token de Cloudflare (R2_ACCESS_KEY_ID), que" \
+            "   tiene fecha de caducidad. El procedimiento vive en docs/runbooks/key-rotation.md." \
+            "" \
+            "Cierra esta incidencia cuando haya una copia correcta. Si vuelve a fallar sin" \
+            "cerrarla, se añade un comentario aquí en vez de abrir otra: una racha tiene que" \
+            "leerse como UNA racha, no como veinte avisos que se aprenden a ignorar." \
+            > /tmp/cuerpo.md
+
+          ABIERTA=$(gh issue list --state open --label copia-fallida --limit 1 --json number --jq '.[0].number // empty')
+
+          if [ -n "$ABIERTA" ]; then
+            echo "Ya hay una incidencia abierta (#${ABIERTA}); se añade el fallo de hoy."
+            gh issue comment "$ABIERTA" --body-file /tmp/cuerpo.md
+          else
+            gh label create copia-fallida --description "La copia de seguridad diaria falló" --color B60205 2>/dev/null || true
+            gh issue create \
+              --title "La copia de seguridad de la base de datos ha fallado" \
+              --label copia-fallida \
+              --body-file /tmp/cuerpo.md
+          fi

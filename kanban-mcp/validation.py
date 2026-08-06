@@ -198,6 +198,56 @@ def resolve_brief(description, description_md):
     return ""
 
 
+# Centinela para «este argumento no vino». No sirve `None`: al ACTUALIZAR,
+# `None` es un valor con significado propio —«no toques la descripción»— y hace
+# falta poder distinguirlo de una cadena vacía, que significa «bórrala».
+SIN_TOCAR = object()
+
+
+def resolve_brief_update(description, description_md):
+    """El brief de una ACTUALIZACIÓN, venga por el nombre que venga.
+
+    Devuelve `SIN_TOCAR` si no vino ninguno de los dos — que NO es lo mismo que
+    devolver `""`. Esa diferencia es el motivo de que esto no sea `resolve_brief`
+    con otro nombre: al crear, «vacío» y «ausente» son la misma cosa; al
+    actualizar, uno significa «bórrala» y el otro «déjala como está». Confundirlos
+    borraría descripciones sin que nadie lo pidiera, que es exactamente el daño
+    que esta puerta ya hizo una vez por otro camino.
+
+    Factura que lo enseñó (6-ago-2026): `create_card` acepta el brief por sus dos
+    nombres —`description_md`, el documentado, y `description`, el alias— pero
+    `update_card` **solo aceptaba `description`**, y lo que llegaba con el otro
+    nombre **se descartaba en silencio**. Solo saltó el error porque no iba ningún
+    otro campo, así que la tool contestó «nothing to update». **Con un `title`
+    acompañando, el título se habría actualizado, el brief se habría tirado, y la
+    respuesta habría dicho que todo fue bien.**
+
+    Y el contrato lo afirmaba sin acotar —«el brief llega por cualquiera de sus
+    dos nombres»— cierto para crear y falso para actualizar. Quien viniera de
+    crear con el nombre documentado lo reutilizaba aquí y perdía el texto.
+
+    La precedencia es la misma que al crear, para que las dos puertas no puedan
+    sorprenderse entre sí: un campo vacío nunca tapa a uno con contenido, y si los
+    dos traen texto gana el alias explícito.
+    """
+    d_dado = description is not None
+    m_dado = description_md is not None
+
+    if not d_dado and not m_dado:
+        return SIN_TOCAR
+
+    d_lleno = d_dado and str(description).strip() != ""
+    m_lleno = m_dado and str(description_md).strip() != ""
+
+    if d_lleno:
+        return str(description)
+    if m_lleno:
+        return str(description_md)
+
+    # Ninguno trae contenido, pero al menos uno vino: es una orden de vaciar.
+    return ""
+
+
 def empty_brief_notice(brief):
     """`None` si la tarjeta lleva contenido; aviso si sale vacía.
 
