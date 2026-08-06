@@ -182,23 +182,46 @@ Por ahora, mantener native R2 API (cfut_ Bearer auth) en workflow `db-backup.yml
 2. Update Railway env var `TASK_SECRET`.
 3. Update `.env` local.
 4. Update cualquier script externo / cron / claude-mem que use el secret viejo.
-5. Verificar:
+5. Verificar. **Es una lectura: no escribe nada y no hay que limpiar después.**
    ```bash
-   curl -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
-     -H "x-task-secret: $TASK_SECRET" -H "Content-Type: application/json" \
-     -d '{"title":"rotation-test","boardName":"Backlog","priority":"low","assignee":"kanban-rail@aglaya.biz","workspaceName":"⭐ AGLAYA 2.0"}'
+   curl -s -o /dev/null -w '%{http_code}\n' \
+     "$RAILWAY_SERVER_URL/api/internal/list-workspaces" \
+     -H "x-task-secret: $TASK_SECRET"
    ```
 
-   > **Qué esperar:** `201`. Un `400` que hable de un campo del payload NO es un
-   > fallo de rotación — es este comando desactualizado. La forma de la puerta la
-   > custodia [`docs/contracts/CONTRACT.md`](../contracts/CONTRACT.md); esto es
-   > una copia y, como toda copia, caduca. Lo que confirma la rotación es no
-   > recibir **`401`**, que es lo único que mide el secreto.
+   > **Qué esperar:** `200`. Un **`401`** significa que el secreto no coincide —
+   > y **es lo único que mide este paso**. Un `500` significa que la variable no
+   > llegó al servidor: mira el despliegue de Railway, no el secreto.
    >
-   > Este paso ya se equivocó una vez en la otra dirección: omitía
-   > `workspaceName` cuando ese campo tenía default, así que la tarjeta de prueba
-   > aterrizaba en el espacio **personal** de Ibai y devolvía `201`. Verificaba
-   > escribiendo donde no debía.
+   > **Por qué un `GET` y no el `POST` que había aquí.** Los tres endpoints de
+   > `/api/internal/*` pasan por el **mismo** `verifySecret`
+   > (`server/routes/internalRoute.js`), así que una lectura prueba el header
+   > exactamente igual que una escritura — y no deja nada detrás.
+   >
+   > El paso anterior creaba una tarjeta **real en un tablero real** solo para
+   > comprobar una cabecera, y no decía qué hacer con ella. Cada rotación dejaba
+   > basura que parece trabajo. Peor: con el responsable ya obligatorio, una
+   > tarjeta de prueba a nombre de la cuenta de servicio **la coge un obrero
+   > automático y se pone a trabajarla**. Verificar una rotación no puede
+   > inyectar trabajo falso en la cola.
+   >
+   > **Y llevaba tres motivos de fallo encima, acumulados por dos arreglos:**
+   >
+   > 1. Al principio omitía `workspaceName`, cuando ese campo tenía un default
+   >    que apuntaba al espacio **personal de Ibai**. Verificar la rotación
+   >    clavaba una tarjeta en zona intocable y devolvía `201`.
+   > 2. Se arregló poniendo `⭐ AGLAYA 2.0`, **un espacio que no existe**, y
+   >    `boardName: "Backlog"`, que **es una columna, no un tablero**. Dos `404`
+   >    distintos a la vez.
+   > 3. Y desde el contrato v3.0.0 tampoco llevaba `assignee`, que es obligatorio.
+   >
+   > **Un paso de verificación que falla siempre enseña a ignorar su fallo**, y a
+   > partir de ahí no verifica nada. La forma más segura de que un ejemplo no
+   > caduque es que no tenga destino que acertar.
+   >
+   > Si además quieres ejercitar el camino de **escritura**, no lo hagas aquí:
+   > usa el MCP `aglaya-kanban-desk` contra un tablero que elijas y borra lo que
+   > crees. Este runbook mide el secreto, no la puerta.
 
 ---
 
