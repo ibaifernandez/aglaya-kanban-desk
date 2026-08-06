@@ -6,6 +6,33 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Added
+- **Historial de la descripción de una tarjeta: sobrescribir deja rastro y se puede
+  deshacer** (PR [#18](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/18),
+  obrero automático, 2026-08-06). Contrato del riel a **v2.1.0**, aditivo.
+  - Tabla `card_description_history`: guarda la versión **anterior** cada vez que la
+    descripción cambia. `GET /api/cards/:id/history` la lee, la más reciente primero,
+    y la tool `card_history` la expone por el riel.
+  - **Deshacer no tiene endpoint propio a propósito:** se lee la versión que toca y se
+    vuelve a mandar por `PUT /api/cards/:id`, de modo que la restauración deja su
+    propia entrada como cualquier otra edición.
+  - **Qué cierra:** la puerta de actualizar recibe la descripción completa y la
+    reemplaza, así que un llamante que no lea antes de escribir destruía lo que había
+    **devolviendo éxito**. Pagado el 6-ago-2026: un obrero sustituyó la descripción de
+    una tarjeta por el texto de otra, y se recuperó **por casualidad** porque alguien
+    tenía el original en su contexto.
+  - **Lo que NO cubre, dicho en voz alta:** una escritura directa a la base salta este
+    historial. Se eligió la capa que se puede sellar en CI (todas las escrituras de
+    descripción pasan por `PUT /api/cards/:id`, medido) en vez de un trigger, que no se
+    puede probar sin escribir filas de mentira en el tablero vivo.
+
+### Changed
+- **`update_card` tiene un modo de fallo nuevo, y es deliberado** (PR #18). Si la
+  versión anterior no se puede guardar, **el update se aborta con `500` y la tarjeta
+  queda intacta**. Un historial que falla en silencio da la sensación de que se puede
+  deshacer justo en la escritura que había que poder deshacer. **El precio, dicho:** si
+  la tabla de historial no está disponible, no se puede editar ninguna descripción.
+
 ### Changed — INCOMPATIBLE
 - **Contrato del riel a v3.0.0: responsable y prioridad pasan a ser obligatorios en
   las dos puertas** ([`docs/contracts/CONTRACT.md`](contracts/CONTRACT.md), obrero
