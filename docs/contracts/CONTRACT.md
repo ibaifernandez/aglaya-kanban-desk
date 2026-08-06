@@ -220,10 +220,21 @@ puertas**.
   obligatorio a la vez.
 
 **⚠️ Rompe a todos los llamantes actuales, el capitán incluido.** Cualquier
-llamada que hoy omita `priority` o `assignee` empieza a fallar el día que esto se
-mergee. No hay ventana de deprecación en este cambio, y **si hace falta una, es
-decisión de Ibai, no de esta rama**: la alternativa —aceptar la ausencia con un
-aviso durante N días— está descrita aquí y sin implementar a propósito.
+llamada que hoy omita `priority` o `assignee` empieza a fallar al mergear esto.
+
+**No hay ventana de deprecación, y es una decisión tomada** (Ibai, delegada en el
+capitán, 6-ago-2026), no un descuido. El motivo es el radio medido: **los únicos
+llamantes que se rompen son DOCUMENTACIÓN, no servicios.** No se cae nada, así
+que una ventana solo compraría tiempo para nadie. Los tres se arreglan en el
+mismo cambio que los invalida, para que no exista ni un commit en el que el
+contrato y sus ejemplos digan cosas distintas:
+
+- [`CLAUDE.md`](../../CLAUDE.md) — el `curl` de ejemplo.
+- [`docs/runbooks/key-rotation.md`](../runbooks/key-rotation.md) — el paso de
+  verificación tras rotar `TASK_SECRET`. Era el más dañino de los tres: una
+  rotación correcta habría parecido fallida.
+- [`kanban-mcp/README.md`](../../kanban-mcp/README.md) — la firma de
+  `create_card`, que anunciaba `assignee?` como opcional.
 
 **Por qué se rompe en vez de avisar.** Un aviso no cierra el defecto: la tarjeta
 invisible se crea igual y nadie lee el aviso a las 3 de la mañana. Es el mismo
