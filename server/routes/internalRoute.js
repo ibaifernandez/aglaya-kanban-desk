@@ -85,6 +85,7 @@ router.get('/list-boards', verifySecret, async (req, res) => {
 //   boardName    {string}  requerido — nombre exacto (case-insensitive) del tablero
 //   priority     {string}  REQUERIDO — urgent|high|medium|low|none, sin default (ver abajo)
 //   assignee     {string}  REQUERIDO — email, nombre exacto o id del responsable
+//   caller       {string}  REQUERIDO — qué nave clava esto (rastro, NO autenticación)
 //   description  {string}  opcional
 //   dueDate      {string}  opcional — ISO 8601
 //   workspaceName {string} REQUERIDO — sin default, a propósito (ver abajo)
@@ -120,6 +121,7 @@ router.post('/create-card', verifySecret, async (req, res) => {
     boardName,
     priority,
     assignee,
+    caller,
     description  = '',
     dueDate      = null,
     workspaceName,
@@ -163,6 +165,31 @@ router.post('/create-card', verifySecret, async (req, res) => {
         'assignee es obligatorio: di de quién es la tarjeta. Sin responsable no ' +
         'la coge nadie, y no falla — envejece pareciendo trabajo pendiente. ' +
         'Acepta email, nombre exacto o id.',
+    });
+  }
+
+  // Quién dice ser el que llama. Esta puerta se autentica con UN secreto
+  // compartido, así que sin esto **todo lo clavado dice lo mismo**: cuando algo
+  // aparece mal puesto, no hay a quién preguntar.
+  //
+  // NO es autenticación, y conviene no leerlo al revés: quien tiene el secreto
+  // declara el nombre que quiera, incluido el de otro. Sirve para saber quién
+  // DICE ser, que es lo que hace falta para cruzar «lo que las naves dieron por
+  // entregado» contra «lo que hay en un tablero». Atarlo a credenciales por nave
+  // es la otra mitad y vive en su propia tarjeta.
+  //
+  // Obligatorio y sin default, por el mismo motivo que los otros tres: un
+  // default —«desconocido», el nombre del riel— convertiría «no lo sabemos» en
+  // una atribución falsa, y una atribución falsa no se lee como hueco. El hueco
+  // avisa; el valor inventado, no.
+  if (!caller?.trim()) {
+    return res.status(400).json({
+      error:
+        'caller es obligatorio: di qué nave está clavando esto. Esta puerta usa ' +
+        'un secreto compartido, así que sin este campo no se puede saber quién ' +
+        'metió qué. No hay default por diseño — uno inventado convertiría «no se ' +
+        'sabe» en una atribución falsa. Ejemplos: "aglaya.biz", "capitan", ' +
+        '"legal-reg-tech".',
     });
   }
 
@@ -291,6 +318,7 @@ router.post('/create-card', verifySecret, async (req, res) => {
       description:     description || '',
       priority:        safePriority,
       assignee_id:     assigneeUser.id,
+      created_by_caller: caller.trim(),
       due_date:        dueDate || null,
       tags:            [],
       checklist:       [],
@@ -324,6 +352,7 @@ router.post('/create-card', verifySecret, async (req, res) => {
       column:       targetColumn.title,
       assignee_id:  assigneeUser.id,
       assignee:     assigneeUser.name,
+      caller:       caller.trim(),
     },
   });
 });

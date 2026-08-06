@@ -115,6 +115,7 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         workspaceName: 'AGLAYA Kanban',
         priority: 'invalid',
         assignee: 'kanban-rail@aglaya.biz',
+        caller: 'banco-de-pruebas',
       });
       expect(res.status).toBe(400);
       expect(res.body.error).toMatch(/priority/i);
@@ -127,6 +128,7 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         workspaceName: 'AGLAYA Kanban',
         priority: 'totally-wrong',
         assignee: 'kanban-rail@aglaya.biz',
+        caller: 'banco-de-pruebas',
       });
       expect(res.status).toBe(400);
       expect(res.body.error).toMatch(/urgent/);
@@ -140,6 +142,7 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         workspaceName: 'AGLAYA Kanban',
         priority: 'high',
         assignee: 'kanban-rail@aglaya.biz',
+        caller: 'banco-de-pruebas',
       });
       expect(res.status).toBe(201);
       expect(res.body.card.priority).toBe('high');
@@ -156,6 +159,7 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         boardName: 'Operaciones',
         workspaceName: 'AGLAYA Kanban',
         assignee: 'kanban-rail@aglaya.biz',
+        caller: 'banco-de-pruebas',
       });
       expect(res.status).toBe(400);
       expect(res.body.error).toMatch(/priority/i);
@@ -173,6 +177,7 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         workspaceName: 'Kanban',
         priority: 'medium',
         assignee: 'kanban-rail@aglaya.biz',
+        caller: 'banco-de-pruebas',
       });
       expect(res.status).toBe(201);
       expect(res.body.card.workspace_id).toBe('ws-1');
@@ -187,6 +192,7 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         workspaceName: 'Kanban',
         priority: 'medium',
         assignee: 'kanban-rail@aglaya.biz',
+        caller: 'banco-de-pruebas',
       });
       expect(res.status).toBe(201);
       expect(res.body.card.board_id).toBe('board-1');
@@ -202,6 +208,7 @@ describe('POST /api/internal/create-card — contrato consistente', () => {
         workspaceName: 'Kanban',
         priority: 'medium',
         assignee: 'kanban-rail@aglaya.biz',
+        caller: 'banco-de-pruebas',
       });
       expect(res.status).toBe(201);
       expect(res.body.card.id).toBe('card-123');

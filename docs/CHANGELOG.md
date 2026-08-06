@@ -6,6 +6,35 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Changed — INCOMPATIBLE
+- **`caller` pasa a ser obligatorio en `POST /api/internal/create-card`**
+  (contrato del riel a **v4.0.0**). Cada tarjeta clavada por la puerta externa
+  conserva **qué nave dijo estar clavándola**, y el acuse lo devuelve.
+  - **Qué cierra:** esta puerta se autentica con **un secreto compartido**. Con
+    dos llamantes no molesta; con N naves **todo lo clavado dice lo mismo**, así
+    que cuando algo aparece mal puesto no hay a quién preguntar.
+  - **⚠️ No es autenticación.** Quien tiene el secreto declara el nombre que
+    quiera, incluido el de otro. Sirve para saber quién **dice** ser — que es lo
+    que hace falta para cruzar «lo que las naves dieron por entregado» contra «lo
+    que hay en un tablero», y esa comprobación sin esto no se puede ni escribir.
+    Atarlo a credenciales por nave es la otra mitad y tiene tarjeta propia.
+  - **Sin default, por cuarta vez y por el mismo motivo:** uno —«desconocido», el
+    nombre del riel— convertiría «no lo sabemos» en una **atribución falsa**, y
+    una atribución falsa no se lee como hueco. El hueco avisa.
+  - **Rompe a todos los llamantes actuales.** Los dos documentados —el `curl` de
+    `CLAUDE.md` y el paso de verificación de `docs/runbooks/key-rotation.md`— se
+    arreglan **en el mismo cambio que los invalida**.
+  - **Lo que no decide el constructor:** si hace falta ventana de deprecación.
+
+### Added
+- **`cards.created_by_caller`** (`docs/schema/migration-card-caller.sql`,
+  idempotente). Columna `TEXT`, no clave foránea: los llamantes son **naves**
+  —`aglaya.biz`, el Scanner, el capitán— y no existen en `users` ni deberían;
+  darles fila sería inventarles cuenta. Índice parcial sobre las no nulas, que
+  son minoría. **`NULL` en todo lo anterior, y se queda `NULL`:** rellenarlo con
+  un valor inventado convertiría «no lo sabemos» en «lo clavó fulano».
+  Se expone en la lectura de tarjetas como `createdByCaller`.
+
 ### Added
 - **Guardián de privilegios del rol anónimo en CI** (`scripts/grants-guard.sh` + su
   sello, PR [#25](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/25),

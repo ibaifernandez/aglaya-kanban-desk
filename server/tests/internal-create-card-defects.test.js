@@ -123,6 +123,7 @@ describe('POST /api/internal/create-card — ambigüedad de workspace', () => {
       workspaceName: 'AGLAYA', // Casa con "AGLAYA" y "AGLAYA Docs"
       priority: 'medium',
       assignee: 'kanban-rail@aglaya.biz',
+      caller: 'banco-de-pruebas',
     });
     // Antes: 201, cogiendo el primero de un orden que nadie fija.
     expect(res.status).toBe(400);
@@ -139,6 +140,7 @@ describe('POST /api/internal/create-card — ambigüedad de workspace', () => {
       workspaceName: 'AGLAYA',
       priority: 'medium',
       assignee: 'kanban-rail@aglaya.biz',
+      caller: 'banco-de-pruebas',
     });
     expect(res.status).toBe(400);
     expect(Array.isArray(res.body.candidates)).toBe(true);
@@ -157,6 +159,7 @@ describe('POST /api/internal/create-card — ambigüedad de workspace', () => {
       workspaceName: 'AGLAYA Docs', // Único match
       priority: 'medium',
       assignee: 'kanban-rail@aglaya.biz',
+      caller: 'banco-de-pruebas',
     });
     expect(res.status).toBe(201);
     expect(res.body.card).toBeDefined();

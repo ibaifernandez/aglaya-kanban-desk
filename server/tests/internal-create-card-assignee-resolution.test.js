@@ -120,6 +120,7 @@ const BASE = {
   workspaceName: 'AGLAYA Kanban',
   priority:      'high',
   assignee:      'kanban-rail@aglaya.biz',
+  caller: 'banco-de-pruebas',
 };
 
 beforeEach(() => { __inserted.length = 0; });

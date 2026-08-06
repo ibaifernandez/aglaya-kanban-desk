@@ -123,6 +123,7 @@ const BASE = {
   workspaceName: 'AGLAYA Kanban',
   priority:      'high',
   assignee:      'kanban-rail@aglaya.biz',
+  caller: 'banco-de-pruebas',
 };
 
 const sin = (...campos) => {

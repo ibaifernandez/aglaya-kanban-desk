@@ -82,6 +82,10 @@ const toCard = (row) => ({
   checklistTitle: row.checklist_title || '',
   attachments:    row.attachments    || [],
   assigneeId:     row.assignee_id    || null,
+  // Quién dijo ser el que la clavó por la puerta externa. `null` en las de la
+  // UI, las del riel y las anteriores al 2026-08-06 — se lee como hueco, no
+  // como atribución.
+  createdByCaller: row.created_by_caller || null,
   assignee:       row.assignee       || null,
   order:          row.order,
   createdAt:      row.created_at,

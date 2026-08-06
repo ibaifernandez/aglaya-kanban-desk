@@ -86,6 +86,7 @@ curl -s -X POST "$RAILWAY_SERVER_URL/api/internal/create-card" \
     "boardName":  "Nombre del tablero",
     "priority":   "high",
     "assignee":   "kanban-rail@aglaya.biz",
+    "caller":     "<qué nave está clavando esto>",
     "workspaceName": "<nombre exacto del workspace destino>"
   }'
 ```
