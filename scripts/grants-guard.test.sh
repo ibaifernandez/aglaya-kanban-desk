@@ -87,6 +87,54 @@ else
   FAIL=$((FAIL + 1)); printf '  FALLO sin credenciales dio verde — se está omitiendo en silencio\n'
 fi
 
+
+# ── La mitad que las filas inyectadas no pueden medir ─────────────────────────
+#
+# Añadido por el vigilante al revisar. El obrero dejó escrito en la cabecera —y
+# es exacto, lo comprobé— que **al inyectar filas el SQL no se ejecuta**, así que
+# todo lo de arriba mide qué hace el guardián CON las filas, nunca CUÁLES le
+# llegan. Medido: quitarle el `HAVING` a la consulta pasa 9 de 9 en verde.
+#
+# Y hay una segunda del mismo origen que no estaba dicha: **cambiar el rol
+# vigilado de `anon` a `authenticated` también pasa 9 de 9.** El guardián dejaría
+# de mirar al rol que motivó la tarjeta y el sello no se enteraría.
+#
+# Estas comprobaciones son de TEXTO, y eso es una limitación de verdad: fijan que
+# la consulta diga lo que debe decir, no que la base conteste lo que debe. Lo
+# segundo solo lo puede contestar CI, que tiene credenciales. Pero un sello que
+# no mira la consulta deja sin vigilancia justo la pieza donde vive el criterio.
+#
+# Precedente de la casa: `rail-blindspot.test.sh` fija así su exclusión de los
+# `personal`.
+
+GUARD_SRC="$(cat "$GUARD")"
+
+echo
+echo "grants-guard · la consulta dice lo que debe decir"
+
+if printf '%s' "$GUARD_SRC" | grep -qE "grantee[[:space:]]*=[[:space:]]*'\\\$\{ROL\}'"; then
+  printf '  ok    la consulta filtra por el rol vigilado, no por uno fijo\n'; PASS=$((PASS + 1))
+else
+  printf '  FALLO la consulta no filtra por $ROL — vigilaría a quien no toca\n'; FAIL=$((FAIL + 1))
+fi
+
+if printf '%s' "$GUARD_SRC" | grep -q "HAVING string_agg" && \
+   printf '%s' "$GUARD_SRC" | grep -q '<> .\${PERMITIDO}'; then
+  printf '  ok    el HAVING compara contra lo permitido — sin él, TODA tabla sería desviación\n'; PASS=$((PASS + 1))
+else
+  printf '  FALLO falta el HAVING que separa lo declarado de lo que sobra\n'; FAIL=$((FAIL + 1))
+fi
+
+# El rol por defecto es `anon` y no otro: es el que motivó la tarjeta, y el único
+# que alcanza cualquiera con la llave pública. `authenticated` también recibe de
+# más hoy, pero eso es otra tarjeta y otro guardián — meterlo aquí lo haría nacer
+# rojo, y un guardián que nace rojo se normaliza hasta que deja de mirarse.
+if printf '%s' "$GUARD_SRC" | grep -q 'GRANTS_GUARD_ROLE:-anon'; then
+  printf '  ok    vigila `anon` por defecto\n'; PASS=$((PASS + 1))
+else
+  printf '  FALLO el rol vigilado por defecto ya no es `anon`\n'; FAIL=$((FAIL + 1))
+fi
+
 echo
 echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
