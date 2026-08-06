@@ -6,6 +6,33 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Added
+- **Guardián de privilegios del rol anónimo en CI** (`scripts/grants-guard.sh` + su
+  sello, PR [#25](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/25),
+  obrero automático). Se pone rojo si alguna tabla de `public` concede a `anon`
+  algo distinto de `SELECT`, que es lo que el esquema declara para todas.
+  - **Cierra un defecto que se repetía en cada tabla nueva.** Las
+    `DEFAULT PRIVILEGES` del proyecto conceden a `anon` los **siete** privilegios
+    sobre toda tabla creada en `public`; las hermanas tienen uno. Y el patrón
+    obligatorio de `CLAUDE.md` **concedía sin revocar**, así que una tabla creada
+    siguiendo la instrucción al pie de la letra nacía más abierta de lo que el
+    propio esquema declara — y quien leyera el esquema vería lo concedido a mano,
+    no lo que la tabla tenía de verdad.
+  - **El patrón de `CLAUDE.md`, corregido:** `REVOKE ALL … FROM anon` va **primero**.
+    Cuando el `GRANT` se ejecuta, lo que sobra ya está puesto; un `GRANT` no quita.
+  - **Su primera pasada ES el barrido** que la tarjeta pedía: no hace falta una
+    consulta suelta. Medido por CI contra la base real — **ninguna tabla se sale
+    de lo declarado**, así que el guardián **estrena verde**.
+
+### Changed
+- **El sello del guardián de privilegios comprueba también la consulta**, no solo
+  el manejo de filas (añadido por el vigilante al revisar el #25). El obrero dejó
+  escrito —y es exacto, verificado— que **con filas inyectadas el SQL no se
+  ejecuta**, así que el sello medía qué hace el guardián *con* las filas y nunca
+  *cuáles* le llegan: quitarle el `HAVING` pasaba **9 de 9 en verde**.
+  Y había una segunda del mismo origen que no estaba dicha: **cambiar el rol
+  vigilado de `anon` a `authenticated` también pasaba 9 de 9.** Tres
+  comprobaciones nuevas cierran las dos; las tres mutaciones ahora muerden.
 ### Changed
 - **El detector de alcance del riel mira ahora las DOS direcciones, y corre por
   reloj** (`scripts/rail-blindspot.sh` + `.github/workflows/rail-scope.yml`).
