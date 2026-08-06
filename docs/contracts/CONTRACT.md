@@ -229,11 +229,18 @@ medias, y esa es exactamente la factura que este repo ya pagó.
 
 **Y desde el 6-ago-2026 eso ya no depende de que alguien se acuerde.** Hay un
 guardián en CI ([`scripts/contract-guard.sh`](../../scripts/contract-guard.sh))
-que se pone **rojo** si un cambio toca la forma de una puerta
-—`server/routes/internalRoute.js`, `kanban-mcp/server.py`,
-`kanban-mcp/validation.py`— y **no** toca este fichero. Tiene su propio sello
+que se pone **rojo** si un cambio toca la forma de una puerta y **no** toca este
+fichero. Tiene su propio sello
 ([`contract-guard.test.sh`](../../scripts/contract-guard.test.sh)), porque un
 guardián que da verde estando destripado es peor que no tenerlo.
+
+**Qué cuenta como «la forma de una puerta» no se enumera aquí, y ya no se
+enumera tampoco allí.** El guardián parte de las dos puertas —la ruta HTTP y el
+servidor MCP— y **deriva** el resto siguiendo lo que importan. Este párrafo
+llegó a nombrar tres ficheros a mano; el mismo día, un cambio sacó las
+prioridades válidas a un cuarto y la lista quedó corta sin que nadie lo notara.
+Una lista de ficheros escrita en un documento envejece igual que una escrita en
+un script — y ésta, además, la reparte el capitán.
 
 Lo que ese guardián **no** puede hacer: comprueba que alguien tocó este
 documento, no que fuera honesto al tocarlo. Verificar que el texto describe el
@@ -245,6 +252,14 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**Sin bump — 2026-08-06.** No cambia la forma de ninguna puerta: se corrige la
+descripción del guardián, que nombraba tres ficheros a mano y se había quedado
+corta. Va escrito aquí porque esta sección **es** el aviso al capitán, y porque
+el defecto fue de la clase que este documento persigue: **una copia de una lista
+que envejece**. Nada lo habría cazado — el guardián vigila que se toque este
+fichero cuando cambia una puerta, y aquí no cambió ninguna puerta. Lo destapó
+leer en vivo lo que el capitán sirve y compararlo con el código.
 
 **v3.1.0 — 2026-08-06 · MENOR.** Aditivo: `update_column` y `delete_column` en la
 Puerta 1, y la numeración de columnas normalizada a 1..N. Es nota de contrato y no
