@@ -37,8 +37,9 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-from validation import (cards_listing_plan, empty_brief_notice,
-                        missing_workspace_error, resolve_brief, row_cap_notice,
+from validation import (VALID_PRIORITIES, cards_listing_plan, empty_brief_notice,
+                        missing_assignee_error, missing_workspace_error,
+                        priority_error, resolve_brief, row_cap_notice,
                         workspace_mismatch_error)
 
 mcp = FastMCP("aglaya-kanban-desk")
@@ -295,7 +296,7 @@ def create_card(
     column_id: str,
     title: str,
     description_md: str = "",
-    priority: str = "medium",
+    priority: str | None = None,
     checklist: list[str] | None = None,
     due_date: str | None = None,
     assignee: str | None = None,
@@ -315,28 +316,42 @@ def create_card(
     typed-out atlas path expires silently when the captain reorganises; the
     repo name and the question do not. Live IDs: `list_workspaces` here.
 
+    `priority` and `assignee` are BOTH REQUIRED: a card missing either is
+    invisible to the work system — nobody picks it up and it does not fail, it
+    just ages in the backlog looking like pending work. The contract is the
+    custodian of when and why (`docs/contracts/CONTRACT.md`).
+
     `board_id` is OPTIONAL — derived from `column_id` if omitted. The BRIEF goes
     in `description_md` (markdown); `description` is an alias for the same field.
     priority ∈ urgent|high|medium|low|none. `checklist` = list of item texts.
     `due_date` = ISO (YYYY-MM-DD). `assignee` = email/name/id → owner AND notified."""
-    if priority not in ("urgent", "high", "medium", "low", "none"):
-        return {"error": "priority must be urgent|high|medium|low|none"}
-
-    # El destino se exige ANTES de tocar la red, y se comprueba DESPUÉS de
-    # derivar el tablero. Exigirlo sin validarlo daría sensación de control sin
-    # control — la misma forma que el default que mandaba cards al espacio
-    # personal devolviendo 201.
-    err = missing_workspace_error(workspace_id)
-    if err:
-        return err
+    # Todo lo que se puede juzgar sin red se juzga antes de tocarla. El destino se
+    # comprueba DESPUÉS de derivar el tablero porque necesita leerlo; exigirlo sin
+    # validarlo daría sensación de control sin control — la misma forma que el
+    # default que mandaba cards al espacio personal devolviendo 201.
+    for err in (priority_error(priority),
+                missing_assignee_error(assignee),
+                missing_workspace_error(workspace_id)):
+        if err:
+            return err
     if not board_id:
         board_id = _board_of_column(column_id)
     err = workspace_mismatch_error(workspace_id, _workspace_of_board(board_id), column_id)
     if err:
         return err
+
+    # El responsable se resuelve ANTES de crear. Si se dejara para después —que es
+    # donde estaba— un assignee que no resuelve dejaba la tarjeta ya escrita y sin
+    # dueño: exactamente la tarjeta invisible que este campo existe para impedir,
+    # creada por el propio guardián.
+    try:
+        assignee_id = _resolve_user(assignee)
+    except RuntimeError as exc:
+        return {"error": f"assignee no resuelve: {exc}. No se ha creado nada."}
+
     brief = resolve_brief(description, description_md)
     body: dict[str, Any] = {"columnId": column_id, "boardId": board_id, "title": title,
-                            "description": brief, "priority": priority}
+                            "description": brief, "priority": str(priority).strip()}
     if checklist:
         body["checklist"] = [{"id": secrets.token_hex(6), "text": str(t), "done": False, "assignees": []}
                              for t in checklist]
@@ -350,8 +365,12 @@ def create_card(
     notice = empty_brief_notice(brief)
     if notice:
         out["warning"] = notice
-    if assignee:
-        out["assigned"] = assign_card(card["id"], assignee).get("notified")
+    # Se asigna por el PUT, no por el POST, porque es el update el que dispara la
+    # notificación in-app. El id ya está resuelto arriba: llamar a `assign_card`
+    # aquí volvería a pedir la lista de usuarios para averiguar lo que ya sabemos.
+    _request("PUT", f"/cards/{card['id']}", {"assigneeId": assignee_id})
+    out["assignee_id"] = assignee_id
+    out["assigned"] = assignee
     return out
 
 
@@ -431,8 +450,12 @@ def update_card(
     `description` is the markdown brief. priority ∈ urgent|high|medium|low|none.
     `due_date` = ISO (YYYY-MM-DD). Wraps PUT /api/cards/:id (server/routes/cards.js
     → updateCard), which is the same endpoint the UI uses."""
-    if priority is not None and priority not in ("urgent", "high", "medium", "low", "none"):
-        return {"error": "priority must be urgent|high|medium|low|none"}
+    # Aquí `priority` SÍ es opcional —no pasarla significa «no la cambies», que es
+    # distinto de crearla sin decidirla—, así que no vale `priority_error`: esa
+    # exige presencia. Lo que sí se comparte es la LISTA, para que las dos puertas
+    # no puedan divergir en qué valores aceptan.
+    if priority is not None and str(priority).strip() not in VALID_PRIORITIES:
+        return {"error": f"priority must be {'|'.join(VALID_PRIORITIES)}"}
     body: dict[str, Any] = {}
     if title is not None:       body["title"] = title
     if description is not None: body["description"] = description
