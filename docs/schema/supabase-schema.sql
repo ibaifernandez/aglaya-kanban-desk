@@ -170,6 +170,16 @@ CREATE TABLE IF NOT EXISTS public.boards (
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- ⚠️ `columns."order"` NO tiene restricción UNIQUE por (board_id, "order"), y la
+-- ausencia es deliberada: reordenar exige desplazar varias filas, y con un UNIQUE
+-- no diferible cualquier desplazamiento choca a medio camino. Sostenerlo de
+-- verdad pide una función transaccional con la restricción DEFERRABLE — el mismo
+-- cambio que sigue abierto para el orden de las TARJETAS.
+--
+-- Mientras tanto lo sostiene la RUTA (`server/routes/columns.js`): después de
+-- crear, mover o borrar, renumera el tablero entero a 1..N contiguo. Una
+-- escritura DIRECTA a la base puede volver a duplicar números — pasó, y la
+-- migración `migration-column-order-normalize.sql` lo limpió.
 CREATE TABLE IF NOT EXISTS public.columns (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   board_id     UUID NOT NULL REFERENCES public.boards(id) ON DELETE CASCADE,
@@ -182,6 +192,10 @@ CREATE TABLE IF NOT EXISTS public.columns (
 
 CREATE TABLE IF NOT EXISTS public.cards (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  -- ⚠️ CASCADE: borrar una columna se lleva sus tarjetas. Lo que impide que eso
+  -- pase en silencio NO es la base — es la ruta, que devuelve 409 si la columna
+  -- tiene tarjetas dentro (`server/routes/columns.js`). Quien borre saltándose
+  -- la API se las lleva igual.
   column_id       UUID NOT NULL REFERENCES public.columns(id) ON DELETE CASCADE,
   board_id        UUID NOT NULL REFERENCES public.boards(id) ON DELETE CASCADE,
   organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
