@@ -35,18 +35,29 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ALLOWED="${RAIL_BLINDSPOT_ALLOWED:-$REPO_ROOT/scripts/rail-blindspot.allowed}"
 RAIL_EMAIL="${RAIL_EMAIL:-kanban-rail@aglaya.biz}"
+# Quién define el alcance. No es una lista de espacios: es la PROPIEDAD.
+DUENO_EMAIL="${RAIL_SCOPE_OWNER:-info@ibaifernandez.com}"
 
 # La pregunta, entera, en un sitio. Excluye `personal` por regla (ver cabecera).
 read -r -d '' QUERY <<SQL
-SELECT w.id, w.name, w.type
-  FROM workspaces w
- WHERE w.type <> 'personal'
-   AND NOT EXISTS (
-       SELECT 1 FROM workspace_members m
-         JOIN users u ON u.id = m.user_id
-        WHERE m.workspace_id = w.id
-          AND u.email = '${RAIL_EMAIL}')
- ORDER BY w.name;
+WITH alcance AS (
+  SELECT w.id, w.name, w.type,
+         EXISTS (SELECT 1 FROM workspace_members m
+                   JOIN users u ON u.id = m.user_id
+                  WHERE m.workspace_id = w.id
+                    AND u.email = '${RAIL_EMAIL}')                       AS riel_dentro,
+         (EXISTS (SELECT 1 FROM workspace_members o
+                    JOIN users x ON x.id = o.user_id
+                   WHERE o.workspace_id = w.id
+                     AND o.role = 'owner'
+                     AND x.email = '${DUENO_EMAIL}')
+          AND w.type <> 'personal')                                      AS deberia
+    FROM workspaces w)
+SELECT id, name, type,
+       CASE WHEN deberia THEN 'PUNTO CIEGO' ELSE 'FUGA' END AS desviacion
+  FROM alcance
+ WHERE deberia <> riel_dentro
+ ORDER BY desviacion, name;
 SQL
 
 # --- de dónde salen las filas ----------------------------------------------
@@ -107,27 +118,48 @@ fi
 FAIL=0
 seen=0
 
-while IFS='|' read -r id name type; do
+while IFS='|' read -r id name type desviacion; do
   [ -n "${id:-}" ] || continue
   seen=$((seen + 1))
+  # Una fila sin cuarta columna es de la época en que esto solo miraba una
+  # dirección. Se trata como PUNTO CIEGO en vez de ignorarse: un guardián que
+  # descarta lo que no entiende es el falso negativo que perseguimos.
+  desviacion="$(printf '%s' "${desviacion:-PUNTO CIEGO}" | tr -d '[:space:]' | tr 'a-z' 'A-Z')"
+  [ -n "$desviacion" ] || desviacion="PUNTOCIEGO"
   key="$(printf '%s' "$id" | tr -d '[:space:]' | tr 'A-F' 'a-f')"
+
   case " $allowed_uuids " in
-    *" $key "*) echo "rail-blindspot: ciego a sabiendas — «${name}» (${type}). Justificado en scripts/rail-blindspot.allowed." ;;
-    *)
-      echo "::error file=scripts/rail-blindspot.allowed::rail-blindspot: «${name}» (${type}) existe y el riel NO lo ve."
-      echo "  id: ${id}"
-      echo "  Ninguna nave de la flota puede dejar cards ahí, y no dará error al intentarlo:"
-      echo "  el espacio simplemente no aparece en list_workspaces."
-      echo "    → si debe recibir comandas: añade ${RAIL_EMAIL} como miembro del espacio."
-      echo "    → si NO debe: escribe su id en scripts/rail-blindspot.allowed con el porqué."
-      FAIL=1 ;;
+    *" $key "*)
+      echo "rail-blindspot: desviación a sabiendas — «${name}» (${type}, ${desviacion}). Justificada en scripts/rail-blindspot.allowed."
+      continue ;;
   esac
+
+  if [ "$desviacion" = "FUGA" ]; then
+    # La mitad que protege lo AJENO. Un espacio fuera del alcance del riel con el
+    # riel dentro: puede escribir donde no le toca, y ahí no hay error que leer —
+    # hay una tarjeta en casa de otro. Es el gemelo del punto ciego, y el que
+    # importa el día que haya un cliente.
+    echo "::error file=scripts/rail-blindspot.allowed::rail-blindspot: FUGA — el riel es miembro de «${name}» (${type}), que está FUERA de su alcance."
+    echo "  id: ${id}"
+    echo "  El alcance del riel son los espacios cuyo owner es ${DUENO_EMAIL}, excluidos los que él tipe como personal."
+    echo "  Estar dentro de uno ajeno significa que puede escribir ahí, y nadie se enteraría."
+    echo "    → si NO debe estar: quita a ${RAIL_EMAIL} de los miembros de ese espacio."
+    echo "    → si sí debe: escribe su id en scripts/rail-blindspot.allowed con el porqué."
+  else
+    echo "::error file=scripts/rail-blindspot.allowed::rail-blindspot: PUNTO CIEGO — «${name}» (${type}) está en alcance y el riel NO lo ve."
+    echo "  id: ${id}"
+    echo "  Ninguna nave de la flota puede dejar cards ahí, y no dará error al intentarlo:"
+    echo "  el espacio simplemente no aparece en list_workspaces."
+    echo "    → si debe recibir comandas: añade ${RAIL_EMAIL} como miembro del espacio."
+    echo "    → si NO debe: escribe su id en scripts/rail-blindspot.allowed con el porqué."
+  fi
+  FAIL=1
 done <<< "$rows"
 
 if [ "$FAIL" != "0" ]; then
   echo
-  echo "rail-blindspot: hay trabajo que no puede llegar a su sitio y no avisaría."
+  echo "rail-blindspot: el alcance real del riel no coincide con el que debería tener."
   exit 1
 fi
 
-echo "rail-blindspot: OK — ${seen} espacio(s) ciego(s), todos con decisión escrita."
+echo "rail-blindspot: OK — ${seen} desviación(es), todas con decisión escrita."
