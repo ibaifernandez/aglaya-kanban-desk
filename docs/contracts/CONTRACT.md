@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.1.0
+- **Versión:** 3.2.0
 - **Última modificación:** 2026-08-06
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -255,6 +255,29 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**v3.2.0 — 2026-08-06 · MENOR.** Aditivo: `update_card` acepta el brief por sus
+**dos** nombres, como ya hacía `create_card`. Hasta hoy solo aceptaba el alias, y
+el texto enviado con el nombre **documentado** se descartaba **en silencio** — con
+un `title` al lado, el título se actualizaba, el brief se perdía y la respuesta
+decía que todo fue bien.
+
+Y al actualizar, **«no mandarlo» y «mandarlo vacío» pasan a ser órdenes
+distintas**: la primera deja la descripción como está, la segunda la vacía.
+Confundirlas borraría el brief de cualquier tarjeta a la que solo se le cambiara
+el título.
+
+**La línea de arriba de este contrato afirmaba lo primero sin acotar**, y era
+cierta para crear y falsa para actualizar. Quien viniera de crear con el nombre
+documentado lo reutilizaba aquí y perdía el texto.
+
+**El número lo puso el vigilante al revisar.** El PR tocó este fichero —y por eso
+`contract-guard` dio verde— pero dejó la versión en 3.1.0. **Es la primera vez
+que se ve en vivo la limitación que ese guardián declara en su propia cabecera:**
+comprueba que alguien *tocó* el documento, no que fuera *honesto* al tocarlo.
+Verificar que el texto describe el código, y que el número describe el cambio,
+sigue siendo trabajo del vigilante.
+
 
 **v3.1.0 — 2026-08-06 · MENOR.** Aditivo: `update_column` y `delete_column` en la
 Puerta 1, y la numeración de columnas normalizada a 1..N. Es nota de contrato y no
