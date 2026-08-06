@@ -25,9 +25,11 @@ Uso:  python3 kanban-mcp/test_validation.py
 """
 import unittest
 
-from validation import (VALID_PRIORITIES, cards_listing_plan, empty_brief_notice,
+from validation import (SIN_TOCAR, VALID_PRIORITIES, cards_listing_plan,
+                        empty_brief_notice,
                         missing_assignee_error, missing_workspace_error,
-                        priority_error, resolve_brief, row_cap_notice,
+                        priority_error, resolve_brief, resolve_brief_update,
+                        row_cap_notice,
                         workspace_mismatch_error)
 
 WS_A = "f93867a7-8cfa-40e1-883a-55eb62776253"
@@ -330,6 +332,61 @@ class MissingAssignee(unittest.TestCase):
         # red, y esto es el módulo puro. Quien tiene red lo comprueba después.
         # Si algún día esto empieza a devolver error, alguien metió red aquí.
         self.assertIsNone(missing_assignee_error("no-existe@ejemplo.com"))
+
+
+class ResolveBriefUpdate(unittest.TestCase):
+    """El brief al ACTUALIZAR, y la diferencia que no se puede perder.
+
+    Factura del 6-ago-2026: `create_card` aceptaba el brief por sus dos nombres y
+    `update_card` solo por uno. Lo que llegaba con el otro **se descartaba en
+    silencio**, y solo saltó porque no iba ningún otro campo — con un `title`
+    acompañando, el título se habría actualizado, el brief se habría tirado, y la
+    respuesta habría dicho que todo fue bien.
+    """
+
+    def test_el_nombre_documentado_ya_llega(self):
+        # LA prueba. Si alguien retira el alias, esto se pone rojo.
+        self.assertEqual(resolve_brief_update(None, BRIEF), BRIEF)
+
+    def test_el_alias_sigue_llegando(self):
+        self.assertEqual(resolve_brief_update(BRIEF, None), BRIEF)
+
+    def test_sin_ninguno_de_los_dos_NO_se_toca(self):
+        # `SIN_TOCAR` no es `""`. Devolver `""` aquí borraría la descripción de
+        # toda tarjeta que se actualice solo para cambiarle el título.
+        self.assertIs(resolve_brief_update(None, None), SIN_TOCAR)
+
+    def test_vaciar_es_una_orden_legitima_y_distinta(self):
+        # Pasar el campo vacío SÍ es querer borrarlo. Si esto devolviera
+        # `SIN_TOCAR`, no habría forma de vaciar una descripción por esta puerta.
+        self.assertEqual(resolve_brief_update("", None), "")
+        self.assertEqual(resolve_brief_update(None, ""), "")
+
+    def test_un_campo_vacio_NO_tapa_al_que_tiene_texto(self):
+        # Misma regla que al crear: si las dos puertas no coincidieran aquí,
+        # quien viniera de una perdería texto en la otra.
+        self.assertEqual(resolve_brief_update("", BRIEF), BRIEF)
+        self.assertEqual(resolve_brief_update("   ", BRIEF), BRIEF)
+        self.assertEqual(resolve_brief_update(BRIEF, ""), BRIEF)
+
+    def test_si_los_dos_traen_texto_gana_el_alias_explicito(self):
+        self.assertEqual(resolve_brief_update("del alias", "del documentado"), "del alias")
+
+    def test_los_dos_vacios_pero_presentes_vacian(self):
+        self.assertEqual(resolve_brief_update("", ""), "")
+
+    def test_conserva_el_markdown_tal_cual(self):
+        md = "## Contexto\n\n- uno\n- dos\n"
+        self.assertEqual(resolve_brief_update(None, md), md)
+
+    def test_la_misma_precedencia_que_al_crear(self):
+        # Si las dos puertas divergen, quien venga de una pierde texto en la otra
+        # — que es literalmente el defecto que esto cierra. Se comparan los dos
+        # resolutores sobre los casos donde ambos tienen respuesta.
+        for d, m in [("alias", "documentado"), ("", "documentado"), ("alias", ""),
+                     ("   ", "documentado")]:
+            self.assertEqual(resolve_brief_update(d, m), resolve_brief(d, m),
+                             f"divergen con description={d!r} description_md={m!r}")
 
 
 if __name__ == "__main__":
