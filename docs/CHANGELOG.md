@@ -23,6 +23,31 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   - **El contrato afirmaba lo de los dos nombres sin acotar**, cierto para crear y
     falso para actualizar. Ahora es cierto para las dos puertas.
 
+- **El fallo de la copia de seguridad deja de ser silencioso** (PR
+  [#31](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/31)). El aviso era
+  un `::error::` en el log y un `TODO`: la copia —**la única red bajo esta nave**—
+  fallaba exactamente de la forma contra la que se montó, la que nadie ve hasta
+  que hace falta la copia. Ahora abre una **incidencia** en el repo, y **comenta
+  en la abierta si ya existe** en vez de abrir una por día: una racha tiene que
+  leerse como una racha, no como veinte avisos que se aprenden a ignorar.
+  - **Por qué una incidencia y no un correo ni una tarjeta:** medido —los secretos
+    de este repo son seis y **no incluyen `TASK_SECRET` ni `RESEND_API_KEY`**, así
+    que no se puede clavar una tarjeta en el riel ni mandar correo. `GITHUB_TOKEN`
+    siempre está. Lo nativo de la flota sería una tarjeta, y para eso hace falta
+    un acto humano que queda dicho en la tarjeta, no simulado aquí.
+
+### Added
+- **El volcado se verifica ANTES de subirlo** (PR #31). `pg_dump` puede terminar
+  en `0` y escribir casi nada, y a partir de ahí lo que hay en R2 es **un fichero
+  con el nombre correcto y sin copia dentro** — que no se nota hasta el único día
+  en que importa. Ahora se exige un suelo de tamaño (20 KB, un orden de magnitud
+  por debajo de los 195 KB medidos) **y** que el volcado contenga las tablas
+  esperadas: el tamaño dice que hay bytes, las tablas dicen que son los de esta
+  base.
+  - **No sustituye a una restauración de prueba**, que sigue sin hacerse nunca y
+    tiene su propia deuda. Es la comprobación más barata que separa «hay un
+    fichero» de «hay una copia».
+
 ### Fixed
 - **El presupuesto de tiempo de las pruebas vive en un solo sitio** (PR
   [#30](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/30)).
