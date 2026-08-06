@@ -33,6 +33,12 @@ jest.mock('../utils/supabase', () => {
     users:              [],
     insertedHistory:    [],   // filas que llegaron a card_description_history
     cardUpdates:        [],   // parches que llegaron a cards
+    // Si el usuario es miembro del workspace de la tarjeta. El doble original
+    // devolvía membresía SIEMPRE, así que `requireWorkspaceMember` era un
+    // no-op en las pruebas: se le podía quitar entero a la ruta del historial
+    // y las 12 seguían verdes. Y ese middleware es la ÚNICA protección real —
+    // el servidor lee con `service_role`, que salta la RLS de la migración.
+    isMember:           true,
   };
 
   const supabaseAdmin = {
@@ -40,12 +46,16 @@ jest.mock('../utils/supabase', () => {
       let mode = 'select';
       let patch = null;
       let filters = {};
+      let sort = null;
 
       const chain = {
         select: () => chain,
         eq: (col, val) => { filters[col] = val; return chain; },
         in: () => chain,
-        order: () => chain,
+        // El doble APLICA el orden. Sin esto, invertirlo en la ruta pasaba en
+        // verde — y el endpoint promete «la más reciente primero», que es de lo
+        // que depende que deshacer coja la versión buena y no otra.
+        order: (col, opts = {}) => { sort = { col, asc: opts.ascending !== false }; return chain; },
         limit: () => chain,
         or: () => chain,
 
@@ -84,6 +94,9 @@ jest.mock('../utils/supabase', () => {
             return Promise.resolve({ data: { id: 'board-1', workspace_id: 'ws-1' }, error: null });
           }
           if (table === 'workspace_members') {
+            if (!state.isMember) {
+              return Promise.resolve({ data: null, error: { message: 'no rows' } });
+            }
             return Promise.resolve({ data: { workspace_id: 'ws-1', user_id: 'user-1', role: 'owner' }, error: null });
           }
           if (table === 'workspaces') {
@@ -104,6 +117,11 @@ jest.mock('../utils/supabase', () => {
           if (table === 'users')                    data = state.users;
           for (const [col, val] of Object.entries(filters)) {
             data = data.filter((r) => r[col] === val);
+          }
+          if (sort) {
+            const dir = sort.asc ? 1 : -1;
+            data = [...data].sort((a, b) =>
+              a[sort.col] > b[sort.col] ? dir : a[sort.col] < b[sort.col] ? -dir : 0);
           }
           return Promise.resolve({ data, error: null }).then(resolve, reject);
         },
@@ -137,6 +155,7 @@ beforeEach(() => {
   __state.users              = [];
   __state.insertedHistory    = [];
   __state.cardUpdates        = [];
+  __state.isMember           = true;
 });
 
 describe('sobrescribir una descripción deja rastro', () => {
@@ -270,5 +289,63 @@ describe('GET /api/cards/:id/history — el historial se puede leer', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
     expect(res.body.data).toEqual([]);
+  });
+
+  // Añadida por el vigilante (6-ago-2026). Sin ella, invertir el orden en la
+  // ruta pasaba en verde. El endpoint promete «la más reciente primero» y de eso
+  // depende deshacer: quien restaura coge la primera fila, así que un orden al
+  // revés devuelve la versión MÁS ANTIGUA creyendo que es la anterior — y la
+  // restauración escribe encima algo que nadie pidió, con acuse de éxito.
+  it('devuelve la más reciente primero', async () => {
+    __state.historyRows = [
+      { id: 'h-vieja',  card_id: 'card-1', description: 'la vieja',  changed_by: null, changed_at: '2026-08-06T09:00:00Z' },
+      { id: 'h-nueva',  card_id: 'card-1', description: 'la nueva',  changed_by: null, changed_at: '2026-08-06T12:00:00Z' },
+      { id: 'h-media',  card_id: 'card-1', description: 'la media',  changed_by: null, changed_at: '2026-08-06T10:30:00Z' },
+    ];
+
+    const res = await request(app)
+      .get('/api/cards/card-1/history')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.map((r) => r.id)).toEqual(['h-nueva', 'h-media', 'h-vieja']);
+  });
+});
+
+// Añadido por el vigilante (6-ago-2026), tras comprobar por mutación que
+// `requireWorkspaceMember` se podía retirar ENTERO de esta ruta sin romper una
+// sola prueba. El doble devolvía membresía pase lo que pase, así que el
+// middleware era un no-op aquí.
+//
+// Importa más en esta ruta que en las demás: sirve el TEXTO de las tarjetas, y
+// la RLS de la migración no la protege — el servidor lee con `service_role`, que
+// la salta. El middleware es la única puerta que queda.
+describe('el historial no sale del workspace de quien pregunta', () => {
+  it('un no-miembro recibe 403 y ni una fila', async () => {
+    __state.isMember = false;
+    __state.historyRows = [
+      { id: 'h-1', card_id: 'card-1', description: 'texto que no debe salir', changed_by: null, changed_at: '2026-08-06T10:00:00Z' },
+    ];
+
+    const res = await request(app)
+      .get('/api/cards/card-1/history')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(403);
+    expect(res.body.data).toBeUndefined();
+    expect(JSON.stringify(res.body)).not.toContain('texto que no debe salir');
+  });
+
+  it('un miembro sí lo recibe — el 403 es por membresía, no porque la ruta esté rota', async () => {
+    __state.historyRows = [
+      { id: 'h-1', card_id: 'card-1', description: 'texto legítimo', changed_by: null, changed_at: '2026-08-06T10:00:00Z' },
+    ];
+
+    const res = await request(app)
+      .get('/api/cards/card-1/history')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data[0].description).toBe('texto legítimo');
   });
 });
