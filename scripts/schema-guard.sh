@@ -23,10 +23,32 @@
 # adoptarlo: seis salen estructurales y una —la que renumeraba columnas— sale de
 # datos. Es exactamente la clasificación que uno haría a mano.
 #
-# LO QUE NO PUEDE HACER: no entiende SQL, busca sentencias. Una migración que
-# altere estructura desde dentro de un `DO $$ … $$` con el verbo construido en
-# tiempo de ejecución se le escapa. Es raro y el coste de acertarlo es un parser;
-# queda dicho aquí en vez de fingir que lo cubre.
+# LO QUE NO PUEDE HACER, y todo esto está MEDIDO, no supuesto. No entiende SQL:
+# normaliza y busca sentencias.
+#
+#   · **Verbo construido en tiempo de ejecución.** Un `DO $$ … EXECUTE
+#     format('ALTER …') … $$` se le escapa entero. Comprobado.
+#   · **Literales de cadena con `--` o `/*` dentro.** El normalizador los trata
+#     como comentario y se come el resto. En migraciones no pasa; queda dicho.
+#   · **Falso rojo dentro de un `DO $$ … $$`:** un `SELECT … INTO variable` de
+#     PL/pgSQL se cuenta como creación de tabla. Es el lado seguro del error y se
+#     prefiere a callar, pero es un falso positivo real.
+#
+# La primera versión de este guardián declaraba SOLO la primera, y el vigilante
+# encontró dos más midiendo. Lo que un guardián dice que no cubre es justo
+# aquello sobre lo que se decide, así que la lista se amplía en vez de
+# defenderse.
+#
+# REGRESIÓN QUE ESTE FICHERO YA COMETIÓ, para que no vuelva. La detección estaba
+# anclada a principio de línea sobre el fichero CRUDO. Eso evitaba bien el falso
+# positivo del comentario, y a cambio dejaba pasar `BEGIN; CREATE TABLE …;
+# COMMIT;` en un renglón — que la comprobación anterior, sin anclar, SÍ veía. Una
+# tabla naciendo sin GRANT ni RLS es la avería que esta casa pagó el 6-ago-2026.
+#
+# El arreglo no fue desanclar: desanclar sin más cambia ese falso verde por un
+# falso rojo en cuanto alguien escriba `-- ALTER TABLE …` en un comentario. Se
+# normaliza —comentarios fuera, una sentencia por línea— y entonces las dos
+# trampas caen a la vez. El sello tiene un caso por cada una.
 #
 # Uso:
 #   bash scripts/schema-guard.sh fichero1 fichero2 …
@@ -46,7 +68,54 @@ PATRON_MIGRACION='^(migrations/|docs/schema/migration-).*\.sql$'
 # Verbos que ALTERAN: estructura, permisos o políticas. Si aparece uno, el
 # documento tiene que enterarse. `COMMENT ON` entra porque el esquema documenta
 # comentarios de columna.
+#
+# Se aplican sobre el SQL NORMALIZADO (ver `_sql_normalizado`), donde cada
+# sentencia ocupa su propia línea y los comentarios ya no están. Anclar a
+# principio de línea sobre el fichero CRUDO era una regresión: `BEGIN; CREATE
+# TABLE …; COMMIT;` en un renglón se leía como «solo datos», y la comprobación
+# de `main` —sin anclar— sí lo veía. Se cambió un falso positivo por un falso
+# negativo sobre permisos, que es el peor cambio posible.
 VERBOS_DDL='^[[:space:]]*(CREATE|ALTER|DROP|GRANT|REVOKE|COMMENT[[:space:]]+ON|TRUNCATE)[[:space:]]'
+
+# `SELECT … INTO tabla` CREA UNA TABLA sin decir CREATE, así que no lo caza
+# ningún verbo. Cuenta como estructural y como creación de tabla: nace sin
+# GRANT y sin RLS igual que cualquier otra, y es la forma que más fácil se cuela
+# porque parece una consulta.
+CREA_TABLA='^[[:space:]]*(CREATE[[:space:]]+TABLE|SELECT[[:space:]].*[[:space:]]INTO[[:space:]])'
+
+# Deja el SQL en una sentencia por línea y sin comentarios. Sin esto, cualquier
+# patrón anclado se engaña con `BEGIN; …` y cualquier patrón sin anclar se
+# engaña con un `-- ALTER TABLE …` dentro de un comentario. Las dos trampas son
+# reales y una de ellas ya se coló.
+#
+# LO QUE NO HACE: no entiende literales de cadena. Un `--` o un `/*` DENTRO de
+# comillas se trata como comentario. En migraciones no pasa; queda dicho.
+_sql_normalizado() {
+  awk '
+    {
+      linea = $0; salida = ""; i = 1
+      while (i <= length(linea)) {
+        if (enbloque) {
+          p = index(substr(linea, i), "*/")
+          if (p == 0) { i = length(linea) + 1 }
+          else { enbloque = 0; i += p + 1 }
+        } else {
+          pb = index(substr(linea, i), "/*")
+          pl = index(substr(linea, i), "--")
+          if (pl > 0 && (pb == 0 || pl < pb)) {
+            salida = salida substr(linea, i, pl - 1); i = length(linea) + 1
+          } else if (pb > 0) {
+            salida = salida substr(linea, i, pb - 1); enbloque = 1; i += pb + 1
+          } else {
+            salida = salida substr(linea, i); i = length(linea) + 1
+          }
+        }
+      }
+      printf "%s ", salida
+    }
+    END { printf "\n" }
+  ' "$1" | tr ';' '\n'
+}
 
 cambiados="${SCHEMA_GUARD_CHANGED:-}"
 if [ -z "$cambiados" ] && [ "$#" -gt 0 ]; then
@@ -78,12 +147,16 @@ for m in $migraciones; do
     continue
   fi
 
-  if grep -qiE "$VERBOS_DDL" "$ruta"; then
+  normalizado="$(_sql_normalizado "$ruta")"
+
+  # Estructural si aparece un verbo que altera O algo que crea tabla sin decir
+  # CREATE. Lo segundo no lo cubre ningún verbo y por eso va aparte.
+  if printf '%s\n' "$normalizado" | grep -qiE "$VERBOS_DDL|$CREA_TABLA"; then
     estructurales="${estructurales}${m}"$'\n'
 
     # Una tabla nueva sin permisos explícitos ni RLS es la puerta abierta que
     # esta casa ya documentó. Esto no cambia respecto a la regla anterior.
-    if grep -qiE '^[[:space:]]*CREATE[[:space:]]+TABLE' "$ruta"; then
+    if printf '%s\n' "$normalizado" | grep -qiE "$CREA_TABLA"; then
       grep -qi 'GRANT' "$ruta" || {
         echo "::error file=$m::schema-guard: crea tabla sin GRANT explícito."
         FALLO=1
