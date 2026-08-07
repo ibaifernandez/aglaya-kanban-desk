@@ -6,6 +6,40 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Security
+- **`anon` y `authenticated` recortados a lo que el esquema declara — APLICADO EN
+  PRODUCCIÓN el 6-ago-2026** (`docs/schema/migration-recorte-privilegios-anon-authenticated.sql`).
+  Cierra la tarjeta `eeaebd9f` por el lado de la base.
+  - **Medido, no leído:** `authenticated` tenía `MAINTAIN`, `REFERENCES`,
+    `TRIGGER` y **`TRUNCATE`** de más en once tablas; `anon` tenía `MAINTAIN` en
+    diez. El grave es `TRUNCATE`: **salta RLS**, y toda la separación entre
+    organizaciones de esta nave vive en RLS.
+  - **Por qué nadie lo vio, que es la mitad interesante.** `MAINTAIN` es un
+    privilegio **nuevo de PostgreSQL 17** (esta base corre 17.6) y **no aparece en
+    `information_schema`**, que solo expone los siete del estándar SQL. Y
+    `scripts/grants-guard.sh` consulta justamente `information_schema`: llevaba
+    días en verde sobre tablas con un privilegio de más. **No mentía — miraba por
+    una ventana que no da a ese lado.** Se ve con `aclexplode(relacl)`.
+  - **La tarjeta se quedaba corta:** decía tres privilegios de sobra en
+    `authenticated`. Son cuatro.
+  - **Radio del cambio: cero, y también medido.** Ningún camino de esta aplicación
+    lee ni escribe tablas como `anon` o `authenticated` — todo pasa por Express
+    con `service_role`, y la llave anónima del cliente solo se usa para
+    autenticarse (`LoginPage`, `ResetPasswordPage`).
+  - **La sección 9 del esquema ahora RECORTA antes de conceder.** Solo concedía, y
+    un `GRANT` no quita nada: correr el esquema no arreglaba la divergencia, la
+    dejaba igual.
+  - **Media puerta queda abierta, y se dice:** `ALTER DEFAULT PRIVILEGES` solo
+    toca los defaults del rol que lo ejecuta. En `public` hay dos concesionarios
+    —`postgres` y `supabase_admin`— y los de `supabase_admin` siguen dando los
+    ocho. No se tocan a propósito: son configuración de Supabase. Esa mitad la
+    tiene que vigilar el guardián.
+  - **Y por eso esto NO cierra la tarjeta entera:** falta que
+    `scripts/grants-guard.sh` lea `aclexplode` en vez de `information_schema`, con
+    un caso de sello que inyecte `MAINTAIN` y exija rojo. Hoy ese caso pasaría en
+    verde, y ése es el defecto.
+
+
 ### Fixed
 - **El guardián del esquema distingue estructura de datos** (`scripts/schema-guard.sh`
   + su sello). La regla exigía tocar `docs/schema/supabase-schema.sql` ante
