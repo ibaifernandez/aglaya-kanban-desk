@@ -256,7 +256,27 @@ Reglas para cualquier hilo que trabaje aquí:
 
 - **Antes de un cambio estructural** (schema de cards, tools del MCP `aglaya-kanban-desk`, workspaces/boards), pregunta el contrato con `contrato(nombre)` en el MCP `aglaya-atlas`: el capitán inyecta cards por ese contrato y un cambio unilateral lo rompe.
 - **Si el capitán toca docs de este repo**, debería estar registrado en commits debidamente identificados y todos los cambios deberían quedar registrados en `docs/CHANGELOG.md`.
-- **Solo estas tres cuentas están autorizadas**, mientras no cambie el paradigma de uso de esta aplicación: Ibai (`info@ibaifernandez.com`), Món (`mmontufarq@gmail.com`) y Kanban Rail (`kanban-rail@aglaya.biz`). No dar de alta a nadie sin OK de Ibai. Esto es una **decisión**, no un informe: dice quién *puede* existir. Quién existe de hecho lo custodia la tabla `users` — si no coinciden, el hallazgo es que hay que reconciliarlas, no que este archivo esté desactualizado.
+- **Solo estas tres cuentas están autorizadas**, mientras no cambie el paradigma de uso
+  de esta aplicación: **Ibai**, **Món** y **Kanban Rail** (`kanban-rail@aglaya.biz`, que
+  no es una persona sino la cuenta de servicio del riel). No dar de alta a nadie sin OK
+  de Ibai. Esto es una **decisión**, no un informe: dice quién *puede* existir. Quién
+  existe de hecho lo custodia la tabla `users` — si no coinciden, el hallazgo es que hay
+  que reconciliarlas, no que este archivo esté desactualizado.
+
+  **Las direcciones de las dos personas no se escriben aquí, y es deliberado.** Este
+  repositorio es **público** desde el 6-ago-2026, y una dirección personal en un
+  repositorio público la recogen robots. La de Món llegó a estar publicada por esta
+  línea; una de las dos direcciones expuestas **no era de quien publicó el repo**, que
+  es la parte que no se puede deshacer pidiendo perdón.
+
+  El correo exacto de cada quien **lo custodia la tabla `users`**, que es quien ya
+  custodiaba el hecho — este archivo solo custodiaba la decisión. Se consulta ahí, no
+  aquí. Si necesitas la dirección para clavar una tarjeta, la puerta ya la resuelve por
+  ti: `assignee` casa contra `users`, y `list_members` en el MCP `aglaya-kanban-desk`
+  las devuelve.
+
+  Lo ya publicado en la historia de git no lo arregla esta línea — eso tiene tarjeta
+  propia. Lo que cierra aquí es que no vuelva a entrar por el árbol.
 
 **Al capitán se le pregunta, no se le cita.** MCP `aglaya-atlas`, disponible en toda sesión de Claude de esta máquina. Responde leyendo el atlas en vivo y citando fuente:
 

@@ -505,7 +505,7 @@ La DB devuelve 6 workspaces; Ibai cuenta 4. Sobran los llamados `3` y `4`.
 | `3` | interno | 2 (ambos «prueba») | 1 | 1 | 2026-04-13 18:38:00 | card «prueba adjunto», tocada 2026-05-15 |
 | `4` | externo | 0 | 0 | 1 | 2026-04-13 18:38:06 | vacío |
 
-Ambos creados por **Món** (`mmontufarq@gmail.com`, admin) con 6 segundos de diferencia.
+Ambos creados por **Món** (admin) con 6 segundos de diferencia.
 `3` es su espacio de pruebas: tableros «prueba», card «prueba adjunto» — probablemente
 con un fichero en Storage que quedaría huérfano.
 
