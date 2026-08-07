@@ -363,6 +363,37 @@ sel_case "V3 NO muerde en un doc de solo-V1" '- [x] B-CRIT-01 mitigado'      si 
 sel_case "V2 SÍ muerde fuera de la lista"    'Suite con 107 tests'           no  red
 sel_case "V3 SÍ muerde fuera de la lista"    '- [x] B-CRIT-01 mitigado'      no  red
 
+# --- `--relevante`: decidir si hay algo que mirar ---------------------------
+# Este modo existe porque un `paths:` en el disparador haría que el guardián NO
+# APARECIERA en el PR, y una comprobación ausente no se distingue de una que
+# pasó. La decisión se movió aquí dentro; estos casos son los que impiden que se
+# vuelva a estrechar sin que nadie lo note.
+rel_case() {
+  local que="$1" esperado="$2" diff="$3"
+  local got
+  got="$(DOCS_GUARD_CAMBIADOS="$diff" bash "$GUARD" --relevante 2>/dev/null)"
+  if [ "$got" = "$esperado" ]; then
+    PASS=$((PASS + 1)); printf '  ok    %s\n' "$que"
+  else
+    FAIL=$((FAIL + 1)); printf '  FALLO %s — esperaba %s, dijo %s\n' "$que" "$esperado" "$got"
+  fi
+}
+
+echo
+echo "¿Sabe si tiene algo que mirar?"
+rel_case "un documento vigilado"                  SI "$(printf 'M\tCLAUDE.md')"
+rel_case "un fichero del que extrae el canon de puertos" SI "$(printf 'M\tclient/vite.config.js')"
+rel_case "el propio guardián"                     SI "$(printf 'M\tscripts/docs-guard.sh')"
+# El caso que NINGUNA lista de rutas puede expresar, y por el que esto no es un
+# `paths:`: la regla LINKS comprueba que los enlaces apunten a algo que existe,
+# así que un borrado o un renombrado EN CUALQUIER SITIO puede romperla.
+rel_case "un borrado en otro rincón del repo"     SI "$(printf 'D\tserver/viejo.js')"
+rel_case "un renombrado en otro rincón"           SI "$(printf 'R100\ta.js\tb.js')"
+# Y sin datos NO se calla: correr de más cuesta un minuto; callar de menos deja
+# una regla sin vigilar y nadie se entera.
+rel_case "sin diff, se corre entero"              SI ""
+rel_case "un cambio que no le toca nada"          NO "$(printf 'M\tserver/routes/cards.js')"
+
 echo
 echo "=== $PASS ok · $FAIL fallos ==="
 [ "$FAIL" = "0" ] || { echo "El guardián NO muerde en todas sus formas. No lo confíes."; exit 1; }

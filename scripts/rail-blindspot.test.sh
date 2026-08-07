@@ -18,6 +18,8 @@
 
 set -uo pipefail
 
+GUARD_RS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/rail-blindspot.sh"
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GUARD="${RAIL_BLINDSPOT:-$REPO_ROOT/scripts/rail-blindspot.sh}"
 TMP="$(mktemp -d)"
@@ -199,6 +201,30 @@ else
   echo "  ❌ el alcance no se deriva de workspace_members.role = 'owner'"
   FAIL=$((FAIL + 1))
 fi
+
+# --- `--relevante`: decidir si hay algo que mirar ---------------------------
+# Este modo existe porque un `paths:` en el disparador haría que el guardián NO
+# APARECIERA en el PR, y una comprobación ausente no se distingue de una que
+# pasó. La decisión se movió aquí dentro; estos casos son los que impiden que se
+# vuelva a estrechar sin que nadie lo note.
+rel_case() {
+  local que="$1" esperado="$2" diff="$3"
+  local got
+  got="$(RAIL_SCOPE_CAMBIADOS="$diff" bash "$GUARD_RS" --relevante 2>/dev/null)"
+  if [ "$got" = "$esperado" ]; then
+    PASS=$((PASS + 1)); printf '  ok    %s\n' "$que"
+  else
+    FAIL=$((FAIL + 1)); printf '  FALLO %s — esperaba %s, dijo %s\n' "$que" "$esperado" "$got"
+  fi
+}
+
+echo
+echo "¿Sabe si tiene algo que mirar?"
+rel_case "su propia lista de excepciones"  SI "$(printf 'M\tscripts/rail-blindspot.allowed')"
+rel_case "el propio guardián"              SI "$(printf 'M\tscripts/rail-blindspot.sh')"
+rel_case "sin diff, se corre entero"       SI ""
+# Lo que de verdad vigila es la BASE, y de eso se encarga el schedule diario.
+rel_case "un cambio de código cualquiera"  NO "$(printf 'M\tserver/routes/cards.js')"
 
 echo
 echo "=== $PASS ok · $FAIL fallos ==="

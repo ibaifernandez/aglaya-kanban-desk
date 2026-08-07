@@ -23,30 +23,8 @@ name: docs-guard
 on:
   push:
     branches: [main]
-    paths:
-      # Sus ENTRADAS, no una lista de conveniencia: el guardián lee estos cinco
-      # ficheros. Los tres últimos porque la regla PORTS extrae el canon del
-      # CÓDIGO y exige que launch.json y los documentos coincidan.
-      - 'CLAUDE.md'
-      - 'README.md'
-      - '.claude/launch.json'
-      - 'client/vite.config.js'
-      - 'server/index.js'
-      - 'scripts/docs-guard*'
-      - '.github/workflows/docs-guard.yml'
   pull_request:
     branches: [main]
-    paths:
-      # Sus ENTRADAS, no una lista de conveniencia: el guardián lee estos cinco
-      # ficheros. Los tres últimos porque la regla PORTS extrae el canon del
-      # CÓDIGO y exige que launch.json y los documentos coincidan.
-      - 'CLAUDE.md'
-      - 'README.md'
-      - '.claude/launch.json'
-      - 'client/vite.config.js'
-      - 'server/index.js'
-      - 'scripts/docs-guard*'
-      - '.github/workflows/docs-guard.yml'
   workflow_dispatch:
 
 # Una rama que recibe tres empujones seguidos pagaba tres corridas enteras, y las
@@ -66,14 +44,45 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Checkout
+      - name: Checkout (historial completo para el diff)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # El guardián arranca SIEMPRE — la casilla queda puesta en el PR — y lo
+      # primero que hace es preguntarse si hay algo que mirar. Quién decide eso
+      # es él, no este fichero: si la lista viviera aquí sería una SEGUNDA lista,
+      # y ya sabemos cómo acaban. Ver la cabecera de scripts/docs-guard.sh.
+      - name: ¿Tiene algo que mirar este cambio?
+        id: relevancia
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE="$(git hash-object -t tree /dev/null)"
+          fi
+
+          CAMBIOS="$(git diff --name-status "$BASE" "$HEAD")"
+          echo "Ficheros cambiados:"; echo "$CAMBIOS"; echo "---"
+
+          VEREDICTO="$(DOCS_GUARD_CAMBIADOS="$CAMBIOS" bash scripts/docs-guard.sh --relevante)"
+          echo "correr=$VEREDICTO" >> "$GITHUB_OUTPUT"
 
       - name: Sello — ¿el guardián muerde en cada forma vigilada?
+        if: steps.relevancia.outputs.correr == 'SI'
         run: bash scripts/docs-guard.test.sh
 
       - name: Mutación — ¿el sello nota si se destripa una regla?
+        if: steps.relevancia.outputs.correr == 'SI'
         run: bash scripts/docs-guard.mutation.sh
 
       - name: Guardián — ¿hay estado copiado en README.md / CLAUDE.md?
+        if: steps.relevancia.outputs.correr == 'SI'
         run: bash scripts/docs-guard.sh

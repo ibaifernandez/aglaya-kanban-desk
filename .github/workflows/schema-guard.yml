@@ -12,22 +12,8 @@ name: schema-guard
 on:
   push:
     branches: [main]
-    paths:
-      # Solo hay algo que comprobar si cambia una migración o el documento que
-      # las migraciones deben mantener al día.
-      - 'migrations/**'
-      - 'docs/schema/**'
-      - 'scripts/schema-guard*'
-      - '.github/workflows/schema-guard.yml'
   pull_request:
     branches: [main]
-    paths:
-      # Solo hay algo que comprobar si cambia una migración o el documento que
-      # las migraciones deben mantener al día.
-      - 'migrations/**'
-      - 'docs/schema/**'
-      - 'scripts/schema-guard*'
-      - '.github/workflows/schema-guard.yml'
 
 # Una rama que recibe tres empujones seguidos pagaba tres corridas enteras, y las
 # dos primeras ya no le importaban a nadie. Se agrupa por workflow + rama y se
@@ -51,7 +37,44 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Arranca siempre y decide dentro, igual que docs-guard y rail-scope: un
+      # guardián que no se dispara no aparece en el PR, y una comprobación
+      # ausente no se distingue de una que pasó.
+      #
+      # ⚠️ Aquí la lista SÍ está en el YAML, y es la única de las tres que lo
+      # está. No es un descuido: hoy este guardián no tiene script — su lógica
+      # vive escrita a mano dentro de este fichero. El PR #33 la saca a
+      # `scripts/schema-guard.sh`; cuando entre, esta decisión se va con ella y
+      # deja de haber lista en el workflow. Queda dicho para que no se quede.
+      - name: ¿Tiene algo que mirar este cambio?
+        id: relevancia
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE="$(git hash-object -t tree /dev/null)"
+          fi
+
+          CAMBIOS="$(git diff --name-only "$BASE" "$HEAD")"
+          echo "Ficheros cambiados:"; echo "$CAMBIOS"; echo "---"
+
+          if echo "$CAMBIOS" | grep -qE '^(migrations/|docs/schema/|\.github/workflows/schema-guard\.yml|scripts/schema-guard)'; then
+            echo "relevante: cambió una migración, el documento del esquema o el propio guardián"
+            echo "correr=SI" >> "$GITHUB_OUTPUT"
+          else
+            echo "nada que mirar: este cambio no toca migraciones ni el esquema"
+            echo "correr=NO" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Verificar coherencia migración ↔ schema
+        if: steps.relevancia.outputs.correr == 'SI'
         run: |
           set -euo pipefail
 

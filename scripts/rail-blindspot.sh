@@ -33,6 +33,34 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# `--relevante`: ¿tiene este cambio algo que este guardián deba mirar?
+#
+# Vive aquí y no en un `paths:` del workflow por lo mismo que en docs-guard: un
+# guardián que no se dispara NO APARECE en el PR, y una comprobación ausente no
+# se distingue de una que pasó. Arranca siempre; decide dentro.
+#
+# Y su lista es corta de verdad, al contrario que la de docs-guard: en push/PR lo
+# único que puede cambiar su veredicto es el propio guardián o su lista de
+# excepciones. **Lo que de verdad vigila es la BASE**, y de eso se encarga el
+# `schedule` diario, que no pasa por aquí.
+#
+# Uso:  RAIL_SCOPE_CAMBIADOS="$(git diff --name-status BASE HEAD)" \
+#         bash scripts/rail-blindspot.sh --relevante
+if [ "${1:-}" = "--relevante" ]; then
+  cambios="${RAIL_SCOPE_CAMBIADOS:-}"
+  if [ -z "$cambios" ]; then
+    echo "sin diff — se corre entero, que es el lado seguro de no saber" >&2
+    echo "SI"; exit 0
+  fi
+  if printf '%s\n' "$cambios" | awk '{print $NF}' | grep -qxE \
+       'scripts/rail-blindspot.*|\.github/workflows/rail-scope\.yml'; then
+    echo "relevante: cambió el propio guardián o su lista de excepciones" >&2
+    echo "SI"; exit 0
+  fi
+  echo "nada que mirar: el alcance del riel lo vigila el schedule diario, no este cambio" >&2
+  echo "NO"; exit 0
+fi
 ALLOWED="${RAIL_BLINDSPOT_ALLOWED:-$REPO_ROOT/scripts/rail-blindspot.allowed}"
 RAIL_EMAIL="${RAIL_EMAIL:-kanban-rail@aglaya.biz}"
 # Quién define el alcance. No es una lista de espacios: es la PROPIEDAD.
