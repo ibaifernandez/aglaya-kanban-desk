@@ -6,6 +6,34 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Security
+- **Fuera del árbol la dirección de correo de la única persona que no decidió
+  publicarla.** El repositorio pasó de privado a **público** el 6-ago-2026 sin que
+  nadie comprobara antes qué había dentro. No había ninguna credencial —barrido de
+  los 304 commits, cuatro coincidencias y las cuatro marcadores de posición— pero sí
+  direcciones personales, y **una no era de quien publicó el repo**.
+  - **`CLAUDE.md`**: la línea que declara quién puede tener cuenta nombraba a las dos
+    personas **con su dirección**. Ahora las nombra sin publicarla. Se conserva
+    `kanban-rail@aglaya.biz`, que **no es una persona** sino la cuenta de servicio del
+    riel. El dato exacto lo custodiaba ya la tabla `users`; este archivo solo custodiaba
+    la **decisión** de quién puede existir, y eso no necesita el correo escrito al lado.
+  - **`docs/BACKLOG.md`**: una atribución de dos workspaces citaba la dirección para
+    decir de quién eran. Basta el nombre.
+  - **Barrido del árbol entero al hacerlo**, y el resultado conviene que conste: las
+    demás direcciones son **del propio Ibai** (incluidas las legadas de `lfi.la`),
+    **fixtures de test** (`user@gmail.com`, que existe precisamente para comprobar que
+    un dominio no corporativo se rechaza) o **direcciones corporativas de proveedores**
+    en `docs/operator-checklist.md`. Ninguna otra es de un tercero.
+  - **Lo que esto NO cierra, y no se lea como cerrado:** las direcciones **siguen en la
+    historia de git**, que es pública. Quitarlas del árbol de hoy no toca los commits
+    antiguos. Eso es una decisión con tres salidas —no hacer nada, reescribir la
+    historia, volver el repo privado— y está parada en «🙋 Decide Ibai» en el tablero
+    «🛠 Operaciones», tarjeta `abf77bce`.
+  - **Ni impide que vuelva a entrar una.** Hoy nada lo comprueba: éstas llegaron
+    escribiéndolas, sin más. Hay tarjeta abierta para el guardián (`a3a3104c`), con la
+    dificultad real dentro — distinguir una dirección de verdad de `usuario@example.com`
+    no lo hace un regex de correo, y un guardián que nace rojo se normaliza.
+
 ### Changed
 - **CI deja de correr trabajo que nadie mira** (`concurrency` en los seis
   workflows + los tres guardianes deciden dentro si tienen algo que mirar).
