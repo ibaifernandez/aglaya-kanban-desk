@@ -38,15 +38,115 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     olvida-borrados-y-renombrados (2), lista-recortada-a-los-dos-md (3) y
     siempre-SI (1) — este último no miente, pero no ahorra, y el sello también lo
     nota.
-  - **`schema-guard` es el único que aún tiene su lista en el YAML**, y se dice
-    por qué: hoy no tiene script, su lógica vive escrita a mano en el workflow. El
-    [#33](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/33) la saca a
-    `scripts/schema-guard.sh` y la decisión se irá con ella.
+  - **Los tres guardianes tienen su decisión en el script, ninguno en el YAML.**
+    `schema-guard` era el que faltaba —no tenía script cuando esto se escribió— y
+    al entrar el [#33](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/33)
+    la decisión se fue con él, como quedó anunciado. Cero `paths:` en los seis
+    workflows, y cero listas de rutas en YAML.
   - **`digest-cron` NO cambia de cadencia.** La hora la elige cada usuario
     (`users.digest_hour`): correr menos veces no manda menos correo, manda **cero**
     a quien tenga una hora que ya no se visita, y sin error.
+- **La prioridad de una tarjeta sobrevive a «✅ Hecho»** — se retira la regla de
+  `CLAUDE.md` que ordenaba ponerla a `none` al cerrar, y entra
+  `server/tests/move-card-preserva-prioridad.test.js` para que no vuelva.
+  - **El mecanismo no era código, y por eso costó encontrarlo.** El síntoma medido
+    era 10 de 10 tarjetas en «Hecho» con `priority: none` y 0 de 23 en el resto,
+    seis de ellas nacidas con otra prioridad. Se auditaron los **cinco** caminos
+    que escriben —`moveCard` y `updateCard` de la puerta HTTP, `move_card` y
+    `update_card` del riel, y la interfaz web, que llama
+    `api.moveCard(id, { columnId, order })`— y **ninguno toca la prioridad**.
+    Quien la borraba era **una línea de `CLAUDE.md` ejecutada a mano por cada
+    sesión de Claude que cerraba una tarjeta**.
+  - **La firma lo decía desde el principio:** 100 % de un grupo y 0 % del resto es
+    la huella de *una instrucción obedecida*, no la de un defecto — un defecto
+    reparte al azar. Se buscó un culpable con la forma equivocada.
+  - **Por qué se retira la regla y no se implementa en el código.** Borraba un
+    dato para arreglar una vista, y la vista ya tenía arreglo sin pérdida: quien
+    ordena por prioridad puede filtrar por columna, que es lo que ya hace
+    `digest/user.js`. Una prioridad borrada no se recupera —no tiene historial— y
+    es la única señal de cuánto importaba aquel trabajo, justo en la columna que
+    lee quien audita.
+  - **La prueba vigila que algo SIGA sin hacerse**, que es raro, y por eso lo
+    explica en su cabecera. Muerde donde no se puede acertar por casualidad: no en
+    la respuesta, sino en **lo que se escribe en la base** — exige que el `update`
+    de mover lleve exactamente `column_id`, `board_id`, `order` y `updated_at`.
+    Verificada con **las dos** reimplementaciones posibles, no solo con la fácil:
+    la incondicional tira **7 de 7**, y la **condicional al nombre de la columna
+    destino** —que es como estaba escrita la regla, y por tanto la única que
+    alguien escribiría de verdad— tira **5 de 7**.
+  - **La segunda no siempre cayó, y ahí estuvo el hueco.** La primera versión de
+    esta prueba montaba la columna destino **sin nombre**, así que un `if` sobre
+    cómo se llama la columna era **invisible** y pasaba en verde. Lo encontró el
+    revisor reimplementando la regla *tal y como estaba redactada* en vez de la
+    forma cómoda de mutar. **Una prueba que solo caza la mutación ingenua no
+    vigila la regla: vigila una versión de juguete de la regla.**
+  - `none` sigue siendo una prioridad válida y elegible a mano. Lo que se retira
+    es que se ponga sola.
+### Security
+- **`anon` y `authenticated` recortados a lo que el esquema declara — APLICADO EN
+  PRODUCCIÓN el 6-ago-2026** (`docs/schema/migration-recorte-privilegios-anon-authenticated.sql`).
+  Cierra la tarjeta `eeaebd9f` por el lado de la base.
+  - **Medido, no leído:** `authenticated` tenía `MAINTAIN`, `REFERENCES`,
+    `TRIGGER` y **`TRUNCATE`** de más en once tablas; `anon` tenía `MAINTAIN` en
+    diez. El grave es `TRUNCATE`: **salta RLS**, y toda la separación entre
+    organizaciones de esta nave vive en RLS.
+  - **Por qué nadie lo vio, que es la mitad interesante.** `MAINTAIN` es un
+    privilegio **nuevo de PostgreSQL 17** (esta base corre 17.6) y **no aparece en
+    `information_schema`**, que solo expone los siete del estándar SQL. Y
+    `scripts/grants-guard.sh` consulta justamente `information_schema`: llevaba
+    días en verde sobre tablas con un privilegio de más. **No mentía — miraba por
+    una ventana que no da a ese lado.** Se ve con `aclexplode(relacl)`.
+  - **La tarjeta se quedaba corta:** decía tres privilegios de sobra en
+    `authenticated`. Son cuatro.
+  - **Radio del cambio: cero, y también medido.** Ningún camino de esta aplicación
+    lee ni escribe tablas como `anon` o `authenticated` — todo pasa por Express
+    con `service_role`, y la llave anónima del cliente solo se usa para
+    autenticarse (`LoginPage`, `ResetPasswordPage`).
+  - **La sección 9 del esquema ahora RECORTA antes de conceder.** Solo concedía, y
+    un `GRANT` no quita nada: correr el esquema no arreglaba la divergencia, la
+    dejaba igual.
+  - **Media puerta queda abierta, y se dice:** `ALTER DEFAULT PRIVILEGES` solo
+    toca los defaults del rol que lo ejecuta. En `public` hay dos concesionarios
+    —`postgres` y `supabase_admin`— y los de `supabase_admin` siguen dando los
+    ocho. No se tocan a propósito: son configuración de Supabase. Esa mitad la
+    tiene que vigilar el guardián.
+  - **Y por eso esto NO cierra la tarjeta entera:** falta que
+    `scripts/grants-guard.sh` lea `aclexplode` en vez de `information_schema`, con
+    un caso de sello que inyecte `MAINTAIN` y exija rojo. Hoy ese caso pasaría en
+    verde, y ése es el defecto.
+
 
 ### Fixed
+- **El guardián del esquema distingue estructura de datos** (`scripts/schema-guard.sh`
+  + su sello). La regla exigía tocar `docs/schema/supabase-schema.sql` ante
+  **cualquier** fichero de migración, aunque solo moviera filas. Pasó de verdad
+  con la migración que renumeraba columnas: **un guardián que obliga a un gesto
+  vacío enseña a hacer gestos vacíos**, y a partir de ahí su verde no informa.
+  - **Clasifica por contenido, no por una marca.** Una casilla que se marca sola
+    acaba marcándose siempre: cambiaría un falso positivo por un falso negativo,
+    que es peor porque no se nota.
+  - **Y la lógica sale del workflow a un script con sello**, como los otros cuatro
+    guardianes. Dentro del YAML no se podía correr en local ni sellar: para saber
+    si mordía había que empujar y mirar.
+  - **Corrige una regresión que la primera versión introdujo**, encontrada por el
+    vigilante: anclar la detección a principio de línea dejaba pasar
+    `BEGIN; CREATE TABLE …; COMMIT;` en un renglón, que la comprobación anterior
+    **sí veía** — una tabla naciendo sin `GRANT` ni RLS, la avería que esta casa
+    ya pagó. El arreglo no es desanclar (eso convierte un `-- ALTER TABLE` en
+    comentario en un falso rojo) sino **normalizar**: comentarios fuera —de línea
+    y de bloque— y una sentencia por línea. Las dos trampas caen a la vez.
+  - **`SELECT … INTO tabla` crea una tabla sin decir `CREATE`** y ahora cuenta
+    como tal, con `GRANT`/RLS exigidos.
+  - **Sello de 11 a 15 casos.** Uno de los nuevos es **heredado de la comprobación
+    que sustituye** —el caso que el guardián viejo cazaba y el nuevo no—, que es
+    la única forma de probar que un reemplazo no pierde cobertura. **Ocho
+    mutantes, los ocho cazados**, incluidos tres que atacan lo nuevo: volver a
+    anclar en crudo, un normalizador que no quita comentarios, y quitar la
+    detección de `SELECT … INTO`.
+  - **Las tres limitaciones que quedan están escritas en la cabecera**, y son dos
+    más de las que declaraba la primera versión. Las encontró midiendo el
+    vigilante, no leyendo.
+
 - **El guardián del contrato deriva qué vigila en vez de tenerlo tecleado** (PR
   [#35](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/35)). Su lista
   eran tres rutas escritas a mano, y **envejeció el mismo día que se escribió**:

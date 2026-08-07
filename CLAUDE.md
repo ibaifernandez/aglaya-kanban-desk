@@ -187,14 +187,31 @@ Reglas:
 
 - No matar procesos en puertos 3003/5175 sin verificar que son de AGLAYA Kanban Desk.
 - No modificar `.claude/launch.json` sin actualizar este archivo.
-- Al mover una tarjeta a una columna de tipo "hecho/entregado/completado": establecer `priority` a `"none"` automáticamente.
+- **La prioridad de una tarjeta se conserva al cerrarla.** Aquí decía lo contrario
+  —«al mover a una columna de tipo hecho/entregado/completado, establecer
+  `priority` a `"none"` automáticamente»— y esa regla **se retira**.
+
+  Se borraba un dato para arreglar una vista, y la vista ya tenía arreglo sin
+  pérdida: quien ordena por prioridad puede filtrar por columna, que es lo que
+  hace [`server/services/digest/user.js`](server/services/digest/user.js). Una
+  prioridad borrada no se recupera —no tiene historial— y **es la única señal de
+  cuánto importaba** aquel trabajo, justo en la columna que lee quien audita: sin
+  ella no se puede decir si lo cerrado fue lo urgente o lo cómodo.
+
+  **Y lo que la retira no es esta línea: es una prueba.** El código nunca borró
+  la prioridad —se comprobaron los cinco escritores— porque esta regla la
+  ejecutaban **a mano las sesiones que leían este archivo**. La retirada la
+  sostiene [`server/tests/move-card-preserva-prioridad.test.js`](server/tests/move-card-preserva-prioridad.test.js),
+  que se pone roja si alguien vuelve a implementarla.
+
+  `none` sigue siendo una prioridad válida. Lo que se retira es que se ponga sola.
 - Idioma del código: inglés. Idioma de documentación, commits y las cards en sí mismas: español.
 - Antes de implementar _features_, leer siempre `docs/ARCHITECTURE.md`.
 - **Supabase GRANTs (deadline Oct 30, 2026):** toda migración SQL que cree tabla nueva en `public` debe **recortar primero y conceder después**, más RLS. Patrón obligatorio:
 
 ```sql
   -- 1. RECORTAR. Va PRIMERO, y no es simetría: este proyecto tiene DEFAULT
-  --    PRIVILEGES en `public` que conceden a `anon` los SIETE privilegios sobre
+  --    PRIVILEGES en `public` que conceden a `anon` los OCHO privilegios sobre
   --    TODA tabla nueva. Cuando tu GRANT se ejecuta, lo que sobra YA está puesto.
   REVOKE ALL ON public.<tabla> FROM anon;
 
@@ -213,9 +230,18 @@ Reglas:
   ver: el esquema documentado decía una cosa y la base decía otra. Un `GRANT` no
   quita nada — solo añade.
 
+  **Ocho, no siete, y ahí está la trampa:** `MAINTAIN` es un privilegio nuevo de
+  PostgreSQL 17. `REVOKE ALL` sí lo quita —el patrón de arriba vale tal cual—
+  pero **`information_schema` no lo lista**, porque solo expone los siete del
+  estándar SQL. Se ve con `aclexplode(relacl)`.
+
   **Y ya no depende de que alguien se acuerde:** [`scripts/grants-guard.sh`](scripts/grants-guard.sh)
   corre en CI, le pregunta a la base y se pone rojo si alguna tabla de `public` da
   a `anon` más de lo que el esquema declara. Tiene su propio sello.
+
+  ⚠️ **Pero hoy ese guardián lee `information_schema`, así que NO ve `MAINTAIN`.**
+  Medido el 6-ago-2026: estaba en verde mientras `anon` lo tenía en diez tablas.
+  Su verde no cubre ese privilegio hasta que lea `aclexplode`.
 
 - Migración de referencia: `migrations/add_explicit_grants.sql`.
 - Schema actualizado: `docs/schema/supabase-schema.sql`.

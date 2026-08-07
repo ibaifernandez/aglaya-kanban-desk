@@ -20,8 +20,7 @@ on:
 # cancela la que quede obsoleta.
 #
 # `cancel-in-progress` solo en pull_request A PROPÓSITO: en `main` la corrida ES
-# el registro de que lo que hay puesto pasó sus comprobaciones. Cancelarla deja
-# un `main` sin ese registro y ahorrando calderilla.
+# el registro de que lo que hay puesto pasó sus comprobaciones.
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -37,15 +36,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Arranca siempre y decide dentro, igual que docs-guard y rail-scope: un
-      # guardián que no se dispara no aparece en el PR, y una comprobación
-      # ausente no se distingue de una que pasó.
-      #
-      # ⚠️ Aquí la lista SÍ está en el YAML, y es la única de las tres que lo
-      # está. No es un descuido: hoy este guardián no tiene script — su lógica
-      # vive escrita a mano dentro de este fichero. El PR #33 la saca a
-      # `scripts/schema-guard.sh`; cuando entre, esta decisión se va con ella y
-      # deja de haber lista en el workflow. Queda dicho para que no se quede.
+      # El sello va ANTES: si el guardián está destripado se sabe aquí, sin
+      # gastar un diff. Mismo orden que docs-guard, contract-guard, grants-guard
+      # y hook-guard.
+      # Arranca SIEMPRE —la casilla queda puesta en el PR— y lo primero que hace
+      # es preguntarse si hay algo que mirar. Quién decide eso es el guardián,
+      # no este fichero: si la lista viviera aquí sería una SEGUNDA lista.
       - name: ¿Tiene algo que mirar este cambio?
         id: relevancia
         run: |
@@ -65,15 +61,17 @@ jobs:
           CAMBIOS="$(git diff --name-only "$BASE" "$HEAD")"
           echo "Ficheros cambiados:"; echo "$CAMBIOS"; echo "---"
 
-          if echo "$CAMBIOS" | grep -qE '^(migrations/|docs/schema/|\.github/workflows/schema-guard\.yml|scripts/schema-guard)'; then
-            echo "relevante: cambió una migración, el documento del esquema o el propio guardián"
-            echo "correr=SI" >> "$GITHUB_OUTPUT"
-          else
-            echo "nada que mirar: este cambio no toca migraciones ni el esquema"
-            echo "correr=NO" >> "$GITHUB_OUTPUT"
-          fi
+          VEREDICTO="$(SCHEMA_GUARD_CAMBIADOS="$CAMBIOS" bash scripts/schema-guard.sh --relevante)"
+          echo "correr=$VEREDICTO" >> "$GITHUB_OUTPUT"
 
-      - name: Verificar coherencia migración ↔ schema
+      - name: Sello — ¿distingue estructura de datos, y sigue exigiendo GRANT/RLS?
+        if: steps.relevancia.outputs.correr == 'SI'
+        run: bash scripts/schema-guard.test.sh
+
+      # La lógica vivía escrita a mano aquí dentro, así que no se podía sellar ni
+      # correr en local: para saber si mordía había que empujar y mirar. Ahora es
+      # un script como los demás guardianes de esta casa.
+      - name: Guardián — sobre los ficheros de este cambio
         if: steps.relevancia.outputs.correr == 'SI'
         run: |
           set -euo pipefail
@@ -91,32 +89,7 @@ jobs:
             BASE="$(git hash-object -t tree /dev/null)"
           fi
 
-          CHANGED="$(git diff --name-only "$BASE" "$HEAD")"
-          echo "Ficheros cambiados:"; echo "$CHANGED"; echo "---"
+          CAMBIADOS="$(git diff --name-only "$BASE" "$HEAD")"
+          echo "Ficheros cambiados:"; echo "$CAMBIADOS"; echo "---"
 
-          MIGRATIONS="$(echo "$CHANGED" | grep -E '^(migrations/|docs/schema/migration-).*\.sql$' || true)"
-          if [ -z "$MIGRATIONS" ]; then
-            echo "Sin migraciones en el cambio — guard OK."
-            exit 0
-          fi
-          echo "Migraciones detectadas:"; echo "$MIGRATIONS"; echo "---"
-
-          # (1) toda migración exige actualizar el schema fuente de verdad
-          if ! echo "$CHANGED" | grep -qx 'docs/schema/supabase-schema.sql'; then
-            echo "::error::B-10: hay migración SQL pero NO se actualizó docs/schema/supabase-schema.sql (fuente de verdad). Regenera el schema y vuelve a commitear."
-            exit 1
-          fi
-
-          # (2) migraciones que crean tabla exigen GRANT + ENABLE RLS
-          FAIL=0
-          for m in $MIGRATIONS; do
-            git cat-file -e "$HEAD:$m" 2>/dev/null || continue
-            CONTENT="$(git show "$HEAD:$m")"
-            if echo "$CONTENT" | grep -qiE 'CREATE TABLE'; then
-              echo "$CONTENT" | grep -qi 'GRANT'               || { echo "::error::B-10: $m crea tabla sin GRANT explícito."; FAIL=1; }
-              echo "$CONTENT" | grep -qi 'ROW LEVEL SECURITY'  || { echo "::error::B-10: $m crea tabla sin ENABLE ROW LEVEL SECURITY."; FAIL=1; }
-            fi
-          done
-          [ "$FAIL" = "0" ] || exit 1
-
-          echo "B-10 guard: OK"
+          SCHEMA_GUARD_CHANGED="$CAMBIADOS" bash scripts/schema-guard.sh
