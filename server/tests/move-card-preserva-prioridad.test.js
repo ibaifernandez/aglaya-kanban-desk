@@ -69,7 +69,21 @@ jest.mock('../utils/supabase', () => {
               return Promise.resolve({ data: { id: 'ws-1', type: 'interno' }, error: null });
             }
             if (table === 'columns') {
-              return Promise.resolve({ data: { id: filtros.id, board_id: 'board-1' }, error: null });
+              // La columna destino VIENE CON NOMBRE, y no es adorno del doble.
+              //
+              // La regla retirada decía «al mover a una columna de tipo
+              // hecho/entregado/completado», o sea que miraba CÓMO SE LLAMA la
+              // columna. Un doble que devuelve la columna sin `title` deja
+              // ciega a esta prueba ante la única reimplementación que alguien
+              // escribiría de verdad: la condicional al nombre.
+              //
+              // Medido: con el mutante condicional al nombre, sin `title` pasan
+              // las cinco pruebas en verde; con `title`, caen cuatro.
+              const nombres = { 'col-hecho': '✅ Hecho', 'col-curso': '🔄 En curso' };
+              return Promise.resolve({
+                data: { id: filtros.id, board_id: 'board-1', title: nombres[filtros.id] ?? 'Sin nombre' },
+                error: null,
+              });
             }
             if (table === 'boards') {
               return Promise.resolve({ data: { id: 'board-1', workspace_id: 'ws-1' }, error: null });
@@ -138,6 +152,28 @@ describe('mover una tarjeta no le toca la prioridad', () => {
 
   it('mover dentro de la MISMA columna tampoco la toca', async () => {
     await mover('c-1', 'col-curso', 5);
+    expect(Object.keys(escrituraDeMover())).not.toContain('priority');
+  });
+
+  it('la reimplementación REALISTA —condicional al NOMBRE de la columna— también cae', async () => {
+    // El caso que faltaba, y el único que alguien escribiría de verdad. La regla
+    // retirada no decía «al mover, borra»: decía «al mover a una columna de tipo
+    // hecho/entregado/completado». Quien la reimplemente mirará el nombre.
+    //
+    // `col-hecho` se llama «✅ Hecho» en el doble, así que un `if` sobre el
+    // nombre SÍ entra aquí. Antes no entraba en ninguna prueba —la columna
+    // llegaba sin nombre— y por eso el mutante condicional pasaba en verde.
+    const res = await mover('c-1', 'col-hecho');
+    expect(res.body.data.priority).toBe('urgent');
+    expect(Object.keys(escrituraDeMover())).not.toContain('priority');
+  });
+
+  it('mover a una columna que NO es de hecho tampoco la toca', async () => {
+    // El opuesto, para que no valga un mutante que borre en todas partes ni uno
+    // que borre solo en «Hecho»: los dos tienen que morir, y con este par
+    // mueren por caminos distintos.
+    const res = await mover('c-2', 'col-curso', 0);
+    expect(res.body.data.priority).toBe('low');
     expect(Object.keys(escrituraDeMover())).not.toContain('priority');
   });
 
