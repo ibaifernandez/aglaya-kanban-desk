@@ -297,19 +297,41 @@ CREATE INDEX IF NOT EXISTS idx_card_description_history_card
 
 
 -- ── 9. GRANTs ───────────────────────────────────────────────
--- ESTADO REAL (tras migración 2026-07-12, DOC-03): `anon` solo SELECT;
--- `authenticated` y `service_role` con escritura completa. RLS es el guard
--- efectivo. Patrón para tablas nuevas (CLAUDE.md):
---   GRANT SELECT, INSERT, UPDATE, DELETE ON public.<tabla> TO authenticated, service_role;
+-- ESTADO REAL, verificado contra la base el 2026-08-06 con `aclexplode`:
+-- `anon` solo SELECT; `authenticated` y `service_role` con escritura completa.
+-- RLS es el guard efectivo.
+--
+-- ESTE BLOQUE RECORTA ANTES DE CONCEDER, y no es simetría. Hasta el 2026-08-06
+-- solo concedía, y un GRANT no quita nada: la base llevaba `MAINTAIN` de más en
+-- los dos roles —y `TRUNCATE`, `REFERENCES` y `TRIGGER` en `authenticated`—
+-- mientras este mismo fichero declaraba lo contrario. Correr el esquema no lo
+-- arreglaba; lo dejaba igual.
+--
+-- `MAINTAIN` es de PostgreSQL 17 y NO aparece en `information_schema`, que solo
+-- expone los siete del estándar SQL. Por eso nadie lo vio: el guardián de
+-- privilegios consulta `information_schema`. Se ve con `aclexplode(relacl)`.
+-- Detalle y medición: docs/schema/migration-recorte-privilegios-anon-authenticated.sql
 DO $$
 DECLARE t text;
 BEGIN
   FOR t IN SELECT tablename FROM pg_tables WHERE schemaname = 'public'
   LOOP
+    EXECUTE format('REVOKE ALL ON public.%I FROM anon;', t);
+    EXECUTE format('REVOKE ALL ON public.%I FROM authenticated;', t);
     EXECUTE format('GRANT SELECT ON public.%I TO anon;', t);
     EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON public.%I TO authenticated, service_role;', t);
   END LOOP;
 END $$;
+
+-- Y los DEFAULT PRIVILEGES, para que una tabla nueva no nazca con los ocho.
+-- Cierra la mitad de `postgres`; la de `supabase_admin` NO se toca a propósito
+-- —es configuración de Supabase— y queda a cargo del guardián.
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  REVOKE MAINTAIN, INSERT, UPDATE, DELETE, REFERENCES, TRIGGER, TRUNCATE
+  ON TABLES FROM anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  REVOKE MAINTAIN, REFERENCES, TRIGGER, TRUNCATE
+  ON TABLES FROM authenticated;
 
 
 -- ── 10. Row Level Security ──────────────────────────────────
