@@ -41,6 +41,38 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 
 ### Fixed
+- **El guardián del esquema distingue estructura de datos** (`scripts/schema-guard.sh`
+  + su sello). La regla exigía tocar `docs/schema/supabase-schema.sql` ante
+  **cualquier** fichero de migración, aunque solo moviera filas. Pasó de verdad
+  con la migración que renumeraba columnas: **un guardián que obliga a un gesto
+  vacío enseña a hacer gestos vacíos**, y a partir de ahí su verde no informa.
+  - **Clasifica por contenido, no por una marca.** Una casilla que se marca sola
+    acaba marcándose siempre: cambiaría un falso positivo por un falso negativo,
+    que es peor porque no se nota.
+  - **Y la lógica sale del workflow a un script con sello**, como los otros cuatro
+    guardianes. Dentro del YAML no se podía correr en local ni sellar: para saber
+    si mordía había que empujar y mirar.
+  - **Corrige una regresión que la primera versión introdujo**, encontrada por el
+    vigilante: anclar la detección a principio de línea dejaba pasar
+    `BEGIN; CREATE TABLE …; COMMIT;` en un renglón, que la comprobación anterior
+    **sí veía** — una tabla naciendo sin `GRANT` ni RLS, la avería que esta casa
+    ya pagó. El arreglo no es desanclar (eso convierte un `-- ALTER TABLE` en
+    comentario en un falso rojo) sino **normalizar**: comentarios fuera —de línea
+    y de bloque— y una sentencia por línea. Las dos trampas caen a la vez.
+  - **`SELECT … INTO tabla` crea una tabla sin decir `CREATE`** y ahora cuenta
+    como tal, con `GRANT`/RLS exigidos.
+  - **Sello de 11 a 15 casos.** Uno de los nuevos es **heredado de la comprobación
+    que sustituye** —el caso que el guardián viejo cazaba y el nuevo no—, que es
+    la única forma de probar que un reemplazo no pierde cobertura. **Ocho
+    mutantes, los ocho cazados**, incluidos tres que atacan lo nuevo: volver a
+    anclar en crudo, un normalizador que no quita comentarios, y quitar la
+    detección de `SELECT … INTO`.
+  - **Las tres limitaciones que quedan están escritas en la cabecera**, y son dos
+    más de las que declaraba la primera versión. Las encontró midiendo el
+    vigilante, no leyendo.
+
+
+### Fixed
 - **El guardián del contrato deriva qué vigila en vez de tenerlo tecleado** (PR
   [#35](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/35)). Su lista
   eran tres rutas escritas a mano, y **envejeció el mismo día que se escribió**:
