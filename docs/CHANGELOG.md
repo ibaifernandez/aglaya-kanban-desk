@@ -7,6 +7,33 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Security
+- **Ya no puede entrar una dirección de correo nueva en el árbol sin que alguien
+  lo decida.** `scripts/email-guard.sh` corre en CI y se pone rojo ante cualquier
+  dirección que no esté **declarada** en `scripts/email-guard.allowed`. Cierra el
+  «ni impide que vuelva a entrar una» de la entrada de abajo — tarjeta `a3a3104c`.
+  - **Lo que decide no es la forma de la dirección, sino si está declarada.** Un
+    guardián que se pusiera rojo ante cualquier `@` nacería rojo: el árbol está
+    lleno de plantillas y fixtures que tienen que estar. Declarar cuesta un acto
+    deliberado con su motivo escrito al lado.
+  - **Dos formas de declarar, y la asimetría es el guardián entero.** `dominio`
+    abre un dominio entero —los de ejemplo, los de la casa, los propios de quien
+    publicó el repo—; `sha256` declara **una** dirección exacta. `gmail.com` **no**
+    se abre entero: ahí es donde tiene buzón el resto del mundo, y abrirlo dejaría
+    entrar en silencio la siguiente dirección de un tercero, que es el fallo que
+    esto cierra.
+  - **Las declaraciones no llevan la dirección en claro, sino su `sha256`** y una
+    máscara en el comentario. El fichero de declaraciones vive en el mismo
+    repositorio público: escribirla ahí sería publicarla en un sitio nuevo con la
+    excusa de vigilarla.
+  - **Estrenó verde** sobre el árbol real (200 ficheros versionados, ninguna
+    dirección sin declarar), y su sello —17 casos, las dos direcciones— corre
+    **antes** que él en el job.
+  - **Lo que NO cubre, declarado en su cabecera:** la historia de git (sigue
+    siendo `abf77bce`, en «🙋 Decide Ibai»), los ficheros no versionados, los
+    binarios, los lockfiles de dependencias —excluidos por regla de nombre, porque
+    sus direcciones son metadatos de terceros que se regeneran solos— y las
+    direcciones ofuscadas. Un verde suyo dice «no entró ninguna sin declarar», no
+    «no hay correos expuestos».
 - **Fuera del árbol la dirección de correo de la única persona que no decidió
   publicarla.** El repositorio pasó de privado a **público** el 6-ago-2026 sin que
   nadie comprobara antes qué había dentro. No había ninguna credencial —barrido de

@@ -173,6 +173,29 @@ jobs:
       - name: Guardián — sobre .claude/settings.json
         run: bash scripts/hook-guard.sh
 
+  email-guard:
+    name: ¿Entró una dirección de correo sin declarar?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Sin `fetch-depth: 0` A PROPÓSITO: este guardián mira el ÁRBOL de hoy, no
+      # el diff ni la historia. Un checkout somero ya trae el índice completo, que
+      # es lo que `git ls-files` necesita. Que no mire la historia está declarado
+      # en la cabecera del script, y es la limitación que más importa de todas.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # El sello va ANTES, como en los demás guardianes de esta casa: si el
+      # guardián está destripado se sabe aquí, y da igual lo que conteste luego
+      # sobre el árbol real. Mismo orden que docs-guard, contract-guard,
+      # grants-guard y hook-guard.
+      - name: Sello — ¿muerde con una dirección personal y calla con una de ejemplo?
+        run: bash scripts/email-guard.test.sh
+
+      # Sobre el árbol real. Barato y sin secretos: solo lee ficheros.
+      - name: Guardián — sobre el árbol versionado
+        run: bash scripts/email-guard.sh
+
   client-build:
     name: Client build (vite)
     runs-on: ubuntu-latest

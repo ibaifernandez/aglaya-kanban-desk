@@ -1,0 +1,65 @@
+# Direcciones de correo que SÍ pueden estar en el árbol de un repositorio público.
+#
+# Este fichero no lista direcciones: lista DECISIONES. El custodio de qué
+# direcciones existen es la tabla `users` y el propio árbol; lo que ninguno de
+# los dos puede contestar es si publicar una está BIEN. Eso se decide a mano, se
+# escribe aquí, y queda con su motivo y su fecha.
+#
+# Las direcciones NO se escriben en claro. Este fichero es público igual que el
+# resto del repositorio: escribirla aquí sería publicarla en un sitio nuevo con
+# la excusa de vigilarla. Se declara el sha256 de la dirección en minúsculas, y
+# el comentario lleva la forma enmascarada para poder auditar quién está
+# declarado sin volver a publicarlo.
+#
+#   printf '%s' '<la dirección>' | tr 'A-Z' 'a-z' | shasum -a 256
+#
+# Formato, dos clases:
+#
+#   dominio  <dominio>   # por qué CUALQUIER dirección de ese dominio vale
+#   sha256   <64 hex>    # <máscara> — qué es y quién lo decidió
+#
+# Un `dominio` abre ese dominio ENTERO y para siempre. Solo para dominios donde
+# la siguiente dirección que aparezca también sería aceptable sin mirarla. Para
+# los dominios donde tiene buzón el resto del mundo —gmail.com y compañía— nunca:
+# ahí va `sha256`, una a una.
+
+# ---------------------------------------------------------------------------
+# Dominios de ejemplo y plantilla. Aparecen en documentación y en fixtures de
+# test, y existen precisamente para no usar direcciones reales.
+# ---------------------------------------------------------------------------
+dominio  example.com          # el dominio reservado por RFC 2606 para ejemplos
+dominio  ejemplo.com          # su equivalente en la documentación en español
+dominio  empresa.com          # plantilla en documentación y en fixtures
+dominio  tudominio.com        # plantilla de «pon aquí el tuyo» en documentación
+dominio  ex.com               # fixture corto en server/tests/digestLogging.test.js
+dominio  other.biz            # fixture de «otra organización» en tests de aislamiento
+dominio  que-no-existe.biz    # fixture del riel: destino que a propósito no existe
+dominio  stark.com            # cliente de ejemplo en docs/PUERTA-EXTERNA.md
+dominio  email.com            # fixture de correo mal escrito en auth-self-service
+dominio  dominio-previo.com   # fixture de «el correo de antes» en docs/CHANGELOG.md
+
+# ---------------------------------------------------------------------------
+# Dominios de la casa. Son direcciones de ROL, no de persona: quien las lea solo
+# obtiene un buzón de la organización, que es información que la organización ya
+# publica en su web.
+# ---------------------------------------------------------------------------
+dominio  aglaya.biz           # buzones de rol de AGLAYA, incluida la cuenta de servicio del riel
+dominio  aglaya.is            # dominio de fixtures de test de la casa
+
+# ---------------------------------------------------------------------------
+# Dominios propios de quien publicó el repositorio. Publicar su propia dirección
+# es decisión suya y ya la tomó: están en la web pública de esos dominios.
+# La distinción que sostiene todo este guardián es ésa — la dirección de quien
+# NO decidió publicarla no entra, y por eso gmail.com no está aquí arriba.
+# ---------------------------------------------------------------------------
+dominio  ibaifernandez.com    # dominio personal de Ibai, publicado por él
+dominio  lfi.la               # dominio legado de Ibai, ya en desuso
+
+# ---------------------------------------------------------------------------
+# Direcciones sueltas, una a una, en dominios que NO se abren enteros.
+# ---------------------------------------------------------------------------
+sha256   877890c213c2529dde43e6d54a3e231b3f1f5af7baf13e839e4ac59d37b59f91  # ib***@gmail.com — de Ibai, en docs/INCIDENTS.md como destinatario de una verificación de correo del 2026-04-28. Suya y publicada por él; gmail.com NO se abre entero por esto.
+sha256   02ee7bdc4ccf5c94808a0118eb531822f13e7e38e3810ab29ebefb2c2feb8e58  # us***@gmail.com — fixture de test que existe para comprobar que un dominio no corporativo se RECHAZA. No es de nadie.
+sha256   902dd4e1c59f5a947e3540589f31c4a3e4b5d0d73945784d9cb4fc72317f9449  # le***@railway.app — buzón corporativo del proveedor, en docs/operator-checklist.md para pedir el DPA.
+sha256   746a480cf9ed7ba82b02489b80cf1aeefa0a44c807ddd2bf2baa49e24398dc3d  # dp***@cloudflare.com — buzón corporativo del proveedor, mismo motivo y mismo fichero.
+sha256   d0a47362123f5f7b77d7bad2985b761d82b8d429f21479469b215cca429858d3  # ab***@o12345.ingest.us.sentry.io — no es una dirección: es el userinfo de un DSN de ejemplo de Sentry en docs/operator-checklist.md. Casa con el patrón por accidente.
