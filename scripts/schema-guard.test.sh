@@ -73,6 +73,26 @@ REVOKE ALL ON public.cards FROM anon;
 GRANT SELECT ON public.cards TO anon;
 SQL
 
+cat > "$TMP/docs/schema/migration-una-linea-altera.sql" <<'SQL'
+BEGIN; ALTER TABLE public.cards ADD COLUMN x TEXT; COMMIT;
+SQL
+
+cat > "$TMP/docs/schema/migration-una-linea-tabla.sql" <<'SQL'
+BEGIN; CREATE TABLE public.secreta (id INT); COMMIT;
+SQL
+
+cat > "$TMP/docs/schema/migration-select-into.sql" <<'SQL'
+SELECT * INTO public.cards_copia FROM public.cards;
+SQL
+
+cat > "$TMP/docs/schema/migration-solo-lo-dice-un-comentario.sql" <<'SQL'
+-- Esta migración NO hace un ALTER TABLE ni un CREATE TABLE: solo lo menciona.
+/* Y este comentario de bloque tampoco:
+   GRANT SELECT ON public.cards TO anon;
+   DROP TABLE public.cards; */
+UPDATE public.cards SET priority = 'none' WHERE priority IS NULL;
+SQL
+
 echo "Sello del guardián del esquema ($GUARD)"
 echo
 echo "LO NUEVO — una migración de solo datos NO exige tocar el documento:"
@@ -100,6 +120,27 @@ echo
 echo "Y lo que no es migración no dispara nada:"
 caso "sin migraciones" 0 "README.md" "server/routes/cards.js"
 caso "sin lista de ficheros" 0
+
+echo
+echo "La sentencia no empieza siempre en la primera columna:"
+# REGRESIÓN MEDIDA, y por eso este bloque existe. La comprobación de `main` era
+# `grep -qiE 'CREATE TABLE'` SIN anclar, y veía esto. La primera versión de este
+# guardián ancló a principio de línea y dejó de verlo: un falso verde sobre
+# permisos, que es la avería que esta casa ya pagó una vez.
+#
+# El caso HEREDADO de la comprobación anterior es el segundo. Si alguien vuelve
+# a anclar sobre el fichero crudo, este bloque se pone rojo.
+caso "BEGIN; ALTER … ; COMMIT en una línea, sin documento" 1 \
+  "docs/schema/migration-una-linea-altera.sql"
+caso "BEGIN; CREATE TABLE … ; COMMIT sin GRANT (lo cazaba el guardián VIEJO)" 1 \
+  "docs/schema/migration-una-linea-tabla.sql" "$ESQUEMA"
+caso "SELECT … INTO crea tabla aunque no diga CREATE" 1 \
+  "docs/schema/migration-select-into.sql"
+# Y el contrapeso: desanclar sin quitar comentarios cambia el falso verde por un
+# falso rojo. Esta migración solo MENCIONA los verbos, en comentario de línea y
+# de bloque, y no altera nada.
+caso "verbos que solo aparecen dentro de comentarios NO cuentan" 0 \
+  "docs/schema/migration-solo-lo-dice-un-comentario.sql"
 
 echo
 echo "PASS=$PASS FAIL=$FAIL"
