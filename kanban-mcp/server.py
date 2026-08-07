@@ -37,9 +37,10 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-from validation import (VALID_PRIORITIES, cards_listing_plan, empty_brief_notice,
-                        missing_assignee_error, missing_workspace_error,
-                        priority_error, resolve_brief, row_cap_notice,
+from validation import (SIN_TOCAR, VALID_PRIORITIES, cards_listing_plan,
+                        empty_brief_notice, missing_assignee_error, missing_workspace_error,
+                        priority_error, resolve_brief, resolve_brief_update,
+                        row_cap_notice,
                         workspace_mismatch_error)
 
 mcp = FastMCP("aglaya-kanban-desk")
@@ -497,28 +498,41 @@ def update_card(
     description: str | None = None,
     priority: str | None = None,
     due_date: str | None = None,
+    description_md: str | None = None,
 ) -> dict[str, Any]:
     """Edit an EXISTING card's fields, without deleting and re-creating it.
     Only the fields you pass change; the rest are left as they are. Use this to
     fix a card whose brief (`description`) came out empty, or to retitle,
     re-prioritise or set a due date.
 
-    `description` is the markdown brief. priority ∈ urgent|high|medium|low|none.
-    `due_date` = ISO (YYYY-MM-DD). Wraps PUT /api/cards/:id (server/routes/cards.js
-    → updateCard), which is the same endpoint the UI uses."""
+    The BRIEF arrives under EITHER of its two names — `description_md` (the
+    documented one) or `description` (the alias) — exactly as in `create_card`.
+    It did not use to: this door only accepted `description`, and text sent under
+    the other name was **dropped in silence**. With a `title` alongside it, the
+    title updated, the brief vanished, and the answer said it went fine.
+
+    Passing neither leaves the description untouched; passing an empty one CLEARS
+    it. Those are different intents and this tool tells them apart.
+
+    priority ∈ urgent|high|medium|low|none. `due_date` = ISO (YYYY-MM-DD). Wraps
+    PUT /api/cards/:id (server/routes/cards.js → updateCard), the same endpoint
+    the UI uses."""
     # Aquí `priority` SÍ es opcional —no pasarla significa «no la cambies», que es
     # distinto de crearla sin decidirla—, así que no vale `priority_error`: esa
     # exige presencia. Lo que sí se comparte es la LISTA, para que las dos puertas
     # no puedan divergir en qué valores aceptan.
     if priority is not None and str(priority).strip() not in VALID_PRIORITIES:
         return {"error": f"priority must be {'|'.join(VALID_PRIORITIES)}"}
+    brief = resolve_brief_update(description, description_md)
+
     body: dict[str, Any] = {}
-    if title is not None:       body["title"] = title
-    if description is not None: body["description"] = description
-    if priority is not None:    body["priority"] = priority
-    if due_date is not None:    body["dueDate"] = due_date
+    if title is not None:    body["title"] = title
+    if brief is not SIN_TOCAR: body["description"] = brief
+    if priority is not None: body["priority"] = priority
+    if due_date is not None: body["dueDate"] = due_date
     if not body:
-        return {"error": "nothing to update — pass at least one of title|description|priority|due_date"}
+        return {"error": "nothing to update — pass at least one of "
+                         "title|description|description_md|priority|due_date"}
     card = _request("PUT", f"/cards/{card_id}", body)
     return {"updated": "card", "id": card_id, "fields": list(body.keys()),
             "title": (card or {}).get("title")}
