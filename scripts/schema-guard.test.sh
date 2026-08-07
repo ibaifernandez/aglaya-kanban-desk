@@ -143,6 +143,27 @@ caso "verbos que solo aparecen dentro de comentarios NO cuentan" 0 \
   "docs/schema/migration-solo-lo-dice-un-comentario.sql"
 
 echo
+echo "¿Sabe si tiene algo que mirar?"
+rel_case() {
+  local que="$1" esperado="$2" diff="$3"
+  local got
+  got="$(SCHEMA_GUARD_CAMBIADOS="$diff" bash "$GUARD" --relevante 2>/dev/null)"
+  if [ "$got" = "$esperado" ]; then
+    PASS=$((PASS + 1)); printf '  ok    %s\n' "$que"
+  else
+    FAIL=$((FAIL + 1)); printf '  FALLO %s — esperaba %s, dijo %s\n' "$que" "$esperado" "$got"
+  fi
+}
+rel_case "una migración"                     SI "docs/schema/migration-x.sql"
+rel_case "una migración en migrations/"      SI "migrations/add_x.sql"
+rel_case "el documento del esquema"          SI "docs/schema/supabase-schema.sql"
+rel_case "el propio guardián"                SI "scripts/schema-guard.sh"
+# Sin datos NO se calla: correr de más cuesta un minuto; callar de menos deja una
+# migración sin vigilar y nadie se entera.
+rel_case "sin diff, se corre entero"         SI ""
+rel_case "un cambio que no le toca nada"     NO "server/routes/cards.js"
+
+echo
 echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
 echo "El guardián distingue estructura de datos, y sigue mordiendo donde debía."

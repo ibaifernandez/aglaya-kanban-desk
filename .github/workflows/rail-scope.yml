@@ -26,19 +26,64 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Una rama que recibe tres empujones seguidos pagaba tres corridas enteras, y las
+# dos primeras ya no le importaban a nadie. Se agrupa por workflow + rama y se
+# cancela la que quede obsoleta.
+#
+# `cancel-in-progress` solo en pull_request A PROPÓSITO: en `main` la corrida ES
+# el registro de que lo que hay puesto pasó sus comprobaciones. Cancelarla deja
+# un `main` sin ese registro y ahorrando calderilla.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   rail-scope:
     name: Riel — ¿su alcance es el que debería?
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Checkout
+      - name: Checkout (historial completo para el diff)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Arranca siempre y decide dentro. El `schedule` NO pregunta: lo que vigila
+      # de verdad es la base, y eso hay que mirarlo cada día pase lo que pase en
+      # el repo.
+      - name: ¿Tiene algo que mirar este cambio?
+        id: relevancia
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" != "pull_request" ] && [ "${{ github.event_name }}" != "push" ]; then
+            echo "disparo por ${{ github.event_name }}: se corre entero"
+            echo "correr=SI" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE="$(git hash-object -t tree /dev/null)"
+          fi
+
+          CAMBIOS="$(git diff --name-status "$BASE" "$HEAD")"
+          echo "Ficheros cambiados:"; echo "$CAMBIOS"; echo "---"
+
+          VEREDICTO="$(RAIL_SCOPE_CAMBIADOS="$CAMBIOS" bash scripts/rail-blindspot.sh --relevante)"
+          echo "correr=$VEREDICTO" >> "$GITHUB_OUTPUT"
 
       # El sello va ANTES y no toca la DB: si el guardián está destripado, se
       # sabe aquí y no hace falta ni preguntar. Mismo orden que docs-guard y
       # contract-guard.
       - name: Sello — ¿muerde en las dos direcciones?
+        if: steps.relevancia.outputs.correr == 'SI'
         run: bash scripts/rail-blindspot.test.sh
 
       # Le pregunta a la DB porque el riel NO puede contestar esto: sus puntos
@@ -46,6 +91,7 @@ jobs:
       # alcance tampoco: desde dentro, estar de más se ve igual que estar bien.
       # Mismo secret que usa db-backup.yml — `service_role`, que salta RLS.
       - name: Guardián — cruce contra la base de datos
+        if: steps.relevancia.outputs.correr == 'SI'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: bash scripts/rail-blindspot.sh

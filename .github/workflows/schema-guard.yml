@@ -15,6 +15,16 @@ on:
   pull_request:
     branches: [main]
 
+# Una rama que recibe tres empujones seguidos pagaba tres corridas enteras, y las
+# dos primeras ya no le importaban a nadie. Se agrupa por workflow + rama y se
+# cancela la que quede obsoleta.
+#
+# `cancel-in-progress` solo en pull_request A PROPÓSITO: en `main` la corrida ES
+# el registro de que lo que hay puesto pasó sus comprobaciones.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   guard:
     name: Migración ↔ schema doc + GRANT/RLS
@@ -29,13 +39,40 @@ jobs:
       # El sello va ANTES: si el guardián está destripado se sabe aquí, sin
       # gastar un diff. Mismo orden que docs-guard, contract-guard, grants-guard
       # y hook-guard.
+      # Arranca SIEMPRE —la casilla queda puesta en el PR— y lo primero que hace
+      # es preguntarse si hay algo que mirar. Quién decide eso es el guardián,
+      # no este fichero: si la lista viviera aquí sería una SEGUNDA lista.
+      - name: ¿Tiene algo que mirar este cambio?
+        id: relevancia
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE="$(git hash-object -t tree /dev/null)"
+          fi
+
+          CAMBIOS="$(git diff --name-only "$BASE" "$HEAD")"
+          echo "Ficheros cambiados:"; echo "$CAMBIOS"; echo "---"
+
+          VEREDICTO="$(SCHEMA_GUARD_CAMBIADOS="$CAMBIOS" bash scripts/schema-guard.sh --relevante)"
+          echo "correr=$VEREDICTO" >> "$GITHUB_OUTPUT"
+
       - name: Sello — ¿distingue estructura de datos, y sigue exigiendo GRANT/RLS?
+        if: steps.relevancia.outputs.correr == 'SI'
         run: bash scripts/schema-guard.test.sh
 
       # La lógica vivía escrita a mano aquí dentro, así que no se podía sellar ni
       # correr en local: para saber si mordía había que empujar y mirar. Ahora es
       # un script como los demás guardianes de esta casa.
       - name: Guardián — sobre los ficheros de este cambio
+        if: steps.relevancia.outputs.correr == 'SI'
         run: |
           set -euo pipefail
 

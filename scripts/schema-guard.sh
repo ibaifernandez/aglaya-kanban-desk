@@ -62,8 +62,36 @@ set -uo pipefail
 RAIZ="${SCHEMA_GUARD_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 ESQUEMA="docs/schema/supabase-schema.sql"
 
+
 # Qué cuenta como migración. Mismo patrón que usaba el workflow.
 PATRON_MIGRACION='^(migrations/|docs/schema/migration-).*\.sql$'
+
+# `--relevante`: ¿tiene este cambio algo que este guardián deba mirar?
+#
+# Vive AQUÍ y no en un `paths:` del workflow, por dos motivos que esta casa pagó
+# el mismo día: un guardián que no se dispara NO APARECE en el PR —y una
+# comprobación ausente no se distingue de una que pasó, como le pasó al #34—, y
+# una lista de rutas en el YAML sería una SEGUNDA lista.
+#
+# La suya es la más corta de los tres guardianes, y se deriva de lo único que
+# mira: migraciones y el documento del esquema. Más él mismo y su workflow.
+#
+# Uso:  SCHEMA_GUARD_CAMBIADOS="$(git diff --name-only BASE HEAD)" \
+#         bash scripts/schema-guard.sh --relevante
+# Escribe SI o NO en stdout; el motivo va a stderr.
+if [ "${1:-}" = "--relevante" ]; then
+  cambios="${SCHEMA_GUARD_CAMBIADOS:-}"
+  if [ -z "$cambios" ]; then
+    echo "sin diff — se corre entero, que es el lado seguro de no saber" >&2
+    echo "SI"; exit 0
+  fi
+  if printf '%s\n' "$cambios" | grep -qE "$PATRON_MIGRACION|^docs/schema/|^scripts/schema-guard|^\.github/workflows/schema-guard\.yml$"; then
+    echo "relevante: cambió una migración, el documento del esquema o el propio guardián" >&2
+    echo "SI"; exit 0
+  fi
+  echo "nada que mirar: este cambio no toca migraciones ni el esquema" >&2
+  echo "NO"; exit 0
+fi
 
 # Verbos que ALTERAN: estructura, permisos o políticas. Si aparece uno, el
 # documento tiene que enterarse. `COMMENT ON` entra porque el esquema documenta
