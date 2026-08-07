@@ -31,8 +31,16 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     explica en su cabecera. Muerde donde no se puede acertar por casualidad: no en
     la respuesta, sino en **lo que se escribe en la base** — exige que el `update`
     de mover lleve exactamente `column_id`, `board_id`, `order` y `updated_at`.
-    Verificada por mutación: implementando la regla retirada en `cards.js`, los
-    **cinco casos se ponen rojos**.
+    Verificada con **las dos** reimplementaciones posibles, no solo con la fácil:
+    la incondicional tira **7 de 7**, y la **condicional al nombre de la columna
+    destino** —que es como estaba escrita la regla, y por tanto la única que
+    alguien escribiría de verdad— tira **5 de 7**.
+  - **La segunda no siempre cayó, y ahí estuvo el hueco.** La primera versión de
+    esta prueba montaba la columna destino **sin nombre**, así que un `if` sobre
+    cómo se llama la columna era **invisible** y pasaba en verde. Lo encontró el
+    revisor reimplementando la regla *tal y como estaba redactada* en vez de la
+    forma cómoda de mutar. **Una prueba que solo caza la mutación ingenua no
+    vigila la regla: vigila una versión de juguete de la regla.**
   - `none` sigue siendo una prioridad válida y elegible a mano. Lo que se retira
     es que se ponga sola.
 
