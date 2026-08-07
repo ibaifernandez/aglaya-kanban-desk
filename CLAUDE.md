@@ -211,7 +211,7 @@ Reglas:
 
 ```sql
   -- 1. RECORTAR. Va PRIMERO, y no es simetría: este proyecto tiene DEFAULT
-  --    PRIVILEGES en `public` que conceden a `anon` los SIETE privilegios sobre
+  --    PRIVILEGES en `public` que conceden a `anon` los OCHO privilegios sobre
   --    TODA tabla nueva. Cuando tu GRANT se ejecuta, lo que sobra YA está puesto.
   REVOKE ALL ON public.<tabla> FROM anon;
 
@@ -230,9 +230,18 @@ Reglas:
   ver: el esquema documentado decía una cosa y la base decía otra. Un `GRANT` no
   quita nada — solo añade.
 
+  **Ocho, no siete, y ahí está la trampa:** `MAINTAIN` es un privilegio nuevo de
+  PostgreSQL 17. `REVOKE ALL` sí lo quita —el patrón de arriba vale tal cual—
+  pero **`information_schema` no lo lista**, porque solo expone los siete del
+  estándar SQL. Se ve con `aclexplode(relacl)`.
+
   **Y ya no depende de que alguien se acuerde:** [`scripts/grants-guard.sh`](scripts/grants-guard.sh)
   corre en CI, le pregunta a la base y se pone rojo si alguna tabla de `public` da
   a `anon` más de lo que el esquema declara. Tiene su propio sello.
+
+  ⚠️ **Pero hoy ese guardián lee `information_schema`, así que NO ve `MAINTAIN`.**
+  Medido el 6-ago-2026: estaba en verde mientras `anon` lo tenía en diez tablas.
+  Su verde no cubre ese privilegio hasta que lea `aclexplode`.
 
 - Migración de referencia: `migrations/add_explicit_grants.sql`.
 - Schema actualizado: `docs/schema/supabase-schema.sql`.
