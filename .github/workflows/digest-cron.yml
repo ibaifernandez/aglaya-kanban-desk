@@ -1,11 +1,34 @@
 name: Digest horario
 
+# CADENCIA: cada hora, y NO se baja sin un dato que aquí no se tiene.
+#
+# La hora la elige cada usuario: `users.digest_hour` (0-23 UTC) decide a quién le
+# toca en cada pasada y el servidor filtra. Correr menos veces no manda menos
+# correo: manda CERO correo a quien tenga configurada una hora que ya no se
+# visita. Y no falla — nadie recibe un error, simplemente deja de llegarle. Es la
+# forma que esta nave persigue: no rompe, desaparece.
+#
+# Cuáles son las horas realmente en uso no se puede leer desde aquí, y hace falta
+# para decidir:
+#
+#   SELECT digest_hour, count(*) FROM public.users
+#    WHERE digest_enabled GROUP BY 1 ORDER BY 1;
+#
+# Queda escrito para quien tenga esa respuesta. Este workflow no la tiene, así
+# que no toca la cadencia.
+
 on:
   schedule:
     # Cada hora UTC en punto. El server filtra qué usuarios reciben digest
     # según su preferencia `users.digest_hour` (0-23 UTC).
     - cron: '0 * * * *'
   workflow_dispatch: # permite lanzarlo manualmente desde GitHub UI
+
+# Sin cancelación: aquí no hay corrida obsoleta que tirar — hay una tarea que o
+# se hace o no se hace. El grupo solo evita que dos se pisen.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   trigger-digest:

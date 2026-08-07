@@ -7,6 +7,55 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Changed
+- **CI deja de correr trabajo que nadie mira** (`concurrency` en los seis
+  workflows + los tres guardianes deciden dentro si tienen algo que mirar).
+  **No es ahorro de dinero:** este repo es **público**, y en los públicos Actions
+  con corredores estándar es gratis. Lo que se recorta es **espera** — cada
+  revisión aguarda esos minutos, y hoy 6-ago-2026 el repo hizo **231 corridas**
+  contra 11-16 los días previos.
+  - **`concurrency` con cancelación**, agrupando por workflow + rama. **`ci.yml` ya
+    lo tenía**, y eso mismo dice que sus 349 minutos no los arregla este flag.
+  - **La cancelación es solo en `pull_request`, a propósito.** En `main` la corrida
+    **es** el registro de que lo puesto pasó sus comprobaciones.
+  - **Los guardianes arrancan SIEMPRE y deciden dentro.** La primera versión de
+    este cambio filtraba por rutas en el disparador, y estaba mal por dos motivos:
+    un guardián que no se dispara **no aparece en el PR**, y una comprobación
+    ausente no se distingue de una que pasó —esta casa lo pagó el mismo día con
+    el [#34](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/34), nueve
+    checks frente a diez—; y la lista de rutas en el YAML era una **segunda
+    lista**. El vigilante lo midió inyectando una violación real en una ruta que
+    el filtro dejaba fuera: el guardián la cazaba y el filtro no lo despertaba.
+  - **Y no hay lista: se DERIVA de `FILES`**, la misma construcción que usa el
+    guardián al correr. `--relevante` contesta él mismo si el cambio le toca.
+    - **Primero se hizo mal, y merece constar.** La primera versión movió la
+      decisión al script pero **le puso su propia lista**: cambió el mecanismo y
+      dejó el conjunto aparte. El guardián lee **nueve** ficheros y aquella lista
+      reconocía **dos**. Lo ejerció el vigilante: una versión literal en
+      `docs/SECURITY.md` la caza el guardián con `exit=1`, y la relevancia decía
+      `NO`. **Dos listas escritas aparte divergen; la pregunta no es si, es
+      cuándo** — y habría sido la tercera vez en un día.
+    - **El sello tampoco tiene copia:** `--entradas` expone esa misma derivación
+      y el sello **itera sobre ella** exigiendo `SI` para cada fichero, más una
+      guarda de que la lista no venga vacía. Si el sello tuviera su propia lista
+      sería la tercera copia.
+  - **Hay una entrada que NINGUNA lista de rutas puede expresar**, y por eso esto
+    no podía ser un `paths:`: la regla LINKS de `docs-guard` comprueba que los
+    enlaces apunten a ficheros que existen, así que **un borrado o un renombrado
+    en cualquier rincón del repo** puede romperla. Por eso mira el diff con su
+    estado (`--name-status`), no solo los nombres.
+  - **Sellos: docs-guard 70 → 77 casos, rail-blindspot 22 → 26.** Cuatro mutantes
+    sobre la decisión nueva, los cuatro cazados: siempre-NO (6 fallos),
+    olvida-borrados-y-renombrados (2), lista-recortada-a-los-dos-md (3) y
+    siempre-SI (1) — este último no miente, pero no ahorra, y el sello también lo
+    nota.
+  - **Los tres guardianes tienen su decisión en el script, ninguno en el YAML.**
+    `schema-guard` era el que faltaba —no tenía script cuando esto se escribió— y
+    al entrar el [#33](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/33)
+    la decisión se fue con él, como quedó anunciado. Cero `paths:` en los seis
+    workflows, y cero listas de rutas en YAML.
+  - **`digest-cron` NO cambia de cadencia.** La hora la elige cada usuario
+    (`users.digest_hour`): correr menos veces no manda menos correo, manda **cero**
+    a quien tenga una hora que ya no se visita, y sin error.
 - **La prioridad de una tarjeta sobrevive a «✅ Hecho»** — se retira la regla de
   `CLAUDE.md` que ordenaba ponerla a `none` al cerrar, y entra
   `server/tests/move-card-preserva-prioridad.test.js` para que no vuelva.

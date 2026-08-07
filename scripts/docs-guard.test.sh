@@ -363,6 +363,52 @@ sel_case "V3 NO muerde en un doc de solo-V1" '- [x] B-CRIT-01 mitigado'      si 
 sel_case "V2 SÍ muerde fuera de la lista"    'Suite con 107 tests'           no  red
 sel_case "V3 SÍ muerde fuera de la lista"    '- [x] B-CRIT-01 mitigado'      no  red
 
+# --- `--relevante`: decidir si hay algo que mirar ---------------------------
+# Este modo existe porque un `paths:` en el disparador haría que el guardián NO
+# APARECIERA en el PR, y una comprobación ausente no se distingue de una que
+# pasó. La decisión se movió aquí dentro; estos casos son los que impiden que se
+# vuelva a estrechar sin que nadie lo note.
+rel_case() {
+  local que="$1" esperado="$2" diff="$3"
+  local got
+  got="$(DOCS_GUARD_CAMBIADOS="$diff" bash "$GUARD" --relevante 2>/dev/null)"
+  if [ "$got" = "$esperado" ]; then
+    PASS=$((PASS + 1)); printf '  ok    %s\n' "$que"
+  else
+    FAIL=$((FAIL + 1)); printf '  FALLO %s — esperaba %s, dijo %s\n' "$que" "$esperado" "$got"
+  fi
+}
+
+echo
+echo "¿Sabe si tiene algo que mirar?"
+# EL CASO QUE CIERRA LA AVERÍA, y por qué es así y no una lista:
+# se le pregunta al propio guardián qué lee (`--entradas`, misma derivación que
+# usa al correr) y se exige SI para CADA UNO. Si el sello tuviera su propia
+# lista sería la tercera copia y volveríamos al mismo sitio — que es exactamente
+# lo que pasó: el guardián lee nueve ficheros y la relevancia reconocía dos.
+n_entradas=0
+while IFS= read -r entrada; do
+  [ -n "$entrada" ] || continue
+  n_entradas=$((n_entradas + 1))
+  rel_case "lee $entrada, así que le importa" SI "$(printf 'M\t%s' "$entrada")"
+done < <(bash "$GUARD" --entradas)
+# Y que la lista no se quede vacía por un fallo del propio modo: un bucle sobre
+# nada pasaría en verde sin comprobar nada.
+if [ "$n_entradas" -ge 9 ]; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "declara al menos sus nueve entradas ($n_entradas)"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — solo %s\n' "declara al menos sus nueve entradas" "$n_entradas"
+fi
+# El que ejerció el vigilante: un documento de solo-V1 que el guardián SÍ vigila.
+rel_case "docs/SECURITY.md — el caso que lo destapó" SI "$(printf 'M\tdocs/SECURITY.md')"
+# El caso que NINGUNA lista de rutas puede expresar: LINKS mira si los enlaces
+# apuntan a algo que existe, así que un borrado o renombrado en cualquier sitio
+# puede romperla.
+rel_case "un borrado en otro rincón del repo"     SI "$(printf 'D\tserver/viejo.js')"
+rel_case "un renombrado en otro rincón"           SI "$(printf 'R100\ta.js\tb.js')"
+rel_case "sin diff, se corre entero"              SI ""
+rel_case "un cambio que no le toca nada"          NO "$(printf 'M\tserver/routes/cards.js')"
+
 echo
 echo "=== $PASS ok · $FAIL fallos ==="
 [ "$FAIL" = "0" ] || { echo "El guardián NO muerde en todas sus formas. No lo confíes."; exit 1; }
