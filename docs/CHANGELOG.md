@@ -8,40 +8,43 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ### Changed
 - **CI deja de correr trabajo que nadie mira** (`concurrency` en los seis
-  workflows + filtro de rutas en los tres guardianes). **No es ahorro de dinero:**
-  este repo es **público**, y en los públicos Actions con corredores estándar es
-  gratis. Lo que se recorta es **espera** — cada revisión aguarda esos minutos, y
-  hoy 6-ago-2026 el repo hizo **231 corridas** contra 11-16 los días previos.
-  - **`concurrency` con cancelación**, agrupando por workflow + rama. Tres
-    empujones seguidos lanzaban tres corridas enteras y las dos primeras ya no le
-    importaban a nadie. **`ci.yml` ya lo tenía**, así que el cambio aquí es de los
-    otros cinco — y eso mismo dice que sus 349 minutos no los arregla este flag.
+  workflows + los tres guardianes deciden dentro si tienen algo que mirar).
+  **No es ahorro de dinero:** este repo es **público**, y en los públicos Actions
+  con corredores estándar es gratis. Lo que se recorta es **espera** — cada
+  revisión aguarda esos minutos, y hoy 6-ago-2026 el repo hizo **231 corridas**
+  contra 11-16 los días previos.
+  - **`concurrency` con cancelación**, agrupando por workflow + rama. **`ci.yml` ya
+    lo tenía**, y eso mismo dice que sus 349 minutos no los arregla este flag.
   - **La cancelación es solo en `pull_request`, a propósito.** En `main` la corrida
-    **es** el registro de que lo puesto pasó sus comprobaciones; cancelarla lo
-    borra a cambio de nada.
-  - **Filtro de rutas por las ENTRADAS reales de cada guardián**, no por
-    conveniencia: `docs-guard` lee cinco ficheros —incluidos `client/vite.config.js`
-    y `server/index.js`, porque su regla de puertos extrae el canon del código—,
-    `schema-guard` solo mira migraciones y el esquema, y `rail-scope` en push/PR
-    solo depende de su propio script. **Su `schedule` diario NO lleva filtro:** lo
-    que de verdad vigila es la base, y eso sigue mirándose cada día.
-  - **Comprobado contra los 24 PR reales del repo (#13–#36):** cada guardián sigue
-    corriendo en **todos** los PR donde tenía algo que leer, y se salta el resto —
-    20, 19 y 23 corridas evitadas respectivamente.
-  - **El filo, dicho en voz alta:** un guardián que no corre no aparece, y hoy
-    mismo se pagó esa confusión — al PR [#34](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/34)
-    le faltaba `docs-guard` (nueve checks frente a diez) porque su corrida se
-    perdió en la caída de Actions, y GitHub daba el PR por `CLEAN` igual. A partir
-    de ahora **la ausencia de un guardián es normal** y ya no distingue «no
-    aplica» de «no corrió». Medido antes de decidirlo: `main` **no está
-    protegida** (`branches/main` → `protected: false`, con permiso de admin
-    confirmado), así que ninguna comprobación es obligatoria y filtrar no puede
-    dejar ningún PR sin mergear. **Lo único que impide mergear en rojo es que
-    alguien mire.**
+    **es** el registro de que lo puesto pasó sus comprobaciones.
+  - **Los guardianes arrancan SIEMPRE y deciden dentro.** La primera versión de
+    este cambio filtraba por rutas en el disparador, y estaba mal por dos motivos:
+    un guardián que no se dispara **no aparece en el PR**, y una comprobación
+    ausente no se distingue de una que pasó —esta casa lo pagó el mismo día con
+    el [#34](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/34), nueve
+    checks frente a diez—; y la lista de rutas en el YAML era una **segunda
+    lista**. El vigilante lo midió inyectando una violación real en una ruta que
+    el filtro dejaba fuera: el guardián la cazaba y el filtro no lo despertaba.
+  - **Y la lista vive en el guardián, no en el workflow.** `--relevante` contesta
+    él mismo si el cambio le toca. Un solo sitio, al lado de las reglas que la
+    usan.
+  - **Hay una entrada que NINGUNA lista de rutas puede expresar**, y por eso esto
+    no podía ser un `paths:`: la regla LINKS de `docs-guard` comprueba que los
+    enlaces apunten a ficheros que existen, así que **un borrado o un renombrado
+    en cualquier rincón del repo** puede romperla. Por eso mira el diff con su
+    estado (`--name-status`), no solo los nombres.
+  - **Sellos: docs-guard 70 → 77 casos, rail-blindspot 22 → 26.** Cuatro mutantes
+    sobre la decisión nueva, los cuatro cazados: siempre-NO (6 fallos),
+    olvida-borrados-y-renombrados (2), lista-recortada-a-los-dos-md (3) y
+    siempre-SI (1) — este último no miente, pero no ahorra, y el sello también lo
+    nota.
+  - **`schema-guard` es el único que aún tiene su lista en el YAML**, y se dice
+    por qué: hoy no tiene script, su lógica vive escrita a mano en el workflow. El
+    [#33](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/33) la saca a
+    `scripts/schema-guard.sh` y la decisión se irá con ella.
   - **`digest-cron` NO cambia de cadencia.** La hora la elige cada usuario
     (`users.digest_hour`): correr menos veces no manda menos correo, manda **cero**
-    a quien tenga una hora que ya no se visita, y sin error. La consulta que haría
-    falta para decidirlo queda escrita en su cabecera.
+    a quien tenga una hora que ya no se visita, y sin error.
 
 ### Fixed
 - **El guardián del contrato deriva qué vigila en vez de tenerlo tecleado** (PR
