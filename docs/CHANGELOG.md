@@ -25,9 +25,19 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     checks frente a diez—; y la lista de rutas en el YAML era una **segunda
     lista**. El vigilante lo midió inyectando una violación real en una ruta que
     el filtro dejaba fuera: el guardián la cazaba y el filtro no lo despertaba.
-  - **Y la lista vive en el guardián, no en el workflow.** `--relevante` contesta
-    él mismo si el cambio le toca. Un solo sitio, al lado de las reglas que la
-    usan.
+  - **Y no hay lista: se DERIVA de `FILES`**, la misma construcción que usa el
+    guardián al correr. `--relevante` contesta él mismo si el cambio le toca.
+    - **Primero se hizo mal, y merece constar.** La primera versión movió la
+      decisión al script pero **le puso su propia lista**: cambió el mecanismo y
+      dejó el conjunto aparte. El guardián lee **nueve** ficheros y aquella lista
+      reconocía **dos**. Lo ejerció el vigilante: una versión literal en
+      `docs/SECURITY.md` la caza el guardián con `exit=1`, y la relevancia decía
+      `NO`. **Dos listas escritas aparte divergen; la pregunta no es si, es
+      cuándo** — y habría sido la tercera vez en un día.
+    - **El sello tampoco tiene copia:** `--entradas` expone esa misma derivación
+      y el sello **itera sobre ella** exigiendo `SI` para cada fichero, más una
+      guarda de que la lista no venga vacía. Si el sello tuviera su propia lista
+      sería la tercera copia.
   - **Hay una entrada que NINGUNA lista de rutas puede expresar**, y por eso esto
     no podía ser un `paths:`: la regla LINKS de `docs-guard` comprueba que los
     enlaces apunten a ficheros que existen, así que **un borrado o un renombrado

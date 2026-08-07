@@ -67,69 +67,6 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# ---------------------------------------------------------------------------
-# `--relevante`: ¿tiene este cambio algo que este guardián deba mirar?
-#
-# POR QUÉ VIVE AQUÍ Y NO EN EL WORKFLOW. Lo natural era un `paths:` en el
-# disparador. Se intentó y estaba mal por dos motivos, y el segundo no lo vi yo:
-#
-#   1. Un guardián que no se dispara NO APARECE en el PR, y una comprobación
-#      ausente no se distingue de una que pasó. Este repo lo pagó el 6-ago-2026:
-#      al PR #34 le faltaba este mismo guardián —nueve checks frente a diez—
-#      porque su corrida se perdió en una caída de Actions, y GitHub daba el PR
-#      por CLEAN igual.
-#
-#   2. La lista de rutas en el YAML sería una SEGUNDA lista, y ya sabemos cómo
-#      acaban las segundas listas en esta casa. El vigilante lo midió: declaré
-#      cinco rutas para un guardián que lee más, e inyectando una violación real
-#      en una de las que quedaban fuera, el guardián la cazaba y el filtro no lo
-#      habría despertado.
-#
-# Así que el guardián arranca SIEMPRE —la casilla queda puesta— y lo primero que
-# hace es contestar si hay algo que mirar. La lista de lo que le importa vive en
-# un solo sitio: aquí, al lado de las reglas que la usan.
-#
-# LO QUE NO ES UNA LISTA, y por eso esto no puede ser un `paths:` ni queriendo:
-# la regla LINKS comprueba que los enlaces de los documentos apunten a ficheros
-# que existen. Su conjunto de entradas no son N rutas — es CUALQUIER ruta
-# enlazada. Un borrado o un renombrado en otro rincón del repo rompe un enlace.
-# Por eso se mira el diff con su ESTADO (`--name-status`), no solo los nombres.
-#
-# Uso:  DOCS_GUARD_CAMBIADOS="$(git diff --name-status BASE HEAD)" \
-#         bash scripts/docs-guard.sh --relevante
-# Escribe SI o NO en stdout; el motivo va a stderr. Sale 0 siempre: quien decide
-# es el workflow, y un guardián que se cae aquí no debe parecer un veredicto.
-if [ "${1:-}" = "--relevante" ]; then
-  cambios="${DOCS_GUARD_CAMBIADOS:-}"
-
-  # Sin diff no se calla: correr de más cuesta un minuto, callar de menos cuesta
-  # una regla sin vigilar y nadie se entera.
-  if [ -z "$cambios" ]; then
-    echo "sin diff — se corre entero, que es el lado seguro de no saber" >&2
-    echo "SI"; exit 0
-  fi
-
-  # Sus entradas directas. `docs-guard.sh` LEE estos cinco: los dos documentos
-  # vigilados y los tres de los que la regla PORTS extrae el canon de puertos.
-  # Más él mismo y su workflow.
-  if printf '%s
-' "$cambios" | awk '{print $NF}' | grep -qxE \
-       'CLAUDE\.md|README\.md|\.claude/launch\.json|client/vite\.config\.js|server/index\.js|scripts/docs-guard.*|\.github/workflows/docs-guard\.yml'; then
-    echo "relevante: cambió una de sus entradas directas" >&2
-    echo "SI"; exit 0
-  fi
-
-  # Y la regla LINKS, que no tiene lista: un borrado o un renombrado en cualquier
-  # sitio puede dejar un enlace apuntando a nada.
-  if printf '%s
-' "$cambios" | grep -qE '^(D|R[0-9]*)[[:space:]]'; then
-    echo "relevante: hay borrados o renombrados, y LINKS mira si los enlaces siguen existiendo" >&2
-    echo "SI"; exit 0
-  fi
-
-  echo "nada que mirar: ni sus entradas ni ningún borrado o renombrado" >&2
-  echo "NO"; exit 0
-fi
 
 # --- tabla de reglas -------------------------------------------------------
 # El orden de estas listas es el orden de evaluación. La mutación amputa reglas
@@ -223,6 +160,8 @@ RULE_V3_WHY='estado de fase/backlog duplicado'
 
 ONLY_PORTS=0
 if [ "${1:-}" = "--only-ports" ]; then ONLY_PORTS=1; shift; fi
+if [ "${1:-}" = "--relevante" ]; then MODO_RELEVANTE=1; shift; fi
+if [ "${1:-}" = "--entradas" ]; then MODO_ENTRADAS=1; shift; fi
 
 if [ "$#" -gt 0 ]; then
   FILES=("$@")
@@ -230,6 +169,80 @@ else
   FILES=("$REPO_ROOT/README.md" "$REPO_ROOT/CLAUDE.md"
          "$REPO_ROOT/kanban-mcp/server.py" "$REPO_ROOT/kanban-mcp/validation.py")
   for f in "${DOCS_V1_ONLY[@]}"; do FILES+=("$REPO_ROOT/$f"); done
+fi
+
+# ---------------------------------------------------------------------------
+# `--relevante`: ¿tiene este cambio algo que este guardián deba mirar?
+#
+# POR QUÉ VIVE AQUÍ, y por qué DESPUÉS de construir FILES.
+#
+# Primero estuvo en un `paths:` del workflow. Mal: un guardián que no se dispara
+# NO APARECE en el PR, y una comprobación ausente no se distingue de una que
+# pasó — el #34 lo pagó con nueve checks frente a diez.
+#
+# Luego estuvo aquí arriba, con su propia lista. **También mal, y es el mismo
+# defecto con otra cara:** cambié el mecanismo y dejé el conjunto aparte. El
+# guardián lee NUEVE ficheros y aquella lista reconocía DOS. El vigilante lo
+# ejerció: una versión literal en `docs/SECURITY.md` la caza el guardián con
+# `exit=1`, y la relevancia decía `NO`. Dos listas escritas aparte divergen; la
+# pregunta no es si, es cuándo.
+#
+# Así que NO hay lista: se deriva de `FILES`, que es la misma construcción que
+# usa el guardián al correr. Si mañana alguien añade un documento a
+# `DOCS_V1_ONLY`, la relevancia lo hereda sin tocar nada.
+#
+# Uso:  DOCS_GUARD_CAMBIADOS="$(git diff --name-status BASE HEAD)" \
+#         bash scripts/docs-guard.sh --relevante
+# Escribe SI o NO en stdout; el motivo va a stderr.
+# `--entradas`: escribe lo que este guardián lee, derivado de FILES.
+# Existe para que el SELLO tampoco tenga que teclear la lista: si la tuviera,
+# sería la tercera copia y volveríamos al mismo sitio.
+if [ "${MODO_ENTRADAS:-0}" = "1" ]; then
+  for f in "${FILES[@]}"; do printf '%s\n' "${f#"$REPO_ROOT/"}"; done
+  printf '%s\n' client/vite.config.js server/index.js .claude/launch.json
+  exit 0
+fi
+
+if [ "${MODO_RELEVANTE:-0}" = "1" ]; then
+  cambios="${DOCS_GUARD_CAMBIADOS:-}"
+
+  # Sin diff no se calla: correr de más cuesta un minuto, callar de menos deja
+  # una regla sin vigilar y nadie se entera.
+  if [ -z "$cambios" ]; then
+    echo "sin diff — se corre entero, que es el lado seguro de no saber" >&2
+    echo "SI"; exit 0
+  fi
+
+  # Lo que el guardián LEE, derivado de donde lo lee:
+  #   · FILES            — los documentos vigilados, tal cual los construye arriba
+  #   · las 3 fuentes de PORTS, que son código y no documentos
+  #   · él mismo y su workflow
+  entradas=()
+  for f in "${FILES[@]}"; do entradas+=("${f#"$REPO_ROOT/"}"); done
+  entradas+=(client/vite.config.js server/index.js .claude/launch.json)
+
+  for e in "${entradas[@]}"; do
+    if printf '%s\n' "$cambios" | awk '{print $NF}' | grep -qxF "$e"; then
+      echo "relevante: cambió $e, que este guardián lee" >&2
+      echo "SI"; exit 0
+    fi
+  done
+
+  if printf '%s\n' "$cambios" | awk '{print $NF}' | grep -qE '^(scripts/docs-guard|\.github/workflows/docs-guard\.yml$)'; then
+    echo "relevante: cambió el propio guardián" >&2
+    echo "SI"; exit 0
+  fi
+
+  # Y la regla LINKS, que NO tiene lista ni puede tenerla: comprueba que los
+  # enlaces apunten a ficheros que existen, así que un borrado o un renombrado
+  # en cualquier rincón del repo puede romperla.
+  if printf '%s\n' "$cambios" | grep -qE '^(D|R[0-9]*)[[:space:]]'; then
+    echo "relevante: hay borrados o renombrados, y LINKS mira si los enlaces siguen existiendo" >&2
+    echo "SI"; exit 0
+  fi
+
+  echo "nada que mirar: ni sus entradas, ni él mismo, ni ningún borrado o renombrado" >&2
+  echo "NO"; exit 0
 fi
 
 FAIL=0

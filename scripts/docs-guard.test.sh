@@ -381,16 +381,31 @@ rel_case() {
 
 echo
 echo "¿Sabe si tiene algo que mirar?"
-rel_case "un documento vigilado"                  SI "$(printf 'M\tCLAUDE.md')"
-rel_case "un fichero del que extrae el canon de puertos" SI "$(printf 'M\tclient/vite.config.js')"
-rel_case "el propio guardián"                     SI "$(printf 'M\tscripts/docs-guard.sh')"
-# El caso que NINGUNA lista de rutas puede expresar, y por el que esto no es un
-# `paths:`: la regla LINKS comprueba que los enlaces apunten a algo que existe,
-# así que un borrado o un renombrado EN CUALQUIER SITIO puede romperla.
+# EL CASO QUE CIERRA LA AVERÍA, y por qué es así y no una lista:
+# se le pregunta al propio guardián qué lee (`--entradas`, misma derivación que
+# usa al correr) y se exige SI para CADA UNO. Si el sello tuviera su propia
+# lista sería la tercera copia y volveríamos al mismo sitio — que es exactamente
+# lo que pasó: el guardián lee nueve ficheros y la relevancia reconocía dos.
+n_entradas=0
+while IFS= read -r entrada; do
+  [ -n "$entrada" ] || continue
+  n_entradas=$((n_entradas + 1))
+  rel_case "lee $entrada, así que le importa" SI "$(printf 'M\t%s' "$entrada")"
+done < <(bash "$GUARD" --entradas)
+# Y que la lista no se quede vacía por un fallo del propio modo: un bucle sobre
+# nada pasaría en verde sin comprobar nada.
+if [ "$n_entradas" -ge 9 ]; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "declara al menos sus nueve entradas ($n_entradas)"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — solo %s\n' "declara al menos sus nueve entradas" "$n_entradas"
+fi
+# El que ejerció el vigilante: un documento de solo-V1 que el guardián SÍ vigila.
+rel_case "docs/SECURITY.md — el caso que lo destapó" SI "$(printf 'M\tdocs/SECURITY.md')"
+# El caso que NINGUNA lista de rutas puede expresar: LINKS mira si los enlaces
+# apuntan a algo que existe, así que un borrado o renombrado en cualquier sitio
+# puede romperla.
 rel_case "un borrado en otro rincón del repo"     SI "$(printf 'D\tserver/viejo.js')"
 rel_case "un renombrado en otro rincón"           SI "$(printf 'R100\ta.js\tb.js')"
-# Y sin datos NO se calla: correr de más cuesta un minuto; callar de menos deja
-# una regla sin vigilar y nadie se entera.
 rel_case "sin diff, se corre entero"              SI ""
 rel_case "un cambio que no le toca nada"          NO "$(printf 'M\tserver/routes/cards.js')"
 
