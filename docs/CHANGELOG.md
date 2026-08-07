@@ -6,6 +6,43 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Changed
+- **La prioridad de una tarjeta sobrevive a «✅ Hecho»** — se retira la regla de
+  `CLAUDE.md` que ordenaba ponerla a `none` al cerrar, y entra
+  `server/tests/move-card-preserva-prioridad.test.js` para que no vuelva.
+  - **El mecanismo no era código, y por eso costó encontrarlo.** El síntoma medido
+    era 10 de 10 tarjetas en «Hecho» con `priority: none` y 0 de 23 en el resto,
+    seis de ellas nacidas con otra prioridad. Se auditaron los **cinco** caminos
+    que escriben —`moveCard` y `updateCard` de la puerta HTTP, `move_card` y
+    `update_card` del riel, y la interfaz web, que llama
+    `api.moveCard(id, { columnId, order })`— y **ninguno toca la prioridad**.
+    Quien la borraba era **una línea de `CLAUDE.md` ejecutada a mano por cada
+    sesión de Claude que cerraba una tarjeta**.
+  - **La firma lo decía desde el principio:** 100 % de un grupo y 0 % del resto es
+    la huella de *una instrucción obedecida*, no la de un defecto — un defecto
+    reparte al azar. Se buscó un culpable con la forma equivocada.
+  - **Por qué se retira la regla y no se implementa en el código.** Borraba un
+    dato para arreglar una vista, y la vista ya tenía arreglo sin pérdida: quien
+    ordena por prioridad puede filtrar por columna, que es lo que ya hace
+    `digest/user.js`. Una prioridad borrada no se recupera —no tiene historial— y
+    es la única señal de cuánto importaba aquel trabajo, justo en la columna que
+    lee quien audita.
+  - **La prueba vigila que algo SIGA sin hacerse**, que es raro, y por eso lo
+    explica en su cabecera. Muerde donde no se puede acertar por casualidad: no en
+    la respuesta, sino en **lo que se escribe en la base** — exige que el `update`
+    de mover lleve exactamente `column_id`, `board_id`, `order` y `updated_at`.
+    Verificada con **las dos** reimplementaciones posibles, no solo con la fácil:
+    la incondicional tira **7 de 7**, y la **condicional al nombre de la columna
+    destino** —que es como estaba escrita la regla, y por tanto la única que
+    alguien escribiría de verdad— tira **5 de 7**.
+  - **La segunda no siempre cayó, y ahí estuvo el hueco.** La primera versión de
+    esta prueba montaba la columna destino **sin nombre**, así que un `if` sobre
+    cómo se llama la columna era **invisible** y pasaba en verde. Lo encontró el
+    revisor reimplementando la regla *tal y como estaba redactada* en vez de la
+    forma cómoda de mutar. **Una prueba que solo caza la mutación ingenua no
+    vigila la regla: vigila una versión de juguete de la regla.**
+  - `none` sigue siendo una prioridad válida y elegible a mano. Lo que se retira
+    es que se ponga sola.
 ### Security
 - **`anon` y `authenticated` recortados a lo que el esquema declara — APLICADO EN
   PRODUCCIÓN el 6-ago-2026** (`docs/schema/migration-recorte-privilegios-anon-authenticated.sql`).
@@ -71,8 +108,6 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     más de las que declaraba la primera versión. Las encontró midiendo el
     vigilante, no leyendo.
 
-
-### Fixed
 - **El guardián del contrato deriva qué vigila en vez de tenerlo tecleado** (PR
   [#35](https://github.com/ibaifernandez/aglaya-kanban-desk/pull/35)). Su lista
   eran tres rutas escritas a mano, y **envejeció el mismo día que se escribió**:
