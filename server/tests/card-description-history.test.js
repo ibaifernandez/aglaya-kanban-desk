@@ -142,11 +142,20 @@ const token = jwt.sign(
   { expiresIn: '1h' },
 );
 
-const put = (body) =>
+// Sin acuse: como llama el riel por defecto. Es el que puede toparse con la
+// compuerta de sobrescritura.
+const putSinAcuse = (body) =>
   request(app)
     .put('/api/cards/card-1')
     .set('Authorization', `Bearer ${token}`)
     .send(body);
+
+// Con acuse, que es como llama el navegador. Las pruebas de ESTE fichero miden
+// el HISTORIAL, no la compuerta: todas sustituyen el texto a propósito, así que
+// afirman el acuse igual que lo afirmaría quien tiene el editor delante.
+// Ponerlo aquí y no en cada caso evita que la compuerta —añadida el
+// 8-ago-2026 por `f19dda2d`— se lea como si hubiera roto el historial.
+const put = (body) => putSinAcuse({ replacesDescriptionOnPurpose: true, ...body });
 
 beforeEach(() => {
   __state.prevDescription    = ORIGINAL;
@@ -347,5 +356,122 @@ describe('el historial no sale del workspace de quien pregunta', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data[0].description).toBe('texto legítimo');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// La compuerta de sobrescritura — tarjeta `f19dda2d`, 8-ago-2026.
+//
+// El historial de arriba hace RECUPERABLE lo que se pisa. Esta compuerta hace
+// que pisarlo **cueste un acto deliberado**, que es distinto: un historial que
+// nadie mira no evita nada, y nadie mira el historial salvo que ya sospeche.
+//
+// Pasó de verdad: un agente reconstruyó la descripción de una tarjeta desde una
+// copia vieja y se llevó por delante la medición de otro papel —y un hallazgo
+// escrito ahí para viajar entre papeles—. Se recuperó por el historial, que es
+// suerte de implementación, no una garantía del protocolo.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('sobrescribir texto exige decirlo', () => {
+  it('una reescritura sin acuse se rechaza con 409', async () => {
+    const res = await putSinAcuse({ description: 'un resumen de cinco líneas' });
+    expect(res.status).toBe(409);
+  });
+
+  it('y NO toca la tarjeta ni escribe historial', async () => {
+    // La aserción central: rechazar con 409 y haber escrito igual sería peor
+    // que no tener compuerta, porque además mentiría.
+    await putSinAcuse({ description: 'un resumen de cinco líneas' });
+    expect(__state.cardUpdates).toHaveLength(0);
+    expect(__state.insertedHistory).toHaveLength(0);
+  });
+
+  it('el error dice cómo seguir, no solo que no', async () => {
+    // Quien recibe esto es un agente. Un «409» a secas lo deja adivinando, y
+    // adivinando es como llegó aquí.
+    const res = await putSinAcuse({ description: 'otro texto' });
+    expect(res.body.error).toMatch(/replacesDescriptionOnPurpose/);
+    expect(res.body.error).toMatch(/lee la versión actual/i);
+  });
+
+  it('AÑADIR no necesita acuse: el texto nuevo contiene el anterior', async () => {
+    // El caso normal de un agente que amplía una tarjeta. Si esto pidiera
+    // acuse, la compuerta se volvería un trámite y se pasaría siempre — que es
+    // como mueren las compuertas.
+    const res = await putSinAcuse({ description: `${ORIGINAL}\n\n## Y una sección nueva` });
+    expect(res.status).toBe(200);
+    expect(__state.cardUpdates).toHaveLength(1);
+    expect(__state.insertedHistory).toHaveLength(1);
+  });
+
+  // ── La contención tiene que ser ENTERA ───────────────────────────────────
+  //
+  // ESTAS TRES PRUEBAS LAS PIDIÓ EL VIGILANTE, y las pidió porque encontró el
+  // hueco mutando: **«que baste con que aparezca la MITAD del texto anterior»
+  // pasaba en verde**. O sea que una reescritura que conservara un trozo se
+  // colaba sin bandera — exactamente lo que esta tarjeta existe para impedir.
+  //
+  // Y no es un caso de laboratorio: es la forma que tomaría el arreglo del falso
+  // positivo declarado. Quien mañana quiera suavizar el rechazo por un
+  // reformateo tocará justo esta comparación, y sin estas pruebas las suyas
+  // seguirían verdes mientras la compuerta deja de cerrar.
+  //
+  // La relajación segura, si algún día hace falta, es **normalizar sin dejar de
+  // exigir la contención entera**. Eso queda fijado aquí, no en un comentario.
+
+  it('conservar solo el PRINCIPIO del texto anterior es destruir', async () => {
+    const mitad = ORIGINAL.slice(0, Math.ceil(ORIGINAL.length / 2));
+    const res = await putSinAcuse({ description: `${mitad}\n\n…y el resto lo recorté` });
+    expect(res.status).toBe(409);
+    expect(__state.cardUpdates).toHaveLength(0);
+  });
+
+  it('conservar solo el FINAL del texto anterior también es destruir', async () => {
+    // La otra mitad, por si alguien anclase la comparación por un extremo.
+    const cola = ORIGINAL.slice(Math.floor(ORIGINAL.length / 2));
+    const res = await putSinAcuse({ description: `Encabezado nuevo\n\n${cola}` });
+    expect(res.status).toBe(409);
+    expect(__state.cardUpdates).toHaveLength(0);
+  });
+
+  it('quitar UNA SOLA LÍNEA de en medio ya es destruir', async () => {
+    // El caso más incómodo y el más real: el texto nuevo se parece muchísimo al
+    // anterior y aun así se ha perdido algo. Es la forma exacta de lo que pasó
+    // el 8-ago — una sección que desaparece dentro de un texto reconstruido.
+    const lineas = ORIGINAL.split('\n');
+    const sinUna = [...lineas.slice(0, 2), ...lineas.slice(3)].join('\n');
+    expect(sinUna).not.toBe(ORIGINAL);
+    const res = await putSinAcuse({ description: `${sinUna}\n\n## Sección nueva` });
+    expect(res.status).toBe(409);
+    expect(__state.cardUpdates).toHaveLength(0);
+  });
+
+  it('con el acuse, la reescritura pasa', async () => {
+    const res = await putSinAcuse({
+      description: 'un resumen de cinco líneas',
+      replacesDescriptionOnPurpose: true,
+    });
+    expect(res.status).toBe(200);
+    expect(__state.cardUpdates[0].description).toBe('un resumen de cinco líneas');
+  });
+
+  it('vaciar la descripción también es destruir, y también exige acuse', async () => {
+    const res = await putSinAcuse({ description: '' });
+    expect(res.status).toBe(409);
+    expect(__state.cardUpdates).toHaveLength(0);
+  });
+
+  it('sobre una tarjeta SIN descripción previa no hay nada que destruir', async () => {
+    __state.prevDescription = '';
+    const res = await putSinAcuse({ description: 'primer brief' });
+    expect(res.status).toBe(200);
+  });
+
+  it('no mandar la descripción no dispara la compuerta', async () => {
+    // «No mandarla» y «mandarla vacía» son órdenes distintas, y el contrato ya
+    // lo dice. La compuerta no puede confundirlas: bloquear un cambio de
+    // prioridad sería un rojo con razón formal y juicio equivocado.
+    const res = await putSinAcuse({ priority: 'high' });
+    expect(res.status).toBe(200);
+    expect(__state.cardUpdates).toHaveLength(1);
   });
 });

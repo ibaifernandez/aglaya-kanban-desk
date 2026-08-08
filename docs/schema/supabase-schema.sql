@@ -227,10 +227,27 @@ CREATE INDEX IF NOT EXISTS idx_cards_created_by_caller
 -- `PUT /api/cards/:id`. Existe porque esa puerta reemplaza la descripción entera
 -- y no había rastro: un llamante que no leyera antes de escribir destruía lo que
 -- había y recibía éxito.
+-- ⚠️ EL NOMBRE SE QUEDÓ CORTO Y SE DICE AQUÍ: desde
+-- migration-historial-todos-los-campos.sql esta tabla guarda el valor anterior
+-- de CUALQUIER campo, no solo de la descripción. Renombrarla es incompatible
+-- —arrastra su política RLS, su índice, `server/routes/cards.js` y la tool
+-- `card_history` del contrato— y tiene que decidirse aparte.
+--
+-- ⏳ Hasta que el Operador aplique esa migración, este bloque declara TRES cosas
+-- que la base todavía no tiene: `field`, `old_value`, y `description` nullable.
 CREATE TABLE IF NOT EXISTS public.card_description_history (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   card_id         UUID NOT NULL REFERENCES public.cards(id) ON DELETE CASCADE,
-  description     TEXT NOT NULL,        -- como estaba ANTES del cambio
+  -- Qué campo de la tarjeta guarda esta fila. `description` por defecto para que
+  -- las filas anteriores a la migración digan la verdad sin tocarlas.
+  field           TEXT NOT NULL DEFAULT 'description',
+  -- El valor anterior, como texto. NULLABLE a propósito: hay campos cuyo valor
+  -- anterior legítimo es NULL —`assignee_id` sin asignar, `due_date` sin fecha—
+  -- y guardarlos como cadena vacía sería inventarse un dato.
+  old_value       TEXT,
+  -- Se conserva por compatibilidad con `card_history`, que todavía la lee.
+  -- Dejó de ser NOT NULL: una fila de `priority` no tiene descripción que poner.
+  description     TEXT,                 -- como estaba ANTES del cambio
   changed_by      UUID REFERENCES public.users(id) ON DELETE SET NULL,
   changed_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -294,12 +311,22 @@ CREATE INDEX IF NOT EXISTS idx_digest_logs_type_status   ON public.digest_logs(t
 CREATE INDEX IF NOT EXISTS idx_digest_logs_created_at    ON public.digest_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_card_description_history_card
   ON public.card_description_history(card_id, changed_at DESC);
+-- «Dame las versiones de ESTE campo de ESTA tarjeta». El de arriba sigue
+-- sirviendo para «todo el historial de la tarjeta» y por eso no se sustituye.
+CREATE INDEX IF NOT EXISTS idx_card_description_history_card_field
+  ON public.card_description_history(card_id, field, changed_at DESC);
 
 
 -- ── 9. GRANTs ───────────────────────────────────────────────
 -- ESTADO REAL, verificado contra la base el 2026-08-06 con `aclexplode`:
 -- `anon` solo SELECT; `authenticated` y `service_role` con escritura completa.
 -- RLS es el guard efectivo.
+--
+-- ⚠️ CON UNA EXCEPCIÓN DESDE EL 2026-08-08, y hasta que el Operador la aplique
+-- este fichero y la base NO coinciden en ella: `card_description_history` deja
+-- de dar `UPDATE` y `DELETE` a `authenticated`. Lo declara este fichero; en la
+-- base sigue como estaba hasta que se ejecute
+-- `docs/schema/migration-historial-append-only.sql`. Tarjeta `2c034471`.
 --
 -- ESTE BLOQUE RECORTA ANTES DE CONCEDER, y no es simetría. Hasta el 2026-08-06
 -- solo concedía, y un GRANT no quita nada: la base llevaba `MAINTAIN` de más en
@@ -311,10 +338,22 @@ CREATE INDEX IF NOT EXISTS idx_card_description_history_card
 -- expone los siete del estándar SQL. Por eso nadie lo vio: el guardián de
 -- privilegios consulta `information_schema`. Se ve con `aclexplode(relacl)`.
 -- Detalle y medición: docs/schema/migration-recorte-privilegios-anon-authenticated.sql
+-- UNA TABLA SE SALE DEL BUCLE, y la excepción es el punto entero:
+-- `card_description_history` existe para guardar lo que otro sobrescribió, así
+-- que **no puede dar a ese mismo actor permiso para borrarlo**. Un historial que
+-- el mismo actor puede reescribir no es un historial: es una copia más, con la
+-- ceremonia de un historial. Sus GRANT van después del bucle, a mano.
+--
+-- Va con `<>` dentro del bucle y no como un REVOKE detrás **a propósito**. Un
+-- REVOKE detrás dejaría el privilegio concedido y retirado en el mismo fichero,
+-- y bastaría reordenar dos bloques para reabrirlo sin que nadie lo note. Aquí no
+-- se llega a conceder.
 DO $$
 DECLARE t text;
 BEGIN
-  FOR t IN SELECT tablename FROM pg_tables WHERE schemaname = 'public'
+  FOR t IN SELECT tablename FROM pg_tables
+            WHERE schemaname = 'public'
+              AND tablename <> 'card_description_history'
   LOOP
     EXECUTE format('REVOKE ALL ON public.%I FROM anon;', t);
     EXECUTE format('REVOKE ALL ON public.%I FROM authenticated;', t);
@@ -322,6 +361,25 @@ BEGIN
     EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON public.%I TO authenticated, service_role;', t);
   END LOOP;
 END $$;
+
+-- La excepción, explícita. `authenticated` se queda SIN `UPDATE` ni `DELETE`.
+--
+-- `INSERT` se conserva, y conviene decir por qué se conserva en vez de dejarlo
+-- pasar en silencio: la tarjeta que manda este recorte (`2c034471`) nombra
+-- `UPDATE` y `DELETE`, no `INSERT`. El mismo argumento vale para `INSERT` —lo
+-- escribe el servidor con `service_role`, y la propia migración de la tabla dice
+-- que no se abre a `authenticated` a conciencia— pero **ampliarlo aquí sería
+-- decidir por encima de quien acotó la tarjeta**. Queda dicho, no hecho.
+--
+-- Hoy `INSERT` tampoco alcanza nada: la RLS de esta tabla solo tiene política de
+-- SELECT, y sin política no se inserta. El privilegio es pólvora seca, no una
+-- puerta abierta — y es exactamente por eso que se recorta antes de que alguien
+-- escriba una política de escritura pensando en otra cosa.
+REVOKE ALL ON public.card_description_history FROM anon;
+REVOKE ALL ON public.card_description_history FROM authenticated;
+GRANT SELECT                          ON public.card_description_history TO anon;
+GRANT SELECT, INSERT                  ON public.card_description_history TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE  ON public.card_description_history TO service_role;
 
 -- Y los DEFAULT PRIVILEGES, para que una tabla nueva no nazca con los ocho.
 -- Cierra la mitad de `postgres`; la de `supabase_admin` NO se toca a propósito

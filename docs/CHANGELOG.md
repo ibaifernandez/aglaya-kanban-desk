@@ -54,8 +54,172 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     filtra por rutas; `docs-guard`, `schema-guard` y `rail-scope` siguen siendo
     workflows propios — fundirlos ahorraría 3 minutos más por ciclo y es una
     decisión estructural que esta tarjeta no tomó.
+### Added
+- **Un guardián que le pregunta al SERVIDOR si el esquema documentado es el que
+  hay puesto** (`scripts/schema-drift-guard.sh` + `.test.sh` +
+  `.github/workflows/schema-drift.yml`). Tarjeta `5b7867b3`.
+  - **El hueco que cierra:** `schema-guard` compara la migración con el
+    documento y lo hace bien, pero **compara documento contra documento**.
+    Aplicar una migración es un paso humano y nada notaba si no se daba. El PR
+    #28 lo pagó: documento actualizado, `schema-guard` en verde, **columna sin
+    aplicar en la base**. Se evitó porque una persona se acordó.
+  - **Rojo en las dos direcciones, y significan cosas distintas:** una columna
+    declarada y ausente es una migración sin aplicar —el documento tiene razón—;
+    una presente y no declarada es que alguien tocó la base o que una migración
+    hizo más de lo que cuenta —la base tiene razón sobre lo que hay—. El guardián
+    **no decide cuál**: dice que no coinciden.
+  - **Corre POR RELOJ sobre `main` y nunca en un PR**, y la ausencia de
+    `push:`/`pull_request:` es la decisión, no un olvido: sobre el PR que trae
+    una migración nacería **rojo con razón**.
+  - **Solo compara PRESENCIA de columnas, y lo dice en su cabecera.** Comparar
+    tipos exige normalizar dos dialectos —`TEXT` contra `text`, `TIMESTAMPTZ`
+    contra `timestamp with time zone`— y **la normalización es donde se cuelan
+    los falsos verdes**. Tampoco mira restricciones, claves foráneas, índices,
+    políticas RLS, triggers ni comentarios. Un verde suyo significa «las columnas
+    declaradas están y no hay ninguna de más», no «la base es el documento».
+  - **Su sello ejerce las dos direcciones sin tocar la base** (15 casos), y corre
+    **antes** que él en el job. Nueve mutaciones sobre el guardián, las nueve
+    cazadas.
+  - ⏳ **Falta comprobar que estrena verde contra la base real**, que es el punto
+    5 de su aceptación. **No lo puedo medir**: el enganche de permisos deniega
+    leer el fichero de secretos, y el MCP de Supabase de esta máquina está
+    autenticado contra otra organización — lista `massiva-intelligence` y
+    `aglaya-outreach`, no este proyecto. La orden exacta queda escrita en la
+    tarjeta.
+- **El historial se declara capaz de guardar cualquier campo, no solo la
+  descripción** (`docs/schema/migration-historial-todos-los-campos.sql`).
+  Tarjeta `cfeccbc4`. **Es la mitad que va primera: el código viene después.**
+  - **Qué cierra:** prioridad, responsable, columna, título, fechas y etiquetas
+    se sobrescriben **sin rastro**. El 6-ago-2026 once tarjetas perdieron su
+    prioridad y se recuperaron **por dos casualidades** —unos volcados hechos para
+    contar tarjetas, y unos acuses `201` que quedaron en una transcripción—.
+    Ninguno de los dos existía para eso. **Una casualidad no es un mecanismo.**
+  - **El que muerde más fuerte no es la prioridad, es el responsable:** reasignar
+    por error vuelve la tarjeta invisible para su obrero, y sin historial nadie
+    puede decir a quién estaba asignada.
+  - **Se ensancha la tabla que hay, añadiendo** (`field`, `old_value`, y
+    `description` deja de ser `NOT NULL`). Una tabla nueva dejaría dos tablas para
+    un concepto; renombrar la actual arrastra su política RLS, su índice, el
+    código y la tool `card_history` del contrato — y no es reversible.
+  - **`old_value` es NULLABLE a propósito:** hay campos cuyo valor anterior
+    legítimo es NULL. La diferencia entre «no tenía responsable» y «tenía uno
+    vacío» es justo la que un historial existe para conservar.
+  - **Crecimiento, que la tarjeta pedía medir antes:** «una fila por edición y por
+    campo» **no es once filas por edición**. El código que venga detrás escribe
+    fila **solo para los campos que de verdad cambiaron**, que es lo que ya hace
+    hoy con la descripción. Es una restricción de diseño, **no una medición del
+    volumen real** — ésa no se ha hecho, y la custodia `244c554e`.
+  - ⏳ **Pendiente del Operador, y el orden no es preferencia.** El código no
+    puede entrar antes: `PUT /api/cards/:id` **aborta el update con `500` si no
+    consigue escribir la fila del historial**, así que código contra una columna
+    inexistente = **todas las ediciones de tarjeta caídas**, y este repo despliega
+    al empujar a `main`. Es la factura del PR #28, que se salvó partiéndolo en dos.
 
 ### Security
+- **Sobrescribir la descripción de una tarjeta ya no se puede hacer sin querer.**
+  Tarjeta `f19dda2d`. Contrato `riel` **v3.3.0** — modo de fallo nuevo.
+  - **Qué pasó, y lo hice yo.** El 8-ago-2026 un obrero —éste— reconstruyó la
+    descripción de `6b1a11f3` desde una copia vieja y la mandó entera. Se
+    perdieron la medición del vigilante y **un hallazgo escrito ahí precisamente
+    para viajar de un papel a otro**. Se recuperó porque el historial guarda
+    versiones, y **eso es suerte de implementación, no una garantía**: nadie mira
+    el historial salvo que ya sospeche.
+  - **Por qué era `high` y no una anécdota:** todo el protocolo descansa en «no
+    hay partes — lo que no quepa en la tarjeta o en el PR, no existe». La tarjeta
+    **es** el registro, y se podía sobrescribir entero sin aviso ni marca.
+  - **La compuerta:** `PUT /api/cards/:id` devuelve **`409`** si la descripción
+    entrante **no contiene** la que ya había, salvo que traiga
+    `replacesDescriptionOnPurpose: true`. No escribe nada — ni la tarjeta ni el
+    historial.
+  - **Añadir no se entera.** Un texto que contiene el anterior pasa sin bandera,
+    que es el caso normal de un agente que amplía una tarjeta. **Si pidiera acuse
+    también para añadir, la compuerta se volvería un trámite y se pasaría
+    siempre** — que es como mueren las compuertas.
+  - **La asimetría que lo hace funcionar:** el navegador **ha leído el texto por
+    construcción** —su editor lo trae dentro—, así que el cliente afirma la
+    bandera siempre y quien compacta desde ahí está mirando lo que borra. El riel
+    manda una cadena armada en otro sitio, y **su valor por omisión es el
+    seguro**.
+  - **Por qué no un aviso en el acuse:** esta casa ya midió que **nadie compara un
+    acuse de éxito** (`5d8a5fd8`). Lo que no cuesta nada no cambia lo que pasa.
+  - **Vaciar también es destruir**, y también exige la bandera. **No mandar la
+    descripción** sigue significando «no la toques» y no dispara nada.
+  - Ocho pruebas nuevas y seis mutaciones, las seis cazadas.
+  - ⚠️ **Lo que NO cubre:** los demás campos —prioridad, responsable, columna—
+    se siguen sobrescribiendo sin rastro. Eso es `cfeccbc4`. Y no protege de
+    quien pasa la bandera sin mirar; nada puede.
+- **El historial de descripciones deja de declararse borrable por quien lo
+  genera.** `authenticated` tenía `UPDATE` y `DELETE` sobre
+  `card_description_history` — la tabla cuya única razón de existir es guardar lo
+  que ese mismo actor sobrescribió. Tarjeta `2c034471`.
+  - **Un historial que el mismo actor puede reescribir no es un historial:** es
+    una copia más, con la ceremonia de un historial. Y es el mecanismo de deshacer
+    que `docs/contracts/CONTRACT.md` promete.
+  - **No era explotable hoy, y aun así se recorta.** La RLS de esa tabla tiene
+    **una sola política, y es de SELECT**: sin política de escritura,
+    `authenticated` no alcanza ninguna fila. Era pólvora seca, no una puerta
+    abierta — y se recorta antes de que alguien escriba una política permisiva
+    pensando en otra cosa.
+  - **La contradicción ya estaba escrita en el fichero que la creó:**
+    `migration-card-description-history.sql` concede `UPDATE, DELETE` en su línea
+    45 y quince líneas más abajo explica que la escritura no se abre a
+    `authenticated` a propósito. Ganó el GRANT. Ese fichero **no se edita** —
+    registra lo que se aplicó— sino que lleva una nota que apunta al recorte.
+  - **La excepción vive DENTRO del bucle de GRANTs del esquema**, con un
+    `tablename <> 'card_description_history'`, y no como un `REVOKE` detrás. Un
+    REVOKE detrás dejaría el privilegio concedido y retirado en el mismo fichero,
+    y bastaría reordenar dos bloques para reabrirlo sin que nadie lo note.
+  - **Radio del cambio: cero, medido.** El navegador **nunca** llama `.from(...)`;
+    todo el acceso pasa por Express con `service_role`, que conserva los cuatro
+    privilegios — la poda futura sigue siendo posible.
+  - **`INSERT` se conserva, y se dice por qué:** la tarjeta nombra `UPDATE` y
+    `DELETE`. El mismo argumento vale para `INSERT`, pero ampliarlo sería decidir
+    por encima de quien acotó la tarjeta. Queda dicho, no hecho.
+  - ⏳ **Pendiente del Operador.** `docs/schema/migration-historial-append-only.sql`
+    está escrita e idempotente, pero **aplicarla es una acción sobre la base**.
+    Hasta entonces el esquema declara una cosa y la base tiene otra, y así queda
+    avisado en la cabecera de la sección 9.
+  - **Lo vigila una prueba, no un guardián**
+    (`server/tests/historial-append-only.test.js`). Un guardián contra la base
+    **nacería rojo** —el recorte no está aplicado— y en esta casa un guardián que
+    nace rojo se normaliza. La prueba vigila la **declaración**, que es donde está
+    la regresión real: quien borre esa condición del bucle reabre el agujero con
+    una línea, y desharía el recorte aplicado la próxima vez que alguien corra el
+    esquema.
+- **`grants-guard` deja de ser tuerto: vigila `anon` y `authenticated`, con
+  excepciones por tabla derivadas del esquema.** Tarjeta `cf3303c7`.
+  - **Vigilaba un solo rol, siempre `anon`.** `authenticated` —de quien se
+    recortaron `MAINTAIN`, `REFERENCES`, `TRIGGER` y `TRUNCATE` el 6-ago— **no lo
+    miraba nadie**. El rol del que se acababa de recortar era justo el ciego.
+  - **Y cierra un segundo hueco que parecía necesitar a una persona:** `eeaebd9f`
+    no podía certificarse porque la única medición que existe **la ejecutó quien
+    aplicó el recorte**, y quien ejecuta no certifica su propio resultado. Este
+    job sí puede: tiene credenciales propias y su verde queda **en el registro**,
+    no en la palabra de nadie.
+  - **Lo permitido dejó de ser una variable: se DERIVA del esquema**
+    (`scripts/grants-expectativa.py`). Cada rol tiene su conjunto, y hay
+    **excepciones por tabla** — una tabla-historial no puede dar `UPDATE` ni
+    `DELETE` a quien genera lo que guarda.
+  - **Las excepciones se declaran donde se declara el esquema, no dentro del
+    guardián.** Una lista escrita a mano en un script es completa el día que se
+    escribe: es la avería que el #35 cerró para `contract-guard`. **Comprobado
+    contra las dos versiones del esquema que existían el 8-ago**: sobre `main` da
+    solo los defaults; sobre la rama del #42 saca sola la excepción por tabla,
+    sin tocar una línea del guardián.
+  - **La comparación se movió del `HAVING` de SQL al script**, porque la
+    expectativa ya no es una cadena única. Efecto lateral bueno: la decisión
+    quedó visible y sellable. Efecto lateral que hubo que cubrir: **«sin filas»
+    dejó de significar «ninguna se sale» y pasa a significar «no se midió nada»**,
+    que ya no es verde.
+  - **El sello exige los DOS roles.** La comprobación de que `anon` sigue vigilado
+    —añadida al cerrar `8eb39541` para que nadie desviara el guardián— **no se
+    retira: se le suma la de `authenticated`**. 22 casos, y uno comprueba que
+    ninguna excepción por tabla viva dentro del script.
+  - **Nueve mutaciones. Una escapó** —la defensa contra una fila de un rol que
+    nadie declara no la ejercía ningún caso— y ya tiene el suyo.
+  - ⚠️ **Lo que NO cierra:** sigue ciego a `MAINTAIN`, porque consulta
+    `information_schema`, que solo expone los siete del estándar SQL. Es
+    `11f1be5b`, y esto no la absorbe.
 - **Ya no puede entrar una dirección de correo nueva en el árbol sin que alguien
   lo decida.** `scripts/email-guard.sh` corre en CI y se pone rojo ante cualquier
   dirección que no esté **declarada** en `scripts/email-guard.allowed`. Cierra el

@@ -1,62 +1,144 @@
 #!/usr/bin/env bash
-# grants-guard.sh — una tabla del esquema público con más privilegios para el
-# rol ANÓNIMO de los que su esquema declara pone esto rojo.
+# grants-guard.sh — una tabla de `public` que da a `anon` o a `authenticated`
+# más privilegios de los que el esquema le declara pone esto rojo.
 #
 # QUÉ PROBLEMA CIERRA, en una frase: en este proyecto **toda tabla nueva de
-# `public` nace con los siete privilegios concedidos a `anon`**, por las DEFAULT
-# PRIVILEGES del propio proyecto (`pg_default_acl`). El esquema fuente de verdad
-# declara otra cosa —«`anon` solo SELECT; RLS es el guard efectivo»— y nadie
-# cruzaba las dos en esta dirección.
+# `public` nace con los siete privilegios concedidos a los dos roles**, por las
+# DEFAULT PRIVILEGES del propio proyecto (`pg_default_acl`). El esquema fuente de
+# verdad declara otra cosa, y nadie cruzaba las dos.
 #
 # Y lo peor no es la tabla que ya está: es que **se repite cada vez**. El patrón
 # que `CLAUDE.md` declara obligatorio para crear tablas CONCEDE y no recorta, así
 # que una tabla creada siguiendo la instrucción al pie de la letra queda más
-# abierta de lo que el documento dice. Quien lea el esquema verá lo que se
-# concedió a mano, no lo que la tabla tiene de verdad.
+# abierta de lo que el documento dice.
 #
 # Encontrado el 6-ago-2026 por un obrero creando una tabla, sin que nadie lo
 # pidiera: la suya nació con siete y sus hermanas tenían uno.
 #
-# POR QUÉ `anon` Y NO TODOS LOS ROLES. `anon` es el rol de cualquiera que llegue
-# con la llave pública: no es interno, y es el único cuya apertura tiene efecto
-# fuera de la casa. `authenticated` también recibe de más por el mismo defecto
-# —siete en vez de los cuatro que el esquema declara— pero eso es cierto HOY en
-# todas las tablas, así que meterlo aquí haría nacer rojo a este guardián y un
-# guardián que nace rojo se normaliza hasta que deja de mirarse. Queda dicho en
-# el PR y en su tarjeta; no se tapa, se separa.
+# ─────────────────────────────────────────────────────────────────────────────
+# DOS ROLES DESDE EL 8-ago-2026, Y POR QUÉ NO LOS TENÍA ANTES
 #
+# Este guardián vigilaba **un solo rol, siempre `anon`**, y estaba escrito por
+# qué: meter `authenticated` lo habría hecho **nacer rojo**, porque entonces
+# recibía siete privilegios en todas las tablas y el esquema le declaraba cuatro.
+#
+# Eso se arregló el 6-ago (`eeaebd9f`): se le recortaron `MAINTAIN`,
+# `REFERENCES`, `TRIGGER` y `TRUNCATE`. **Desde entonces `authenticated` ya podía
+# entrar aquí, y no entró** — así que el rol del que se acababa de recortar era
+# justo el que nadie miraba.
+#
+# Y cierra un segundo hueco: `eeaebd9f` no podía certificarse porque la única
+# medición que existe **la ejecutó quien aplicó el recorte**, y quien ejecuta no
+# certifica su propio resultado. Este job **sí** puede: tiene credenciales
+# propias y su verde queda en el registro en vez de en la palabra de nadie.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# LO PERMITIDO NO ES UNA VARIABLE: SE DERIVA DEL ESQUEMA
+#
+# Cada rol tiene su conjunto —`anon` solo `SELECT`, `authenticated` los cuatro de
+# escritura— y **hay excepciones por TABLA**: una tabla-historial no puede dar
+# `UPDATE` ni `DELETE` a quien genera lo que guarda.
+#
+# Esas excepciones **se declaran donde se declara el esquema**, no aquí dentro.
+# Una lista escrita a mano en un script es completa el día que se escribe: es la
+# avería que el #35 cerró para `contract-guard`. Quien las lee y las convierte en
+# expectativa es `scripts/grants-expectativa.py`, que **parsea el esquema**.
+#
+# Consecuencia buena: declarar una excepción nueva en `supabase-schema.sql`
+# **no exige tocar este guardián**. Comprobado contra las dos versiones del
+# esquema que existían el 8-ago.
+#
+# ⚠️ CONSECUENCIA QUE HAY QUE SABER ANTES DE QUE PASE: si el esquema declara una
+# excepción y **la migración que la aplica todavía no se ha ejecutado**, este
+# guardián se pondrá **rojo con razón** sobre esa tabla — la base da más de lo
+# que el documento dice. No es un falso positivo: es el hueco entre declarar y
+# aplicar, que es de otro guardián (`schema-drift-guard.sh`). Quien mergee una
+# excepción y no la aplique verá este rojo, y el rojo tendrá razón.
+#
+# ─────────────────────────────────────────────────────────────────────────────
 # LO QUE ESTE GUARDIÁN NO PUEDE HACER: mira los GRANT, no la RLS. Una tabla con
 # `anon` a SELECT y sin política que le aplique no le da nada — y está bien.
 # Esto es la segunda capa, la que sigue en pie el día que alguien escriba una
 # política pensando en `authenticated` y se le olvide acotar el rol.
+#
+# Y sigue **ciego a `MAINTAIN`**: consulta `information_schema`, que solo expone
+# los siete privilegios del estándar SQL. `MAINTAIN` es de PostgreSQL 17 y no
+# aparece ahí. Tiene tarjeta propia (`11f1be5b`); esto **no** la cierra.
 #
 # Sellado por `scripts/grants-guard.test.sh`, que le inyecta filas de mentira por
 # `GRANTS_GUARD_ROWS` y exige rojo. Sin ese sello, un guardián que consulta la DB
 # solo se puede probar teniendo la DB delante — y lo que no corre en CI es
 # decoración.
 #
+#
+# ⏱ QUÉ SIGNIFICA SU VERDE, Y QUÉ NO — 8-ago-2026 (tarjeta `3afe754d`)
+#
+# Este guardián **pregunta fuera del repositorio**. Consecuencia que hay que
+# tener delante al leerlo: **su verde caduca sin que cambie una línea de código**.
+#
+# Medido el 8-ago-2026 sobre el MISMO commit y el mismo esquema:
+#
+#     10:15:10Z → verde
+#     10:23:09Z → rojo
+#
+# Lo único que cambió en esos ocho minutos fue la base de datos.
+#
+# Por eso su verde se imprime **fechado**, y hay que leerlo así:
+#
+#     «a tal hora, contra la base real, lo declarado y lo que hay coincidían»
+#
+# y **no** como «este commit está bien». Los invariantes de la casa —«la
+# aprobación pertenece al commit», «el verde tiene que ser del commit que se va a
+# mergear»— valen mientras lo medido esté DENTRO del commit. Aquí no lo está.
+#
+# QUIEN MERGEA es quien tiene que volver a mirarlo, porque el guardián no puede:
+# no sabe cuándo se mergea. Lo único que puede hacer es no dejar que su verde se
+# confunda con una propiedad del commit, y eso es lo que hace la línea fechada.
+#
+# LA VENTANA DE «APLICAR ANTES DE MERGEAR», declarada aquí para que no se
+# descubra en cada rojo: este repo aplica las migraciones ANTES de mergear su PR
+# —para no desplegar código contra una columna que no está—, así que existe un
+# intervalo en el que **la base va por delante del documento** y este guardián
+# está rojo con razón. Ese rojo se cierra mergeando el PR, no arreglando nada.
 # Uso:  bash scripts/grants-guard.sh
 #       DATABASE_URL=postgres://…  (o SUPABASE_URL + SUPABASE_DATABASE_PASSWORD)
+#       GRANTS_GUARD_ROWS=$'rol|tabla|PRIVS\n…'      (el sello)
+#       GRANTS_GUARD_SCHEMA=/otro/esquema.sql        (el sello)
+#       GRANTS_GUARD_ROLES='anon authenticated'      (por defecto, los dos)
 
 set -uo pipefail
 
-ROL="${GRANTS_GUARD_ROLE:-anon}"
-# Lo único que el esquema le declara a `anon`, en todas las tablas.
-PERMITIDO="${GRANTS_GUARD_ALLOWED:-SELECT}"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ESQUEMA="${GRANTS_GUARD_SCHEMA:-$REPO_ROOT/docs/schema/supabase-schema.sql}"
+# LOS DOS, y `anon` el primero. Que `anon` siga vigilado es lo que el sello
+# comprueba desde que se cerró `8eb39541`: nadie puede desviar este guardián a
+# otro rol y dejar sin mirar el que motivó su existencia. Ahora exige los dos.
+ROLES="${GRANTS_GUARD_ROLES:-anon authenticated}"
+
+if [ ! -f "$ESQUEMA" ]; then
+  echo "::error::grants-guard: no existe el esquema $ESQUEMA"
+  exit 1
+fi
+
+# --- qué le toca a cada (rol, tabla), derivado del esquema -------------------
+expectativa="$(python3 "$REPO_ROOT/scripts/grants-expectativa.py" "$ESQUEMA" $ROLES)" || {
+  echo "::error::grants-guard: no se pudo derivar del esquema qué le toca a cada rol."
+  echo "  Sin eso no hay contra qué comparar, y comparar contra nada sería verde."
+  exit 1
+}
 
 read -r -d '' QUERY <<SQL
-SELECT table_name,
+SELECT grantee,
+       table_name,
        string_agg(privilege_type, ',' ORDER BY privilege_type) AS privs
   FROM information_schema.role_table_grants
  WHERE table_schema = 'public'
-   AND grantee = '${ROL}'
- GROUP BY table_name
-HAVING string_agg(privilege_type, ',' ORDER BY privilege_type) <> '${PERMITIDO}'
- ORDER BY table_name;
+   AND grantee IN ($(printf "'%s'," $ROLES | sed 's/,$//'))
+ GROUP BY grantee, table_name
+ ORDER BY grantee, table_name;
 SQL
 
-# --- de dónde salen las filas ----------------------------------------------
-# El sello inyecta por GRANTS_GUARD_ROWS. En CI y en local, se pregunta.
+# --- de dónde salen las filas -----------------------------------------------
 filas=""
 if [ -n "${GRANTS_GUARD_ROWS+x}" ]; then
   filas="$GRANTS_GUARD_ROWS"
@@ -89,29 +171,109 @@ else
   }
 fi
 
-# Una línea vacía no es una fila. Sin esto, la salida normal de psql sin
-# resultados —una línea en blanco— se contaría como una tabla abierta y el
-# guardián nacería rojo sin que nada estuviera mal.
-sobrantes="$(printf '%s\n' "$filas" | sed '/^[[:space:]]*$/d')"
+GRANTS_GUARD_FILAS="$filas" GRANTS_GUARD_EXPECT="$expectativa" \
+GRANTS_GUARD_ROLES_EFECTIVOS="$ROLES" python3 <<'PY'
+import os, sys
 
-if [ -z "$sobrantes" ]; then
-  echo "grants-guard: ninguna tabla de public da a «${ROL}» más de «${PERMITIDO}» — OK."
-  exit 0
-fi
+roles = os.environ["GRANTS_GUARD_ROLES_EFECTIVOS"].split()
 
-echo "::error::grants-guard: hay tablas que dan a «${ROL}» más privilegios de los que el esquema declara."
-echo ""
-printf '  %s\n' "tabla | privilegios reales (el esquema declara: ${PERMITIDO})"
-printf '  %s\n' "$sobrantes"
-echo ""
-echo "Cómo llegan aquí sin que nadie las abra a mano: este proyecto tiene DEFAULT"
-echo "PRIVILEGES en «public» que conceden a «${ROL}» los siete privilegios sobre"
-echo "TODA tabla nueva. Crear una tabla basta."
-echo ""
-echo "Qué hacer, y va en la misma migración que crea la tabla:"
-echo "  REVOKE ALL ON public.<tabla> FROM ${ROL};"
-echo "  GRANT ${PERMITIDO} ON public.<tabla> TO ${ROL};"
-echo ""
-echo "El patrón completo está en CLAUDE.md, sección de GRANTs. Conceder sin"
-echo "recortar antes no basta: lo que sobra ya estaba puesto antes de tu GRANT."
-exit 1
+# ── lo declarado ─────────────────────────────────────────────────────────────
+default, excepcion = {}, {}
+for linea in os.environ["GRANTS_GUARD_EXPECT"].split("\n"):
+    if not linea.strip():
+        continue
+    rol, tabla, privs = linea.split("|", 2)
+    if tabla == "*":
+        default[rol] = privs
+    else:
+        excepcion[(rol, tabla)] = privs
+
+def toca(rol, tabla):
+    return excepcion.get((rol, tabla), default.get(rol))
+
+# ── lo que hay ───────────────────────────────────────────────────────────────
+# Una línea vacía NO es una fila. Sin esto, la salida normal de psql sin
+# resultados —una línea en blanco— se contaría como una tabla y el guardián
+# se pondría rojo sin que nada estuviera mal.
+reales = []
+for linea in os.environ["GRANTS_GUARD_FILAS"].split("\n"):
+    linea = linea.strip()
+    if not linea:
+        continue
+    partes = linea.split("|")
+    if len(partes) != 3:
+        print(f"::error::grants-guard: fila con forma inesperada: «{linea}»")
+        raise SystemExit(1)
+    rol, tabla, privs = (p.strip() for p in partes)
+    reales.append((rol, tabla, ",".join(sorted(p for p in privs.split(",") if p))))
+
+if not reales:
+    # ANTES esto era VERDE, y con razón: la comparación la hacía un HAVING en
+    # SQL, así que «sin filas» significaba «ninguna se sale». Ahora la consulta
+    # trae TODAS las filas y compara aquí, de modo que «sin filas» significa
+    # «no se midió nada» — y eso no es un verde.
+    print("::error::grants-guard: la base no devolvió ningún privilegio para "
+          f"{', '.join(roles)} en `public`.")
+    print("")
+    print("Una base sin conceder nada y una consulta que falló en silencio se ven")
+    print("igual desde aquí, y ninguna de las dos es un verde.")
+    raise SystemExit(1)
+
+# ── comparar ─────────────────────────────────────────────────────────────────
+sobrantes = []
+for rol, tabla, privs in reales:
+    esperado = toca(rol, tabla)
+    if esperado is None:
+        print(f"::error::grants-guard: nadie declara qué le toca a «{rol}» — "
+              f"no se puede juzgar «{tabla}»")
+        raise SystemExit(1)
+    if privs != esperado:
+        sobrantes.append((rol, tabla, privs, esperado))
+
+if not sobrantes:
+    n_exc = len(excepcion)
+    extra = f", {n_exc} excepción(es) por tabla declarada(s)" if n_exc else ""
+    from datetime import datetime, timezone
+    ahora = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    print(f"grants-guard: {len(reales)} pares (rol, tabla) mirados para "
+          f"{', '.join(roles)}{extra} — todos coinciden con el esquema. OK.")
+    # ⏱ EL VERDE VA FECHADO, Y NO ES ADORNO. Ver la cabecera de este fichero.
+    print(f"[medido {ahora} contra la base real — este verde es de ese instante, "
+          f"no una propiedad del commit]")
+    raise SystemExit(0)
+
+print("::error::grants-guard: hay tablas cuyos privilegios no son los que el "
+      "esquema declara.")
+print("")
+print(f"  {'rol':<15} {'tabla':<28} {'tiene':<34} declara")
+for rol, tabla, privs, esperado in sobrantes:
+    print(f"  {rol:<15} {tabla:<28} {privs:<34} {esperado}")
+print("")
+print("Cómo llegan aquí sin que nadie las abra a mano: este proyecto tiene")
+print("DEFAULT PRIVILEGES en `public` que conceden los siete privilegios sobre")
+print("TODA tabla nueva. Crear una tabla basta.")
+print("")
+print("Qué hacer, y va en la misma migración que crea la tabla:")
+print("  REVOKE ALL ON public.<tabla> FROM <rol>;")
+print("  GRANT <lo que declara el esquema> ON public.<tabla> TO <rol>;")
+print("")
+print("El patrón completo está en CLAUDE.md, sección de GRANTs. Conceder sin")
+print("recortar antes no basta: lo que sobra ya estaba puesto antes de tu GRANT.")
+print("")
+print("⏱ Y ANTES DE LLAMARLO DEFECTO: si acabas de aplicar una migración y su PR")
+print("   todavía NO está mergeado, este rojo es ESPERADO. Este repo aplica antes")
+print("   de mergear —para no desplegar código contra una columna que no está—, y")
+print("   eso abre una ventana en la que la base va por delante del documento. El")
+print("   rojo se cierra al mergear ese PR, no arreglando nada.")
+print("")
+print("Y si lo que falla es una tabla que DEBE ser distinta a sus hermanas, la")
+print("excepción se declara en `docs/schema/supabase-schema.sql` —no aquí—, y")
+print("este guardián la recoge solo.")
+raise SystemExit(1)
+PY
+
+code=$?
+case "$code" in
+  0|1) exit "$code" ;;
+  *) echo "::error::grants-guard: comprobación fallida con código $code"; exit "$code" ;;
+esac

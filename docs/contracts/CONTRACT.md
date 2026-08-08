@@ -1,8 +1,8 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.2.0
-- **Última modificación:** 2026-08-06
+- **Versión:** 3.3.0
+- **Última modificación:** 2026-08-08
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
 > Hasta hoy no existía: el registro de contratos del capitán describía la puerta
@@ -90,6 +90,27 @@ Lo que el catálogo no te dice, y este contrato sí:
   `card_history` lee las versiones, la más reciente primero; deshacer es leer la
   que toque y volver a mandarla por `update_card`, y esa restauración deja su
   propia entrada como cualquier otra edición.
+- **Sobrescribir texto exige decirlo** *(v3.3.0)*. **Modo de fallo nuevo: una
+  descripción que NO contiene la que ya había se rechaza con `409` y no se
+  escribe nada** — ni la tarjeta ni su historial. Para sustituirla hay que pasar
+  `replacing_on_purpose=true` (`replacesDescriptionOnPurpose` en la Puerta 2).
+
+  **Añadir no se ve afectado:** un texto que contiene el anterior pasa sin
+  bandera, que es el caso normal de una nave que amplía una tarjeta. Lo que se
+  rechaza es la **reescritura ciega**: mandar una cadena armada en otro sitio que
+  se lleva por delante lo que otro había escrito.
+
+  **Por qué no es un aviso en el acuse:** esta casa ya midió que *nadie compara
+  un acuse de éxito*. Un aviso que se puede ignorar sin hacer nada no cuesta
+  nada.
+
+  **Por qué el navegador no lo nota:** su editor trae la descripción actual
+  dentro, así que quien sustituye desde ahí está mirando lo que borra — y el
+  cliente lo afirma siempre. La compuerta existe para el llamante que **puede no
+  haber leído**, y por eso el valor por omisión de esta puerta es el seguro.
+
+  **Vaciar la descripción también cuenta como destruir**, y también exige la
+  bandera. **No mandarla** sigue significando «no la toques», y no dispara nada.
 - **`list_workspaces` NO contesta «¿existe X?».** Filtra por membresía del riel, no
   por lo que hay en la tabla. Preguntarle si algo existe es preguntarle al
   custodio equivocado; contesta la base de datos.
@@ -262,6 +283,26 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**v3.3.0 — 2026-08-08 · MENOR.** Aditivo con **modo de fallo nuevo**, que es lo
+que obliga a que sea nota de contrato: `update_card` rechaza con `409` una
+descripción que no contenga la que ya había, salvo que se pase
+`replacing_on_purpose`. Añadir no cambia; reescribir a ciegas, sí.
+
+**Sale de un daño medido, no de una idea.** El 8-ago-2026 un obrero reconstruyó
+la descripción de una tarjeta desde una copia vieja y la mandó entera: se
+perdieron la medición del vigilante y **un hallazgo escrito ahí precisamente
+para viajar de un papel a otro**. Se recuperó porque `card_history` guarda
+versiones — y eso es suerte de implementación, no una garantía: nadie mira el
+historial salvo que ya sospeche, y para sospechar hay que haber leído la versión
+anterior.
+
+**Por qué MENOR y no MAYOR.** No cambia ningún nombre de campo ni ninguna
+obligatoriedad: añade una compuerta con su código de error, igual que el `409`
+de `delete_column` en v3.1.0. Rompe **solo** a quien reescribía a ciegas, que es
+exactamente lo que se quiere que deje de pasar. Y el aviso al capitán es esta
+línea.
+
 
 **Sin bump — 2026-08-06.** No cambia la forma de ninguna puerta: se corrige la
 descripción del guardián, que nombraba tres ficheros a mano y se había quedado

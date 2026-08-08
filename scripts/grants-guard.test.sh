@@ -1,39 +1,95 @@
 #!/usr/bin/env bash
 # grants-guard.test.sh — el sello del guardián de privilegios.
 #
-# El guardián pregunta a la base de datos, así que sin esto solo se podría probar
-# teniendo la DB delante — y lo que no corre en CI es decoración. Aquí se le
-# inyectan filas de mentira por `GRANTS_GUARD_ROWS` y se le exige el veredicto,
-# sin tocar la red.
+# Le inyecta por `GRANTS_GUARD_ROWS` lo que contestaría la base y exige el color
+# correcto. Sin este sello, un guardián que consulta la DB solo se podría probar
+# teniendo la DB delante — y lo que no corre en CI es decoración.
 #
-# ⚠️ LO QUE ESTE SELLO **NO** CUBRE, y hay que decirlo donde se lee el resultado:
-# **la consulta SQL.** Al inyectar filas, el `SELECT` no llega a ejecutarse, así
-# que este harness mide qué hace el guardián CON las filas, no cuáles le llegan.
-# Comprobado por mutación: quitarle el `HAVING` a la consulta —lo que la haría
-# devolver todas las tablas— pasa este sello en verde, 9 de 9.
+# QUÉ CUBRE ESTE SELLO, y qué NO: cubre **la decisión sobre las filas**, no la
+# consulta. Que la consulta a `information_schema` sea la correcta no se prueba
+# aquí; se prueba corriendo el guardián contra la base, que es lo que hace el job.
 #
-# Esa mitad la ejerce CI contra la base real, y ahí sí se nota: sin `HAVING` el
-# guardián se pondría rojo con todo el esquema. O sea que el fallo existe pero es
-# ruidoso, no silencioso — que es la diferencia que importa. Aun así, un 9/9 aquí
-# NO significa «guardián sellado»: significa «la decisión está sellada».
+# LA COMPROBACIÓN QUE NO SE RETIRA. Al cerrar `8eb39541` se añadió a propósito un
+# caso que exige que **`anon` siga vigilado**: nadie puede desviar este guardián
+# a otro rol y dejar sin mirar el que motivó su existencia. Desde el 8-ago-2026
+# se exigen **los dos** —`anon` y `authenticated`—, que es lo que pedía
+# `cf3303c7`: sumar, no cambiar cuál.
 #
 # Uso: bash scripts/grants-guard.test.sh
-# Exit 0 = el guardián muerde donde debe y calla donde debe.
 
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GUARD="${GRANTS_GUARD:-$REPO_ROOT/scripts/grants-guard.sh}"
+TMP="$(mktemp -d)"
 
 PASS=0
 FAIL=0
 
-# $1 = qué se prueba · $2 = exit esperado · $3 = filas inyectadas
+# Un esquema de mentira con la misma forma que el de verdad: un bucle que da el
+# default por rol, y —en el segundo— una excepción por tabla.
+ESQ_SIMPLE="$TMP/simple.sql"
+cat > "$ESQ_SIMPLE" <<'SQL'
+DO $$
+DECLARE t text;
+BEGIN
+  FOR t IN SELECT tablename FROM pg_tables WHERE schemaname = 'public'
+  LOOP
+    EXECUTE format('GRANT SELECT ON public.%I TO anon;', t);
+    EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON public.%I TO authenticated, service_role;', t);
+  END LOOP;
+END $$;
+SQL
+
+ESQ_EXCEPCION="$TMP/excepcion.sql"
+cat > "$ESQ_EXCEPCION" <<'SQL'
+DO $$
+DECLARE t text;
+BEGIN
+  FOR t IN SELECT tablename FROM pg_tables
+            WHERE schemaname = 'public'
+              AND tablename <> 'historial'
+  LOOP
+    EXECUTE format('GRANT SELECT ON public.%I TO anon;', t);
+    EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON public.%I TO authenticated, service_role;', t);
+  END LOOP;
+END $$;
+
+GRANT SELECT          ON public.historial TO anon;
+GRANT SELECT, INSERT  ON public.historial TO authenticated;
+SQL
+
+# Una tabla fuera del bucle y sin excepción declarada: nadie dice qué le toca.
+ESQ_HUERFANA="$TMP/huerfana.sql"
+cat > "$ESQ_HUERFANA" <<'SQL'
+DO $$
+DECLARE t text;
+BEGIN
+  FOR t IN SELECT tablename FROM pg_tables
+            WHERE schemaname = 'public'
+              AND tablename <> 'historial'
+  LOOP
+    EXECUTE format('GRANT SELECT ON public.%I TO anon;', t);
+    EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON public.%I TO authenticated, service_role;', t);
+  END LOOP;
+END $$;
+SQL
+
+BIEN=$'anon|cards|SELECT\nauthenticated|cards|DELETE,INSERT,SELECT,UPDATE'
+
+# $1 = qué se prueba · $2 = exit esperado · $3 = filas · $4 = (opc) trozo del
+# mensaje · $5 = (opc) esquema
 caso() {
-  local que="$1" esperado="$2" filas="$3"
+  local que="$1" esperado="$2" filas="$3" espera_msg="${4:-}" esquema="${5:-$ESQ_SIMPLE}"
   local salida code
-  salida="$(GRANTS_GUARD_ROWS="$filas" bash "$GUARD" 2>&1)"
+  salida="$(GRANTS_GUARD_ROWS="$filas" GRANTS_GUARD_SCHEMA="$esquema" bash "$GUARD" 2>&1)"
   code=$?
+  if [ -n "$espera_msg" ] && ! printf '%s' "$salida" | grep -q "$espera_msg"; then
+    FAIL=$((FAIL + 1))
+    printf '  FALLO %s — el mensaje no dice «%s»\n' "$que" "$espera_msg"
+    printf '%s\n' "$salida" | sed 's/^/          /'
+    return
+  fi
   if [ "$code" -eq "$esperado" ]; then
     PASS=$((PASS + 1)); printf '  ok    %s\n' "$que"
   else
@@ -44,98 +100,96 @@ caso() {
 
 echo "Sello del guardián de privilegios ($GUARD)"
 echo
+echo "Tiene que MORDER en el rol ANÓNIMO (lo de siempre):"
+caso "una tabla nueva con los siete para anon"  1 \
+  $'anon|nueva|DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE\nauthenticated|nueva|DELETE,INSERT,SELECT,UPDATE' "nueva"
+caso "anon con uno de más"                      1 \
+  $'anon|cards|INSERT,SELECT\nauthenticated|cards|DELETE,INSERT,SELECT,UPDATE' "anon"
+caso "anon sin ninguno tampoco es lo declarado" 1 \
+  $'anon|cards|\nauthenticated|cards|DELETE,INSERT,SELECT,UPDATE' "anon"
 
-echo "Tiene que MORDER:"
-# La forma exacta de lo encontrado el 6-ago-2026: una tabla recién creada con
-# los siete privilegios que conceden las DEFAULT PRIVILEGES del proyecto.
-caso "una tabla nueva con los siete privilegios" 1 \
-  "card_description_history|DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE"
-caso "una tabla con uno de más" 1 \
-  "cards|INSERT,SELECT"
-caso "una tabla sin ninguno tampoco es lo declarado" 1 \
-  "cards|"
-caso "varias tablas a la vez" 1 \
-  "a|DELETE,SELECT
-b|SELECT,UPDATE"
-# Una tabla abierta escondida entre otras que están bien: la consulta ya filtra,
-# pero si alguien cambia el HAVING por un LIMIT o se come el filtro, esto avisa.
-caso "una abierta entre varias correctas" 1 \
-  "buena|SELECT
-mala|DELETE,INSERT,SELECT
-otra_buena|SELECT"
+echo
+echo "Tiene que MORDER en AUTHENTICATED — el rol que hasta hoy no miraba nadie:"
+# EL caso de la tarjeta: `TRUNCATE` salta RLS, y era lo que se recortó el 6-ago.
+caso "authenticated recupera TRUNCATE"          1 \
+  $'anon|cards|SELECT\nauthenticated|cards|DELETE,INSERT,SELECT,TRUNCATE,UPDATE' "TRUNCATE"
+caso "authenticated con los siete"              1 \
+  $'anon|cards|SELECT\nauthenticated|cards|DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE' "authenticated"
+caso "authenticated de menos también canta"     1 \
+  $'anon|cards|SELECT\nauthenticated|cards|SELECT' "authenticated"
+
+echo
+echo "Tiene que MORDER con las EXCEPCIONES por tabla puestas:"
+# La tabla con excepción NO puede tener lo que tienen sus hermanas.
+caso "la tabla con excepción conserva UPDATE y DELETE" 1 \
+  $'anon|historial|SELECT\nauthenticated|historial|DELETE,INSERT,SELECT,UPDATE' "historial" "$ESQ_EXCEPCION"
+# Y la excepción NO se contagia a las demás: una hermana recortada también canta.
+caso "una hermana recortada como si fuera la excepción" 1 \
+  $'anon|cards|SELECT\nauthenticated|cards|INSERT,SELECT' "cards" "$ESQ_EXCEPCION"
+
+echo
+echo "Tiene que ROMPERSE, no saltar en verde:"
+caso "la base no devuelve ninguna fila"         1 "" "no devolvió ningún privilegio"
+caso "una fila con forma inesperada"            1 $'anon|cards' "forma inesperada"
+caso "una tabla fuera del bucle y sin excepción declarada" 1 "$BIEN" "nadie declara" "$ESQ_HUERFANA"
+caso "el esquema no existe"                     1 "$BIEN" "no existe" "$TMP/no-hay.sql"
+# Una fila de un rol para el que nadie declaró nada. No debería llegar —la
+# consulta filtra por los roles vigilados— pero si llegara, juzgarla contra
+# «nada» sería inventarse el veredicto. Comprobado por mutación: sin este caso,
+# neutralizar esa defensa pasaba 20 de 20 en verde.
+caso "una fila de un rol que nadie declara"     1 \
+  "$BIEN"$'\nservice_role|cards|DELETE,INSERT,SELECT,UPDATE' "no se puede juzgar"
 
 echo
 echo "Tiene que CALLAR:"
-caso "sin filas: ninguna tabla se sale de lo declarado" 0 ""
-# psql sin resultados devuelve una línea en blanco. Sin limpiarla, el guardián
-# nacería rojo con la base perfectamente ordenada — y un guardián que nace rojo
-# se normaliza hasta que deja de mirarse.
-caso "una línea en blanco NO es una tabla abierta" 0 "
-"
-caso "varias líneas en blanco tampoco" 0 "
-
-"
+caso "los dos roles con lo que el esquema declara" 0 "$BIEN" "OK"
+caso "la tabla con excepción, con su excepción"    0 \
+  $'anon|cards|SELECT\nauthenticated|cards|DELETE,INSERT,SELECT,UPDATE\nanon|historial|SELECT\nauthenticated|historial|INSERT,SELECT' \
+  "excepción" "$ESQ_EXCEPCION"
+# El orden en que la base devuelva los privilegios no es cosa del guardián.
+caso "los privilegios en otro orden"               0 \
+  $'anon|cards|SELECT\nauthenticated|cards|UPDATE,SELECT,INSERT,DELETE' "OK"
+caso "una línea en blanco NO es una fila"          0 "$BIEN"$'\n' "OK"
+caso "varias líneas en blanco tampoco"             0 $'\n\n'"$BIEN"$'\n\n' "OK"
 
 echo
-echo "Sin credenciales NO se salta en verde:"
-# Un guardián que se omite cuando no puede mirar es el falso negativo silencioso
-# que este repo persigue. Tiene que fallar, no encogerse de hombros.
-salida="$(unset GRANTS_GUARD_ROWS DATABASE_URL SUPABASE_URL SUPABASE_DATABASE_PASSWORD; bash "$GUARD" 2>&1)"
-if [ $? -ne 0 ]; then
-  PASS=$((PASS + 1)); printf '  ok    sin DATABASE_URL ni SUPABASE_*, falla en vez de callar\n'
-else
-  FAIL=$((FAIL + 1)); printf '  FALLO sin credenciales dio verde — se está omitiendo en silencio\n'
-fi
-
-
-# ── La mitad que las filas inyectadas no pueden medir ─────────────────────────
-#
-# Añadido por el vigilante al revisar. El obrero dejó escrito en la cabecera —y
-# es exacto, lo comprobé— que **al inyectar filas el SQL no se ejecuta**, así que
-# todo lo de arriba mide qué hace el guardián CON las filas, nunca CUÁLES le
-# llegan. Medido: quitarle el `HAVING` a la consulta pasa 9 de 9 en verde.
-#
-# Y hay una segunda del mismo origen que no estaba dicha: **cambiar el rol
-# vigilado de `anon` a `authenticated` también pasa 9 de 9.** El guardián dejaría
-# de mirar al rol que motivó la tarjeta y el sello no se enteraría.
-#
-# Estas comprobaciones son de TEXTO, y eso es una limitación de verdad: fijan que
-# la consulta diga lo que debe decir, no que la base conteste lo que debe. Lo
-# segundo solo lo puede contestar CI, que tiene credenciales. Pero un sello que
-# no mira la consulta deja sin vigilancia justo la pieza donde vive el criterio.
-#
-# Precedente de la casa: `rail-blindspot.test.sh` fija así su exclusión de los
-# `personal`.
-
+echo "Y los DOS roles siguen vigilados — esto no se retira, se amplía:"
 GUARD_SRC="$(cat "$GUARD")"
+# Antes se exigía `GRANTS_GUARD_ROLE:-anon`. La tarjeta `cf3303c7` pedía sumar
+# `authenticated` SIN retirar esa garantía: que nadie pueda desviar el guardián
+# y dejar sin mirar el rol que lo motivó. Ahora se exigen los dos por defecto.
+if printf '%s' "$GUARD_SRC" | grep -qE 'GRANTS_GUARD_ROLES:-[^}]*anon'; then
+  printf '  ok    `anon` sigue vigilado por defecto\n'; PASS=$((PASS + 1))
+else
+  printf '  FALLO `anon` ya no está entre los roles vigilados por defecto\n'; FAIL=$((FAIL + 1))
+fi
+if printf '%s' "$GUARD_SRC" | grep -qE 'GRANTS_GUARD_ROLES:-[^}]*authenticated'; then
+  printf '  ok    `authenticated` está vigilado por defecto\n'; PASS=$((PASS + 1))
+else
+  printf '  FALLO `authenticated` no está entre los roles vigilados por defecto\n'; FAIL=$((FAIL + 1))
+fi
+
+# Y que las excepciones NO vivan dentro del script: es la condición 2 de la
+# tarjeta, y una lista aquí dentro sería la avería que el #35 ya cerró.
+if printf '%s' "$GUARD_SRC" | grep -qE "^[^#]*card_description_history"; then
+  printf '  FALLO hay una excepción por tabla escrita DENTRO del guardián\n'; FAIL=$((FAIL + 1))
+else
+  printf '  ok    ninguna excepción por tabla vive dentro del guardián\n'; PASS=$((PASS + 1))
+fi
 
 echo
-echo "grants-guard · la consulta dice lo que debe decir"
-
-if printf '%s' "$GUARD_SRC" | grep -qE "grantee[[:space:]]*=[[:space:]]*'\\\$\{ROL\}'"; then
-  printf '  ok    la consulta filtra por el rol vigilado, no por uno fijo\n'; PASS=$((PASS + 1))
+echo "Y el esquema REAL se puede derivar (si no, el guardián no tiene contra qué comparar):"
+salida="$(python3 "$REPO_ROOT/scripts/grants-expectativa.py" \
+            "$REPO_ROOT/docs/schema/supabase-schema.sql" anon authenticated 2>&1)"
+if [ $? -eq 0 ] && printf '%s' "$salida" | grep -q '^anon|\*|' && \
+   printf '%s' "$salida" | grep -q '^authenticated|\*|'; then
+  PASS=$((PASS + 1)); printf '  ok    del esquema real salen los dos defaults\n'
 else
-  printf '  FALLO la consulta no filtra por $ROL — vigilaría a quien no toca\n'; FAIL=$((FAIL + 1))
-fi
-
-if printf '%s' "$GUARD_SRC" | grep -q "HAVING string_agg" && \
-   printf '%s' "$GUARD_SRC" | grep -q '<> .\${PERMITIDO}'; then
-  printf '  ok    el HAVING compara contra lo permitido — sin él, TODA tabla sería desviación\n'; PASS=$((PASS + 1))
-else
-  printf '  FALLO falta el HAVING que separa lo declarado de lo que sobra\n'; FAIL=$((FAIL + 1))
-fi
-
-# El rol por defecto es `anon` y no otro: es el que motivó la tarjeta, y el único
-# que alcanza cualquiera con la llave pública. `authenticated` también recibe de
-# más hoy, pero eso es otra tarjeta y otro guardián — meterlo aquí lo haría nacer
-# rojo, y un guardián que nace rojo se normaliza hasta que deja de mirarse.
-if printf '%s' "$GUARD_SRC" | grep -q 'GRANTS_GUARD_ROLE:-anon'; then
-  printf '  ok    vigila `anon` por defecto\n'; PASS=$((PASS + 1))
-else
-  printf '  FALLO el rol vigilado por defecto ya no es `anon`\n'; FAIL=$((FAIL + 1))
+  FAIL=$((FAIL + 1)); printf '  FALLO no se pudo derivar del esquema real\n'
+  printf '%s\n' "$salida" | sed 's/^/          /'
 fi
 
 echo
 echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
-echo "El guardián muerde donde debe y calla donde debe."
+echo "El guardián muerde en los dos roles, respeta las excepciones y calla donde debe."
