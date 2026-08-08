@@ -201,6 +201,58 @@ const updateCard = async (req, res) => {
     prevDescription.trim().length > 0 &&
     prevDescription !== description;
 
+  // ── Compuerta: sobrescribir texto tiene que costar un acto deliberado ──────
+  //
+  // QUÉ FALLO CIERRA, y pasó de verdad el 8-ago-2026. Un agente reconstruyó la
+  // descripción de una tarjeta desde una copia vieja y la mandó entera. Se
+  // perdieron la medición de otro papel y **un hallazgo escrito ahí justamente
+  // para viajar de un papel a otro**. Se recuperó porque el historial guarda
+  // versiones — y eso es suerte de implementación, no una garantía: nadie mira
+  // el historial salvo que ya sospeche.
+  //
+  // LA ASIMETRÍA QUE HACE QUE ESTO FUNCIONE. Esta puerta la usan dos clases de
+  // llamante y **una de ellas ha leído el texto por construcción**:
+  //
+  //   · el navegador, que trae el texto actual dentro del editor — quien lo
+  //     compacta está mirando lo que borra;
+  //   · el riel, que manda una cadena que armó en otro sitio y **puede no haber
+  //     leído nada**.
+  //
+  // Así que no se prohíbe reemplazar: se exige **decirlo**. Quien tiene el texto
+  // delante lo dice sin coste; quien no lo tiene, se entera de que iba a borrar.
+  //
+  // POR QUÉ NO ES UN AVISO EN EL ACUSE. Esta casa ya midió que **nadie compara
+  // un acuse de éxito** (`5d8a5fd8`). Un aviso que se puede ignorar sin hacer
+  // nada no cuesta nada, y lo que no cuesta nada no cambia lo que pasa.
+  //
+  // QUÉ CUENTA COMO DESTRUIR: que el texto nuevo **no contenga** el anterior. Un
+  // añadido lo contiene y pasa sin enterarse — que es el caso normal de un
+  // agente que amplía una tarjeta. Una reescritura, no.
+  //
+  // LO QUE ESTO **NO** CUBRE, y hay que decirlo:
+  //   · No protege de quien pasa la bandera sin mirar. Nada puede.
+  //   · No mira los demás campos: prioridad o responsable se siguen
+  //     sobrescribiendo sin rastro. Eso es `cfeccbc4`.
+  //   · Vaciar del todo la descripción también se considera destruir, porque lo
+  //     es — y «no mandarla» sigue siendo la forma de no tocarla.
+  const reemplazaTextoExistente =
+    descriptionChanges && !String(description ?? '').includes(prevDescription);
+
+  if (reemplazaTextoExistente && req.body.replacesDescriptionOnPurpose !== true) {
+    return res.status(409).json({
+      error:
+        'Esta escritura NO añade: sustituye una descripción que ya tenía texto, ' +
+        'y parte de lo que hay se perdería. Si es lo que quieres, repite la ' +
+        'llamada con `replacesDescriptionOnPurpose: true`. Si no, lee la versión ' +
+        'actual antes de escribir.',
+      previousLength: prevDescription.length,
+      incomingLength: String(description ?? '').length,
+      hint:
+        'Un texto que CONTIENE el anterior pasa sin bandera: añadir no destruye. ' +
+        'Las versiones anteriores están en GET /api/cards/:id/history.',
+    });
+  }
+
   if (descriptionChanges) {
     const { error: histError } = await supabaseAdmin
       .from('card_description_history')
