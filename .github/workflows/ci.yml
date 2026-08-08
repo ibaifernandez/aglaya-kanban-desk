@@ -5,6 +5,42 @@ name: CI
 #   - Ejecuta jest server tests en cada push/PR
 #   - Verifica que el client build funcione
 #   - Reporta fallos antes del merge a main
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# POR QUÉ LAS COMPROBACIONES BARATAS VIVEN EN UN SOLO JOB (7-ago-2026)
+#
+# **GitHub factura por JOB y redondea hacia arriba al minuto entero.** Un job de
+# cuatro segundos cuesta lo mismo que uno de cincuenta y nueve: un minuto.
+#
+# Medido sobre el ciclo completo de una tarjeta real (abrir el PR #40 + mergear):
+#
+#   corrida de PR   →  4 workflows, 11 jobs, 1,9 min de trabajo real → 11 min facturados
+#   corrida de push →  4 workflows, 11 jobs, 1,9 min de trabajo real → 11 min facturados
+#   ─────────────────────────────────────────────────────────────────────────
+#   ciclo completo  →  3,8 min de cómputo real  →  **22 min facturados**
+#
+# **El 83 % de la factura era redondeo, no cómputo.** Y los ocho jobs de este
+# fichero tardaban entre 4 y 35 segundos cada uno: no había nada que optimizar
+# dentro de ellos. `setup-node` con `cache: npm` ya estaba puesto donde hacía
+# falta. La única palanca que mueve el número es **cuántos jobs hay**.
+#
+# LA OBJECIÓN, Y CÓMO SE RESPONDE. Fundir jobs los serializa y puede hacer que
+# «un guardián en rojo no se distinga de otro». Lo primero es cierto y cuesta
+# ~40 s en total (la suma medida de los cinco). Lo segundo **no ocurre aquí**:
+# cada comprobación es un `step` con su nombre, **ninguna corta la ejecución de
+# las siguientes** (`continue-on-error` + verdicto final), y el último paso
+# imprime la tabla de quién pasó y quién no antes de poner el job en rojo.
+#
+# Lo que NO se toca, y es deliberado:
+#   · **La corrida de `push` a `main` sigue entera.** Es el registro de que el
+#     commit desplegado pasó sus comprobaciones, y `main` no está protegida.
+#   · **`cancel-in-progress` sigue solo en `pull_request`.** Cancelar la de
+#     `main` borraría ese registro.
+#   · **Ningún disparador filtra por rutas.** Se pagó el 6-ago con el #34: una
+#     comprobación ausente no se distingue de una que pasó.
+#   · **`server-tests` y `client-build` siguen sueltos.** Son los únicos que
+#     hacen trabajo de verdad y los únicos que crecerán.
+# ─────────────────────────────────────────────────────────────────────────────
 
 on:
   push:
@@ -58,54 +94,32 @@ jobs:
             --forceExit \
             --ci
 
-  rail-validation:
-    name: Riel — validación de destino (python, stdlib)
+  comprobaciones-baratas:
+    # Antes eran CINCO jobs sueltos —rail-validation, contract-guard,
+    # grants-guard, hook-guard, email-guard— de 4 a 8 segundos cada uno. Cinco
+    # corredores, cinco arranques, cinco `checkout`, y cinco minutos facturados
+    # por menos de cuarenta segundos de trabajo.
+    #
+    # Cada comprobación conserva su nombre, su orden sello→guardián, y su
+    # capacidad de ponerse roja por su cuenta sin tapar a las demás.
+    name: Comprobaciones baratas (guardianes + validación del riel)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Sin `pip install`: kanban-mcp/validation.py no importa nada de terceros
-      # a propósito, para que esta comprobación corra con un python3 pelado.
-      # Cubre que create_card exige el espacio de destino Y lo valida contra la
-      # columna — exigirlo sin comprobarlo daría sensación de control sin control.
-      - name: Tests de validación del riel
-        working-directory: ./kanban-mcp
-        run: python3 test_validation.py
-
-      # El ENVOLTORIO, que hasta hoy no corría en CI: se verificaba a mano contra
-      # la base. Ahí viven los fallos que este repo ha pagado —el acuse sin
-      # resolver, la prioridad corregida en silencio, el responsable que se
-      # resolvía después de crear la tarjeta—, así que quedaba la capa más cara
-      # sin red debajo.
+      # `fetch-depth: 0` porque contract-guard necesita el diff contra la base
+      # del PR, no el árbol. Es el requisito más exigente de los cinco y manda
+      # sobre el checkout compartido.
       #
-      # Sigue SIN `pip install`, que era la razón por la que no existía: el banco
-      # sustituye `httpx` y `mcp` por dobles antes de importar. La regla del
-      # trabajo anterior no se afloja para que quepa el nuevo.
-      - name: Tests del envoltorio del riel
-        working-directory: ./kanban-mcp
-        run: python3 test_server.py
-
-  contract-guard:
-    name: ¿Cambió una puerta sin tocar su contrato?
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      # Historial completo: hace falta el diff contra la base del PR, no el
-      # árbol. Mismo motivo que schema-guard.
-      - name: Checkout (historial completo para diff)
+      # OJO: que email-guard no mire la historia es una propiedad del SCRIPT
+      # —usa `git ls-files` sobre el árbol—, no del calado del checkout. Traer
+      # la historia no le cambia lo que mira.
+      - name: Checkout (historial completo para el diff de contract-guard)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # El sello va ANTES y no necesita el diff: si el guardián está destripado,
-      # se sabe aquí y da igual lo que conteste luego. Mismo orden que
-      # docs-guard y rail-blindspot.
-      - name: Sello — ¿muerde con una puerta tocada sin contrato?
-        run: bash scripts/contract-guard.test.sh
-
-      - name: Guardián — sobre los ficheros de este cambio
+      - name: Qué ficheros trae este cambio
+        id: diff
         run: |
           set -euo pipefail
 
@@ -125,76 +139,141 @@ jobs:
           CAMBIADOS="$(git diff --name-only "$BASE" "$HEAD")"
           echo "Ficheros cambiados:"; echo "$CAMBIADOS"; echo "---"
 
-          CONTRACT_GUARD_CHANGED="$CAMBIADOS" bash scripts/contract-guard.sh
+          # Va por `GITHUB_ENV` y NO por `GITHUB_OUTPUT` a propósito. Un
+          # `${{ steps.x.outputs.y }}` se interpola DENTRO del script de shell,
+          # y esta lista es multilínea: un nombre de fichero con comilla, `$` o
+          # backtick se ejecutaría. Por el entorno llega como dato y nadie lo
+          # vuelve a interpretar.
+          {
+            echo "CONTRACT_GUARD_CHANGED<<FIN_DIFF"
+            echo "$CAMBIADOS"
+            echo "FIN_DIFF"
+          } >> "$GITHUB_ENV"
 
-  grants-guard:
-    name: ¿Alguna tabla se abrió al rol anónimo?
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      # ── Validación del riel ────────────────────────────────────────────────
+      # Sin `pip install`: kanban-mcp/validation.py no importa nada de terceros
+      # a propósito, para que esta comprobación corra con un python3 pelado.
+      - name: Riel — tests de validación de destino
+        id: riel_validacion
+        continue-on-error: true
+        working-directory: ./kanban-mcp
+        run: python3 test_validation.py
 
-      # El sello va ANTES y no toca la DB: si el guardián está destripado se sabe
-      # aquí, sin gastar una consulta. Mismo orden que docs-guard y rail-blindspot.
-      #
-      # Ojo con lo que ese sello cubre: la DECISIÓN sobre las filas, no la
-      # consulta. Está escrito en su cabecera y comprobado por mutación.
-      - name: Sello — ¿muerde con una tabla abierta?
+      # El ENVOLTORIO. Ahí viven los fallos que este repo ha pagado —el acuse
+      # sin resolver, la prioridad corregida en silencio, el responsable que se
+      # resolvía después de crear la tarjeta—. Sigue SIN `pip install`: el banco
+      # sustituye `httpx` y `mcp` por dobles antes de importar.
+      - name: Riel — tests del envoltorio
+        id: riel_envoltorio
+        continue-on-error: true
+        working-directory: ./kanban-mcp
+        run: python3 test_server.py
+
+      # ── contract-guard ─────────────────────────────────────────────────────
+      # El sello va ANTES: si el guardián está destripado, se sabe aquí y da
+      # igual lo que conteste luego.
+      - name: Sello — ¿contract-guard muerde con una puerta tocada sin contrato?
+        id: sello_contract
+        continue-on-error: true
+        run: bash scripts/contract-guard.test.sh
+
+      # `CONTRACT_GUARD_CHANGED` ya viene del entorno, puesto por el paso del
+      # diff. No se interpola aquí: ver el comentario de aquel paso.
+      - name: Guardián — ¿cambió una puerta sin tocar su contrato?
+        id: contract
+        continue-on-error: true
+        run: bash scripts/contract-guard.sh
+
+      # ── grants-guard ───────────────────────────────────────────────────────
+      # Su sello no toca la DB: si el guardián está destripado se sabe sin
+      # gastar una consulta. Cubre la DECISIÓN sobre las filas, no la consulta.
+      - name: Sello — ¿grants-guard muerde con una tabla abierta?
+        id: sello_grants
+        continue-on-error: true
         run: bash scripts/grants-guard.test.sh
 
       # Le pregunta a la base porque el esquema documentado NO puede contestar
       # esto: describe lo que se concedió a mano, y el defecto es justamente lo
       # que se concede solo. Mismo secret que usa db-backup.yml.
-      - name: Guardián — cruce contra la base de datos
+      - name: Guardián — ¿alguna tabla se abrió al rol anónimo?
+        id: grants
+        continue-on-error: true
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: bash scripts/grants-guard.sh
 
-  # El guardián del alcance del riel ya NO vive aquí: pasó a
-  # `.github/workflows/rail-scope.yml`, que además corre POR RELOJ. Este
-  # workflow solo se dispara con empujes y PR, y eso dejaba un espacio creado
-  # sin tocar el repo invisible para toda la flota hasta el siguiente commit.
-
-  hook-guard:
-    name: ¿Sigue declarado el enganche de permisos?
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # El sello va ANTES, como en los demás: si el guardián está destripado se
-      # sabe aquí. Mismo orden que docs-guard, contract-guard y grants-guard.
-      - name: Sello — ¿muerde con el enganche quitado?
+      # ── hook-guard ─────────────────────────────────────────────────────────
+      - name: Sello — ¿hook-guard muerde con el enganche quitado?
+        id: sello_hook
+        continue-on-error: true
         run: bash scripts/hook-guard.test.sh
 
-      # Sobre el fichero real. Barato y sin secretos: solo lee JSON.
-      - name: Guardián — sobre .claude/settings.json
+      - name: Guardián — ¿sigue declarado el enganche de permisos?
+        id: hook
+        continue-on-error: true
         run: bash scripts/hook-guard.sh
 
-  email-guard:
-    name: ¿Entró una dirección de correo sin declarar?
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      # Sin `fetch-depth: 0` A PROPÓSITO: este guardián mira el ÁRBOL de hoy, no
-      # el diff ni la historia. Un checkout somero ya trae el índice completo, que
-      # es lo que `git ls-files` necesita. Que no mire la historia está declarado
-      # en la cabecera del script, y es la limitación que más importa de todas.
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # El sello va ANTES, como en los demás guardianes de esta casa: si el
-      # guardián está destripado se sabe aquí, y da igual lo que conteste luego
-      # sobre el árbol real. Mismo orden que docs-guard, contract-guard,
-      # grants-guard y hook-guard.
-      - name: Sello — ¿muerde con una dirección personal y calla con una de ejemplo?
+      # ── email-guard ────────────────────────────────────────────────────────
+      - name: Sello — ¿email-guard muerde con una dirección personal y calla con una de ejemplo?
+        id: sello_email
+        continue-on-error: true
         run: bash scripts/email-guard.test.sh
 
-      # Sobre el árbol real. Barato y sin secretos: solo lee ficheros.
-      - name: Guardián — sobre el árbol versionado
+      - name: Guardián — ¿entró una dirección de correo sin declarar?
+        id: email
+        continue-on-error: true
         run: bash scripts/email-guard.sh
+
+      # ── el verdicto ────────────────────────────────────────────────────────
+      # ESTE PASO ES LA RESPUESTA A «fundir jobs hace que un rojo no se
+      # distinga de otro». Todas corrieron; aquí se dice cuál falló y por su
+      # nombre, y solo entonces el job se pone rojo.
+      #
+      # Sin él, `continue-on-error` dejaría el job en verde con guardianes en
+      # rojo dentro: exactamente el fallo que el #34 pagó, con otra cara.
+      # ── el cableado ────────────────────────────────────────────────────────
+      # El verdicto juzga LO QUE SE LE PASA. Esto comprueba que se le pase todo
+      # lo que hay que juzgar: que el conjunto de `id` con `continue-on-error`
+      # de arriba y el de `steps.<id>.outcome` de abajo sean el MISMO.
+      #
+      # Sin él, borrar una línea de la llamada deja ese guardián en rojo dentro
+      # de un job en verde, para siempre y sin rastro. Antes de fundir los jobs
+      # eso se veía —la comprobación se caía de la lista de checks— y así se cazó
+      # el #34. Esto devuelve esa garantía.
+      - name: Sello — ¿el guardián del cableado muerde en las dos direcciones?
+        id: sello_cableado
+        continue-on-error: true
+        run: bash scripts/ci-cableado.test.sh
+
+      - name: Guardián — ¿el verdicto juzga TODOS los pasos que pueden fallar?
+        id: cableado
+        continue-on-error: true
+        run: bash scripts/ci-cableado.sh
+
+      # El sello del verdicto va ANTES que el verdicto, como el de cualquier
+      # guardián de esta casa: si el que decide el color está destripado, da
+      # igual lo que conteste sobre los resultados de arriba.
+      #
+      # Éste sí corre en seco, sin `continue-on-error`: es el único que no puede
+      # delegar su propio fallo en el que está comprobando.
+      - name: Sello — ¿el verdicto pone rojo un resultado vacío o saltado?
+        run: bash scripts/ci-verdicto.test.sh
+
+      - name: Verdicto — ¿pasó alguna en rojo?
+        run: |
+          bash scripts/ci-verdicto.sh \
+            "Riel · validación de destino|${{ steps.riel_validacion.outcome }}" \
+            "Riel · envoltorio|${{ steps.riel_envoltorio.outcome }}" \
+            "contract-guard · sello|${{ steps.sello_contract.outcome }}" \
+            "contract-guard · guardián|${{ steps.contract.outcome }}" \
+            "grants-guard · sello|${{ steps.sello_grants.outcome }}" \
+            "grants-guard · guardián|${{ steps.grants.outcome }}" \
+            "hook-guard · sello|${{ steps.sello_hook.outcome }}" \
+            "hook-guard · guardián|${{ steps.hook.outcome }}" \
+            "email-guard · sello|${{ steps.sello_email.outcome }}" \
+            "email-guard · guardián|${{ steps.email.outcome }}" \
+            "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
+            "cableado del verdicto · guardián|${{ steps.cableado.outcome }}"
 
   client-build:
     name: Client build (vite)
@@ -227,23 +306,8 @@ jobs:
           test -d dist/assets
           ls -lh dist/
 
-  npm-audit:
-    name: npm audit (informativo, no falla CI)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    continue-on-error: true
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Server audit
-        run: npm audit --audit-level=high || echo "::warning::npm audit reportó vulns HIGH+ en server deps"
-
-      - name: Client audit
-        working-directory: ./client
-        run: npm audit --audit-level=high || echo "::warning::npm audit reportó vulns HIGH+ en client deps"
+# `npm audit` ya NO vive aquí: pasó a `.github/workflows/npm-audit.yml`, que
+# corre POR RELOJ. Era `continue-on-error: true` — no podía poner nada en rojo—
+# y aun así gastaba un corredor y un minuto facturado en cada PR y en cada
+# empujón a `main`. Un aviso que nadie puede desoír no necesita correr dos veces
+# por tarjeta: necesita llegar.

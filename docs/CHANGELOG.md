@@ -6,6 +6,54 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Changed
+- **Un ciclo de tarjeta pasa de 22 a 12 minutos facturados de Actions, sin tocar
+  el registro de que el commit desplegado pasó sus comprobaciones.** Tarjeta
+  `6b1a11f3`.
+  - **El hallazgo que reordena todo: GitHub factura por JOB y redondea hacia
+    arriba al minuto entero.** Un job de cuatro segundos cuesta lo mismo que uno
+    de cincuenta y nueve. Medido sobre el ciclo real del PR #40 (abrir + mergear):
+    **22 jobs, 3,8 minutos de cómputo, 22 minutos facturados.** El **83 % de la
+    factura era redondeo**, no trabajo.
+  - **Y por eso la palanca que la tarjeta señalaba no existía.** Sugería mirar el
+    cacheo de `npm ci`; medido, ya estaba puesto donde hacía falta y **ningún job
+    pasaba de 35 segundos**. No había nada que acelerar. La única palanca que
+    mueve el número es **cuántos jobs hay**.
+  - **`ci.yml` pasa de 8 jobs a 3.** Las cinco comprobaciones baratas —validación
+    del riel, `contract-guard`, `grants-guard`, `hook-guard`, `email-guard`, con
+    sus sellos— viven ahora en un solo job. `server-tests` y `client-build` siguen
+    sueltos: son los únicos que hacen trabajo de verdad.
+  - **La objeción a fundir jobs —«un guardián en rojo no se distingue de otro»—
+    se responde, no se acepta a ciegas.** Cada comprobación es un `step` con su
+    nombre, **ninguna corta a las siguientes**, y un verdicto final imprime quién
+    pasó y quién no antes de poner el job en rojo.
+  - **Y un segundo guardián vigila que al verdicto le llegue TODO lo que tiene
+    que juzgar** (`scripts/ci-cableado.sh` + `.test.sh`). El verdicto juzga lo que
+    se le pasa; sin esto, borrar una línea de la llamada dejaría a ese guardián en
+    rojo dentro de un job en verde, **para siempre y sin rastro**. Antes de fundir
+    los jobs eso se veía —la comprobación se caía de la lista de checks de GitHub,
+    que es literalmente cómo se cazó el #34—; fundirlos cambió esa garantía
+    estructural por una convención, y esto la devuelve. Compara el conjunto de
+    `id` con `continue-on-error: true` contra el de `steps.<id>.outcome` de la
+    llamada, **se pone rojo en las dos direcciones** —paso sin juzgar y entrada
+    fantasma—, nombra el `id`, y también muerde si un paso puede fallar y **no
+    tiene `id`** con el que citarse. No añade ningún job.
+  - **Ese verdicto es la nueva pieza crítica y tiene sello propio**
+    (`scripts/ci-verdicto.sh` + `.test.sh`). Si fallara, un guardián en rojo
+    quedaría dentro de un job en verde — el fallo del #34 con otra cara. Lo que
+    más muerde no es un `failure`: es el **resultado vacío** de un `id` renombrado,
+    que GitHub no señala. Solo `success` pasa; el vacío, `skipped` y `cancelled`
+    son rojos.
+  - **`npm audit` sale de `ci.yml` a `.github/workflows/npm-audit.yml`, por reloj
+    semanal.** Era `continue-on-error: true` —no podía poner nada en rojo— y aun
+    así gastaba un corredor en cada PR y en cada empujón. Lo que se pierde queda
+    escrito en su cabecera: el aviso ya no aparece pegado al PR que introduce la
+    dependencia.
+  - **Lo que NO se toca, y es deliberado:** la corrida de `push` a `main` sigue
+    entera; `cancel-in-progress` sigue solo en `pull_request`; ningún disparador
+    filtra por rutas; `docs-guard`, `schema-guard` y `rail-scope` siguen siendo
+    workflows propios — fundirlos ahorraría 3 minutos más por ciclo y es una
+    decisión estructural que esta tarjeta no tomó.
 ### Added
 - **El historial cubre TODOS los campos, y `card_history` los expone.** Tarjeta
   `e198e189`. Contrato `riel` **v3.4.0**. Es la mitad de código de `cfeccbc4`.
@@ -29,6 +77,37 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     trabajo. Lo que quería fijar —que no se guarda ruido— se conserva.
 
 ### Added
+- **Un guardián que le pregunta al SERVIDOR si el esquema documentado es el que
+  hay puesto** (`scripts/schema-drift-guard.sh` + `.test.sh` +
+  `.github/workflows/schema-drift.yml`). Tarjeta `5b7867b3`.
+  - **El hueco que cierra:** `schema-guard` compara la migración con el
+    documento y lo hace bien, pero **compara documento contra documento**.
+    Aplicar una migración es un paso humano y nada notaba si no se daba. El PR
+    #28 lo pagó: documento actualizado, `schema-guard` en verde, **columna sin
+    aplicar en la base**. Se evitó porque una persona se acordó.
+  - **Rojo en las dos direcciones, y significan cosas distintas:** una columna
+    declarada y ausente es una migración sin aplicar —el documento tiene razón—;
+    una presente y no declarada es que alguien tocó la base o que una migración
+    hizo más de lo que cuenta —la base tiene razón sobre lo que hay—. El guardián
+    **no decide cuál**: dice que no coinciden.
+  - **Corre POR RELOJ sobre `main` y nunca en un PR**, y la ausencia de
+    `push:`/`pull_request:` es la decisión, no un olvido: sobre el PR que trae
+    una migración nacería **rojo con razón**.
+  - **Solo compara PRESENCIA de columnas, y lo dice en su cabecera.** Comparar
+    tipos exige normalizar dos dialectos —`TEXT` contra `text`, `TIMESTAMPTZ`
+    contra `timestamp with time zone`— y **la normalización es donde se cuelan
+    los falsos verdes**. Tampoco mira restricciones, claves foráneas, índices,
+    políticas RLS, triggers ni comentarios. Un verde suyo significa «las columnas
+    declaradas están y no hay ninguna de más», no «la base es el documento».
+  - **Su sello ejerce las dos direcciones sin tocar la base** (15 casos), y corre
+    **antes** que él en el job. Nueve mutaciones sobre el guardián, las nueve
+    cazadas.
+  - ⏳ **Falta comprobar que estrena verde contra la base real**, que es el punto
+    5 de su aceptación. **No lo puedo medir**: el enganche de permisos deniega
+    leer el fichero de secretos, y el MCP de Supabase de esta máquina está
+    autenticado contra otra organización — lista `massiva-intelligence` y
+    `aglaya-outreach`, no este proyecto. La orden exacta queda escrita en la
+    tarjeta.
 - **El historial se declara capaz de guardar cualquier campo, no solo la
   descripción** (`docs/schema/migration-historial-todos-los-campos.sql`).
   Tarjeta `cfeccbc4`. **Es la mitad que va primera: el código viene después.**
