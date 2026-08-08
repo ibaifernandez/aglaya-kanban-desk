@@ -39,6 +39,44 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   - ⚠️ **Lo que NO cubre:** los demás campos —prioridad, responsable, columna—
     se siguen sobrescribiendo sin rastro. Eso es `cfeccbc4`. Y no protege de
     quien pasa la bandera sin mirar; nada puede.
+- **El historial de descripciones deja de declararse borrable por quien lo
+  genera.** `authenticated` tenía `UPDATE` y `DELETE` sobre
+  `card_description_history` — la tabla cuya única razón de existir es guardar lo
+  que ese mismo actor sobrescribió. Tarjeta `2c034471`.
+  - **Un historial que el mismo actor puede reescribir no es un historial:** es
+    una copia más, con la ceremonia de un historial. Y es el mecanismo de deshacer
+    que `docs/contracts/CONTRACT.md` promete.
+  - **No era explotable hoy, y aun así se recorta.** La RLS de esa tabla tiene
+    **una sola política, y es de SELECT**: sin política de escritura,
+    `authenticated` no alcanza ninguna fila. Era pólvora seca, no una puerta
+    abierta — y se recorta antes de que alguien escriba una política permisiva
+    pensando en otra cosa.
+  - **La contradicción ya estaba escrita en el fichero que la creó:**
+    `migration-card-description-history.sql` concede `UPDATE, DELETE` en su línea
+    45 y quince líneas más abajo explica que la escritura no se abre a
+    `authenticated` a propósito. Ganó el GRANT. Ese fichero **no se edita** —
+    registra lo que se aplicó— sino que lleva una nota que apunta al recorte.
+  - **La excepción vive DENTRO del bucle de GRANTs del esquema**, con un
+    `tablename <> 'card_description_history'`, y no como un `REVOKE` detrás. Un
+    REVOKE detrás dejaría el privilegio concedido y retirado en el mismo fichero,
+    y bastaría reordenar dos bloques para reabrirlo sin que nadie lo note.
+  - **Radio del cambio: cero, medido.** El navegador **nunca** llama `.from(...)`;
+    todo el acceso pasa por Express con `service_role`, que conserva los cuatro
+    privilegios — la poda futura sigue siendo posible.
+  - **`INSERT` se conserva, y se dice por qué:** la tarjeta nombra `UPDATE` y
+    `DELETE`. El mismo argumento vale para `INSERT`, pero ampliarlo sería decidir
+    por encima de quien acotó la tarjeta. Queda dicho, no hecho.
+  - ⏳ **Pendiente del Operador.** `docs/schema/migration-historial-append-only.sql`
+    está escrita e idempotente, pero **aplicarla es una acción sobre la base**.
+    Hasta entonces el esquema declara una cosa y la base tiene otra, y así queda
+    avisado en la cabecera de la sección 9.
+  - **Lo vigila una prueba, no un guardián**
+    (`server/tests/historial-append-only.test.js`). Un guardián contra la base
+    **nacería rojo** —el recorte no está aplicado— y en esta casa un guardián que
+    nace rojo se normaliza. La prueba vigila la **declaración**, que es donde está
+    la regresión real: quien borre esa condición del bucle reabre el agujero con
+    una línea, y desharía el recorte aplicado la próxima vez que alguien corra el
+    esquema.
 - **`grants-guard` deja de ser tuerto: vigila `anon` y `authenticated`, con
   excepciones por tabla derivadas del esquema.** Tarjeta `cf3303c7`.
   - **Vigilaba un solo rol, siempre `anon`.** `authenticated` —de quien se

@@ -515,11 +515,11 @@ def update_card(
     Passing neither leaves the description untouched; passing an empty one CLEARS
     it. Those are different intents and this tool tells them apart.
 
-    ⚠️ A BRIEF THAT DOES NOT CONTAIN THE CURRENT ONE IS REFUSED WITH 409 unless
-    you pass `replacing_on_purpose=True`. Adding to a card is unaffected — text
-    that contains what was already there goes through untouched. What is refused
-    is the blind REWRITE: sending a string you assembled elsewhere, that silently
-    drops what someone else had written.
+    ⚠️ A brief that does NOT contain the current one is refused by the server
+    (409) unless you pass `replacing_on_purpose=True`. Adding to a card is
+    unaffected — text that contains what was already there goes through
+    untouched. What is refused is the blind REWRITE: sending a string you
+    assembled elsewhere, that silently drops what someone else had written.
 
     That is not hypothetical. On 2026-08-08 an agent rebuilt a card's brief from
     a stale copy and destroyed another role's measurement — including a finding
