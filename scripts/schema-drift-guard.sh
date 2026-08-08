@@ -58,6 +58,41 @@
 #
 # Lo que mide es **deriva de lo que hay puesto**, no propuestas.
 #
+#
+# ⏱ QUÉ SIGNIFICA SU VERDE, Y QUÉ NO — 8-ago-2026 (tarjeta `3afe754d`)
+#
+# Este guardián **pregunta fuera del repositorio**. Consecuencia que hay que
+# tener delante al leerlo: **su verde caduca sin que cambie una línea de código**.
+#
+# Medido el 8-ago-2026 sobre el MISMO commit y el mismo esquema, con el guardián
+# hermano que consulta la misma base:
+#
+#     10:15:10Z → verde
+#     10:23:09Z → rojo
+#
+# Lo único que cambió en esos ocho minutos fue la base de datos.
+#
+# Por eso su verde se imprime **fechado**, y hay que leerlo así:
+#
+#     «a tal hora, contra la base real, lo declarado y lo que hay coincidían»
+#
+# y **no** como «este commit está bien». Los invariantes de la casa —«la
+# aprobación pertenece al commit», «el verde tiene que ser del commit que se va a
+# mergear»— valen mientras lo medido esté DENTRO del commit. Aquí no lo está.
+#
+# QUIEN MERGEA es quien tiene que volver a mirarlo, porque el guardián no puede:
+# no sabe cuándo se mergea. Lo único que puede hacer es no dejar que su verde se
+# confunda con una propiedad del commit, y eso es lo que hace la línea fechada.
+#
+# LA VENTANA DE «APLICAR ANTES DE MERGEAR», declarada aquí para que no se
+# descubra en cada rojo: este repo aplica las migraciones ANTES de mergear su PR
+# —para no desplegar código contra una columna que no está—, así que existe un
+# intervalo en el que **la base va por delante del documento** y este guardián
+# está rojo con razón. Ese rojo se cierra mergeando el PR, no arreglando nada.
+#
+# Y aquí ese intervalo es LA REGLA, no la excepción: este guardián existe
+# justamente para medir esa diferencia. Su rojo durante la ventana no es un
+# defecto suyo — es su trabajo hecho.
 # Uso:  bash scripts/schema-drift-guard.sh
 #       DATABASE_URL=postgres://…  (o SUPABASE_URL + SUPABASE_DATABASE_PASSWORD)
 #       SCHEMA_DRIFT_ROWS=$'tabla|columna\n…'   (el sello, sin tocar la base)
@@ -201,8 +236,13 @@ hay_deriva = bool(faltan or sobran or tablas_sin_aplicar or tablas_sin_declarar)
 
 if not hay_deriva:
     n = sum(len(c) for c in declarado.values())
+    from datetime import datetime, timezone
+    ahora = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     print(f"schema-drift-guard: {len(declarado)} tablas y {n} columnas declaradas, "
           f"todas presentes en la base y ninguna de más — OK.")
+    # ⏱ EL VERDE VA FECHADO. Ver la cabecera de este fichero.
+    print(f"[medido {ahora} contra la base real — este verde es de ese instante, "
+          f"no una propiedad del commit]")
     raise SystemExit(0)
 
 for t in tablas_sin_aplicar:

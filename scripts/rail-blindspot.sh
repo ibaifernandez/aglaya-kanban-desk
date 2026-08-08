@@ -27,6 +27,36 @@
 # DB solo se puede probar teniendo la DB delante — y lo que no corre en CI es
 # decoración.
 #
+#
+# ⏱ QUÉ SIGNIFICA SU VERDE, Y QUÉ NO — 8-ago-2026 (tarjeta `3afe754d`)
+#
+# Este guardián **pregunta fuera del repositorio**. Consecuencia que hay que
+# tener delante al leerlo: **su verde caduca sin que cambie una línea de código**.
+#
+# Medido el 8-ago-2026 sobre el MISMO commit y el mismo esquema:
+#
+#     10:15:10Z → verde
+#     10:23:09Z → rojo
+#
+# Lo único que cambió en esos ocho minutos fue la base de datos.
+#
+# Por eso su verde se imprime **fechado**, y hay que leerlo así:
+#
+#     «a tal hora, contra la base real, lo declarado y lo que hay coincidían»
+#
+# y **no** como «este commit está bien». Los invariantes de la casa —«la
+# aprobación pertenece al commit», «el verde tiene que ser del commit que se va a
+# mergear»— valen mientras lo medido esté DENTRO del commit. Aquí no lo está.
+#
+# QUIEN MERGEA es quien tiene que volver a mirarlo, porque el guardián no puede:
+# no sabe cuándo se mergea. Lo único que puede hacer es no dejar que su verde se
+# confunda con una propiedad del commit, y eso es lo que hace la línea fechada.
+#
+# LA VENTANA DE «APLICAR ANTES DE MERGEAR», declarada aquí para que no se
+# descubra en cada rojo: este repo aplica las migraciones ANTES de mergear su PR
+# —para no desplegar código contra una columna que no está—, así que existe un
+# intervalo en el que **la base va por delante del documento** y este guardián
+# está rojo con razón. Ese rojo se cierra mergeando el PR, no arreglando nada.
 # Uso:  bash scripts/rail-blindspot.sh
 #       DATABASE_URL=postgres://…  (o SUPABASE_URL + SUPABASE_DATABASE_PASSWORD)
 
@@ -191,3 +221,5 @@ if [ "$FAIL" != "0" ]; then
 fi
 
 echo "rail-blindspot: OK — ${seen} desviación(es), todas con decisión escrita."
+# ⏱ El verde va fechado. Ver la cabecera.
+echo "[medido $(date -u +%Y-%m-%dT%H:%M:%SZ) contra la base real — este verde es de ese instante, no una propiedad del commit]"
