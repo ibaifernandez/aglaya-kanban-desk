@@ -6,6 +6,44 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Changed
+- **Un ciclo de tarjeta pasa de 22 a 12 minutos facturados de Actions, sin tocar
+  el registro de que el commit desplegado pasó sus comprobaciones.** Tarjeta
+  `6b1a11f3`.
+  - **El hallazgo que reordena todo: GitHub factura por JOB y redondea hacia
+    arriba al minuto entero.** Un job de cuatro segundos cuesta lo mismo que uno
+    de cincuenta y nueve. Medido sobre el ciclo real del PR #40 (abrir + mergear):
+    **22 jobs, 3,8 minutos de cómputo, 22 minutos facturados.** El **83 % de la
+    factura era redondeo**, no trabajo.
+  - **Y por eso la palanca que la tarjeta señalaba no existía.** Sugería mirar el
+    cacheo de `npm ci`; medido, ya estaba puesto donde hacía falta y **ningún job
+    pasaba de 35 segundos**. No había nada que acelerar. La única palanca que
+    mueve el número es **cuántos jobs hay**.
+  - **`ci.yml` pasa de 8 jobs a 3.** Las cinco comprobaciones baratas —validación
+    del riel, `contract-guard`, `grants-guard`, `hook-guard`, `email-guard`, con
+    sus sellos— viven ahora en un solo job. `server-tests` y `client-build` siguen
+    sueltos: son los únicos que hacen trabajo de verdad.
+  - **La objeción a fundir jobs —«un guardián en rojo no se distingue de otro»—
+    se responde, no se acepta a ciegas.** Cada comprobación es un `step` con su
+    nombre, **ninguna corta a las siguientes**, y un verdicto final imprime quién
+    pasó y quién no antes de poner el job en rojo.
+  - **Ese verdicto es la nueva pieza crítica y tiene sello propio**
+    (`scripts/ci-verdicto.sh` + `.test.sh`). Si fallara, un guardián en rojo
+    quedaría dentro de un job en verde — el fallo del #34 con otra cara. Lo que
+    más muerde no es un `failure`: es el **resultado vacío** de un `id` renombrado,
+    que GitHub no señala. Solo `success` pasa; el vacío, `skipped` y `cancelled`
+    son rojos.
+  - **`npm audit` sale de `ci.yml` a `.github/workflows/npm-audit.yml`, por reloj
+    semanal.** Era `continue-on-error: true` —no podía poner nada en rojo— y aun
+    así gastaba un corredor en cada PR y en cada empujón. Lo que se pierde queda
+    escrito en su cabecera: el aviso ya no aparece pegado al PR que introduce la
+    dependencia.
+  - **Lo que NO se toca, y es deliberado:** la corrida de `push` a `main` sigue
+    entera; `cancel-in-progress` sigue solo en `pull_request`; ningún disparador
+    filtra por rutas; `docs-guard`, `schema-guard` y `rail-scope` siguen siendo
+    workflows propios — fundirlos ahorraría 3 minutos más por ciclo y es una
+    decisión estructural que esta tarjeta no tomó.
+
 ### Security
 - **Ya no puede entrar una dirección de correo nueva en el árbol sin que alguien
   lo decida.** `scripts/email-guard.sh` corre en CI y se pone rojo ante cualquier

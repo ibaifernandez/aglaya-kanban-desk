@@ -1,0 +1,58 @@
+name: npm audit
+
+# Salió de `ci.yml` el 7-ago-2026, y el motivo es aritmética, no desprecio.
+#
+# Era `continue-on-error: true`: **no podía poner nada en rojo**. Aun así
+# arrancaba su propio corredor en cada PR y en cada empujón a `main` — dos
+# minutos facturados por tarjeta, porque GitHub factura por job y redondea al
+# minuto entero, y el job tardaba diez segundos.
+#
+# Un aviso que nadie puede desoír no necesita correr dos veces por tarjeta:
+# necesita **llegar**. Aquí llega igual, una vez por semana, y sigue sin poder
+# poner nada en rojo — eso no ha cambiado.
+#
+# LO QUE SE PIERDE, y hay que decirlo: el aviso ya no aparece pegado al PR que
+# introduce la dependencia. Si alguien añade un paquete con una vulnerabilidad
+# HIGH un martes, se sabrá el lunes siguiente, no en su PR. Se acepta porque el
+# job nunca bloqueó nada: quien mergeaba en verde con el aviso puesto lo hacía
+# ya, y ese aviso vivía enterrado en los registros de una comprobación que por
+# diseño no falla.
+#
+# Si algún día tiene que bloquear, esto se revierte y vuelve a `ci.yml` — pero
+# entonces sin `continue-on-error`, que es lo que lo haría valer su minuto.
+
+on:
+  schedule:
+    # Lunes 04:23 UTC. Minuto impar y separado de los otros relojes de la casa
+    # (backup 03:17, rail-scope 06:41) a propósito: dos tareas que despiertan a
+    # la vez comparten cualquier caída del corredor, y entonces el silencio de
+    # las dos significa lo mismo.
+    - cron: '23 4 * * 1'
+  workflow_dispatch:
+
+# Sin cancelación: aquí no hay corrida obsoleta que tirar — hay una tarea que o
+# se hace o no se hace. El grupo solo evita que dos se pisen.
+concurrency:
+  group: npm-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: npm audit (informativo, no falla nada)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Server audit
+        run: npm audit --audit-level=high || echo "::warning::npm audit reportó vulns HIGH+ en server deps"
+
+      - name: Client audit
+        working-directory: ./client
+        run: npm audit --audit-level=high || echo "::warning::npm audit reportó vulns HIGH+ en client deps"
