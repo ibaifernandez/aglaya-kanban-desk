@@ -6,6 +6,39 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Added
+- **Un guardián que le pregunta al SERVIDOR si el esquema documentado es el que
+  hay puesto** (`scripts/schema-drift-guard.sh` + `.test.sh` +
+  `.github/workflows/schema-drift.yml`). Tarjeta `5b7867b3`.
+  - **El hueco que cierra:** `schema-guard` compara la migración con el
+    documento y lo hace bien, pero **compara documento contra documento**.
+    Aplicar una migración es un paso humano y nada notaba si no se daba. El PR
+    #28 lo pagó: documento actualizado, `schema-guard` en verde, **columna sin
+    aplicar en la base**. Se evitó porque una persona se acordó.
+  - **Rojo en las dos direcciones, y significan cosas distintas:** una columna
+    declarada y ausente es una migración sin aplicar —el documento tiene razón—;
+    una presente y no declarada es que alguien tocó la base o que una migración
+    hizo más de lo que cuenta —la base tiene razón sobre lo que hay—. El guardián
+    **no decide cuál**: dice que no coinciden.
+  - **Corre POR RELOJ sobre `main` y nunca en un PR**, y la ausencia de
+    `push:`/`pull_request:` es la decisión, no un olvido: sobre el PR que trae
+    una migración nacería **rojo con razón**.
+  - **Solo compara PRESENCIA de columnas, y lo dice en su cabecera.** Comparar
+    tipos exige normalizar dos dialectos —`TEXT` contra `text`, `TIMESTAMPTZ`
+    contra `timestamp with time zone`— y **la normalización es donde se cuelan
+    los falsos verdes**. Tampoco mira restricciones, claves foráneas, índices,
+    políticas RLS, triggers ni comentarios. Un verde suyo significa «las columnas
+    declaradas están y no hay ninguna de más», no «la base es el documento».
+  - **Su sello ejerce las dos direcciones sin tocar la base** (15 casos), y corre
+    **antes** que él en el job. Nueve mutaciones sobre el guardián, las nueve
+    cazadas.
+  - ⏳ **Falta comprobar que estrena verde contra la base real**, que es el punto
+    5 de su aceptación. **No lo puedo medir**: el enganche de permisos deniega
+    leer el fichero de secretos, y el MCP de Supabase de esta máquina está
+    autenticado contra otra organización — lista `massiva-intelligence` y
+    `aglaya-outreach`, no este proyecto. La orden exacta queda escrita en la
+    tarjeta.
+
 ### Security
 - **Ya no puede entrar una dirección de correo nueva en el árbol sin que alguien
   lo decida.** `scripts/email-guard.sh` corre en CI y se pone rojo ante cualquier

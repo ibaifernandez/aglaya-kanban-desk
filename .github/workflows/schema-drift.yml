@@ -1,0 +1,65 @@
+name: schema-drift
+
+# ¿Lo que hay en el SERVIDOR es lo que el documento dice?
+#
+# `schema-guard` compara la migración con el documento y lo hace bien, pero
+# **compara documento contra documento**. Aplicar una migración es un paso
+# humano, y hasta hoy nada notaba si no se daba. El PR #28 lo pagó: el documento
+# actualizado, `schema-guard` en verde, y la columna sin aplicar en la base.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# POR QUÉ SOLO POR RELOJ, Y NUNCA EN UN PR
+#
+# Sobre el PR que trae una migración **nacería rojo con razón**: en ese momento
+# la migración todavía no está aplicada, y ése es el estado correcto. Un guardián
+# que nace rojo se normaliza hasta que deja de mirarse, y esta casa ya lo pagó.
+#
+# Lo que mide es **deriva de lo que hay puesto**, no propuestas. Por eso no hay
+# `push:` ni `pull_request:` aquí, y su ausencia es la decisión, no un olvido.
+#
+# CONSECUENCIA QUE HAY QUE ACEPTAR EN VOZ ALTA: su sello tampoco corre en los PR.
+# Si alguien destripa el guardián, se sabe en el siguiente tic, no en su PR. Se
+# elige así porque meterlo en los PR le costaría a cada tarjeta dos minutos
+# facturados —GitHub factura por job y redondea al minuto— y este repo tiene una
+# tarjeta `urgent` abierta justamente por eso.
+#
+# UN SOLO JOB, con el sello delante: si el guardián está destripado se sabe
+# antes de gastar la consulta, y el orden es el mismo que en toda la casa.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  schedule:
+    # 07:23 UTC diario. Minuto impar y separado de los otros relojes de la casa
+    # —backup 03:17, rail-scope 06:41, digest en punto— a propósito: dos tareas
+    # que despiertan a la vez comparten cualquier caída del corredor, y entonces
+    # el silencio de las dos significa lo mismo.
+    - cron: '23 7 * * *'
+  workflow_dispatch:
+
+# Sin cancelación: aquí no hay corrida obsoleta que tirar — hay una medición que
+# o se hace o no se hace. El grupo solo evita que dos se pisen.
+concurrency:
+  group: schema-drift
+  cancel-in-progress: false
+
+jobs:
+  deriva:
+    name: ¿El esquema documentado es el que hay en la base?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # El sello va ANTES y no toca la base: si el guardián está destripado se
+      # sabe aquí, sin gastar la consulta. Mismo orden que grants-guard,
+      # docs-guard, contract-guard, hook-guard y email-guard.
+      - name: Sello — ¿muerde en las dos direcciones?
+        run: bash scripts/schema-drift-guard.test.sh
+
+      # Le pregunta al SERVIDOR, que es lo único que puede contestar esto. Mismo
+      # secret que usan db-backup.yml y grants-guard.
+      - name: Guardián — cruce del documento contra la base
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: bash scripts/schema-drift-guard.sh
