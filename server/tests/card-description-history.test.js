@@ -39,6 +39,7 @@ jest.mock('../utils/supabase', () => {
     // y las 12 seguían verdes. Y ese middleware es la ÚNICA protección real —
     // el servidor lee con `service_role`, que salta la RLS de la migración.
     isMember:           true,
+    prevAssigneeId:     null,   // responsable anterior; `null` = sin asignar
   };
 
   const supabaseAdmin = {
@@ -61,15 +62,21 @@ jest.mock('../utils/supabase', () => {
 
         update: (p) => { mode = 'update'; patch = p; return chain; },
 
+        // `insert` puede recibir UNA fila o un ARRAY de filas. Desde `e198e189`
+        // la ruta manda un array —una fila por campo que cambia— y un doble que
+        // solo entendiera el objeto suelto guardaría el array entero como si
+        // fuera una fila: las aserciones de abajo pasarían a mirar una cosa que
+        // no existe en producción.
         insert: (row) => {
+          const filas = Array.isArray(row) ? row : [row];
           if (table === 'card_description_history') {
             if (state.historyInsertError) {
               return Promise.resolve({ data: null, error: { message: state.historyInsertError } });
             }
-            state.insertedHistory.push(row);
-            return Promise.resolve({ data: [row], error: null });
+            state.insertedHistory.push(...filas);
+            return Promise.resolve({ data: filas, error: null });
           }
-          return Promise.resolve({ data: [row], error: null });
+          return Promise.resolve({ data: filas, error: null });
         },
 
         single: () => {
@@ -85,8 +92,11 @@ jest.mock('../utils/supabase', () => {
           }
           if (table === 'cards') {
             return Promise.resolve({
-              data: { checklist: [], board_id: 'board-1', title: 'Tarea', assignee_id: null,
-                      description: state.prevDescription },
+              data: { checklist: [], board_id: 'board-1', title: 'Tarea',
+                      assignee_id: state.prevAssigneeId ?? null,
+                      description: state.prevDescription,
+                      priority: 'medium', due_date: null, category: null,
+                      tags: ['vieja'], checklist_title: '', attachments: [] },
               error: null,
             });
           }
@@ -165,6 +175,7 @@ beforeEach(() => {
   __state.insertedHistory    = [];
   __state.cardUpdates        = [];
   __state.isMember           = true;
+  __state.prevAssigneeId     = null;
 });
 
 describe('sobrescribir una descripción deja rastro', () => {
@@ -224,9 +235,26 @@ describe('no se guarda ruido', () => {
     expect(__state.cardUpdates).toHaveLength(1);
   });
 
-  it('si no se toca la descripción, no hay fila', async () => {
+  // ⚠️ RETRACTADA POR `e198e189`, y se acota en vez de borrarse. Cuando se
+  // escribió, el historial cubría UN campo: cambiar el título no dejaba rastro y
+  // eso era correcto. Desde que el historial cubre todos los campos, ese mismo
+  // cambio SÍ deja fila — y que la deje es el trabajo, no un fallo.
+  //
+  // Lo que la prueba quería fijar sigue vivo y se conserva: **no se guarda ruido**.
+  // Cambiar el título no escribe una fila de DESCRIPCIÓN.
+  it('cambiar el título no escribe una fila de descripción', async () => {
     await put({ title: 'Otro título' });
-    expect(__state.insertedHistory).toHaveLength(0);
+    const deDescripcion = __state.insertedHistory.filter((f) => f.field === 'description');
+    expect(deDescripcion).toHaveLength(0);
+  });
+
+  it('y sí escribe la del título, con su valor anterior', async () => {
+    await put({ title: 'Otro título' });
+    const deTitulo = __state.insertedHistory.filter((f) => f.field === 'title');
+    expect(deTitulo).toHaveLength(1);
+    expect(deTitulo[0].old_value).toBe('Tarea');
+    // La columna vieja se queda en `null`: solo la traen las filas de descripción.
+    expect(deTitulo[0].description).toBeNull();
   });
 
   it('si antes no había texto, no hay nada que perder y no hay fila', async () => {
@@ -473,5 +501,70 @@ describe('sobrescribir texto exige decirlo', () => {
     const res = await putSinAcuse({ priority: 'high' });
     expect(res.status).toBe(200);
     expect(__state.cardUpdates).toHaveLength(1);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// El historial cubre TODOS los campos — tarjeta `e198e189`, 8-ago-2026.
+//
+// La mitad de código de `cfeccbc4`: aquélla puso las columnas `field` y
+// `old_value`, ésta las usa. Lo que se pagó el 6-ago fue la prioridad de once
+// tarjetas puesta a `none` sin rastro, recuperada por dos casualidades. Y el que
+// muerde más fuerte no es la prioridad: es el RESPONSABLE — reasignar por error
+// vuelve la tarjeta invisible para su obrero.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('el historial cubre todos los campos, no solo la descripción', () => {
+  it('cambiar la prioridad deja su valor anterior', async () => {
+    // El caso exacto que se pagó.
+    await put({ priority: 'urgent' });
+    const fila = __state.insertedHistory.find((f) => f.field === 'priority');
+    expect(fila).toBeDefined();
+    expect(fila.old_value).toBe('medium');
+  });
+
+  it('cambiar el responsable deja su valor anterior — el que más muerde', async () => {
+    __state.prevAssigneeId = 'user-viejo';
+    await put({ assigneeId: 'user-nuevo' });
+    const fila = __state.insertedHistory.find((f) => f.field === 'assignee_id');
+    expect(fila).toBeDefined();
+    expect(fila.old_value).toBe('user-viejo');
+  });
+
+  it('una edición que toca DOS campos deja DOS filas, no una ni diez', async () => {
+    // La puerta acepta diez campos. Si escribiera una fila por campo ACEPTADO,
+    // el historial crecería diez veces más rápido de lo que nadie ha medido
+    // (`244c554e`). Una fila por campo que CAMBIA es la restricción que lo evita.
+    await put({ title: 'Otro título', priority: 'high' });
+    expect(__state.insertedHistory).toHaveLength(2);
+    expect(__state.insertedHistory.map((f) => f.field).sort()).toEqual(['priority', 'title']);
+  });
+
+  it('mandar un campo con el MISMO valor no deja fila', async () => {
+    await put({ priority: 'medium' });
+    expect(__state.insertedHistory.filter((f) => f.field === 'priority')).toHaveLength(0);
+  });
+
+  it('un campo que no tenía valor no deja fila: no se destruye nada', async () => {
+    // `assignee_id` a `null` en el doble. Pasar de vacío a lleno no es pérdida.
+    await put({ assigneeId: 'user-nuevo' });
+    expect(__state.insertedHistory.filter((f) => f.field === 'assignee_id')).toHaveLength(0);
+  });
+
+  it('los campos JSON se guardan como texto, no como objeto', async () => {
+    // `old_value` es TEXT. Un historial que guardara JSON en unos campos y texto
+    // en otros obligaría a saber cuál es cuál para poder leerlo.
+    await put({ tags: ['nueva'] });
+    const fila = __state.insertedHistory.find((f) => f.field === 'tags');
+    expect(fila).toBeDefined();
+    expect(typeof fila.old_value).toBe('string');
+    expect(JSON.parse(fila.old_value)).toEqual(['vieja']);
+  });
+
+  it('si el historial falla, NO se sobrescribe ningún campo', async () => {
+    // La garantía de `cfeccbc4` no se afloja al ensancharla: sigue abortando.
+    __state.historyInsertError = 'boom';
+    const res = await put({ title: 'Otro título', priority: 'high' });
+    expect(res.status).toBe(500);
+    expect(__state.cardUpdates).toHaveLength(0);
   });
 });

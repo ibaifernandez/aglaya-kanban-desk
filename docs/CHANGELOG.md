@@ -55,6 +55,28 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     workflows propios — fundirlos ahorraría 3 minutos más por ciclo y es una
     decisión estructural que esta tarjeta no tomó.
 ### Added
+- **El historial cubre TODOS los campos, y `card_history` los expone.** Tarjeta
+  `e198e189`. Contrato `riel` **v3.4.0**. Es la mitad de código de `cfeccbc4`.
+  - **Una fila por campo que CAMBIA de valor**, no por campo aceptado: la puerta
+    acepta diez y una edición típica toca uno o dos. Esa distinción es lo que
+    evita multiplicar por diez un crecimiento que nadie ha medido (`244c554e`).
+  - **Y si no había valor previo, no hay fila:** pasar de vacío a lleno no
+    destruye nada. Era la regla de la descripción y vale igual para los demás.
+  - **`card_history` gana `field` y `oldValue`**; `description` pasa a poder
+    venir `null` —solo la traen las filas de descripción— y las filas antiguas
+    siguen leyéndose porque `oldValue` cae a `description` cuando la nueva está
+    vacía.
+  - **Los campos JSON se guardan como texto**, porque `old_value` es `TEXT`: un
+    historial que guardara JSON en unos y texto en otros obligaría a saber cuál
+    es cuál para leerlo.
+  - **Sigue abortando el update si el historial falla**, ahora para cualquier
+    campo. La garantía de v2.1.0 se ensancha, no se afloja.
+  - **Una prueba de `cfeccbc4` queda retractada y acotada**, no borrada: «si no
+    se toca la descripción, no hay fila» era correcta cuando el historial cubría
+    un campo. Ahora cambiar el título **sí** deja fila, y que la deje es el
+    trabajo. Lo que quería fijar —que no se guarda ruido— se conserva.
+
+### Added
 - **Un guardián que le pregunta al SERVIDOR si el esquema documentado es el que
   hay puesto** (`scripts/schema-drift-guard.sh` + `.test.sh` +
   `.github/workflows/schema-drift.yml`). Tarjeta `5b7867b3`.
