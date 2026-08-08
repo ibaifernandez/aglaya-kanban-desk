@@ -289,6 +289,34 @@ class ActualizarTarjeta(RielTestCase):
         puts = [c for c in self.writes if c[0] == "PUT"]
         self.assertEqual(puts[0][2]["description"], "")
 
+    # ── El acuse de sobrescritura (tarjeta f19dda2d) ─────────────────────────
+    #
+    # El servidor rechaza con 409 una escritura que sustituya texto existente sin
+    # acuse. Esta puerta es la del llamante CIEGO —el que arma la cadena en otro
+    # sitio—, así que su valor por omisión tiene que ser el seguro. Se mira lo que
+    # SALE A LA RED: que la bandera no viaje sola es la mitad de la protección.
+
+    def test_por_defecto_NO_manda_el_acuse_de_sobrescritura(self):
+        # Si esto se rompiera, el riel pasaría la compuerta siempre y sin que
+        # nadie lo pidiera — la compuerta seguiría existiendo y no protegería.
+        server.update_card(card_id="card-1", description_md="# Reescrito")
+        puts = [c for c in self.writes if c[0] == "PUT"]
+        self.assertNotIn("replacesDescriptionOnPurpose", puts[0][2])
+
+    def test_con_replacing_on_purpose_el_acuse_viaja(self):
+        server.update_card(card_id="card-1", description_md="# Reescrito",
+                           replacing_on_purpose=True)
+        puts = [c for c in self.writes if c[0] == "PUT"]
+        self.assertIs(puts[0][2]["replacesDescriptionOnPurpose"], True)
+
+    def test_el_acuse_no_se_manda_si_no_se_toca_la_descripcion(self):
+        # Afirmar «sustituyo a propósito» en una llamada que no manda descripción
+        # sería afirmar algo que no se está haciendo.
+        server.update_card(card_id="card-1", priority="high",
+                           replacing_on_purpose=True)
+        puts = [c for c in self.writes if c[0] == "PUT"]
+        self.assertNotIn("description", puts[0][2])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
