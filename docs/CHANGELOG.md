@@ -27,6 +27,17 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     se responde, no se acepta a ciegas.** Cada comprobación es un `step` con su
     nombre, **ninguna corta a las siguientes**, y un verdicto final imprime quién
     pasó y quién no antes de poner el job en rojo.
+  - **Y un segundo guardián vigila que al verdicto le llegue TODO lo que tiene
+    que juzgar** (`scripts/ci-cableado.sh` + `.test.sh`). El verdicto juzga lo que
+    se le pasa; sin esto, borrar una línea de la llamada dejaría a ese guardián en
+    rojo dentro de un job en verde, **para siempre y sin rastro**. Antes de fundir
+    los jobs eso se veía —la comprobación se caía de la lista de checks de GitHub,
+    que es literalmente cómo se cazó el #34—; fundirlos cambió esa garantía
+    estructural por una convención, y esto la devuelve. Compara el conjunto de
+    `id` con `continue-on-error: true` contra el de `steps.<id>.outcome` de la
+    llamada, **se pone rojo en las dos direcciones** —paso sin juzgar y entrada
+    fantasma—, nombra el `id`, y también muerde si un paso puede fallar y **no
+    tiene `id`** con el que citarse. No añade ningún job.
   - **Ese verdicto es la nueva pieza crítica y tiene sello propio**
     (`scripts/ci-verdicto.sh` + `.test.sh`). Si fallara, un guardián en rojo
     quedaría dentro de un job en verde — el fallo del #34 con otra cara. Lo que

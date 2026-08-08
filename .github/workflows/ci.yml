@@ -231,9 +231,31 @@ jobs:
       #
       # Sin él, `continue-on-error` dejaría el job en verde con guardianes en
       # rojo dentro: exactamente el fallo que el #34 pagó, con otra cara.
+      # ── el cableado ────────────────────────────────────────────────────────
+      # El verdicto juzga LO QUE SE LE PASA. Esto comprueba que se le pase todo
+      # lo que hay que juzgar: que el conjunto de `id` con `continue-on-error`
+      # de arriba y el de `steps.<id>.outcome` de abajo sean el MISMO.
+      #
+      # Sin él, borrar una línea de la llamada deja ese guardián en rojo dentro
+      # de un job en verde, para siempre y sin rastro. Antes de fundir los jobs
+      # eso se veía —la comprobación se caía de la lista de checks— y así se cazó
+      # el #34. Esto devuelve esa garantía.
+      - name: Sello — ¿el guardián del cableado muerde en las dos direcciones?
+        id: sello_cableado
+        continue-on-error: true
+        run: bash scripts/ci-cableado.test.sh
+
+      - name: Guardián — ¿el verdicto juzga TODOS los pasos que pueden fallar?
+        id: cableado
+        continue-on-error: true
+        run: bash scripts/ci-cableado.sh
+
       # El sello del verdicto va ANTES que el verdicto, como el de cualquier
       # guardián de esta casa: si el que decide el color está destripado, da
-      # igual lo que conteste sobre los diez resultados de arriba.
+      # igual lo que conteste sobre los resultados de arriba.
+      #
+      # Éste sí corre en seco, sin `continue-on-error`: es el único que no puede
+      # delegar su propio fallo en el que está comprobando.
       - name: Sello — ¿el verdicto pone rojo un resultado vacío o saltado?
         run: bash scripts/ci-verdicto.test.sh
 
@@ -249,7 +271,9 @@ jobs:
             "hook-guard · sello|${{ steps.sello_hook.outcome }}" \
             "hook-guard · guardián|${{ steps.hook.outcome }}" \
             "email-guard · sello|${{ steps.sello_email.outcome }}" \
-            "email-guard · guardián|${{ steps.email.outcome }}"
+            "email-guard · guardián|${{ steps.email.outcome }}" \
+            "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
+            "cableado del verdicto · guardián|${{ steps.cableado.outcome }}"
 
   client-build:
     name: Client build (vite)
