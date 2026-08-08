@@ -37,6 +37,78 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     al empujar a `main`. Es la factura del PR #28, que se salvó partiéndolo en dos.
 
 ### Security
+- **El historial de descripciones deja de declararse borrable por quien lo
+  genera.** `authenticated` tenía `UPDATE` y `DELETE` sobre
+  `card_description_history` — la tabla cuya única razón de existir es guardar lo
+  que ese mismo actor sobrescribió. Tarjeta `2c034471`.
+  - **Un historial que el mismo actor puede reescribir no es un historial:** es
+    una copia más, con la ceremonia de un historial. Y es el mecanismo de deshacer
+    que `docs/contracts/CONTRACT.md` promete.
+  - **No era explotable hoy, y aun así se recorta.** La RLS de esa tabla tiene
+    **una sola política, y es de SELECT**: sin política de escritura,
+    `authenticated` no alcanza ninguna fila. Era pólvora seca, no una puerta
+    abierta — y se recorta antes de que alguien escriba una política permisiva
+    pensando en otra cosa.
+  - **La contradicción ya estaba escrita en el fichero que la creó:**
+    `migration-card-description-history.sql` concede `UPDATE, DELETE` en su línea
+    45 y quince líneas más abajo explica que la escritura no se abre a
+    `authenticated` a propósito. Ganó el GRANT. Ese fichero **no se edita** —
+    registra lo que se aplicó— sino que lleva una nota que apunta al recorte.
+  - **La excepción vive DENTRO del bucle de GRANTs del esquema**, con un
+    `tablename <> 'card_description_history'`, y no como un `REVOKE` detrás. Un
+    REVOKE detrás dejaría el privilegio concedido y retirado en el mismo fichero,
+    y bastaría reordenar dos bloques para reabrirlo sin que nadie lo note.
+  - **Radio del cambio: cero, medido.** El navegador **nunca** llama `.from(...)`;
+    todo el acceso pasa por Express con `service_role`, que conserva los cuatro
+    privilegios — la poda futura sigue siendo posible.
+  - **`INSERT` se conserva, y se dice por qué:** la tarjeta nombra `UPDATE` y
+    `DELETE`. El mismo argumento vale para `INSERT`, pero ampliarlo sería decidir
+    por encima de quien acotó la tarjeta. Queda dicho, no hecho.
+  - ⏳ **Pendiente del Operador.** `docs/schema/migration-historial-append-only.sql`
+    está escrita e idempotente, pero **aplicarla es una acción sobre la base**.
+    Hasta entonces el esquema declara una cosa y la base tiene otra, y así queda
+    avisado en la cabecera de la sección 9.
+  - **Lo vigila una prueba, no un guardián**
+    (`server/tests/historial-append-only.test.js`). Un guardián contra la base
+    **nacería rojo** —el recorte no está aplicado— y en esta casa un guardián que
+    nace rojo se normaliza. La prueba vigila la **declaración**, que es donde está
+    la regresión real: quien borre esa condición del bucle reabre el agujero con
+    una línea, y desharía el recorte aplicado la próxima vez que alguien corra el
+    esquema.
+- **`grants-guard` deja de ser tuerto: vigila `anon` y `authenticated`, con
+  excepciones por tabla derivadas del esquema.** Tarjeta `cf3303c7`.
+  - **Vigilaba un solo rol, siempre `anon`.** `authenticated` —de quien se
+    recortaron `MAINTAIN`, `REFERENCES`, `TRIGGER` y `TRUNCATE` el 6-ago— **no lo
+    miraba nadie**. El rol del que se acababa de recortar era justo el ciego.
+  - **Y cierra un segundo hueco que parecía necesitar a una persona:** `eeaebd9f`
+    no podía certificarse porque la única medición que existe **la ejecutó quien
+    aplicó el recorte**, y quien ejecuta no certifica su propio resultado. Este
+    job sí puede: tiene credenciales propias y su verde queda **en el registro**,
+    no en la palabra de nadie.
+  - **Lo permitido dejó de ser una variable: se DERIVA del esquema**
+    (`scripts/grants-expectativa.py`). Cada rol tiene su conjunto, y hay
+    **excepciones por tabla** — una tabla-historial no puede dar `UPDATE` ni
+    `DELETE` a quien genera lo que guarda.
+  - **Las excepciones se declaran donde se declara el esquema, no dentro del
+    guardián.** Una lista escrita a mano en un script es completa el día que se
+    escribe: es la avería que el #35 cerró para `contract-guard`. **Comprobado
+    contra las dos versiones del esquema que existían el 8-ago**: sobre `main` da
+    solo los defaults; sobre la rama del #42 saca sola la excepción por tabla,
+    sin tocar una línea del guardián.
+  - **La comparación se movió del `HAVING` de SQL al script**, porque la
+    expectativa ya no es una cadena única. Efecto lateral bueno: la decisión
+    quedó visible y sellable. Efecto lateral que hubo que cubrir: **«sin filas»
+    dejó de significar «ninguna se sale» y pasa a significar «no se midió nada»**,
+    que ya no es verde.
+  - **El sello exige los DOS roles.** La comprobación de que `anon` sigue vigilado
+    —añadida al cerrar `8eb39541` para que nadie desviara el guardián— **no se
+    retira: se le suma la de `authenticated`**. 22 casos, y uno comprueba que
+    ninguna excepción por tabla viva dentro del script.
+  - **Nueve mutaciones. Una escapó** —la defensa contra una fila de un rol que
+    nadie declara no la ejercía ningún caso— y ya tiene el suyo.
+  - ⚠️ **Lo que NO cierra:** sigue ciego a `MAINTAIN`, porque consulta
+    `information_schema`, que solo expone los siete del estándar SQL. Es
+    `11f1be5b`, y esto no la absorbe.
 - **Ya no puede entrar una dirección de correo nueva en el árbol sin que alguien
   lo decida.** `scripts/email-guard.sh` corre en CI y se pone rojo ante cualquier
   dirección que no esté **declarada** en `scripts/email-guard.allowed`. Cierra el

@@ -322,6 +322,12 @@ CREATE INDEX IF NOT EXISTS idx_card_description_history_card_field
 -- `anon` solo SELECT; `authenticated` y `service_role` con escritura completa.
 -- RLS es el guard efectivo.
 --
+-- ⚠️ CON UNA EXCEPCIÓN DESDE EL 2026-08-08, y hasta que el Operador la aplique
+-- este fichero y la base NO coinciden en ella: `card_description_history` deja
+-- de dar `UPDATE` y `DELETE` a `authenticated`. Lo declara este fichero; en la
+-- base sigue como estaba hasta que se ejecute
+-- `docs/schema/migration-historial-append-only.sql`. Tarjeta `2c034471`.
+--
 -- ESTE BLOQUE RECORTA ANTES DE CONCEDER, y no es simetría. Hasta el 2026-08-06
 -- solo concedía, y un GRANT no quita nada: la base llevaba `MAINTAIN` de más en
 -- los dos roles —y `TRUNCATE`, `REFERENCES` y `TRIGGER` en `authenticated`—
@@ -332,10 +338,22 @@ CREATE INDEX IF NOT EXISTS idx_card_description_history_card_field
 -- expone los siete del estándar SQL. Por eso nadie lo vio: el guardián de
 -- privilegios consulta `information_schema`. Se ve con `aclexplode(relacl)`.
 -- Detalle y medición: docs/schema/migration-recorte-privilegios-anon-authenticated.sql
+-- UNA TABLA SE SALE DEL BUCLE, y la excepción es el punto entero:
+-- `card_description_history` existe para guardar lo que otro sobrescribió, así
+-- que **no puede dar a ese mismo actor permiso para borrarlo**. Un historial que
+-- el mismo actor puede reescribir no es un historial: es una copia más, con la
+-- ceremonia de un historial. Sus GRANT van después del bucle, a mano.
+--
+-- Va con `<>` dentro del bucle y no como un REVOKE detrás **a propósito**. Un
+-- REVOKE detrás dejaría el privilegio concedido y retirado en el mismo fichero,
+-- y bastaría reordenar dos bloques para reabrirlo sin que nadie lo note. Aquí no
+-- se llega a conceder.
 DO $$
 DECLARE t text;
 BEGIN
-  FOR t IN SELECT tablename FROM pg_tables WHERE schemaname = 'public'
+  FOR t IN SELECT tablename FROM pg_tables
+            WHERE schemaname = 'public'
+              AND tablename <> 'card_description_history'
   LOOP
     EXECUTE format('REVOKE ALL ON public.%I FROM anon;', t);
     EXECUTE format('REVOKE ALL ON public.%I FROM authenticated;', t);
@@ -343,6 +361,25 @@ BEGIN
     EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON public.%I TO authenticated, service_role;', t);
   END LOOP;
 END $$;
+
+-- La excepción, explícita. `authenticated` se queda SIN `UPDATE` ni `DELETE`.
+--
+-- `INSERT` se conserva, y conviene decir por qué se conserva en vez de dejarlo
+-- pasar en silencio: la tarjeta que manda este recorte (`2c034471`) nombra
+-- `UPDATE` y `DELETE`, no `INSERT`. El mismo argumento vale para `INSERT` —lo
+-- escribe el servidor con `service_role`, y la propia migración de la tabla dice
+-- que no se abre a `authenticated` a conciencia— pero **ampliarlo aquí sería
+-- decidir por encima de quien acotó la tarjeta**. Queda dicho, no hecho.
+--
+-- Hoy `INSERT` tampoco alcanza nada: la RLS de esta tabla solo tiene política de
+-- SELECT, y sin política no se inserta. El privilegio es pólvora seca, no una
+-- puerta abierta — y es exactamente por eso que se recorta antes de que alguien
+-- escriba una política de escritura pensando en otra cosa.
+REVOKE ALL ON public.card_description_history FROM anon;
+REVOKE ALL ON public.card_description_history FROM authenticated;
+GRANT SELECT                          ON public.card_description_history TO anon;
+GRANT SELECT, INSERT                  ON public.card_description_history TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE  ON public.card_description_history TO service_role;
 
 -- Y los DEFAULT PRIVILEGES, para que una tabla nueva no nazca con los ocho.
 -- Cierra la mitad de `postgres`; la de `supabase_admin` NO se toca a propósito
