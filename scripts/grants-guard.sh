@@ -70,6 +70,36 @@
 # solo se puede probar teniendo la DB delante — y lo que no corre en CI es
 # decoración.
 #
+#
+# ⏱ QUÉ SIGNIFICA SU VERDE, Y QUÉ NO — 8-ago-2026 (tarjeta `3afe754d`)
+#
+# Este guardián **pregunta fuera del repositorio**. Consecuencia que hay que
+# tener delante al leerlo: **su verde caduca sin que cambie una línea de código**.
+#
+# Medido el 8-ago-2026 sobre el MISMO commit y el mismo esquema:
+#
+#     10:15:10Z → verde
+#     10:23:09Z → rojo
+#
+# Lo único que cambió en esos ocho minutos fue la base de datos.
+#
+# Por eso su verde se imprime **fechado**, y hay que leerlo así:
+#
+#     «a tal hora, contra la base real, lo declarado y lo que hay coincidían»
+#
+# y **no** como «este commit está bien». Los invariantes de la casa —«la
+# aprobación pertenece al commit», «el verde tiene que ser del commit que se va a
+# mergear»— valen mientras lo medido esté DENTRO del commit. Aquí no lo está.
+#
+# QUIEN MERGEA es quien tiene que volver a mirarlo, porque el guardián no puede:
+# no sabe cuándo se mergea. Lo único que puede hacer es no dejar que su verde se
+# confunda con una propiedad del commit, y eso es lo que hace la línea fechada.
+#
+# LA VENTANA DE «APLICAR ANTES DE MERGEAR», declarada aquí para que no se
+# descubra en cada rojo: este repo aplica las migraciones ANTES de mergear su PR
+# —para no desplegar código contra una columna que no está—, así que existe un
+# intervalo en el que **la base va por delante del documento** y este guardián
+# está rojo con razón. Ese rojo se cierra mergeando el PR, no arreglando nada.
 # Uso:  bash scripts/grants-guard.sh
 #       DATABASE_URL=postgres://…  (o SUPABASE_URL + SUPABASE_DATABASE_PASSWORD)
 #       GRANTS_GUARD_ROWS=$'rol|tabla|PRIVS\n…'      (el sello)
@@ -203,8 +233,13 @@ for rol, tabla, privs in reales:
 if not sobrantes:
     n_exc = len(excepcion)
     extra = f", {n_exc} excepción(es) por tabla declarada(s)" if n_exc else ""
+    from datetime import datetime, timezone
+    ahora = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     print(f"grants-guard: {len(reales)} pares (rol, tabla) mirados para "
           f"{', '.join(roles)}{extra} — todos coinciden con el esquema. OK.")
+    # ⏱ EL VERDE VA FECHADO, Y NO ES ADORNO. Ver la cabecera de este fichero.
+    print(f"[medido {ahora} contra la base real — este verde es de ese instante, "
+          f"no una propiedad del commit]")
     raise SystemExit(0)
 
 print("::error::grants-guard: hay tablas cuyos privilegios no son los que el "
@@ -224,6 +259,12 @@ print("  GRANT <lo que declara el esquema> ON public.<tabla> TO <rol>;")
 print("")
 print("El patrón completo está en CLAUDE.md, sección de GRANTs. Conceder sin")
 print("recortar antes no basta: lo que sobra ya estaba puesto antes de tu GRANT.")
+print("")
+print("⏱ Y ANTES DE LLAMARLO DEFECTO: si acabas de aplicar una migración y su PR")
+print("   todavía NO está mergeado, este rojo es ESPERADO. Este repo aplica antes")
+print("   de mergear —para no desplegar código contra una columna que no está—, y")
+print("   eso abre una ventana en la que la base va por delante del documento. El")
+print("   rojo se cierra al mergear ese PR, no arreglando nada.")
 print("")
 print("Y si lo que falla es una tabla que DEBE ser distinta a sus hermanas, la")
 print("excepción se declara en `docs/schema/supabase-schema.sql` —no aquí—, y")
