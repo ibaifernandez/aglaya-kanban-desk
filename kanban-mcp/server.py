@@ -499,6 +499,7 @@ def update_card(
     priority: str | None = None,
     due_date: str | None = None,
     description_md: str | None = None,
+    replacing_on_purpose: bool = False,
 ) -> dict[str, Any]:
     """Edit an EXISTING card's fields, without deleting and re-creating it.
     Only the fields you pass change; the rest are left as they are. Use this to
@@ -513,6 +514,21 @@ def update_card(
 
     Passing neither leaves the description untouched; passing an empty one CLEARS
     it. Those are different intents and this tool tells them apart.
+
+    ⚠️ A BRIEF THAT DOES NOT CONTAIN THE CURRENT ONE IS REFUSED WITH 409 unless
+    you pass `replacing_on_purpose=True`. Adding to a card is unaffected — text
+    that contains what was already there goes through untouched. What is refused
+    is the blind REWRITE: sending a string you assembled elsewhere, that silently
+    drops what someone else had written.
+
+    That is not hypothetical. On 2026-08-08 an agent rebuilt a card's brief from
+    a stale copy and destroyed another role's measurement — including a finding
+    written there precisely so it would travel between roles. It was recovered
+    only because the history keeps versions, and nobody reads the history unless
+    they already suspect.
+
+    If you get the 409: read `card_history` first, then send text that CONTAINS
+    what is there — or, if you really mean to compact it, say so with the flag.
 
     priority ∈ urgent|high|medium|low|none. `due_date` = ISO (YYYY-MM-DD). Wraps
     PUT /api/cards/:id (server/routes/cards.js → updateCard), the same endpoint
@@ -530,6 +546,12 @@ def update_card(
     if brief is not SIN_TOCAR: body["description"] = brief
     if priority is not None: body["priority"] = priority
     if due_date is not None: body["dueDate"] = due_date
+    # Solo se manda cuando el llamante lo pidió. NO se manda por defecto a
+    # propósito: el valor por omisión de esta puerta tiene que ser el seguro,
+    # porque el llamante de esta puerta es justo el que puede no haber leído.
+    # El navegador sí lo manda siempre, y ahí es la verdad: su editor trae el
+    # texto actual dentro (`client/src/api/client.js`).
+    if replacing_on_purpose:  body["replacesDescriptionOnPurpose"] = True
     if not body:
         return {"error": "nothing to update — pass at least one of "
                          "title|description|description_md|priority|due_date"}

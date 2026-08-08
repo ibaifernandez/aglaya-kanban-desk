@@ -115,7 +115,16 @@ export const api = {
   getCards:    (boardId) => request(`/boards/${boardId}/cards`),
   searchCards: (q)       => request(`/cards/search?q=${encodeURIComponent(q)}`),
   createCard:  (body)    => request('/cards', { method: 'POST', body: JSON.stringify(body) }),
-  updateCard:  (id, body)=> request(`/cards/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  // `replacesDescriptionOnPurpose` va SIEMPRE desde el navegador, y no es un
+  // pasaporte para saltarse la compuerta: es la verdad de este llamante. El
+  // editor trae la descripción actual dentro, así que quien la sustituye desde
+  // aquí **está mirando lo que borra**. La compuerta existe para el llamante
+  // ciego —el riel, que manda una cadena que armó en otro sitio—, y ése tiene
+  // que decirlo a mano. Ver `server/routes/cards.js` → updateCard.
+  updateCard:  (id, body)=> request(`/cards/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ replacesDescriptionOnPurpose: true, ...body }),
+  }),
   moveCard:    (id, body)=> request(`/cards/${id}/move`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteCard:  (id, body = null) => request(`/cards/${id}`, {
     method: 'DELETE',

@@ -7,6 +7,38 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Security
+- **Sobrescribir la descripción de una tarjeta ya no se puede hacer sin querer.**
+  Tarjeta `f19dda2d`. Contrato `riel` **v3.3.0** — modo de fallo nuevo.
+  - **Qué pasó, y lo hice yo.** El 8-ago-2026 un obrero —éste— reconstruyó la
+    descripción de `6b1a11f3` desde una copia vieja y la mandó entera. Se
+    perdieron la medición del vigilante y **un hallazgo escrito ahí precisamente
+    para viajar de un papel a otro**. Se recuperó porque el historial guarda
+    versiones, y **eso es suerte de implementación, no una garantía**: nadie mira
+    el historial salvo que ya sospeche.
+  - **Por qué era `high` y no una anécdota:** todo el protocolo descansa en «no
+    hay partes — lo que no quepa en la tarjeta o en el PR, no existe». La tarjeta
+    **es** el registro, y se podía sobrescribir entero sin aviso ni marca.
+  - **La compuerta:** `PUT /api/cards/:id` devuelve **`409`** si la descripción
+    entrante **no contiene** la que ya había, salvo que traiga
+    `replacesDescriptionOnPurpose: true`. No escribe nada — ni la tarjeta ni el
+    historial.
+  - **Añadir no se entera.** Un texto que contiene el anterior pasa sin bandera,
+    que es el caso normal de un agente que amplía una tarjeta. **Si pidiera acuse
+    también para añadir, la compuerta se volvería un trámite y se pasaría
+    siempre** — que es como mueren las compuertas.
+  - **La asimetría que lo hace funcionar:** el navegador **ha leído el texto por
+    construcción** —su editor lo trae dentro—, así que el cliente afirma la
+    bandera siempre y quien compacta desde ahí está mirando lo que borra. El riel
+    manda una cadena armada en otro sitio, y **su valor por omisión es el
+    seguro**.
+  - **Por qué no un aviso en el acuse:** esta casa ya midió que **nadie compara un
+    acuse de éxito** (`5d8a5fd8`). Lo que no cuesta nada no cambia lo que pasa.
+  - **Vaciar también es destruir**, y también exige la bandera. **No mandar la
+    descripción** sigue significando «no la toques» y no dispara nada.
+  - Ocho pruebas nuevas y seis mutaciones, las seis cazadas.
+  - ⚠️ **Lo que NO cubre:** los demás campos —prioridad, responsable, columna—
+    se siguen sobrescribiendo sin rastro. Eso es `cfeccbc4`. Y no protege de
+    quien pasa la bandera sin mirar; nada puede.
 - **Ya no puede entrar una dirección de correo nueva en el árbol sin que alguien
   lo decida.** `scripts/email-guard.sh` corre en CI y se pone rojo ante cualquier
   dirección que no esté **declarada** en `scripts/email-guard.allowed`. Cierra el
