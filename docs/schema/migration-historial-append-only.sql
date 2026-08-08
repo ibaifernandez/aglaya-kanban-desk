@@ -1,0 +1,111 @@
+-- Migration: el historial de descripciones deja de ser borrable por quien lo genera
+-- Tarjeta: «Quien está autenticado puede borrar y modificar el historial, y eso lo mide la base» (2c034471)
+-- Created: 2026-08-08
+-- ⏳ PENDIENTE DE APLICAR. Requiere al Operador (SQL Editor de Supabase).
+--    Cuando se aplique, esta cabecera pasa a decir la fecha y quién, como hace
+--    `migration-recorte-privilegios-anon-authenticated.sql`.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- QUÉ CIERRA
+--
+-- `public.card_description_history` existe para una sola cosa: guardar la
+-- versión ANTERIOR de la descripción de una tarjeta cada vez que alguien la
+-- sobrescribe. Es el mecanismo de deshacer que `docs/contracts/CONTRACT.md`
+-- promete —«deshacer es leer la que toque y volver a mandarla»— y por eso el
+-- servidor aborta el `update` con `500` si no consigue escribir la copia.
+--
+-- Y hasta hoy `authenticated` tenía `UPDATE` y `DELETE` sobre ella.
+--
+-- **Un historial que el mismo actor puede reescribir no es un historial: es una
+-- copia más, con la ceremonia de un historial.**
+--
+-- MEDIDO, no supuesto (por Ibai el 7-ago-2026, con `aclexplode(relacl)` sobre
+-- las once tablas de `public`):
+--
+--   card_description_history | authenticated | DELETE, INSERT, SELECT, UPDATE
+--
+-- No hay ninguna desviación entre la base y el esquema documentado: el defecto
+-- es que **la declaración trataba esta tabla igual que a sus diez hermanas**.
+-- Nació del patrón de tablas nuevas, que concede escritura a `authenticated` sin
+-- preguntarse para qué existe la tabla.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- NO ES EXPLOTABLE HOY, Y AUN ASÍ SE RECORTA
+--
+-- La RLS de esta tabla tiene **una sola política, y es de SELECT**. Sin política
+-- de UPDATE ni de DELETE, `authenticated` no alcanza ninguna fila por más
+-- privilegio que tenga: RLS es el guard efectivo.
+--
+-- O sea que esto es **pólvora seca, no una puerta abierta**. Se recorta porque
+-- el día que alguien escriba una política de escritura sobre esta tabla —o una
+-- permisiva con `FOR ALL`, que es el error de una línea— el privilegio ya está
+-- puesto y nadie volverá a mirarlo. La segunda capa existe para el día en que
+-- falla la primera.
+--
+-- Y porque la contradicción ya estaba escrita en el propio fichero que la creó:
+-- `migration-card-description-history.sql` concede `UPDATE, DELETE` en su línea
+-- 45 y quince líneas más abajo explica que no se abre la escritura a
+-- `authenticated` a propósito. El comentario decía una cosa y el GRANT otra.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- RADIO DEL CAMBIO: CERO, y también está medido
+--
+-- Ningún camino de esta aplicación escribe esta tabla como `authenticated`:
+--
+--   · `server/routes/cards.js:206` inserta con `supabaseAdmin`, que es
+--     `SUPABASE_SERVICE_ROLE_KEY` (`server/utils/supabase.js`).
+--   · `server/routes/cards.js:401` lee con el mismo cliente.
+--   · El navegador **nunca** llama `.from(...)`: comprobado sobre `client/src`.
+--     Su única llave anónima se usa para autenticarse, no para leer tablas.
+--
+-- `service_role` conserva los cuatro privilegios, así que la poda futura
+-- —tarjeta propia, `low`— sigue siendo posible desde el servidor.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- LO QUE ESTA MIGRACIÓN **NO** HACE
+--
+--   · **No retira `INSERT`.** La tarjeta que la manda nombra `UPDATE` y
+--     `DELETE`. El mismo argumento vale para `INSERT` y queda escrito, aquí y en
+--     la tarjeta, pero ampliarlo sería decidir por encima de quien la acotó.
+--   · **No añade ningún guardián que lo vigile.** `scripts/grants-guard.sh` mira
+--     `anon` y solo `anon`, por decisión escrita en su cabecera. Un guardián que
+--     comprobara esto **nacería rojo** —la base conserva `UPDATE` y `DELETE`
+--     hasta que el Operador ejecute esto— y en esta casa un guardián que nace
+--     rojo se normaliza hasta que deja de mirarse. Lo que sí entra hoy es una
+--     prueba sobre la DECLARACIÓN (`server/tests/historial-append-only.test.js`),
+--     que sí puede estrenar verde.
+--   · **No toca `migration-card-description-history.sql`.** Aquel fichero
+--     registra lo que se aplicó de verdad el día que se aplicó; reescribirlo lo
+--     haría mentir. Lleva una nota que apunta aquí.
+--
+-- Idempotente: se puede aplicar dos veces.
+
+-- 1. Recortar. `REVOKE` sobre un privilegio que no está no falla.
+REVOKE UPDATE, DELETE ON public.card_description_history FROM authenticated;
+
+-- 2. Y dejar escrito, en la misma transacción mental, lo que SÍ queda. No es
+--    redundante: si alguien vuelve a correr el bloque de GRANTs del esquema con
+--    una versión vieja del fichero, esto es lo que hay que volver a ejecutar.
+GRANT SELECT                          ON public.card_description_history TO anon;
+GRANT SELECT, INSERT                  ON public.card_description_history TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE  ON public.card_description_history TO service_role;
+
+-- 3. Comprobación posterior. La ejecuta quien NO la aplicó.
+--    Tiene que devolver exactamente estas tres filas:
+--
+--      anon          | SELECT
+--      authenticated | INSERT, SELECT
+--      service_role  | DELETE, INSERT, SELECT, UPDATE
+--
+--    Se usa `aclexplode` y NO `information_schema` a propósito: el segundo solo
+--    expone los siete privilegios del estándar SQL y se dejó `MAINTAIN` sin ver
+--    durante días en esta misma base.
+--
+--   SELECT grantee::regrole::text AS rol,
+--          string_agg(DISTINCT privilege_type, ', ' ORDER BY privilege_type) AS privilegios
+--     FROM pg_class c
+--     CROSS JOIN LATERAL aclexplode(c.relacl)
+--    WHERE c.relname = 'card_description_history'
+--      AND grantee::regrole::text IN ('anon', 'authenticated', 'service_role')
+--    GROUP BY grantee
+--    ORDER BY rol;

@@ -42,6 +42,17 @@ CREATE INDEX IF NOT EXISTS idx_card_description_history_card
 
 -- GRANTs explícitos (deadline Data API, oct-2026): una tabla nueva en `public`
 -- sin GRANT falla vía supabase-js aunque la RLS la permita.
+--
+-- ⚠️ RETRACTADO EL 2026-08-08 — no se edita esta línea, se anota. Este fichero
+-- registra lo que se APLICÓ el día que se aplicó; corregirlo aquí lo haría
+-- mentir sobre eso. La línea de abajo concede `UPDATE` y `DELETE` a
+-- `authenticated` mientras el comentario de quince líneas más abajo explica que
+-- la escritura no se le abre a propósito: el comentario decía una cosa y el
+-- GRANT otra, y ganó el GRANT.
+--
+-- Lo corrige `docs/schema/migration-historial-append-only.sql` (tarjeta
+-- `2c034471`), que retira `UPDATE` y `DELETE`. Hasta que el Operador lo aplique,
+-- la base sigue como dice esta línea.
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.card_description_history TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.card_description_history TO service_role;
 
