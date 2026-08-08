@@ -403,6 +403,48 @@ describe('sobrescribir texto exige decirlo', () => {
     expect(__state.insertedHistory).toHaveLength(1);
   });
 
+  // ── La contención tiene que ser ENTERA ───────────────────────────────────
+  //
+  // ESTAS TRES PRUEBAS LAS PIDIÓ EL VIGILANTE, y las pidió porque encontró el
+  // hueco mutando: **«que baste con que aparezca la MITAD del texto anterior»
+  // pasaba en verde**. O sea que una reescritura que conservara un trozo se
+  // colaba sin bandera — exactamente lo que esta tarjeta existe para impedir.
+  //
+  // Y no es un caso de laboratorio: es la forma que tomaría el arreglo del falso
+  // positivo declarado. Quien mañana quiera suavizar el rechazo por un
+  // reformateo tocará justo esta comparación, y sin estas pruebas las suyas
+  // seguirían verdes mientras la compuerta deja de cerrar.
+  //
+  // La relajación segura, si algún día hace falta, es **normalizar sin dejar de
+  // exigir la contención entera**. Eso queda fijado aquí, no en un comentario.
+
+  it('conservar solo el PRINCIPIO del texto anterior es destruir', async () => {
+    const mitad = ORIGINAL.slice(0, Math.ceil(ORIGINAL.length / 2));
+    const res = await putSinAcuse({ description: `${mitad}\n\n…y el resto lo recorté` });
+    expect(res.status).toBe(409);
+    expect(__state.cardUpdates).toHaveLength(0);
+  });
+
+  it('conservar solo el FINAL del texto anterior también es destruir', async () => {
+    // La otra mitad, por si alguien anclase la comparación por un extremo.
+    const cola = ORIGINAL.slice(Math.floor(ORIGINAL.length / 2));
+    const res = await putSinAcuse({ description: `Encabezado nuevo\n\n${cola}` });
+    expect(res.status).toBe(409);
+    expect(__state.cardUpdates).toHaveLength(0);
+  });
+
+  it('quitar UNA SOLA LÍNEA de en medio ya es destruir', async () => {
+    // El caso más incómodo y el más real: el texto nuevo se parece muchísimo al
+    // anterior y aun así se ha perdido algo. Es la forma exacta de lo que pasó
+    // el 8-ago — una sección que desaparece dentro de un texto reconstruido.
+    const lineas = ORIGINAL.split('\n');
+    const sinUna = [...lineas.slice(0, 2), ...lineas.slice(3)].join('\n');
+    expect(sinUna).not.toBe(ORIGINAL);
+    const res = await putSinAcuse({ description: `${sinUna}\n\n## Sección nueva` });
+    expect(res.status).toBe(409);
+    expect(__state.cardUpdates).toHaveLength(0);
+  });
+
   it('con el acuse, la reescritura pasa', async () => {
     const res = await putSinAcuse({
       description: 'un resumen de cinco líneas',
