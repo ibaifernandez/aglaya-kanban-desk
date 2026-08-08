@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.3.0
+- **Versión:** 3.4.0
 - **Última modificación:** 2026-08-08
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -111,6 +111,27 @@ Lo que el catálogo no te dice, y este contrato sí:
 
   **Vaciar la descripción también cuenta como destruir**, y también exige la
   bandera. **No mandarla** sigue significando «no la toques», y no dispara nada.
+- **El historial cubre TODOS los campos, y `card_history` los expone** *(v3.4.0)*.
+  Antes guardaba solo la descripción. Ahora cada campo que **cambia de valor**
+  deja su versión anterior: título, prioridad, responsable, fechas, categoría,
+  etiquetas, checklist y adjuntos.
+
+  **`card_history` gana dos campos:** `field` —el nombre de la columna de
+  `cards`— y `oldValue`, el valor anterior **siempre como texto**.
+
+  ⚠️ **Y `description` pasa a poder venir `null`:** solo la traen las filas de
+  descripción. Quien deshaga una descripción puede seguir usándola; quien lea el
+  historial de otro campo tiene que mirar `oldValue`. Las filas anteriores a este
+  cambio siguen leyéndose: `oldValue` cae a `description` cuando la columna nueva
+  está vacía.
+
+  **Una fila por campo que CAMBIA, no por campo aceptado.** La puerta acepta diez
+  y una edición típica toca uno o dos; escribir por campo aceptado multiplicaría
+  por diez un crecimiento que nadie ha medido.
+
+  **Y si no había valor previo, no hay fila:** pasar de vacío a lleno no destruye
+  nada. Sigue valiendo el modo de fallo de v2.1.0 — si el historial no se puede
+  guardar, el update se aborta con `500` y la tarjeta queda intacta.
 - **`list_workspaces` NO contesta «¿existe X?».** Filtra por membresía del riel, no
   por lo que hay en la tabla. Preguntarle si algo existe es preguntarle al
   custodio equivocado; contesta la base de datos.
@@ -283,6 +304,23 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**v3.4.0 — 2026-08-08 · MENOR.** Aditivo: el historial deja de ser solo de la
+descripción y `card_history` expone `field` y `oldValue`. Es la mitad de código
+de `cfeccbc4`, que puso las columnas.
+
+**Por qué MENOR y no MAYOR:** no cambia ningún nombre existente ni ninguna
+obligatoriedad, y las filas que hoy devuelve la tool siguen devolviéndose igual.
+Lo único que un consumidor tiene que saber es que **`description` puede venir
+`null`** en filas de otros campos — filas que antes no existían. Un consumidor
+que solo mire historial de descripciones no nota nada.
+
+**Sale de un daño medido:** el 6-ago-2026 once tarjetas perdieron su prioridad y
+se recuperaron por dos casualidades. El que muerde más fuerte no es la prioridad
+—ya cerrada por otra vía— sino el **responsable**: reasignar por error vuelve la
+tarjeta invisible para su obrero, y sin historial nadie puede decir a quién
+estaba asignada.
+
 
 **v3.3.0 — 2026-08-08 · MENOR.** Aditivo con **modo de fallo nuevo**, que es lo
 que obliga a que sea nota de contrato: `update_card` rechaza con `409` una

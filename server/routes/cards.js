@@ -68,6 +68,36 @@ async function createAssigneeNotification(cardId, boardId, cardTitle, assigneeUs
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Los campos cuyo valor anterior queda en el historial (tarjeta `e198e189`).
+//
+// `api` es como llega por la puerta; `col` es la columna de `cards`; `field` es
+// lo que se guarda en el historial, y se usa el nombre de la COLUMNA a propósito:
+// el historial es de la base, y quien lo lea dentro de un año va a mirar el
+// esquema, no el cuerpo de un PUT.
+//
+// `serializa` convierte a texto, porque `old_value` es TEXT: un historial que
+// guardara JSON en unos campos y texto en otros obligaría a saber cuál es cuál
+// para leerlo.
+const CAMPOS_CON_HISTORIAL = [
+  { api: 'title',          col: 'title',           field: 'title' },
+  { api: 'description',    col: 'description',     field: 'description' },
+  { api: 'priority',       col: 'priority',        field: 'priority' },
+  { api: 'dueDate',        col: 'due_date',        field: 'due_date' },
+  { api: 'category',       col: 'category',        field: 'category' },
+  { api: 'assigneeId',     col: 'assignee_id',     field: 'assignee_id' },
+  { api: 'tags',           col: 'tags',            field: 'tags',            json: true },
+  { api: 'checklist',      col: 'checklist',       field: 'checklist',       json: true },
+  { api: 'checklistTitle', col: 'checklist_title', field: 'checklist_title' },
+  { api: 'attachments',    col: 'attachments',     field: 'attachments',     json: true },
+];
+
+/** A texto, que es lo que `old_value` guarda. `null` se conserva como `null`. */
+const aTexto = (valor, json) => {
+  if (valor === null || valor === undefined) return null;
+  return json ? JSON.stringify(valor) : String(valor);
+};
+
 const toCard = (row) => ({
   id:             row.id,
   columnId:       row.column_id,
@@ -166,13 +196,28 @@ const updateCard = async (req, res) => {
     return res.status(400).json({ error: 'dueDate must be a valid date string' });
   }
 
+  // ── Qué campos deja rastro, y por qué esta lista y no otra ────────────────
+  // Son los que esta puerta acepta. Un campo que la puerta no acepta no se puede
+  // perder por aquí, y meterlo aquí sería prometer un rastro que nadie escribe.
+  //
+  // `columna` y `orden` NO están: los mueve `PUT /cards/:id/move`, que es otra
+  // puerta y otra tarjeta. Se dice para que su ausencia no se lea como olvido.
+  const entrantes = {
+    title, description, priority, dueDate, category,
+    assigneeId, tags, checklist, checklistTitle, attachments,
+  };
+
   // Fetch previous state for notification diff (checklist mentions + assignee
   // change) and for the description history below.
+  // Se leen TODOS los campos vigilados, no solo los tres de antes: desde
+  // `e198e189` el historial cubre cualquier campo, y no se puede guardar el
+  // valor anterior de algo que no se leyó.
   let prevCard = null;
-  if (checklist !== undefined || assigneeId !== undefined || description !== undefined) {
+  if (CAMPOS_CON_HISTORIAL.some((c) => entrantes[c.api] !== undefined)) {
     const { data: prev } = await supabaseAdmin
       .from('cards')
-      .select('checklist, board_id, title, assignee_id, description')
+      .select('checklist, board_id, title, assignee_id, description, priority, '
+              + 'due_date, category, tags, checklist_title, attachments')
       .eq('id', req.params.id)
       .single();
     prevCard = prev;
@@ -253,21 +298,52 @@ const updateCard = async (req, res) => {
     });
   }
 
-  if (descriptionChanges) {
-    const { error: histError } = await supabaseAdmin
-      .from('card_description_history')
-      .insert({
+  // ── Historial de TODOS los campos, no solo de la descripción ──────────────
+  // `cfeccbc4` puso las columnas; esto las usa. Una fila por campo que CAMBIA de
+  // valor — no por campo aceptado: la puerta acepta diez y una edición típica
+  // toca uno o dos. Esa distinción es lo que evita que el historial crezca diez
+  // veces más rápido de lo que nadie midió (`244c554e`).
+  //
+  // `description` se sigue escribiendo en su columna vieja ADEMÁS de en
+  // `old_value`, y solo para las filas de descripción. No es duplicación por
+  // pereza: `card_history` la lee, y quitarla sería un cambio incompatible que
+  // merece su propia decisión.
+  const cambios = [];
+  if (prevCard) {
+    for (const campo of CAMPOS_CON_HISTORIAL) {
+      const entrante = entrantes[campo.api];
+      if (entrante === undefined) continue;              // no se manda = no se toca
+      const antes = aTexto(prevCard[campo.col], campo.json);
+      const ahora = aTexto(entrante, campo.json);
+      if (antes === ahora) continue;                     // no cambió = no hay rastro que guardar
+      // Si no había valor, no se destruye nada. Pasar de vacío a lleno no es una
+      // pérdida, y guardarlo llenaría el historial de filas que no sirven para
+      // deshacer. Era la regla de la descripción y vale igual para los demás.
+      if (antes === null || antes === '') continue;
+      cambios.push({
         card_id:     req.params.id,
-        description: prevDescription,
+        field:       campo.field,
+        old_value:   antes,
+        // La columna vieja solo se rellena para la descripción, que es la única
+        // que `card_history` expone hoy por ese nombre.
+        description: campo.field === 'description' ? antes : null,
         changed_by:  req.user.id,
       });
+    }
+  }
+
+  if (cambios.length > 0) {
+    const { error: histError } = await supabaseAdmin
+      .from('card_description_history')
+      .insert(cambios);
 
     if (histError) {
       console.error('[cards] historial de descripción:', histError.message);
       return res.status(500).json({
         error:
-          'No se pudo guardar la versión anterior de la descripción, así que no ' +
-          'se ha sobrescrito nada. Reintenta; si persiste, la tarjeta sigue intacta.',
+          'No se pudo guardar la versión anterior de los campos que cambian, así ' +
+          'que no se ha sobrescrito nada. Reintenta; si persiste, la tarjeta ' +
+          'sigue intacta.',
       });
     }
   }
@@ -451,7 +527,7 @@ const searchCards = async (req, res) => {
 const getCardHistory = async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from('card_description_history')
-    .select('id, description, changed_by, changed_at')
+    .select('id, field, old_value, description, changed_by, changed_at')
     .eq('card_id', req.params.id)
     .order('changed_at', { ascending: false });
 
@@ -478,6 +554,16 @@ const getCardHistory = async (req, res) => {
   res.json({
     data: rows.map((r) => ({
       id:          r.id,
+      // QUÉ campo, y su valor anterior. Antes solo había `description`, porque
+      // solo se guardaba eso. `field` es el nombre de la COLUMNA de `cards`.
+      field:       r.field ?? 'description',
+      // `oldValue` es el valor anterior de ESE campo, siempre como texto. Para
+      // las filas anteriores a `cfeccbc4` cae a `description`, que es donde
+      // estaba: una fila vieja no deja de poder leerse porque el esquema creciera.
+      oldValue:    r.old_value ?? r.description ?? null,
+      // ⚠️ SE CONSERVA, y a partir de ahora puede venir `null`: solo las filas de
+      // descripción la traen. Quien deshaga una descripción puede seguir usándola;
+      // quien lea el historial de otro campo tiene que mirar `oldValue`.
       description: r.description,
       changedAt:   r.changed_at,
       changedById: r.changed_by,

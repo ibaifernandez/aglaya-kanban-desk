@@ -7,6 +7,28 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
+- **El historial cubre TODOS los campos, y `card_history` los expone.** Tarjeta
+  `e198e189`. Contrato `riel` **v3.4.0**. Es la mitad de código de `cfeccbc4`.
+  - **Una fila por campo que CAMBIA de valor**, no por campo aceptado: la puerta
+    acepta diez y una edición típica toca uno o dos. Esa distinción es lo que
+    evita multiplicar por diez un crecimiento que nadie ha medido (`244c554e`).
+  - **Y si no había valor previo, no hay fila:** pasar de vacío a lleno no
+    destruye nada. Era la regla de la descripción y vale igual para los demás.
+  - **`card_history` gana `field` y `oldValue`**; `description` pasa a poder
+    venir `null` —solo la traen las filas de descripción— y las filas antiguas
+    siguen leyéndose porque `oldValue` cae a `description` cuando la nueva está
+    vacía.
+  - **Los campos JSON se guardan como texto**, porque `old_value` es `TEXT`: un
+    historial que guardara JSON en unos y texto en otros obligaría a saber cuál
+    es cuál para leerlo.
+  - **Sigue abortando el update si el historial falla**, ahora para cualquier
+    campo. La garantía de v2.1.0 se ensancha, no se afloja.
+  - **Una prueba de `cfeccbc4` queda retractada y acotada**, no borrada: «si no
+    se toca la descripción, no hay fila» era correcta cuando el historial cubría
+    un campo. Ahora cambiar el título **sí** deja fila, y que la deje es el
+    trabajo. Lo que quería fijar —que no se guarda ruido— se conserva.
+
+### Added
 - **El historial se declara capaz de guardar cualquier campo, no solo la
   descripción** (`docs/schema/migration-historial-todos-los-campos.sql`).
   Tarjeta `cfeccbc4`. **Es la mitad que va primera: el código viene después.**
