@@ -40,6 +40,7 @@ supabase/.branches/
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
 .claude/worktrees/
+.claude/handoffs/
 
 # ── Graphify output — derivado, nunca versionado ──────────
 # Decisión de flota: ningún repo guarda su grafo. Nada del código lee uno, y un
