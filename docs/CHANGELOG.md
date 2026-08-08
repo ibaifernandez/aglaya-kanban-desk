@@ -6,6 +6,36 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Added
+- **El historial se declara capaz de guardar cualquier campo, no solo la
+  descripción** (`docs/schema/migration-historial-todos-los-campos.sql`).
+  Tarjeta `cfeccbc4`. **Es la mitad que va primera: el código viene después.**
+  - **Qué cierra:** prioridad, responsable, columna, título, fechas y etiquetas
+    se sobrescriben **sin rastro**. El 6-ago-2026 once tarjetas perdieron su
+    prioridad y se recuperaron **por dos casualidades** —unos volcados hechos para
+    contar tarjetas, y unos acuses `201` que quedaron en una transcripción—.
+    Ninguno de los dos existía para eso. **Una casualidad no es un mecanismo.**
+  - **El que muerde más fuerte no es la prioridad, es el responsable:** reasignar
+    por error vuelve la tarjeta invisible para su obrero, y sin historial nadie
+    puede decir a quién estaba asignada.
+  - **Se ensancha la tabla que hay, añadiendo** (`field`, `old_value`, y
+    `description` deja de ser `NOT NULL`). Una tabla nueva dejaría dos tablas para
+    un concepto; renombrar la actual arrastra su política RLS, su índice, el
+    código y la tool `card_history` del contrato — y no es reversible.
+  - **`old_value` es NULLABLE a propósito:** hay campos cuyo valor anterior
+    legítimo es NULL. La diferencia entre «no tenía responsable» y «tenía uno
+    vacío» es justo la que un historial existe para conservar.
+  - **Crecimiento, que la tarjeta pedía medir antes:** «una fila por edición y por
+    campo» **no es once filas por edición**. El código que venga detrás escribe
+    fila **solo para los campos que de verdad cambiaron**, que es lo que ya hace
+    hoy con la descripción. Es una restricción de diseño, **no una medición del
+    volumen real** — ésa no se ha hecho, y la custodia `244c554e`.
+  - ⏳ **Pendiente del Operador, y el orden no es preferencia.** El código no
+    puede entrar antes: `PUT /api/cards/:id` **aborta el update con `500` si no
+    consigue escribir la fila del historial**, así que código contra una columna
+    inexistente = **todas las ediciones de tarjeta caídas**, y este repo despliega
+    al empujar a `main`. Es la factura del PR #28, que se salvó partiéndolo en dos.
+
 ### Security
 - **Ya no puede entrar una dirección de correo nueva en el árbol sin que alguien
   lo decida.** `scripts/email-guard.sh` corre en CI y se pone rojo ante cualquier

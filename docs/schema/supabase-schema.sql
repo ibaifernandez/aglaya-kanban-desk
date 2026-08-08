@@ -227,10 +227,27 @@ CREATE INDEX IF NOT EXISTS idx_cards_created_by_caller
 -- `PUT /api/cards/:id`. Existe porque esa puerta reemplaza la descripción entera
 -- y no había rastro: un llamante que no leyera antes de escribir destruía lo que
 -- había y recibía éxito.
+-- ⚠️ EL NOMBRE SE QUEDÓ CORTO Y SE DICE AQUÍ: desde
+-- migration-historial-todos-los-campos.sql esta tabla guarda el valor anterior
+-- de CUALQUIER campo, no solo de la descripción. Renombrarla es incompatible
+-- —arrastra su política RLS, su índice, `server/routes/cards.js` y la tool
+-- `card_history` del contrato— y tiene que decidirse aparte.
+--
+-- ⏳ Hasta que el Operador aplique esa migración, este bloque declara TRES cosas
+-- que la base todavía no tiene: `field`, `old_value`, y `description` nullable.
 CREATE TABLE IF NOT EXISTS public.card_description_history (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   card_id         UUID NOT NULL REFERENCES public.cards(id) ON DELETE CASCADE,
-  description     TEXT NOT NULL,        -- como estaba ANTES del cambio
+  -- Qué campo de la tarjeta guarda esta fila. `description` por defecto para que
+  -- las filas anteriores a la migración digan la verdad sin tocarlas.
+  field           TEXT NOT NULL DEFAULT 'description',
+  -- El valor anterior, como texto. NULLABLE a propósito: hay campos cuyo valor
+  -- anterior legítimo es NULL —`assignee_id` sin asignar, `due_date` sin fecha—
+  -- y guardarlos como cadena vacía sería inventarse un dato.
+  old_value       TEXT,
+  -- Se conserva por compatibilidad con `card_history`, que todavía la lee.
+  -- Dejó de ser NOT NULL: una fila de `priority` no tiene descripción que poner.
+  description     TEXT,                 -- como estaba ANTES del cambio
   changed_by      UUID REFERENCES public.users(id) ON DELETE SET NULL,
   changed_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -294,6 +311,10 @@ CREATE INDEX IF NOT EXISTS idx_digest_logs_type_status   ON public.digest_logs(t
 CREATE INDEX IF NOT EXISTS idx_digest_logs_created_at    ON public.digest_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_card_description_history_card
   ON public.card_description_history(card_id, changed_at DESC);
+-- «Dame las versiones de ESTE campo de ESTA tarjeta». El de arriba sigue
+-- sirviendo para «todo el historial de la tarjeta» y por eso no se sustituye.
+CREATE INDEX IF NOT EXISTS idx_card_description_history_card_field
+  ON public.card_description_history(card_id, field, changed_at DESC);
 
 
 -- ── 9. GRANTs ───────────────────────────────────────────────
