@@ -156,6 +156,63 @@ reset
 corre "no existe la herramienta de fusión"    2 "no existe" "$TMP/no-existe.py"
 
 echo
+echo "ADOPCIÓN — que el mecanismo no se quede sin usar en silencio (954b0930):"
+
+# $1 etiqueta · $2 exit esperado · $3 trozo esperado · $4 name-status · $5 mensajes de commit
+adopcion() {
+  local que="$1" esperado="$2" espera_msg="$3" cambiados="$4" motivo="${5:-}"
+  local salida code
+  reset; frag "aaa-uno.md" "Added
+
+- **Una entrada cualquiera, para que la forma esté bien.**"
+  salida="$(CHANGELOG_DIR="$DIR" CHANGELOG_FILE="$REGISTRO" CHANGELOG_FUNDIR="$FUNDIR_REAL" \
+            CHANGELOG_GUARD_CAMBIADOS="$cambiados" CHANGELOG_GUARD_MOTIVO="$motivo" \
+            bash "$GUARD" 2>&1)"
+  code=$?
+  if [ -n "$espera_msg" ] && ! printf '%s' "$salida" | grep -qF "$espera_msg"; then
+    FAIL=$((FAIL + 1)); printf '  FALLO %s — el mensaje no dice «%s»\n' "$que" "$espera_msg"
+    printf '%s\n' "$salida" | sed 's/^/          /'; return
+  fi
+  if [ "$code" -eq "$esperado" ]; then
+    PASS=$((PASS + 1)); printf '  ok    %s\n' "$que"
+  else
+    FAIL=$((FAIL + 1)); printf '  FALLO %s — esperaba exit %s, dio %s\n' "$que" "$esperado" "$code"
+    printf '%s\n' "$salida" | sed 's/^/          /'
+  fi
+}
+
+TAB="$(printf '\t')"
+
+adopcion "escribir a mano en el registro se para" 1 "ahí ya no se escribe" \
+  "M${TAB}docs/CHANGELOG.md"
+adopcion "…y el mensaje dice qué hacer en su lugar" 1 "docs/changelog.d/<id-de-la-tarjeta>" \
+  "M${TAB}docs/CHANGELOG.md"
+adopcion "a mano JUNTO a otros ficheros también se para" 1 "ahí ya no se escribe" \
+  "M${TAB}server/routes/cards.js
+M${TAB}docs/CHANGELOG.md"
+
+# El camino legítimo NO se puede romper: fundir escribe ese fichero a propósito.
+adopcion "fundir al publicar pasa: retira fragmentos" 0 "es una fusión al publicar" \
+  "M${TAB}docs/CHANGELOG.md
+D${TAB}docs/changelog.d/06d44e22-algo.md"
+adopcion "añadir un fragmento NO autoriza a tocar el registro" 1 "ahí ya no se escribe" \
+  "M${TAB}docs/CHANGELOG.md
+A${TAB}docs/changelog.d/06d44e22-algo.md"
+adopcion "borrar el README no cuenta como fusión" 1 "ahí ya no se escribe" \
+  "M${TAB}docs/CHANGELOG.md
+D${TAB}docs/changelog.d/README.md"
+
+adopcion "con la marca en el commit, pasa" 0 "lo declara con" \
+  "M${TAB}docs/CHANGELOG.md" "fix: errata de la 1.4.0
+
+[registro-a-mano] es una versión ya publicada."
+adopcion "sin tocar el registro, ni se mira" 0 "nadie escribió a mano" \
+  "A${TAB}docs/changelog.d/06d44e22-algo.md
+M${TAB}server/app.js"
+
+adopcion "sin lista, lo DICE en vez de callar" 0 "la adopción NO" ""
+
+echo
 echo "Y sobre el árbol de VERDAD:"
 salida="$(bash "$GUARD" 2>&1)"; code=$?
 if [ "$code" -eq 0 ]; then
