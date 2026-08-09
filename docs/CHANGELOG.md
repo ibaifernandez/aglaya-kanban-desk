@@ -7,6 +7,34 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Added
+- **Está escrito cómo un papel automático le pregunta a la base sin que ninguna
+  persona ejecute nada.** Tarjeta `e07ca50c`.
+  - **El hueco:** ningún papel automático podía consultar la base. `psql` en
+    local topa con el enganche de secretos —correcto, y no se toca— y el MCP de
+    Supabase de esta máquina está autenticado contra **otra organización**.
+    Consecuencia medida el 8-ago-2026: guardianes entregados sin poder ejercer su
+    propia condición de aceptación, y una persona en el camino crítico de una
+    lectura.
+  - **La vía ya existía y nadie la había escrito:** los workflows que llevan la
+    credencial en los secretos del repo **se disparan a mano**. El agente
+    dispara, el workflow pregunta con la llave que ya vive allí, y la respuesta
+    queda en el registro. **La credencial no entra en el contexto de ningún
+    agente y el enganche se queda intacto: no se rodea la seguridad, se deja de
+    rodear.**
+  - **Dónde:** `docs/ARCHITECTURE.md` → «Cómo se le pregunta a la base sin que
+    nadie ejecute nada», con puntero desde `CLAUDE.md`, que es lo que lee un
+    papel automático al arrancar.
+  - **Se dice qué NO cubre**, y es la mitad del valor: sirve para mirar, no para
+    cambiar; no hay consulta suelta, solo las preguntas que algún workflow ya
+    sabe hacer; y quedan nombradas tres preguntas frecuentes que **hoy no
+    contesta ninguno**, en vez de inventar el workflow que faltaría.
+  - **La tabla no se mantiene a mano.** `scripts/base-consultable-guard.sh` la
+    deriva del árbol —disparo manual **y** `secrets.DATABASE_URL`— y muerde en
+    las dos direcciones. La que más importa es la segunda: un documento que
+    anuncia una vía muerta no da error a quien lo sigue, **da nada**, y nada se
+    parece mucho a que no había nada que encontrar. Con sello propio y delante.
+  - **Se declara que el verde de esa consulta caduca:** es un instante, no una
+    propiedad del commit, y al citarlo va con fecha e identificador de corrida.
 - **Se puede añadir a la descripción de una tarjeta sin reenviar lo que ya
   estaba escrito.** Tarjeta `dccc9de0`. Contrato `riel` a **v3.5.0** (MENOR).
   - **El defecto:** `PUT /api/cards/:id` solo sabía sustituir. Apuntar tres

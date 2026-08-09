@@ -183,6 +183,29 @@ Reglas:
 - Tras aplicar, actualizar `docs/schema/supabase-schema.sql` (fuente de verdad).
 - No commitear `.env`. Verificar `.gitignore` antes de cualquier `git add`.
 
+## Sí se le puede preguntar a la base, y no hace falta que Ibai esté delante
+
+`psql` en local topa con el enganche de secretos, y el MCP de Supabase de esta
+máquina apunta a **otra organización**. Las dos cosas están bien y no se tocan.
+
+**Pero eso no significa que la base sea inconsultable.** Varios workflows ya
+llevan la credencial en los secretos del repo y **se disparan a mano**: el agente
+dispara, el workflow pregunta con la llave que ya vive allí, y la respuesta queda
+en el registro de la corrida. La credencial nunca entra en el contexto de nadie.
+
+Qué contesta cada uno, cómo se dispara, **qué NO cubre** y qué sigue necesitando
+al Operador está en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) → «Cómo se le
+pregunta a la base sin que nadie ejecute nada».
+
+Aquí no se copia la lista: la deriva del árbol
+[`scripts/base-consultable-guard.sh`](scripts/base-consultable-guard.sh), que se
+pone rojo si el documento nombra una vía que ya no contesta o se calla una que
+sí. Esta sección solo existe para que nadie vuelva a concluir «no se puede» —que
+es lo que costó una jornada entera de lecturas pedidas a mano— y para llevarte
+allí.
+
+---
+
 ## Reglas críticas
 
 - No matar procesos en puertos 3003/5175 sin verificar que son de AGLAYA Kanban Desk.
