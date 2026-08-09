@@ -318,5 +318,45 @@ class ActualizarTarjeta(RielTestCase):
         self.assertNotIn("description", puts[0][2])
 
 
+class AnadirALaDescripcion(RielTestCase):
+    """Añadir sin reenviar (tarjeta `dccc9de0`).
+
+    Se mira lo que SALE A LA RED, no lo que devuelve la tool: el valor de retorno
+    puede decir «appended» mientras el cuerpo lleva otra cosa.
+    """
+
+    def test_manda_solo_el_texto_nuevo(self):
+        # LO QUE ESTA PRUEBA DEFIENDE, y es el punto entero de la tarjeta: el
+        # llamante NO transmite lo que ya estaba. Si algún día esta tool
+        # compusiera el texto ella misma, volvería a necesitar leerlo antes — y
+        # con ello vuelve el reenvío y vuelve el riesgo de pisarlo.
+        server.append_to_description(card_id="card-1", text="Un párrafo nuevo.")
+        puts = [c for c in self.writes if c[0] == "PUT"]
+        self.assertEqual(len(puts), 1)
+        self.assertEqual(puts[0][2]["appendDescription"], "Un párrafo nuevo.")
+        self.assertNotIn("description", puts[0][2])
+
+    def test_NO_se_auto_concede_el_acuse_de_sobrescritura(self):
+        # Añadir supera la compuerta del 409 por construcción —el texto compuesto
+        # empieza por el anterior—, así que no necesita la bandera. Mandarla
+        # «para asegurar» sería abrirle un atajo: el día en que la composición se
+        # rompiera, la compuerta callaría en vez de avisar, y el fallo pasaría de
+        # ruidoso a silencioso.
+        server.append_to_description(card_id="card-1", text="Un párrafo nuevo.")
+        puts = [c for c in self.writes if c[0] == "PUT"]
+        self.assertNotIn("replacesDescriptionOnPurpose", puts[0][2])
+
+    def test_texto_vacio_no_escribe_nada(self):
+        # Un no-op silencioso dejaría al llamante creyendo que apuntó algo.
+        out = server.append_to_description(card_id="card-1", text="   ")
+        self.assertIn("error", out)
+        self.assertEqual(self.writes, [])
+
+    def test_texto_que_no_es_texto_no_escribe_nada(self):
+        out = server.append_to_description(card_id="card-1", text=None)
+        self.assertIn("error", out)
+        self.assertEqual(self.writes, [])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

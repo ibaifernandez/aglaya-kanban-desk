@@ -35,6 +35,40 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
     parece mucho a que no había nada que encontrar. Con sello propio y delante.
   - **Se declara que el verde de esa consulta caduca:** es un instante, no una
     propiedad del commit, y al citarlo va con fecha e identificador de corrida.
+- **Se puede añadir a la descripción de una tarjeta sin reenviar lo que ya
+  estaba escrito.** Tarjeta `dccc9de0`. Contrato `riel` a **v3.5.0** (MENOR).
+  - **El defecto:** `PUT /api/cards/:id` solo sabía sustituir. Apuntar tres
+    párrafos obligaba a volver a transmitir a mano los quince o veinte mil
+    caracteres anteriores. No cuesta tiempo: **cuesta trabajo perdido** — el
+    8-ago-2026 una reconstrucción desde una copia vieja destruyó la medición de
+    otro papel y un hallazgo escrito ahí para viajar entre papeles.
+  - **Por qué no bastaba la compuerta del `409`** (`f19dda2d`): defiende de la
+    reescritura ciega, pero deja intacto el reenvío. Era un guardián contra un
+    defecto que no tenía por qué existir.
+  - **Lo nuevo:** `appendDescription` en la puerta HTTP y
+    `append_to_description(card_id, text)` en el MCP. El llamante manda **solo su
+    texto**; el servidor lee lo que hay y compone. Mismo endpoint, mismo
+    historial, misma compuerta.
+  - **El texto anterior se conserva byte a byte y al principio**, y eso **no es
+    pulcritud**: la compuerta compara por contención literal, así que un relleno
+    que normalizara la cola pondría el `409` rojo contra la única escritura que
+    por construcción no destruye nada. Composición y compuerta están atadas.
+  - **Elegido el camino 1 de los dos que planteaba la tarjeta.** El camino 2
+    —mover el registro largo al PR— cambia dónde vive el registro, y eso es un
+    invariante del protocolo de obra, que vive en `aglaya-orchestrator`: no es de
+    esta nave y aquí no se puede decidir. El camino 1 es código y no toca ninguna
+    regla.
+  - **Asimetría declarada en el contrato:** la Puerta 2 **no** lo estrena, porque
+    no puede editar en absoluto — su único endpoint de escritura crea. Darle
+    edición con `service_role` y `TASK_SECRET` viviendo fuera de esta máquina es
+    una decisión nueva con precio, no un aditivo. No es deuda de este cambio:
+    esa puerta nunca supo editar.
+  - **Comprobado por mutación, ocho aplicadas y verificadas una a una.** Una **se
+    escapó en verde**: cambiar el relleno por «recortar la cola y poner dos
+    saltos» pasó entera la batería que había entonces, porque recortar y rellenar
+    **dan el mismo texto** con colas de 0, 1 y 2 saltos y solo divergen a partir
+    del tercero. Dos pruebas nuevas la matan, y quedan escritas con el porqué al
+    lado.
 
 ### Changed
 - **Un ciclo de tarjeta pasa de 22 a 12 minutos facturados de Actions, sin tocar

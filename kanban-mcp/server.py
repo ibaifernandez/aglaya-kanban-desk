@@ -527,6 +527,12 @@ def update_card(
     only because the history keeps versions, and nobody reads the history unless
     they already suspect.
 
+    ⚠️ IF WHAT YOU WANT IS TO ADD, DO NOT USE THIS TOOL: use
+    `append_to_description`, which sends only your own text and lets the server
+    keep the rest. This one needs the whole brief in the call, so using it to add
+    means re-transmitting by hand everything someone else wrote — which is
+    exactly how another role's measurement was destroyed on 2026-08-08.
+
     If you get the 409: read `card_history` first, then send text that CONTAINS
     what is there — or, if you really mean to compact it, say so with the flag.
 
@@ -561,13 +567,54 @@ def update_card(
 
 
 @mcp.tool()
+def append_to_description(card_id: str, text: str) -> dict[str, Any]:
+    """ADD text at the END of a card's brief WITHOUT resending what is there.
+
+    USE THIS, not `update_card`, whenever you are adding. It is the cheap path
+    and the safe one: you send only your own paragraphs, the server reads the
+    current brief and composes the result. Nothing you did not write can be lost,
+    because you never held the rest.
+
+    WHY IT EXISTS. `update_card` REPLACES the brief — it always did, and until
+    2026-08-09 that was the ONLY way to write one. So noting three paragraphs on
+    a busy card meant re-transmitting the fifteen or twenty thousand characters
+    already there, by hand, without getting a single one wrong. Three separate
+    roles measured that as the largest cost of their day, and one of those
+    re-transmissions destroyed another role's measurement outright.
+
+    WHAT IT GUARANTEES. The previous text is kept byte for byte and your text
+    goes after it, separated by at least one blank line so markdown still sees
+    two paragraphs. The 409 overwrite gate is NOT bypassed — the composed text
+    passes it by construction, because it starts with what was already there.
+
+    WHAT IT DOES NOT DO. It cannot insert in the middle, edit, or remove
+    anything; that is `update_card` with `replacing_on_purpose=True`, and it is
+    meant to cost you a deliberate act. Empty text is refused: appending nothing
+    would rewrite the same brief with no trace and no warning.
+
+    Wraps PUT /api/cards/:id with `appendDescription`
+    (server/routes/cards.js → updateCard) — the same endpoint, the same history,
+    the same gate."""
+    if not isinstance(text, str) or not text.strip():
+        return {"error": "text is required and must have content — "
+                         "appending nothing is not an edit"}
+    card = _request("PUT", f"/cards/{card_id}", {"appendDescription": text})
+    return {"appended": "description", "id": card_id, "added_chars": len(text),
+            "title": (card or {}).get("title")}
+
+
+@mcp.tool()
 def card_history(card_id: str) -> dict[str, Any]:
     """PREVIOUS versions of a card's description, newest first — the undo.
 
-    `update_card` REPLACES the description; it cannot append. A caller that does
-    not read before writing destroys what was there and gets success back. That
-    happened on 2026-08-06 and was recovered only by luck. Since then the server
-    stores the previous text on every change, and this is how you reach it.
+    `update_card` REPLACES the description. A caller that does not read before
+    writing destroys what was there and gets success back. That happened on
+    2026-08-06 and was recovered only by luck. Since then the server stores the
+    previous text on every change, and this is how you reach it.
+
+    ⚠️ This docstring used to add «it cannot append», and that stopped being true
+    on 2026-08-09: `append_to_description` adds without resending. If what you
+    want is to ADD, use that and you will not need this.
 
     TO UNDO: read the version you want from here and send it back with
     `update_card(card_id, description=…)`. There is no separate restore call on
