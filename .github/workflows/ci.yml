@@ -254,6 +254,19 @@ jobs:
         continue-on-error: true
         run: bash scripts/base-consultable-guard.sh
 
+      # ── ¿El registro por fragmentos se puede publicar sin perder nada? ─────
+      # No escribe: funde en seco. Vive aquí, entre las baratas, porque no toca
+      # la base ni la red.
+      - name: Sello — ¿changelog-guard muerde el fragmento roto y la fusión rota?
+        id: sello_changelog
+        continue-on-error: true
+        run: bash scripts/changelog-guard.test.sh
+
+      - name: Guardián — ¿el registro se funde sin perder ni duplicar?
+        id: changelog
+        continue-on-error: true
+        run: bash scripts/changelog-guard.sh
+
       - name: Sello — ¿el guardián del cableado muerde en las dos direcciones?
         id: sello_cableado
         continue-on-error: true
@@ -288,6 +301,8 @@ jobs:
             "email-guard · guardián|${{ steps.email.outcome }}" \
             "base-consultable · sello|${{ steps.sello_base_consultable.outcome }}" \
             "base-consultable · guardián|${{ steps.base_consultable.outcome }}" \
+            "changelog · sello|${{ steps.sello_changelog.outcome }}" \
+            "changelog · guardián|${{ steps.changelog.outcome }}" \
             "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
             "cableado del verdicto · guardián|${{ steps.cableado.outcome }}"
 
