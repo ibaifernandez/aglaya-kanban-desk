@@ -33,7 +33,8 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
   - **Asimetría declarada en el contrato:** la Puerta 2 **no** lo estrena, porque
     no puede editar en absoluto — su único endpoint de escritura crea. Darle
     edición con `service_role` y `TASK_SECRET` viviendo fuera de esta máquina es
-    una decisión con precio, no un aditivo, y merece su propia tarjeta.
+    una decisión nueva con precio, no un aditivo. No es deuda de este cambio:
+    esa puerta nunca supo editar.
   - **Comprobado por mutación, ocho aplicadas y verificadas una a una.** Una **se
     escapó en verde**: cambiar el relleno por «recortar la cola y poner dos
     saltos» pasó entera la batería que había entonces, porque recortar y rellenar

@@ -181,8 +181,12 @@ Y eso no es aditivo, es una decisión con precio: esta puerta usa `service_role`
 lectura excluye por regla— y `TASK_SECRET` vive fuera de esta máquina. Una
 puerta de edición con ese alcance permite **reescribir la descripción de
 cualquier tarjeta de cualquier espacio** a quien tenga el secreto, que hoy no
-puede. Eso merece su propia tarjeta y su propia decisión, no venir de rebote en
-la que arregla el reenvío.
+puede.
+
+**Y eso no es una deuda que deje este cambio: es un límite que se declara.** Esta
+puerta nunca supo editar, así que aquí no falta nada que antes hubiera. Si algún
+día se quiere que edite, es una decisión nueva con ese precio delante — no un
+aditivo que se cuele en la que arregla el reenvío.
 
 **Lo que esto significa para quien llame desde fuera de esta máquina:** para
 añadir a una tarjeta hay que entrar por la Puerta 1. Se dice aquí para que la
@@ -361,8 +365,9 @@ dejaba intacto el reenvío**: era un guardián contra un defecto que no tenía p
 qué existir.
 
 **La asimetría con la Puerta 2 se declara arriba**, en su propia sección: allí no
-se puede añadir porque allí no se puede editar, y darle esa capacidad con
-`service_role` es una decisión con precio que no viene de rebote en ésta.
+se puede añadir porque allí no se puede editar. Darle esa capacidad con
+`service_role` sería una decisión nueva con su propio precio, no algo que falte
+aquí — esa puerta nunca supo editar.
 
 **v3.4.0 — 2026-08-08 · MENOR.** Aditivo: el historial deja de ser solo de la
 descripción y `card_history` expone `field` y `oldValue`. Es la mitad de código
