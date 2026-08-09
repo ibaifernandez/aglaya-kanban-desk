@@ -6,7 +6,41 @@ Registro de cambios por versión. Formato: [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+<!-- changelog.d -->
+> **Las entradas nuevas NO se escriben aquí.** Van a un fichero propio en
+> [`changelog.d/`](changelog.d/), y se funden en esta sección al publicar con
+> `python3 scripts/changelog-fundir.py --aplicar`.
+>
+> Es lo que impide que dos ramas vivas a la vez choquen en este fichero — que era
+> seguro, no probable, y cada choque tiraba una medición ya hecha del vigilante.
+> **Mientras queden fragmentos sin fundir, «qué cambió» se lee en dos sitios:**
+> aquí lo publicado, allí lo que aún no. Es un salto declarado, no una copia.
+
 ### Added
+- **Dos ramas a la vez dejan de chocar en el registro de cambios.** Tarjeta
+  `06d44e22`.
+  - **El defecto era seguro, no probable:** 13 de los últimos 15 PR mergeados
+    tocaban `docs/CHANGELOG.md` —contado con `gh` sobre los PR reales— y todos
+    escribían en el mismo bloque de arriba. La segunda rama viva nacía en
+    conflicto siempre.
+  - **Y no costaba un rebase.** La aprobación pertenece al commit: refrescar la
+    rama cambia el HEAD y **caduca una medición del vigilante ya hecha**, con el
+    trabajo intacto. El 9-ago-2026 costó una vuelta entera de dos papeles.
+  - **Lo que se hace:** una entrada por fichero en
+    [`docs/changelog.d/`](changelog.d/), fundidas al publicar con
+    `scripts/changelog-fundir.py`. Dos ficheros distintos no se pisan en **ningún**
+    motor de fusión, así que el choque desaparece por construcción y no por
+    resolverse mejor.
+  - **`.gitattributes` con `merge=union` se descartó por medición, no por gusto.**
+    En local resuelve limpio; **el motor de fusión de GitHub lo ignora**. Medido
+    contra el repositorio real con la base llevando el `.gitattributes`:
+    `POST /repos/:owner/:repo/merges` → **`409 Merge conflict`**. Y ese `409` es
+    exactamente el síntoma que había que quitar. La opción de un renglón arreglaba
+    el sitio donde no dolía — y además resuelve en silencio.
+  - **Guardián propio y con sello:** [`scripts/changelog-guard.sh`](../scripts/changelog-guard.sh)
+    corre en CI, no escribe, y **funde en seco** para exigir que el registro
+    sobreviva entero y en orden y que ninguna entrada quede duplicada. Un registro
+    al que le falta una entrada sigue pareciendo completo.
 - **Está escrito cómo un papel automático le pregunta a la base sin que ninguna
   persona ejecute nada.** Tarjeta `e07ca50c`.
   - **El hueco:** ningún papel automático podía consultar la base. `psql` en
