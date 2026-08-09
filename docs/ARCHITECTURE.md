@@ -113,6 +113,11 @@ gh workflow run <workflow>.yml --ref main
 gh run list --workflow=<workflow>.yml --limit 1
 ```
 
+> La orden 1 **ya devuelve la URL de la corrida, con su identificador al final**:
+> si la tienes delante, esta segunda sobra. Sirve para volver más tarde, y su fila
+> trae siete columnas — el identificador es **el número largo**, entre el nombre
+> del disparador y la duración.
+
 ```bash
 gh run view <id-de-la-corrida> --log
 ```
@@ -169,6 +174,12 @@ identificador de la corrida** — «lo comprobé» sin eso no dice cuándo.
     es otra capa.
 - **`gh workflow run` necesita permiso de escritura en Actions.** Quien no lo
   tenga recibirá un error de la propia herramienta; ése sí se lee claro.
+- **El guardián de esta tabla comprueba que los NOMBRES coincidan, no que lo
+  escrito al lado sea cierto.** Si alguien describe mal qué pregunta contesta un
+  workflow, o le atribuye una que no hace, **el guardián sigue verde**: el
+  significado no se deriva de un fichero YAML, y prometer que sí lo haría sería
+  peor que no tenerlo. Cierra el caso en que **nadie miró**; que el texto
+  describa la medición sigue siendo trabajo de quien revise.
 
 ---
 
