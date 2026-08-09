@@ -1,8 +1,8 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.4.0
-- **Última modificación:** 2026-08-08
+- **Versión:** 3.5.0
+- **Última modificación:** 2026-08-09
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
 > Hasta hoy no existía: el registro de contratos del capitán describía la puerta
@@ -132,6 +132,25 @@ Lo que el catálogo no te dice, y este contrato sí:
   **Y si no había valor previo, no hay fila:** pasar de vacío a lleno no destruye
   nada. Sigue valiendo el modo de fallo de v2.1.0 — si el historial no se puede
   guardar, el update se aborta con `500` y la tarjeta queda intacta.
+- **Se puede AÑADIR al brief sin reenviar lo que ya estaba** *(v3.5.0)*. Hasta
+  hoy esta puerta solo sabía sustituir: apuntar tres párrafos en una tarjeta
+  obligaba a volver a transmitir los quince o veinte mil caracteres anteriores,
+  a mano y sin equivocarse en ninguno. Ahora
+  `append_to_description(card_id, text)` manda **solo el texto nuevo** y el
+  servidor compone el resultado leyendo lo que ya hay.
+
+  **Qué garantiza:** el texto anterior se conserva **byte a byte y al
+  principio**, y lo añadido va detrás con al menos una línea en blanco, para que
+  markdown siga viendo dos párrafos. La compuerta del `409` **no se esquiva**: el
+  texto compuesto pasa por la misma comparación y la supera por construcción.
+
+  **Modos de fallo nuevos, los dos `400`:** texto vacío —añadir nada reescribiría
+  la misma descripción sin rastro y sin aviso— y mandar a la vez lo que añade y
+  lo que sustituye, que son dos órdenes contradictorias y elegir una en silencio
+  es obedecer una intención que nadie declaró.
+
+  **Lo que NO hace:** insertar en medio, editar ni quitar. Eso sigue siendo
+  sustituir, y sigue costando un acto deliberado.
 - **`list_workspaces` NO contesta «¿existe X?».** Filtra por membresía del riel, no
   por lo que hay en la tabla. Preguntarle si algo existe es preguntarle al
   custodio equivocado; contesta la base de datos.
@@ -150,6 +169,24 @@ diagnóstico entero.
 **Autenticación (los tres):** `x-task-secret` debe igualar exactamente
 `TASK_SECRET`. Si falta la variable → 500; si no coincide → 401. No hay más
 capas: quien tenga el secreto, entra. Trátalo como llave maestra.
+
+**⚠️ ASIMETRÍA DECLARADA: aquí NO se puede añadir al brief, y no es un olvido**
+*(v3.5.0)*. La Puerta 1 estrena `append_to_description`; ésta no lo estrena
+porque **no puede editar una tarjeta en absoluto**: su único endpoint de
+escritura la CREA. No hay `update` que ampliar, y la paridad exigiría construir
+aquí una puerta de edición entera.
+
+Y eso no es aditivo, es una decisión con precio: esta puerta usa `service_role`
+—salta RLS, alcanza todo, incluidos los espacios personales que su propia
+lectura excluye por regla— y `TASK_SECRET` vive fuera de esta máquina. Una
+puerta de edición con ese alcance permite **reescribir la descripción de
+cualquier tarjeta de cualquier espacio** a quien tenga el secreto, que hoy no
+puede. Eso merece su propia tarjeta y su propia decisión, no venir de rebote en
+la que arregla el reenvío.
+
+**Lo que esto significa para quien llame desde fuera de esta máquina:** para
+añadir a una tarjeta hay que entrar por la Puerta 1. Se dice aquí para que la
+ausencia no se lea como que la puerta lo hace y nadie lo documentó.
 
 ### Lectura — `GET /api/internal/list-workspaces` · `GET /api/internal/list-boards`
 
@@ -304,6 +341,28 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**v3.5.0 — 2026-08-09 · MENOR.** Aditivo: la Puerta 1 estrena
+`append_to_description`, que **añade al brief sin reenviar lo que ya estaba**.
+
+**Por qué MENOR y no MAYOR:** no cambia ningún nombre existente, ninguna
+obligatoriedad ni el comportamiento de `update_card`, que sigue sustituyendo
+exactamente igual. Trae dos modos de fallo nuevos (`400` por texto vacío y `400`
+por mandar añadir y sustituir a la vez) pero **solo alcanzan a llamadas que hoy
+no existen**: nadie puede pasar hoy un campo que hasta hoy no se leía.
+
+**Sale de un daño medido, y de tres mediciones independientes.** El 8-ago-2026 la
+reconstrucción a mano de una descripción destruyó la medición de otro papel y un
+hallazgo escrito ahí precisamente para viajar entre papeles; se recuperó porque el
+historial se había construido esa misma mañana. Y los tres papeles del protocolo,
+entrevistados por separado, señalaron el reenvío íntegro como el mayor coste de su
+jornada. **La compuerta del `409` (v3.3.0) defendía de la reescritura ciega pero
+dejaba intacto el reenvío**: era un guardián contra un defecto que no tenía por
+qué existir.
+
+**La asimetría con la Puerta 2 se declara arriba**, en su propia sección: allí no
+se puede añadir porque allí no se puede editar, y darle esa capacidad con
+`service_role` es una decisión con precio que no viene de rebote en ésta.
 
 **v3.4.0 — 2026-08-08 · MENOR.** Aditivo: el historial deja de ser solo de la
 descripción y `card_history` expone `field` y `oldValue`. Es la mitad de código
