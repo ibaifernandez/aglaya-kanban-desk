@@ -180,8 +180,30 @@ const createCard = async (req, res) => {
   res.status(201).json({ data: toCard(data) });
 };
 
+// ── Cómo se pega lo que se añade ──────────────────────────────────────────────
+// La descripción es markdown, así que pegar un párrafo al final de la última
+// línea NO produce un párrafo: produce una línea más larga. Ese es un daño
+// silencioso —se escribe bien y se lee mal— y esta casa los cierra en vez de
+// documentarlos. Así que la puerta garantiza al menos una línea en blanco.
+//
+// ⚠️ EL RELLENO SOLO PUEDE AÑADIR SALTOS, NUNCA RECORTARLOS, y no es estética.
+// La compuerta del `409` compara por **contención literal**: el texto nuevo
+// tiene que CONTENER el anterior byte a byte. Un relleno que normalizara la
+// cola —recortando los saltos que sobran antes de pegar— rompería esa
+// contención y pondría la compuerta roja contra la única escritura del sistema
+// que por construcción no destruye nada.
+const separadorMarkdown = (anterior) => {
+  if (anterior.endsWith('\n\n')) return '';
+  if (anterior.endsWith('\n'))   return '\n';
+  return '\n\n';
+};
+
 const updateCard = async (req, res) => {
-  const { title, description, category, priority, dueDate, tags, checklist, checklistTitle, attachments, assigneeId } = req.body;
+  const { title, category, priority, dueDate, tags, checklist, checklistTitle, attachments, assigneeId, appendDescription } = req.body;
+  // `description` deja de ser `const`: cuando llega `appendDescription`, la
+  // calcula el servidor a partir de lo que ya hay. Es el único campo que esta
+  // puerta puede componer, porque es el único que se acumula.
+  let { description } = req.body;
 
   // Input validation
   // El mensaje se DERIVA del conjunto. Escribirlo al lado es lo que había, y ya
@@ -196,24 +218,58 @@ const updateCard = async (req, res) => {
     return res.status(400).json({ error: 'dueDate must be a valid date string' });
   }
 
-  // ── Qué campos deja rastro, y por qué esta lista y no otra ────────────────
-  // Son los que esta puerta acepta. Un campo que la puerta no acepta no se puede
-  // perder por aquí, y meterlo aquí sería prometer un rastro que nadie escribe.
+  // ── AÑADIR sin reenviar ───────────────────────────────────────────────────
   //
-  // `columna` y `orden` NO están: los mueve `PUT /cards/:id/move`, que es otra
-  // puerta y otra tarjeta. Se dice para que su ausencia no se lea como olvido.
-  const entrantes = {
-    title, description, priority, dueDate, category,
-    assigneeId, tags, checklist, checklistTitle, attachments,
-  };
+  // QUÉ DEFECTO CIERRA. Hasta ahora esta puerta solo sabía SUSTITUIR: para
+  // apuntar tres párrafos en una tarjeta había que volver a mandar los quince o
+  // veinte mil caracteres anteriores, transcritos a mano y sin fallar en
+  // ninguno. Eso no cuesta tiempo, cuesta **trabajo perdido**: el 8-ago-2026 una
+  // reconstrucción desde una copia vieja se llevó por delante la medición de
+  // otro papel y un hallazgo escrito ahí justamente para viajar entre papeles.
+  //
+  // POR QUÉ NO BASTABA LA COMPUERTA DEL `409`. Aquella defiende de la
+  // reescritura ciega, y muerde — pero deja intacto el gasto y el riesgo de
+  // transcripción, porque sigue exigiendo reenviarlo todo. Era un guardián
+  // contra un defecto que no tenía por qué existir.
+  //
+  // POR QUÉ AQUÍ Y NO EN UNA RUTA NUEVA. Añadir ES una edición: tiene que pasar
+  // por la misma autenticación, la misma membresía, el mismo historial y la
+  // misma compuerta. Una ruta aparte sería una segunda puerta a la descripción,
+  // y la segunda puerta es donde se cuela lo que la primera prohíbe.
+  //
+  // Y NO SE LE ABRE UN ATAJO A LA COMPUERTA: el texto compuesto pasa por la
+  // comparación como cualquier otro. Que la supere no está exento, está
+  // **garantizado por construcción** — el resultado empieza por el anterior,
+  // byte a byte. Si algún día deja de superarla, es que la composición se
+  // rompió, y entonces la compuerta es exactamente quien debe decirlo.
+  if (appendDescription !== undefined) {
+    if (typeof appendDescription !== 'string' || appendDescription.trim().length === 0) {
+      return res.status(400).json({
+        error: 'appendDescription debe ser texto con contenido. Añadir nada no es '
+             + 'una edición: escribiría la misma descripción, sin rastro y sin aviso.',
+      });
+    }
+    // Las dos juntas son dos órdenes que se contradicen —«sustituye por esto» y
+    // «añade esto»— y elegir una en silencio es la familia de fallo que este
+    // repo ya pagó: obedecer una intención que nadie declaró.
+    if (description !== undefined) {
+      return res.status(400).json({
+        error: 'appendDescription y description son excluyentes: una sustituye y la '
+             + 'otra añade. Manda solo la que quieras.',
+      });
+    }
+  }
 
   // Fetch previous state for notification diff (checklist mentions + assignee
-  // change) and for the description history below.
+  // change), for the description history below, y —desde que existe
+  // `appendDescription`— para poder componer el texto nuevo: no se puede añadir
+  // al final de algo que no se ha leído.
   // Se leen TODOS los campos vigilados, no solo los tres de antes: desde
   // `e198e189` el historial cubre cualquier campo, y no se puede guardar el
   // valor anterior de algo que no se leyó.
   let prevCard = null;
-  if (CAMPOS_CON_HISTORIAL.some((c) => entrantes[c.api] !== undefined)) {
+  if (appendDescription !== undefined
+      || CAMPOS_CON_HISTORIAL.some((c) => req.body[c.api] !== undefined)) {
     const { data: prev } = await supabaseAdmin
       .from('cards')
       .select('checklist, board_id, title, assignee_id, description, priority, '
@@ -222,6 +278,34 @@ const updateCard = async (req, res) => {
       .single();
     prevCard = prev;
   }
+
+  // Compuesto AQUÍ, entre la lectura y todo lo demás, para que de este punto en
+  // adelante «añadir» y «sustituir» sean el mismo camino: mismo historial, misma
+  // compuerta, mismo `update`. Un segundo camino sería un segundo sitio donde
+  // olvidarse del historial.
+  if (appendDescription !== undefined) {
+    const anterior = prevCard?.description ?? '';
+    description = anterior.trim().length === 0
+      // Nada que conservar: no hay separador que poner ni nada que destruir.
+      ? appendDescription
+      : anterior + separadorMarkdown(anterior) + appendDescription;
+  }
+
+  // ── Qué campos deja rastro, y por qué esta lista y no otra ────────────────
+  // Son los que esta puerta acepta. Un campo que la puerta no acepta no se puede
+  // perder por aquí, y meterlo aquí sería prometer un rastro que nadie escribe.
+  //
+  // `columna` y `orden` NO están: los mueve `PUT /cards/:id/move`, que es otra
+  // puerta y otra tarjeta. Se dice para que su ausencia no se lea como olvido.
+  //
+  // `appendDescription` tampoco está, y no es olvido: no es un campo, es una
+  // FORMA de escribir `description`. Para cuando se llega aquí ya se resolvió a
+  // un texto, y el rastro que deja es el de la descripción — que es el que sirve
+  // para deshacer.
+  const entrantes = {
+    title, description, priority, dueDate, category,
+    assigneeId, tags, checklist, checklistTitle, attachments,
+  };
 
   // ── Historial de la descripción ────────────────────────────────────────────
   // Esta puerta recibe la descripción COMPLETA y la reemplaza. No hay forma de
