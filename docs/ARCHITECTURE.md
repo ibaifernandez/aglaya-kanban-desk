@@ -90,6 +90,88 @@ ALTER TABLE public.boards ADD COLUMN workspace_id uuid REFERENCES public.workspa
 
 ---
 
+## 🔎 5 bis. Cómo se le pregunta a la base sin que nadie ejecute nada
+
+**Para quien lee esto y no es una persona.** Ningún papel automático puede
+abrir la base del Kanban desde su máquina, y está bien que no pueda: `psql` en
+local topa con el enganche de permisos (`bloqueado por el enganche: leer o
+escribir un fichero de secretos`) y el MCP de Supabase de esta máquina está
+autenticado **contra otra organización**, no contra este proyecto.
+
+**La vía existe y no relaja nada: se le pregunta desde dentro de GitHub.** Varios
+workflows ya llevan la credencial de la base en sus secretos y se pueden
+**disparar a mano**. El agente dispara, el workflow pregunta con la llave que ya
+vive allí, y la respuesta queda en el registro de la corrida. La credencial nunca
+entra en el contexto de ningún agente y el enganche se queda intacto. **No se
+rodea la seguridad: se deja de rodear.**
+
+```bash
+gh workflow run <workflow>.yml --ref main
+```
+
+```bash
+gh run list --workflow=<workflow>.yml --limit 1
+```
+
+```bash
+gh run view <id-de-la-corrida> --log
+```
+
+> ⚠️ **Dispara siempre `--ref main`.** Lo que se mide es la base que hay puesta,
+> y sobre una rama con una migración sin aplicar un guardián **nace rojo con
+> razón**. Un rojo legítimo leído como hallazgo cuesta una vuelta entera.
+
+### Qué contesta cada uno
+
+<!-- base-consultable:inicio -->
+
+| workflow | Qué pregunta contesta sobre la base | Qué mira |
+|---|---|---|
+| `schema-drift.yml` | ¿El esquema **documentado** es el que hay puesto? | Presencia de columnas, en las dos direcciones: declarada y ausente, presente y sin declarar. **No compara tipos** — normalizar dos dialectos es donde se esconden los verdes falsos |
+| `rail-scope.yml` | ¿El alcance del riel es el que debería? | Espacios que el riel no ve y espacios que ve de más. El riel **no puede contestar esto**: sus puntos ciegos no salen en su propia lista, por definición |
+| `ci.yml` | ¿Alguna tabla se abrió de más al rol anónimo? | Privilegios de `anon` y `authenticated` contra lo que declara el esquema. Va dentro del job de comprobaciones baratas |
+| `db-backup.yml` | ¿Hay copia de hoy, y tiene dentro lo que dice? | Vuelca la base y comprueba tamaño y tablas antes de subir. Es el único que **escribe fuera** (R2), no solo lee |
+
+<!-- base-consultable:fin -->
+
+**Esta tabla no se mantiene a mano.** [`scripts/base-consultable-guard.sh`](../scripts/base-consultable-guard.sh)
+la deriva del árbol —workflow con disparo manual **y** con `secrets.DATABASE_URL`—
+y se pone rojo en las dos direcciones: si aparece una vía que aquí no está, y si
+aquí se anuncia una que ya no contesta. La segunda es la peor: quien la siga no
+obtiene un error, obtiene **nada**, y nada se parece mucho a que no había nada que
+encontrar. Tiene su propio sello.
+
+### Lo que este verde vale, y caduca
+
+**La respuesta es un instante, no una propiedad del commit.** Un guardián que
+pregunta fuera del repo mide la base **en el momento en que corrió**; media hora
+después puede ser falsa sin que nadie toque nada. Por eso los que preguntan fuera
+imprimen su veredicto fechado. Al citar una salida, **cítala con su fecha y con el
+identificador de la corrida** — «lo comprobé» sin eso no dice cuándo.
+
+### Lo que esto NO cubre
+
+- **Sirve para MIRAR, no para cambiar.** Aplicar una migración sigue siendo
+  **acción del Operador**, y ampliar esto a ejecutar SQL arbitrario desde un
+  workflow es una decisión de seguridad distinta que **no está tomada**.
+- **No hay forma de lanzar una consulta suelta.** Solo se pueden hacer las
+  preguntas que algún workflow ya sabe hacer. Una pregunta nueva **no se
+  improvisa aquí**: necesita su guardián, con su sello, y eso es una tarjeta.
+- **Preguntas frecuentes que hoy no contesta ninguno**, dichas para que su
+  ausencia no se lea como que no hacen falta:
+  - **¿Cuántas filas tiene una tabla, o qué hay dentro de una fila concreta?**
+    Ninguno lo devuelve. `schema-drift.yml` mira presencia de columnas, no
+    contenido.
+  - **¿Se aplicó de verdad el `UPDATE` de una migración?** Ningún guardián lo
+    comprueba: miden forma, no datos. Hoy se contesta indirectamente o no se
+    contesta.
+  - **¿Qué políticas RLS hay puestas?** `ci.yml` mira privilegios de tabla, que
+    es otra capa.
+- **`gh workflow run` necesita permiso de escritura en Actions.** Quien no lo
+  tenga recibirá un error de la propia herramienta; ése sí se lee claro.
+
+---
+
 ## 📝 6. Referencias
 - Ver [SECURITY.md](./SECURITY.md) para la auditoría de superficie de ataque y gestión de secretos.
 - Ver [PERMISSIONS.md](./PERMISSIONS.md) para la matriz detallada de acciones por rol.

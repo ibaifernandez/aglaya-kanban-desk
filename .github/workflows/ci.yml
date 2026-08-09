@@ -240,6 +240,20 @@ jobs:
       # de un job en verde, para siempre y sin rastro. Antes de fundir los jobs
       # eso se veía —la comprobación se caía de la lista de checks— y así se cazó
       # el #34. Esto devuelve esa garantía.
+      # ── ¿Sigue siendo cierto lo que enseña a preguntarle a la base? ────────
+      # No toca la base: compara el ÁRBOL de workflows con lo que el documento
+      # nombra. Por eso vive aquí, entre las baratas, y no en un job con
+      # credencial.
+      - name: Sello — ¿base-consultable-guard muerde en las dos direcciones?
+        id: sello_base_consultable
+        continue-on-error: true
+        run: bash scripts/base-consultable-guard.test.sh
+
+      - name: Guardián — ¿el documento nombra las vías que de verdad contestan?
+        id: base_consultable
+        continue-on-error: true
+        run: bash scripts/base-consultable-guard.sh
+
       - name: Sello — ¿el guardián del cableado muerde en las dos direcciones?
         id: sello_cableado
         continue-on-error: true
@@ -272,6 +286,8 @@ jobs:
             "hook-guard · guardián|${{ steps.hook.outcome }}" \
             "email-guard · sello|${{ steps.sello_email.outcome }}" \
             "email-guard · guardián|${{ steps.email.outcome }}" \
+            "base-consultable · sello|${{ steps.sello_base_consultable.outcome }}" \
+            "base-consultable · guardián|${{ steps.base_consultable.outcome }}" \
             "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
             "cableado del verdicto · guardián|${{ steps.cableado.outcome }}"
 
