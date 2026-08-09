@@ -150,6 +150,26 @@ jobs:
             echo "FIN_DIFF"
           } >> "$GITHUB_ENV"
 
+          # `changelog-guard` necesita SABER SI SE BORRÓ un fragmento, no solo
+          # qué ficheros cambiaron: ese borrado es lo único que distingue una
+          # fusión legítima —que sí escribe el registro— de escribirlo a mano.
+          # Por eso `--name-status` y no `--name-only`.
+          {
+            echo "CHANGELOG_GUARD_CAMBIADOS<<FIN_DIFF"
+            git diff --name-status "$BASE" "$HEAD"
+            echo "FIN_DIFF"
+          } >> "$GITHUB_ENV"
+
+          # Y los mensajes, porque la salida deliberada —`[registro-a-mano]`—
+          # vive ahí: queda en el historial y cuesta un acto explícito.
+          # El `||` cubre la rama nueva, donde BASE es el árbol vacío y no hay
+          # rango que recorrer.
+          {
+            echo "CHANGELOG_GUARD_MOTIVO<<FIN_DIFF"
+            git log --format=%B "$BASE".."$HEAD" 2>/dev/null || git log --format=%B -n 20 "$HEAD"
+            echo "FIN_DIFF"
+          } >> "$GITHUB_ENV"
+
       # ── Validación del riel ────────────────────────────────────────────────
       # Sin `pip install`: kanban-mcp/validation.py no importa nada de terceros
       # a propósito, para que esta comprobación corra con un python3 pelado.
