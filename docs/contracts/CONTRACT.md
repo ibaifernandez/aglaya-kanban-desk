@@ -362,6 +362,35 @@ y cuesta un renglón.
 
 ### Historial de versiones
 
+**Sin bump — 2026-08-10.** No cambia la forma de ninguna puerta: ni un campo, ni
+un código, ni una obligatoriedad. Lo que cambia es que **desaparece un modo de
+fallo** de la Puerta 1, y por eso va aquí — esta sección **es** el aviso al
+capitán, y un modo de fallo que deja de existir le importa tanto como uno nuevo.
+
+**Dos cosas, y la primera explica la segunda:**
+
+1. **Crear con responsable notifica también.** El aviso in-app vivía solo en el
+   update. Ahora `POST /api/cards` lo dispara al nacer asignada, con las mismas
+   dos guardas: sin responsable no hay a quién avisar, y a uno mismo no se le
+   notifica.
+2. **Crear + asignar es UNA sola escritura.** Eran dos —`POST` y luego `PUT`— y
+   la segunda no se comprobaba: si fallaba, la tarjeta ya existía **sin dueño** y
+   el llamante recibía una excepción que no decía que ya existía. Una fila que
+   ningún proceso mira.
+
+**Por qué no bastaba con mover el campo al `POST`, que es lo que parecía:** el
+`PUT` estaba ahí porque era el update quien notificaba, y el update solo avisa si
+el responsable **cambia**. Quitarlo sin lo primero habría cerrado la ventana
+**perdiendo el aviso en silencio** — y un aviso que no llega no lo echa nadie de
+menos. Por eso el orden importa: primero notificar al crear, y entonces una
+escritura basta.
+
+**Lo que el capitán puede dejar de asumir:** que una comanda suya pueda quedar
+escrita sin responsable si algo falla a mitad. Ya no puede — no por compensación,
+sino porque no hay segundo paso que falle.
+
+**Lo que sigue igual:** la Puerta 2 no promete avisos y no los da.
+
 **v3.5.0 — 2026-08-09 · MENOR.** Aditivo: la Puerta 1 estrena
 `append_to_description`, que **añade al brief sin reenviar lo que ya estaba**.
 
