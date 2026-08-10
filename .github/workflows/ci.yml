@@ -94,6 +94,23 @@ jobs:
             --forceExit \
             --ci
 
+      # Un verde de arriba dice que las pruebas pasan, NO que midan el código:
+      # los dobles de `supabaseAdmin` de la puerta interna llegaron a devolver
+      # sus fixtures pasara lo que pasara, y siete defectos reales pasaron en
+      # verde por eso. Esto destripa la ruta siete veces y exige rojo en cada
+      # una. Vive AQUÍ dentro y no en un job propio a propósito: GitHub factura
+      # por job redondeando al minuto, y esto son ~10 s dentro de un job que ya
+      # existe y ya tiene `npm ci` hecho.
+      - name: Mutación — ¿los dobles de la puerta interna ejercen el código?
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test-secret
+          RESEND_API_KEY: test_key
+          SUPABASE_URL: http://localhost
+          SUPABASE_SERVICE_ROLE_KEY: test_service_role
+          SUPABASE_ANON_KEY: test_anon_key
+        run: bash scripts/puerta-interna.mutation.sh
+
   comprobaciones-baratas:
     # Antes eran CINCO jobs sueltos —rail-validation, contract-guard,
     # grants-guard, hook-guard, email-guard— de 4 a 8 segundos cada uno. Cinco
