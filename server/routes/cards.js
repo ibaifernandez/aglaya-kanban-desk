@@ -177,6 +177,35 @@ const createCard = async (req, res) => {
     .single();
 
   if (error) { console.error('[cards] createCard:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
+
+  // Nacer asignado también avisa. Hasta hoy la notificación de responsable vivía
+  // SOLO en `updateCard`, y eso tenía dos consecuencias, las dos malas:
+  //
+  //   · Quien creaba una tarjeta ya asignada —la UI lo permite, el selector de
+  //     responsable está en el modal de creación— **asignaba sin avisar a nadie**.
+  //     El responsable no se enteraba salvo que mirara el tablero.
+  //   · Y obligaba al riel a crear primero y asignar después, en dos escrituras,
+  //     porque la segunda era la única que notificaba. Esa ventana es el defecto
+  //     que esta tarjeta cierra: si el segundo paso fallaba, quedaba una tarjeta
+  //     escrita y sin dueño — invisible para el sistema de trabajo — y el
+  //     llamante recibía una excepción que no decía que ya existía.
+  //
+  // Con esto, asignar al crear y asignar después notifican igual, así que una
+  // sola escritura basta y la ventana deja de existir por construcción, no por
+  // compensación.
+  //
+  // Las mismas dos guardas que en `updateCard`, y por los mismos motivos: sin
+  // responsable no hay a quién avisar, y a uno mismo no se le notifica.
+  if (data.assignee_id && data.assignee_id !== req.user.id) {
+    createAssigneeNotification(
+      data.id,
+      data.board_id,
+      data.title,
+      data.assignee_id,
+      req.user.id,
+    ).catch((err) => console.error('[notifications] assignee al crear falló:', err.message));
+  }
+
   res.status(201).json({ data: toCard(data) });
 };
 

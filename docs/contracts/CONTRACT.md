@@ -67,7 +67,23 @@ Lo que el catálogo no te dice, y este contrato sí:
 - **Las destructivas están cerradas con llave:** exigen `confirm=true`. Es diseño.
   No desactivar la compuerta.
 - **Asignar suena.** Asignar no es etiquetar: dispara la notificación in-app real
-  a un humano.
+  a un humano. **También al nacer asignada** *(10-ago-2026)*.
+
+  **Y crear + asignar es UNA sola escritura** *(10-ago-2026)*. Eran dos —`POST` y
+  luego `PUT`— y la segunda **no se comprobaba**: si fallaba, la tarjeta ya
+  existía **sin dueño** y el llamante recibía una excepción que no decía que ya
+  existía. Una fila que ningún proceso mira, que es la misma familia que «nacer
+  invisible» y por el mismo motivo: no falla, envejece.
+
+  El `PUT` tenía un motivo real —era el update quien notificaba— y por eso el
+  arreglo no fue moverlo sin más: ahora **crear con responsable también notifica**,
+  y entonces una escritura basta. La ventana se cierra **por construcción**, no
+  compensando.
+
+  **Sin cambio de versión, y es deliberado:** no cambia ni un campo ni un código
+  de la puerta. Lo que desaparece es un modo de fallo, y eso no se le cobra a un
+  consumidor como una versión nueva. Queda fechado aquí porque el capitán sí
+  necesita saber que ya no puede pasar.
 - **Las columnas se pueden renombrar y borrar, y el tablero queda 1..N** *(v3.1.0)*.
   `update_column` renombra y reposiciona; `delete_column` borra, **con compuerta**.
   Tras cualquier cambio el tablero queda numerado **contiguo y sin repetidos**: no

@@ -407,8 +407,20 @@ def create_card(
         return {"error": f"assignee no resuelve: {exc}. No se ha creado nada."}
 
     brief = resolve_brief(description, description_md)
+    # El responsable va DENTRO del POST, en la misma escritura. Estuvo fuera, en
+    # un `PUT` posterior cuyo retorno se descartaba, y eso dejaba una ventana: si
+    # el segundo paso fallaba —red, 500, lo que fuera— la tarjeta YA existía sin
+    # dueño y el llamante recibía una excepción que no decía que ya existía.
+    # Una fila que ningún proceso mira y que nadie sabe que está ahí.
+    #
+    # El `PUT` tenía un motivo real y ya no lo tiene: era el update quien
+    # disparaba la notificación in-app. Ahora `createCard` la dispara también al
+    # nacer asignada (`server/routes/cards.js`), así que asignar en la creación
+    # notifica igual. La ventana se cierra por construcción — una sola escritura,
+    # nada que compensar si algo falla.
     body: dict[str, Any] = {"columnId": column_id, "boardId": board_id, "title": title,
-                            "description": brief, "priority": str(priority).strip()}
+                            "description": brief, "priority": str(priority).strip(),
+                            "assigneeId": assignee_id}
     if checklist:
         body["checklist"] = [{"id": secrets.token_hex(6), "text": str(t), "done": False, "assignees": []}
                              for t in checklist]
@@ -422,10 +434,9 @@ def create_card(
     notice = empty_brief_notice(brief)
     if notice:
         out["warning"] = notice
-    # Se asigna por el PUT, no por el POST, porque es el update el que dispara la
-    # notificación in-app. El id ya está resuelto arriba: llamar a `assign_card`
-    # aquí volvería a pedir la lista de usuarios para averiguar lo que ya sabemos.
-    _request("PUT", f"/cards/{card['id']}", {"assigneeId": assignee_id})
+    # Sin segunda escritura: el responsable viajó en el POST de arriba. Lo que se
+    # devuelve es el id que se RESOLVIÓ y se mandó, no una promesa de una llamada
+    # que ya no existe.
     out["assignee_id"] = assignee_id
     out["assigned"] = assignee
     return out
