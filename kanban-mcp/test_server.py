@@ -185,6 +185,55 @@ class CrearTarjeta(RielTestCase):
         out = self._crear(description_md="")
         self.assertIn("warning", out, "una tarjeta sin contenido debe dejar de parecerse a una que salió bien")
 
+    # ── La ventana entre crear y asignar ──────────────────────────────────────
+    # Crear era DOS escrituras: `POST /cards` sin responsable y luego
+    # `PUT /cards/<id>` con él, cuyo retorno se descartaba. Si el segundo fallaba
+    # —red, 500, lo que fuera— la tarjeta YA existía sin dueño y el llamante
+    # recibía una excepción que no decía que ya existía: una fila que ningún
+    # proceso mira y que nadie sabe que está ahí.
+    #
+    # No se cierra comprobando el `PUT`: se cierra quitándolo. Estas dos pruebas
+    # se ponen rojas si alguien vuelve a partir la escritura en dos.
+
+    def test_crear_es_UNA_sola_escritura(self):
+        self._crear()
+        self.assertEqual(
+            [(c[0], c[1]) for c in self.writes], [("POST", "/cards")],
+            "crear tiene que ser una sola escritura: dos abren la ventana otra vez",
+        )
+
+    def test_el_responsable_viaja_DENTRO_del_POST(self):
+        self._crear()
+        post = next(c for c in self.calls if c[0] == "POST" and c[1] == "/cards")
+        self.assertEqual(post[2]["assigneeId"], "user-rail")
+
+    def test_si_una_segunda_escritura_fallara_no_habria_a_quien_culpar(self):
+        """La condición de cierre de la tarjeta, ejercida.
+
+        Se hace estallar CUALQUIER escritura que no sea el `POST /cards`. Con la
+        versión anterior esto reventaba dejando la tarjeta escrita y sin dueño;
+        ahora no hay segunda escritura que estalle, así que la llamada termina
+        bien y el acuse trae el responsable.
+
+        Ejerce el modo de fallo que nadie había podido provocar contra el riel
+        vivo — aquí sí se puede, porque la red es un doble.
+        """
+        real = self._fake_request
+
+        def solo_una_escritura(method, path, json=None, **kw):
+            if method in ("PUT", "PATCH", "DELETE") or (method == "POST" and path != "/cards"):
+                raise RuntimeError(f"{method} {path} → 500: boom")
+            return real(method, path, json, **kw)
+
+        server._request = solo_una_escritura
+        try:
+            out = self._crear()
+        finally:
+            server._request = real
+
+        self.assertEqual(out.get("created"), "card")
+        self.assertEqual(out.get("assignee_id"), "user-rail")
+
 
 class Enrutado(RielTestCase):
     def test_si_dan_columna_pregunta_por_la_columna(self):
