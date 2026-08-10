@@ -88,6 +88,26 @@ router.get('/list-boards', verifySecret, async (req, res) => {
 //   description  {string}  opcional
 //   dueDate      {string}  opcional — ISO 8601
 //   workspaceName {string} REQUERIDO — sin default, a propósito (ver abajo)
+//   idempotencyKey {string} opcional — UUID; repetirlo devuelve 200 con la que ya existe
+
+// Por qué la clave de idempotencia es UUID y su espacio de nombres es global
+// (2026-08-10, contrato v3.6.0):
+// Sin clave, dos POST idénticos creaban dos tarjetas y devolvían 201 las dos
+// veces. Un humano ve el duplicado; una nave que reintenta al vencer el tiempo
+// de espera, no — y no puede distinguir «se creó y perdí la respuesta» de «no se
+// creó».
+//
+// NO se acota por llamante a propósito: el nombre del llamante lo declara quien
+// tiene el secreto, así que acotar por él daría una separación que esta puerta
+// no puede verificar. Lo que sí se puede verificar es la FORMA de la clave, y
+// por eso se exige UUID: con UUID la colisión entre naves deja de ser un
+// problema de coordinación y pasa a ser improbable por construcción.
+//
+// Y LA GARANTÍA NO ESTÁ AQUÍ: está en el índice único de
+// docs/schema/migration-idempotency-key.sql. Mirar antes de insertar deja una
+// ventana entre las dos consultas, y esa ventana es justo el defecto — dos
+// reintentos simultáneos la pasan los dos. Por eso el `23505` se trata como
+// repetición y no como error: es el caso que la comprobación previa no ve.
 
 // Por qué workspaceName no tiene default (2026-07-21):
 // Lo tuvo: "Ibai Fernández". Ese workspace existe y es el PERSONAL de Ibai — zona
@@ -114,6 +134,64 @@ router.get('/list-boards', verifySecret, async (req, res) => {
 // acertados —si esta tarjeta es de un obrero o de un humano, si merece urgent— es
 // criterio, y el criterio no vive en una puerta.
 
+// Reconstruye el acuse de una tarjeta que YA existe, resolviendo sus destinos
+// desde la fila guardada y NO desde lo que trae la petición de ahora.
+//
+// La diferencia importa: una repetición puede traer nombres que hoy resuelven a
+// otro sitio —los tableros se renombran— y devolver los de ahora junto al id de
+// entonces sería un acuse que miente sobre dónde está esa tarjeta. Lo que se
+// devuelve es dónde está, no dónde habría ido.
+//
+// Devuelve null si la fila referencia algo que ya no existe: quien llama decide
+// qué hacer con eso, y aquí no se inventa un nombre para tapar el hueco.
+async function acusePorClave(clave) {
+  const { data: filas, error } = await supabaseAdmin
+    .from('cards')
+    .select('id, title, priority, board_id, column_id, assignee_id')
+    .eq('idempotency_key', clave)
+    .limit(1);
+
+  if (error) return { error };
+  const card = filas?.[0];
+  if (!card) return { card: null };
+
+  const { data: boards }  = await supabaseAdmin
+    .from('boards').select('id, title, workspace_id').eq('id', card.board_id).limit(1);
+  const board = boards?.[0];
+
+  const { data: columns } = await supabaseAdmin
+    .from('columns').select('id, title').eq('id', card.column_id).limit(1);
+  const column = columns?.[0];
+
+  const { data: workspaces } = board
+    ? await supabaseAdmin
+        .from('workspaces').select('id, name').eq('id', board.workspace_id).limit(1)
+    : { data: [] };
+  const workspace = workspaces?.[0];
+
+  const { data: users } = card.assignee_id
+    ? await supabaseAdmin
+        .from('users').select('id, name').eq('id', card.assignee_id).limit(1)
+    : { data: [] };
+  const user = users?.[0];
+
+  return {
+    card: {
+      id:           card.id,
+      title:        card.title,
+      priority:     card.priority,
+      workspace_id: workspace?.id   ?? board?.workspace_id ?? null,
+      workspace:    workspace?.name ?? null,
+      board_id:     card.board_id,
+      board:        board?.title    ?? null,
+      column_id:    card.column_id,
+      column:       column?.title   ?? null,
+      assignee_id:  card.assignee_id,
+      assignee:     user?.name      ?? null,
+    },
+  };
+}
+
 router.post('/create-card', verifySecret, async (req, res) => {
   const {
     title,
@@ -123,6 +201,7 @@ router.post('/create-card', verifySecret, async (req, res) => {
     description  = '',
     dueDate      = null,
     workspaceName,
+    idempotencyKey,
   } = req.body;
 
   if (!title?.trim())     return res.status(400).json({ error: 'title es obligatorio.' });
@@ -164,6 +243,51 @@ router.post('/create-card', verifySecret, async (req, res) => {
         'la coge nadie, y no falla — envejece pareciendo trabajo pendiente. ' +
         'Acepta email, nombre exacto o id.',
     });
+  }
+
+  // Clave de idempotencia. Opcional: sin ella la puerta se comporta como
+  // siempre. Si viene, se valida ANTES de resolver nada — una clave mal formada
+  // tiene que fallar igual que un payload mal formado, no después de haber
+  // gastado cuatro consultas.
+  //
+  // Una clave presente y vacía NO se trata como ausente: quien manda el campo ha
+  // decidido usarlo, y tragárselo devolvería una tarjeta nueva por cada
+  // reintento mientras el llamante cree estar protegido. Es la familia del 201
+  // que miente.
+  const claveIdem = typeof idempotencyKey === 'string' ? idempotencyKey.trim() : idempotencyKey;
+
+  // `null` sí cuenta como ausente: es lo que manda un cliente que serializa un
+  // campo opcional sin valor. La cadena vacía NO — ver arriba.
+  if (claveIdem !== undefined && claveIdem !== null) {
+    // Una sola puerta para «no es una clave usable», y la vacía entra por ella.
+    // Hubo dos ramas —una para vacía y otra para no-UUID— y la primera era
+    // inalcanzable en la práctica: la vacía tampoco es un UUID. Medido por
+    // mutación: desactivarla no ponía roja ni una prueba. Una rama que no puede
+    // fallar no protege nada y hace creer que sí.
+    if (typeof claveIdem !== 'string' || !UUID_RE.test(claveIdem)) {
+      return res.status(400).json({
+        error:
+          `idempotencyKey inválida: "${claveIdem}". Tiene que ser un UUID, y la ` +
+          'cadena vacía no vale: mandar el campo es haber decidido usarlo, así ' +
+          'que tragárselo devolvería una tarjeta nueva por reintento mientras ' +
+          'crees estar protegido. Omítelo para no usar idempotencia. El espacio ' +
+          'de nombres es global —no se acota por llamante, porque el llamante se ' +
+          'autodeclara— y el UUID es lo que hace improbable que dos naves se ' +
+          'pisen la clave.',
+      });
+    }
+
+    // Mirada previa. NO es la garantía —eso es el índice único, ver el comentario
+    // de arriba—: es para no gastar un insert fallido en el caso normal.
+    const previo = await acusePorClave(claveIdem);
+    if (previo.error) {
+      console.error('[internal/create-card] idempotencia', previo.error.message);
+      return res.status(500).json({ error: 'Error al comprobar la clave de idempotencia.' });
+    }
+    if (previo.card) {
+      console.log(`[internal/create-card] repetición de ${claveIdem} → ${previo.card.id}`);
+      return res.status(200).json({ ok: true, idempotent: true, card: previo.card });
+    }
   }
 
   // 0. Responsable. Se resuelve ANTES de escribir nada: un assignee que no
@@ -296,9 +420,28 @@ router.post('/create-card', verifySecret, async (req, res) => {
       checklist:       [],
       checklist_title: '',
       order:           maxOrder + 1,
+      // El campo SOLO viaja si hay clave, y no es cosmética: si esto se
+      // desplegara antes de aplicar `migration-idempotency-key.sql`, mandarlo
+      // siempre haría fallar **todas** las creaciones —la columna no existe—,
+      // incluidas las de quien no usa idempotencia. Así, sin migración, lo único
+      // que falla es lo que de verdad depende de ella, y falla diciéndolo.
+      ...(claveIdem ? { idempotency_key: claveIdem } : {}),
     })
     .select()
     .single();
+
+  // El `23505` NO es un error: es la carrera que la mirada previa no puede ver.
+  // Dos reintentos simultáneos pasan los dos la comprobación y llegan aquí; el
+  // índice único deja pasar uno y el otro tiene que recibir la MISMA respuesta
+  // que habría recibido llegando un segundo más tarde. Tratarlo como 500 sería
+  // decirle «no se creó» a quien acaba de crearla.
+  if (cardError?.code === '23505' && claveIdem) {
+    const previo = await acusePorClave(claveIdem);
+    if (previo.card) {
+      console.log(`[internal/create-card] carrera en ${claveIdem} → ${previo.card.id}`);
+      return res.status(200).json({ ok: true, idempotent: true, card: previo.card });
+    }
+  }
 
   if (cardError) {
     console.error('[internal/create-card]', cardError.message);

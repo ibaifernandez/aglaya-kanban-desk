@@ -1,8 +1,8 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.5.0
-- **Última modificación:** 2026-08-09
+- **Versión:** 3.6.0
+- **Última modificación:** 2026-08-10
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
 > Hasta hoy no existía: el registro de contratos del capitán describía la puerta
@@ -235,6 +235,7 @@ Crea una tarjeta sin JWT y sin login.
 | `assignee` | sí | — | *(v3.0.0, campo nuevo)* Email, nombre exacto o UUID del responsable. Ausente → 400; sin match → 404; nombre que casa con varios → 400 con `candidates` |
 | `description` | no | `""` | El brief |
 | `dueDate` | no | `null` | ISO 8601 |
+| `idempotencyKey` | no | — | *(v3.6.0, campo nuevo)* UUID. Repetirla devuelve **`200` con la tarjeta que ya existe** en vez de crear otra. Presente y no-UUID → 400; presente y vacía → 400 (no se lee como ausente); `null` u omitida → sin idempotencia |
 
 **Comportamiento:** busca el espacio por nombre parcial; **si casa con más de uno
 → 400 con `candidates` (`id` y `name` de cada uno) y no se escribe nada**. Luego
@@ -259,6 +260,33 @@ cerrada.** El `400` de arriba cubre el espacio, no el tablero: dos tableros con
 nombres solapados dentro del mismo espacio siguen resolviendo al primero y
 devolviendo `201`. Es el mismo defecto un nivel más abajo. Seguimiento en el
 kanban de esta nave, no en este documento.
+
+**Idempotencia — `idempotencyKey`** *(v3.6.0)*. Sin ella, dos `POST` idénticos
+creaban dos tarjetas y devolvían `201` las dos veces. Un humano ve el duplicado;
+**una nave que reintenta al vencer el tiempo de espera, no** — y no puede
+distinguir «se creó y perdí la respuesta» de «no se creó».
+
+Con ella, la repetición devuelve **`200`** —no `201`— con `idempotent: true` y el
+mismo `card` que la primera vez. **El `200` es la mitad útil:** distingue «te la
+acabo de crear» de «ésta ya estaba», que es justo lo que el reintento necesita
+saber y lo que un `201` repetido borraría.
+
+**El acuse de la repetición se reconstruye desde la fila guardada, no desde lo
+que trae la repetición.** Si el tablero se renombró entre medias, devuelve **dónde
+está** la tarjeta, no dónde habría ido — y no falla con un `404` por un nombre que
+ya no casa.
+
+**El espacio de nombres es global y se dice aquí, no se descubre:** dos naves que
+eligieran la misma clave se pisarían. No se acota por llamante **a propósito** —el
+llamante se autodeclara, así que acotar por él sería una separación que la puerta
+no puede verificar—. Lo que sí se verifica es la forma, y por eso se exige UUID.
+
+**La garantía no es de la ruta: es del índice único** (`idx_cards_idempotency_key`).
+Mirar antes de insertar deja una ventana que dos reintentos simultáneos cruzan los
+dos; el choque se recoge y se contesta como repetición.
+
+**Puerta 1 no la tiene.** El riel sigue creando una tarjeta por llamada. Se dice
+para que no se lea como cubierto por las dos puertas.
 
 **Por qué `workspaceName` no tiene default, y por qué no se repone.** Lo tuvo, y
 apuntaba al espacio **personal de Ibai**, zona intocable. Omitirlo no fallaba:
@@ -345,6 +373,24 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**v3.6.0 — 2026-08-10 · MENOR.** Aditivo: la Puerta 2 acepta `idempotencyKey`
+(UUID, opcional) y una repetición devuelve `200` con la tarjeta que ya existe.
+**No rompe a nadie:** quien no mande el campo se comporta exactamente como antes
+—dos `POST` idénticos siguen creando dos tarjetas—, y hay prueba que se pone roja
+si eso cambia.
+
+**El modo de fallo nuevo, dicho:** una clave presente y mal formada —incluida la
+cadena vacía— devuelve `400` y **no escribe nada**. La vacía no se lee como
+ausente a propósito: mandar el campo es haber decidido usarlo, y tragárselo
+devolvería una tarjeta nueva por reintento mientras el llamante se cree protegido.
+
+**Exigió tocar la base** (`docs/schema/migration-idempotency-key.sql`: columna
+`cards.idempotency_key` e índice único parcial). La garantía vive en ese índice,
+no en la ruta: la comprobación previa deja una ventana que dos reintentos
+simultáneos cruzan los dos, y el `23505` se contesta como repetición.
+
+**Lo que NO entra:** la Puerta 1 sigue sin clave de idempotencia.
 
 **v3.5.0 — 2026-08-09 · MENOR.** Aditivo: la Puerta 1 estrena
 `append_to_description`, que **añade al brief sin reenviar lo que ya estaba**.
