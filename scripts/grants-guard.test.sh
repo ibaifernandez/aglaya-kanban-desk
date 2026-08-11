@@ -84,7 +84,7 @@ caso() {
   local salida code
   salida="$(GRANTS_GUARD_ROWS="$filas" GRANTS_GUARD_SCHEMA="$esquema" bash "$GUARD" 2>&1)"
   code=$?
-  if [ -n "$espera_msg" ] && ! printf '%s' "$salida" | grep -q "$espera_msg"; then
+  if [ -n "$espera_msg" ] && ! grep -q "$espera_msg" <<< "$salida"; then
     FAIL=$((FAIL + 1))
     printf '  FALLO %s — el mensaje no dice «%s»\n' "$que" "$espera_msg"
     printf '%s\n' "$salida" | sed 's/^/          /'
@@ -158,12 +158,12 @@ GUARD_SRC="$(cat "$GUARD")"
 # Antes se exigía `GRANTS_GUARD_ROLE:-anon`. La tarjeta `cf3303c7` pedía sumar
 # `authenticated` SIN retirar esa garantía: que nadie pueda desviar el guardián
 # y dejar sin mirar el rol que lo motivó. Ahora se exigen los dos por defecto.
-if printf '%s' "$GUARD_SRC" | grep -qE 'GRANTS_GUARD_ROLES:-[^}]*anon'; then
+if grep -qE 'GRANTS_GUARD_ROLES:-[^}]*anon' <<< "$GUARD_SRC"; then
   printf '  ok    `anon` sigue vigilado por defecto\n'; PASS=$((PASS + 1))
 else
   printf '  FALLO `anon` ya no está entre los roles vigilados por defecto\n'; FAIL=$((FAIL + 1))
 fi
-if printf '%s' "$GUARD_SRC" | grep -qE 'GRANTS_GUARD_ROLES:-[^}]*authenticated'; then
+if grep -qE 'GRANTS_GUARD_ROLES:-[^}]*authenticated' <<< "$GUARD_SRC"; then
   printf '  ok    `authenticated` está vigilado por defecto\n'; PASS=$((PASS + 1))
 else
   printf '  FALLO `authenticated` no está entre los roles vigilados por defecto\n'; FAIL=$((FAIL + 1))
@@ -171,7 +171,7 @@ fi
 
 # Y que las excepciones NO vivan dentro del script: es la condición 2 de la
 # tarjeta, y una lista aquí dentro sería la avería que el #35 ya cerró.
-if printf '%s' "$GUARD_SRC" | grep -qE "^[^#]*card_description_history"; then
+if grep -qE "^[^#]*card_description_history" <<< "$GUARD_SRC"; then
   printf '  FALLO hay una excepción por tabla escrita DENTRO del guardián\n'; FAIL=$((FAIL + 1))
 else
   printf '  ok    ninguna excepción por tabla vive dentro del guardián\n'; PASS=$((PASS + 1))
@@ -181,8 +181,8 @@ echo
 echo "Y el esquema REAL se puede derivar (si no, el guardián no tiene contra qué comparar):"
 salida="$(python3 "$REPO_ROOT/scripts/grants-expectativa.py" \
             "$REPO_ROOT/docs/schema/supabase-schema.sql" anon authenticated 2>&1)"
-if [ $? -eq 0 ] && printf '%s' "$salida" | grep -q '^anon|\*|' && \
-   printf '%s' "$salida" | grep -q '^authenticated|\*|'; then
+if [ $? -eq 0 ] && grep -q '^anon|\*|' <<< "$salida" && \
+   grep -q '^authenticated|\*|' <<< "$salida"; then
   PASS=$((PASS + 1)); printf '  ok    del esquema real salen los dos defaults\n'
 else
   FAIL=$((FAIL + 1)); printf '  FALLO no se pudo derivar del esquema real\n'

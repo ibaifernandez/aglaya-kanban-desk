@@ -124,7 +124,7 @@ if [ "$funde" -eq 1 ]; then
   exit 0
 fi
 
-if printf '%s' "$motivo" | grep -qF "$MARCA"; then
+if grep -qF "$MARCA" <<< "$motivo"; then
   echo "changelog-guard: $REGISTRO se toca a mano y el commit lo declara con «$MARCA» — OK."
   exit 0
 fi

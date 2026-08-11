@@ -51,7 +51,7 @@ corre() {
   local salida code
   salida="$(SCHEMA_DRIFT_ROWS="$filas" SCHEMA_DRIFT_SCHEMA="$esquema" bash "$GUARD" 2>&1)"
   code=$?
-  if [ -n "$espera_msg" ] && ! printf '%s' "$salida" | grep -q "$espera_msg"; then
+  if [ -n "$espera_msg" ] && ! grep -q "$espera_msg" <<< "$salida"; then
     FAIL=$((FAIL + 1))
     printf '  FALLO %s — el mensaje no dice «%s»\n' "$que" "$espera_msg"
     printf '%s\n' "$salida" | sed 's/^/          /'
@@ -90,8 +90,8 @@ echo
 echo "Tiene que MORDER las dos a la vez, sin que una tape a la otra:"
 salida="$(SCHEMA_DRIFT_ROWS="$(printf 'tablilla|id\ntablilla|titulo\notra|id\notra|dueno_id\ntablilla|colada')" \
           SCHEMA_DRIFT_SCHEMA="$ESQUEMA" bash "$GUARD" 2>&1)"
-if printf '%s' "$salida" | grep -q "«tablilla.order»" && \
-   printf '%s' "$salida" | grep -q "«tablilla.colada»"; then
+if grep -q "«tablilla.order»" <<< "$salida" && \
+   grep -q "«tablilla.colada»" <<< "$salida"; then
   PASS=$((PASS + 1)); printf '  ok    la que falta y la que sobra salen las dos\n'
 else
   FAIL=$((FAIL + 1)); printf '  FALLO una tapó a la otra\n'

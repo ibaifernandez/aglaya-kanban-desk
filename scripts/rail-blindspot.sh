@@ -83,8 +83,8 @@ if [ "${1:-}" = "--relevante" ]; then
     echo "sin diff — se corre entero, que es el lado seguro de no saber" >&2
     echo "SI"; exit 0
   fi
-  if printf '%s\n' "$cambios" | awk '{print $NF}' | grep -qxE \
-       'scripts/rail-blindspot.*|\.github/workflows/rail-scope\.yml'; then
+  if grep -qxE 'scripts/rail-blindspot.*|\.github/workflows/rail-scope\.yml' \
+       < <(awk '{print $NF}' <<< "$cambios"); then
     echo "relevante: cambió el propio guardián o su lista de excepciones" >&2
     echo "SI"; exit 0
   fi

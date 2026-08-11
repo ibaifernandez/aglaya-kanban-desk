@@ -222,13 +222,14 @@ if [ "${MODO_RELEVANTE:-0}" = "1" ]; then
   entradas+=(client/vite.config.js server/index.js .claude/launch.json)
 
   for e in "${entradas[@]}"; do
-    if printf '%s\n' "$cambios" | awk '{print $NF}' | grep -qxF "$e"; then
+    if grep -qxF "$e" < <(awk '{print $NF}' <<< "$cambios"); then
       echo "relevante: cambió $e, que este guardián lee" >&2
       echo "SI"; exit 0
     fi
   done
 
-  if printf '%s\n' "$cambios" | awk '{print $NF}' | grep -qE '^(scripts/docs-guard|\.github/workflows/docs-guard\.yml$)'; then
+  if grep -qE '^(scripts/docs-guard|\.github/workflows/docs-guard\.yml$)' \
+       < <(awk '{print $NF}' <<< "$cambios"); then
     echo "relevante: cambió el propio guardián" >&2
     echo "SI"; exit 0
   fi
@@ -236,7 +237,7 @@ if [ "${MODO_RELEVANTE:-0}" = "1" ]; then
   # Y la regla LINKS, que NO tiene lista ni puede tenerla: comprueba que los
   # enlaces apunten a ficheros que existen, así que un borrado o un renombrado
   # en cualquier rincón del repo puede romperla.
-  if printf '%s\n' "$cambios" | grep -qE '^(D|R[0-9]*)[[:space:]]'; then
+  if grep -qE '^(D|R[0-9]*)[[:space:]]' <<< "$cambios"; then
     echo "relevante: hay borrados o renombrados, y LINKS mira si los enlaces siguen existiendo" >&2
     echo "SI"; exit 0
   fi

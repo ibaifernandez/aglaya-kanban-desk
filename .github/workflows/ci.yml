@@ -304,6 +304,23 @@ jobs:
         continue-on-error: true
         run: bash scripts/changelog-guard.sh
 
+      # ── ¿alguna tubería puede mentir cuando crezca lo que le pasas? ────────
+      # No toca la base ni la red: lee ficheros del árbol. Por eso vive aquí,
+      # entre las baratas.
+      #
+      # Existe porque este patrón dejó a la nave CUATRO DÍAS SIN COPIA de
+      # seguridad, y porque lo peor no es el fallo: es que aparece solo cuando
+      # crece lo que entra, sin que nadie toque una línea.
+      - name: Sello — ¿pipefail-guard muerde el patrón y calla ante la forma buena?
+        id: sello_pipefail
+        continue-on-error: true
+        run: bash scripts/pipefail-guard.test.sh
+
+      - name: Guardián — ¿hay tuberías hacia un lector que sale antes de tiempo?
+        id: pipefail
+        continue-on-error: true
+        run: bash scripts/pipefail-guard.sh
+
       - name: Sello — ¿el guardián del cableado muerde en las dos direcciones?
         id: sello_cableado
         continue-on-error: true
@@ -340,6 +357,8 @@ jobs:
             "base-consultable · guardián|${{ steps.base_consultable.outcome }}" \
             "changelog · sello|${{ steps.sello_changelog.outcome }}" \
             "changelog · guardián|${{ steps.changelog.outcome }}" \
+            "tuberías que mienten · sello|${{ steps.sello_pipefail.outcome }}" \
+            "tuberías que mienten · guardián|${{ steps.pipefail.outcome }}" \
             "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
             "cableado del verdicto · guardián|${{ steps.cableado.outcome }}"
 
