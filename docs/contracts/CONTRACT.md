@@ -2,7 +2,7 @@
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
 - **Versión:** 3.6.0
-- **Última modificación:** 2026-08-10
+- **Última modificación:** 2026-08-11
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
 > Hasta hoy no existía: el registro de contratos del capitán describía la puerta
@@ -67,7 +67,23 @@ Lo que el catálogo no te dice, y este contrato sí:
 - **Las destructivas están cerradas con llave:** exigen `confirm=true`. Es diseño.
   No desactivar la compuerta.
 - **Asignar suena.** Asignar no es etiquetar: dispara la notificación in-app real
-  a un humano.
+  a un humano. **También al nacer asignada** *(10-ago-2026)*.
+
+  **Y crear + asignar es UNA sola escritura** *(10-ago-2026)*. Eran dos —`POST` y
+  luego `PUT`— y la segunda **no se comprobaba**: si fallaba, la tarjeta ya
+  existía **sin dueño** y el llamante recibía una excepción que no decía que ya
+  existía. Una fila que ningún proceso mira, que es la misma familia que «nacer
+  invisible» y por el mismo motivo: no falla, envejece.
+
+  El `PUT` tenía un motivo real —era el update quien notificaba— y por eso el
+  arreglo no fue moverlo sin más: ahora **crear con responsable también notifica**,
+  y entonces una escritura basta. La ventana se cierra **por construcción**, no
+  compensando.
+
+  **Sin cambio de versión, y es deliberado:** no cambia ni un campo ni un código
+  de la puerta. Lo que desaparece es un modo de fallo, y eso no se le cobra a un
+  consumidor como una versión nueva. Queda fechado aquí porque el capitán sí
+  necesita saber que ya no puede pasar.
 - **Las columnas se pueden renombrar y borrar, y el tablero queda 1..N** *(v3.1.0)*.
   `update_column` renombra y reposiciona; `delete_column` borra, **con compuerta**.
   Tras cualquier cambio el tablero queda numerado **contiguo y sin repetidos**: no
@@ -374,7 +390,7 @@ y cuesta un renglón.
 
 ### Historial de versiones
 
-**v3.6.0 — 2026-08-10 · MENOR.** Aditivo: la Puerta 2 acepta `idempotencyKey`
+**v3.6.0 — 2026-08-11 · MENOR.** Aditivo: la Puerta 2 acepta `idempotencyKey`
 (UUID, opcional) y una repetición devuelve `200` con la tarjeta que ya existe.
 **No rompe a nadie:** quien no mande el campo se comporta exactamente como antes
 —dos `POST` idénticos siguen creando dos tarjetas—, y hay prueba que se pone roja
@@ -391,6 +407,35 @@ no en la ruta: la comprobación previa deja una ventana que dos reintentos
 simultáneos cruzan los dos, y el `23505` se contesta como repetición.
 
 **Lo que NO entra:** la Puerta 1 sigue sin clave de idempotencia.
+
+**Sin bump — 2026-08-10.** No cambia la forma de ninguna puerta: ni un campo, ni
+un código, ni una obligatoriedad. Lo que cambia es que **desaparece un modo de
+fallo** de la Puerta 1, y por eso va aquí — esta sección **es** el aviso al
+capitán, y un modo de fallo que deja de existir le importa tanto como uno nuevo.
+
+**Dos cosas, y la primera explica la segunda:**
+
+1. **Crear con responsable notifica también.** El aviso in-app vivía solo en el
+   update. Ahora `POST /api/cards` lo dispara al nacer asignada, con las mismas
+   dos guardas: sin responsable no hay a quién avisar, y a uno mismo no se le
+   notifica.
+2. **Crear + asignar es UNA sola escritura.** Eran dos —`POST` y luego `PUT`— y
+   la segunda no se comprobaba: si fallaba, la tarjeta ya existía **sin dueño** y
+   el llamante recibía una excepción que no decía que ya existía. Una fila que
+   ningún proceso mira.
+
+**Por qué no bastaba con mover el campo al `POST`, que es lo que parecía:** el
+`PUT` estaba ahí porque era el update quien notificaba, y el update solo avisa si
+el responsable **cambia**. Quitarlo sin lo primero habría cerrado la ventana
+**perdiendo el aviso en silencio** — y un aviso que no llega no lo echa nadie de
+menos. Por eso el orden importa: primero notificar al crear, y entonces una
+escritura basta.
+
+**Lo que el capitán puede dejar de asumir:** que una comanda suya pueda quedar
+escrita sin responsable si algo falla a mitad. Ya no puede — no por compensación,
+sino porque no hay segundo paso que falle.
+
+**Lo que sigue igual:** la Puerta 2 no promete avisos y no los da.
 
 **v3.5.0 — 2026-08-09 · MENOR.** Aditivo: la Puerta 1 estrena
 `append_to_description`, que **añade al brief sin reenviar lo que ya estaba**.

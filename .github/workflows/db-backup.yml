@@ -84,16 +84,56 @@ jobs:
             exit 1
           fi
 
+          # Que el archivo esté entero. `gunzip -t` comprueba el CRC leyéndolo
+          # completo, y sin tubería. Va antes que nada porque si esto falla, todo
+          # lo de abajo hablaría de un fichero roto como si fuera una copia.
+          if ! gunzip -t "${DUMP_FILE}"; then
+            echo "::error::El volcado no es un gzip íntegro. NO se sube."
+            exit 1
+          fi
+
           # Y que dentro esté lo que tiene que estar. El tamaño solo dice que hay
           # bytes; esto dice que son los bytes de esta base. Si un día el volcado
           # sale del sitio equivocado, o sale sin datos, aquí se ve.
-          for TABLA in cards columns boards workspaces users; do
-            if ! gunzip -c "${DUMP_FILE}" | grep -q "CREATE TABLE public.${TABLA}"; then
-              echo "::error::El volcado no contiene la tabla «${TABLA}». No es una copia de esta base."
-              exit 1
-            fi
+          #
+          # ⚠️ NO SE VUELVE A ESCRIBIR COMO `gunzip -c … | grep -q …`, Y ESTE
+          # COMENTARIO ES EL MOTIVO. Así estaba, y **abortó cuatro copias buenas
+          # seguidas** (7, 8, 9 y 10-ago-2026): `grep -q` sale en cuanto encuentra
+          # el patrón, eso cierra la tubería, `gunzip` muere con `SIGPIPE` —estado
+          # 141— y con `pipefail` el estado de la tubería es el de `gunzip`, no el
+          # de `grep`. Con el `!` delante, **«lo encontré enseguida» se leía igual
+          # que «no está»**.
+          #
+          # Y no saltó antes porque **depende del tamaño**: con un volcado pequeño
+          # `gunzip` termina de escribir antes de que `grep` salga y no hay
+          # `SIGPIPE`. El 6-ago la copia pesaba 195 KB y pasó; el 10-ago pesaba
+          # 980 KB y no. No lo rompió nadie: la base creció. La bomba se arma sola.
+          #
+          # Medido en las cuatro combinaciones (bash/zsh × con/sin `pipefail`):
+          # **la variable es `pipefail`, no el shell ni el `gzip`.** Con `pipefail`
+          # falla en los dos shells; sin él, pasa en los dos.
+          #
+          # Lo que lo cierra por construcción, no por cuidado:
+          #   · `grep -oE` LEE TODO — no sale antes de tiempo, así que `gunzip`
+          #     termina como debe. Una sola descompresión, además, donde antes
+          #     había cinco (una por tabla).
+          #   · el bucle no tiene tubería: compara contra una cadena ya en memoria
+          #     con `<<<`, así que no hay lector que pueda cerrarle el grifo a nadie.
+          TABLAS="cards columns boards workspaces users"
+          ENCONTRADAS=$(gunzip -c "${DUMP_FILE}" | grep -oE 'CREATE TABLE public\.[A-Za-z0-9_]+' | sort -u) || ENCONTRADAS=""
+
+          FALTAN=""
+          for TABLA in ${TABLAS}; do
+            grep -qxF "CREATE TABLE public.${TABLA}" <<< "${ENCONTRADAS}" || FALTAN="${FALTAN} ${TABLA}"
           done
-          echo "Volcado verificado: pesa lo suyo y contiene las tablas esperadas."
+
+          if [ -n "${FALTAN}" ]; then
+            echo "::error::El volcado no contiene la(s) tabla(s):${FALTAN}. No es una copia de esta base."
+            echo "Tablas encontradas en el volcado:"
+            echo "${ENCONTRADAS}"
+            exit 1
+          fi
+          echo "Volcado verificado: es un gzip íntegro, pesa lo suyo y contiene las tablas esperadas."
 
       - name: Subir a Cloudflare R2
         env:
@@ -210,14 +250,37 @@ jobs:
             "leerse como UNA racha, no como veinte avisos que se aprenden a ignorar." \
             > /tmp/cuerpo.md
 
-          ABIERTA=$(gh issue list --state open --label copia-fallida --limit 1 --json number --jq '.[0].number // empty')
+          # ⚠️ `--repo` EN TODAS, Y ESTE COMENTARIO ES EL MOTIVO. Faltaba, y por
+          # eso este aviso —que existe para que el fallo de la copia deje de ser
+          # silencioso— **murió en su primera línea durante cuatro fallos
+          # seguidos, sin dejar ni una incidencia**.
+          #
+          # `gh` deduce el repositorio del remoto de git, y aquí **no hay
+          # repositorio**: este workflow no hace `actions/checkout` porque no le
+          # hace falta para volcar la base. Así que la primera llamada moría con
+          #
+          #     failed to run git: fatal: not a git repository (…): .git
+          #
+          # y con `set -euo pipefail` el paso se acababa ahí — antes del comment y
+          # antes del create. **No era permisos:** `GH_TOKEN` estaba puesto y
+          # `issues: write` declarado.
+          #
+          # Se arregla con `--repo` y no añadiendo un `checkout` a propósito:
+          # traer el árbol entero para que una herramienta adivine un dato que ya
+          # está en el entorno es pagar un minuto por no escribir una bandera. Y
+          # el `checkout` puede quitarlo mañana quien vea que no se usa, dejando
+          # esto roto otra vez y en silencio.
+          REPO="${GITHUB_REPOSITORY}"
+
+          ABIERTA=$(gh issue list --repo "$REPO" --state open --label copia-fallida --limit 1 --json number --jq '.[0].number // empty')
 
           if [ -n "$ABIERTA" ]; then
             echo "Ya hay una incidencia abierta (#${ABIERTA}); se añade el fallo de hoy."
-            gh issue comment "$ABIERTA" --body-file /tmp/cuerpo.md
+            gh issue comment "$ABIERTA" --repo "$REPO" --body-file /tmp/cuerpo.md
           else
-            gh label create copia-fallida --description "La copia de seguridad diaria falló" --color B60205 2>/dev/null || true
+            gh label create copia-fallida --repo "$REPO" --description "La copia de seguridad diaria falló" --color B60205 2>/dev/null || true
             gh issue create \
+              --repo "$REPO" \
               --title "La copia de seguridad de la base de datos ha fallado" \
               --label copia-fallida \
               --body-file /tmp/cuerpo.md
