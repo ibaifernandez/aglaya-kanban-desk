@@ -109,7 +109,7 @@ corre() {
   local salida code
   salida="$(BASE_CONSULTABLE_WORKFLOWS="$WF" BASE_CONSULTABLE_DOC="$doc" bash "$GUARD" 2>&1)"
   code=$?
-  if [ -n "$espera_msg" ] && ! printf '%s' "$salida" | grep -qF "$espera_msg"; then
+  if [ -n "$espera_msg" ] && ! grep -qF "$espera_msg" <<< "$salida"; then
     FAIL=$((FAIL + 1))
     printf '  FALLO %s — el mensaje no dice «%s»\n' "$que" "$espera_msg"
     printf '%s\n' "$salida" | sed 's/^/          /'
@@ -148,8 +148,8 @@ echo
 echo "Tiene que MORDER las dos a la vez, sin que una tape a la otra:"
 salida="$(BASE_CONSULTABLE_WORKFLOWS="$WF" BASE_CONSULTABLE_DOC="$(doc_con mide.yml fantasma.yml)" \
           bash "$GUARD" 2>&1)"
-if printf '%s' "$salida" | grep -qF "«tambien-mide.yml»" && \
-   printf '%s' "$salida" | grep -qF "«fantasma.yml»"; then
+if grep -qF "«tambien-mide.yml»" <<< "$salida" && \
+   grep -qF "«fantasma.yml»" <<< "$salida"; then
   PASS=$((PASS + 1)); printf '  ok    la que falta y la que sobra salen las dos\n'
 else
   FAIL=$((FAIL + 1)); printf '  FALLO una tapó a la otra\n'
@@ -183,7 +183,7 @@ jobs:
 YML
 salida="$(BASE_CONSULTABLE_WORKFLOWS="$VACIO" BASE_CONSULTABLE_DOC="$(doc_con mide.yml)" bash "$GUARD" 2>&1)"
 code=$?
-if [ "$code" -eq 2 ] && printf '%s' "$salida" | grep -qF "dejó de reconocerla"; then
+if [ "$code" -eq 2 ] && grep -qF "dejó de reconocerla" <<< "$salida"; then
   PASS=$((PASS + 1)); printf '  ok    la credencial cambió de nombre: se rompe, no da verde\n'
 else
   FAIL=$((FAIL + 1)); printf '  FALLO con la credencial renombrada dio exit %s\n' "$code"

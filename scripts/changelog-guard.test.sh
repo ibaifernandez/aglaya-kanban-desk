@@ -53,7 +53,7 @@ corre() {
   salida="$(CHANGELOG_DIR="$DIR" CHANGELOG_FILE="$REGISTRO" CHANGELOG_FUNDIR="$tool" \
             bash "$GUARD" 2>&1)"
   code=$?
-  if [ -n "$espera_msg" ] && ! printf '%s' "$salida" | grep -qF "$espera_msg"; then
+  if [ -n "$espera_msg" ] && ! grep -qF "$espera_msg" <<< "$salida"; then
     FAIL=$((FAIL + 1))
     printf '  FALLO %s — el mensaje no dice «%s»\n' "$que" "$espera_msg"
     printf '%s\n' "$salida" | sed 's/^/          /'
@@ -169,7 +169,7 @@ adopcion() {
             CHANGELOG_GUARD_CAMBIADOS="$cambiados" CHANGELOG_GUARD_MOTIVO="$motivo" \
             bash "$GUARD" 2>&1)"
   code=$?
-  if [ -n "$espera_msg" ] && ! printf '%s' "$salida" | grep -qF "$espera_msg"; then
+  if [ -n "$espera_msg" ] && ! grep -qF "$espera_msg" <<< "$salida"; then
     FAIL=$((FAIL + 1)); printf '  FALLO %s — el mensaje no dice «%s»\n' "$que" "$espera_msg"
     printf '%s\n' "$salida" | sed 's/^/          /'; return
   fi

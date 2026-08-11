@@ -143,7 +143,7 @@ _cierre_de_puertas() {
   pendientes="$(printf '%s\n' "$PUERTAS_RAIZ" | grep -v '^[[:space:]]*$')"
 
   while [ -n "$pendientes" ]; do
-    actual="$(printf '%s\n' "$pendientes" | head -1)"
+    actual="$(head -1 <<< "$pendientes")"
     pendientes="$(printf '%s\n' "$pendientes" | tail -n +2)"
 
     case $'\n'"$vistos"$'\n' in *$'\n'"$actual"$'\n'*) continue ;; esac
@@ -192,7 +192,7 @@ if [ -z "$puertas_tocadas" ]; then
   exit 0
 fi
 
-if printf '%s\n' "$cambiados" | grep -qxF "$CONTRATO"; then
+if grep -qxF "$CONTRATO" <<< "$cambiados"; then
   echo "contract-guard: puerta tocada y contrato tocado — OK."
   exit 0
 fi

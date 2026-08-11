@@ -85,7 +85,7 @@ if [ "${1:-}" = "--relevante" ]; then
     echo "sin diff — se corre entero, que es el lado seguro de no saber" >&2
     echo "SI"; exit 0
   fi
-  if printf '%s\n' "$cambios" | grep -qE "$PATRON_MIGRACION|^docs/schema/|^scripts/schema-guard|^\.github/workflows/schema-guard\.yml$"; then
+  if grep -qE "$PATRON_MIGRACION|^docs/schema/|^scripts/schema-guard|^\.github/workflows/schema-guard\.yml$" <<< "$cambios"; then
     echo "relevante: cambió una migración, el documento del esquema o el propio guardián" >&2
     echo "SI"; exit 0
   fi
@@ -179,12 +179,12 @@ for m in $migraciones; do
 
   # Estructural si aparece un verbo que altera O algo que crea tabla sin decir
   # CREATE. Lo segundo no lo cubre ningún verbo y por eso va aparte.
-  if printf '%s\n' "$normalizado" | grep -qiE "$VERBOS_DDL|$CREA_TABLA"; then
+  if grep -qiE "$VERBOS_DDL|$CREA_TABLA" <<< "$normalizado"; then
     estructurales="${estructurales}${m}"$'\n'
 
     # Una tabla nueva sin permisos explícitos ni RLS es la puerta abierta que
     # esta casa ya documentó. Esto no cambia respecto a la regla anterior.
-    if printf '%s\n' "$normalizado" | grep -qiE "$CREA_TABLA"; then
+    if grep -qiE "$CREA_TABLA" <<< "$normalizado"; then
       grep -qi 'GRANT' "$ruta" || {
         echo "::error file=$m::schema-guard: crea tabla sin GRANT explícito."
         FALLO=1
@@ -208,7 +208,7 @@ if [ -n "$estructurales" ]; then
   echo "Migraciones que alteran estructura o permisos:"
   printf '  %s\n' $estructurales
 
-  if ! printf '%s\n' "$cambiados" | grep -qxF "$ESQUEMA"; then
+  if ! grep -qxF "$ESQUEMA" <<< "$cambiados"; then
     echo "::error file=$ESQUEMA::schema-guard: hay migración que altera el esquema y NO se actualizó el documento fuente de verdad."
     echo ""
     echo "Ese fichero es un espejo de la base real. Si diverge, deja de ser fuente"

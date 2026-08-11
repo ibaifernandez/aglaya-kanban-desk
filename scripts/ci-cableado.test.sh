@@ -42,7 +42,7 @@ corre() {
   local salida code
   salida="$(CI_CABLEADO_WORKFLOW="$fichero" CI_CABLEADO_JOB="$job" bash "$GUARD" 2>&1)"
   code=$?
-  if [ -n "$espera_msg" ] && ! printf '%s' "$salida" | grep -q "$espera_msg"; then
+  if [ -n "$espera_msg" ] && ! grep -q "$espera_msg" <<< "$salida"; then
     FAIL=$((FAIL + 1))
     printf '  FALLO %s — el mensaje no dice «%s»\n' "$que" "$espera_msg"
     printf '%s\n' "$salida" | sed 's/^/          /'
