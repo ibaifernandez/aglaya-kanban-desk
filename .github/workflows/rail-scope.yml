@@ -11,8 +11,15 @@ name: rail-scope
 # La forma del disparador por reloj ya existía en esta casa —`digest-cron.yml` y
 # `db-backup.yml`—; es la misma pieza. Aquí se usa tal cual.
 #
-# Se conservan `push` y `pull_request`: un cambio en el guardián o en el fichero
-# de decisiones tiene que medirse antes de entrar, no al día siguiente.
+# QUÉ QUEDA AQUÍ, Y QUÉ SE FUE (11-ago-2026). Aquí solo queda el RELOJ, que es
+# lo único que este fichero puede hacer y `ci.yml` no. Sus caminos de `push` y
+# `pull_request` se plegaron dentro de `comprobaciones-baratas`: hacían el mismo
+# trabajo de seis segundos pagando un corredor, un arranque y un `checkout`
+# propios, y **GitHub factura por job redondeando al minuto**.
+#
+# Lo que NO cambia: un cambio en el guardián o en su lista de decisiones se sigue
+# midiendo ANTES de entrar, no al día siguiente. Se mide en `ci.yml`, con su
+# sello delante y su propia línea en el verdicto.
 
 on:
   schedule:
@@ -20,22 +27,14 @@ on:
     # dos guardianes que despiertan a la vez comparten cualquier caída del
     # runner, y entonces el silencio de los dos significa lo mismo.
     - cron: '41 6 * * *'
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
-# Una rama que recibe tres empujones seguidos pagaba tres corridas enteras, y las
-# dos primeras ya no le importaban a nadie. Se agrupa por workflow + rama y se
-# cancela la que quede obsoleta.
-#
-# `cancel-in-progress` solo en pull_request A PROPÓSITO: en `main` la corrida ES
-# el registro de que lo que hay puesto pasó sus comprobaciones. Cancelarla deja
-# un `main` sin ese registro y ahorrando calderilla.
+# Ya no hay corridas de rama que cancelar —solo reloj y disparo manual—, así que
+# `cancel-in-progress` se queda en `false`: aquí no hay corrida obsoleta que
+# tirar, hay una tarea que o se hace o no se hace.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   rail-scope:
@@ -48,42 +47,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Arranca siempre y decide dentro. El `schedule` NO pregunta: lo que vigila
-      # de verdad es la base, y eso hay que mirarlo cada día pase lo que pase en
-      # el repo.
-      - name: ¿Tiene algo que mirar este cambio?
-        id: relevancia
-        run: |
-          set -euo pipefail
-
-          if [ "${{ github.event_name }}" != "pull_request" ] && [ "${{ github.event_name }}" != "push" ]; then
-            echo "disparo por ${{ github.event_name }}: se corre entero"
-            echo "correr=SI" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE="${{ github.event.pull_request.base.sha }}"
-            HEAD="${{ github.event.pull_request.head.sha }}"
-          else
-            BASE="${{ github.event.before }}"
-            HEAD="${{ github.sha }}"
-          fi
-          if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
-            BASE="$(git hash-object -t tree /dev/null)"
-          fi
-
-          CAMBIOS="$(git diff --name-status "$BASE" "$HEAD")"
-          echo "Ficheros cambiados:"; echo "$CAMBIOS"; echo "---"
-
-          VEREDICTO="$(RAIL_SCOPE_CAMBIADOS="$CAMBIOS" bash scripts/rail-blindspot.sh --relevante)"
-          echo "correr=$VEREDICTO" >> "$GITHUB_OUTPUT"
+      # Ya no hay compuerta de relevancia, y es una consecuencia y no un recorte:
+      # por aquí solo entran el reloj y el disparo manual, y para los dos la
+      # respuesta siempre era «se corre entero». Lo que vigila de verdad es la
+      # BASE, y eso hay que mirarlo cada día pase lo que pase en el repo.
 
       # El sello va ANTES y no toca la DB: si el guardián está destripado, se
-      # sabe aquí y no hace falta ni preguntar. Mismo orden que docs-guard y
-      # contract-guard.
+      # sabe aquí y no hace falta ni preguntar.
       - name: Sello — ¿muerde en las dos direcciones?
-        if: steps.relevancia.outputs.correr == 'SI'
         run: bash scripts/rail-blindspot.test.sh
 
       # Le pregunta a la DB porque el riel NO puede contestar esto: sus puntos
@@ -91,7 +62,6 @@ jobs:
       # alcance tampoco: desde dentro, estar de más se ve igual que estar bien.
       # Mismo secret que usa db-backup.yml — `service_role`, que salta RLS.
       - name: Guardián — cruce contra la base de datos
-        if: steps.relevancia.outputs.correr == 'SI'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: bash scripts/rail-blindspot.sh
