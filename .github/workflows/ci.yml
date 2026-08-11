@@ -426,6 +426,18 @@ jobs:
         continue-on-error: true
         run: bash scripts/pipefail-guard.sh
 
+      # ── ¿«ninguna fallida» o «ninguna»? ────────────────────────────────────
+      # Solo el SELLO vive aquí. Su guardián NO puede: existe para cazar PR sin
+      # corridas, y dentro del CI de un PR sin corridas tampoco correría él.
+      # Vive en `.github/workflows/pr-corridas.yml`, por reloj y a mano.
+      #
+      # El sello sí cabe, no toca la red y cuesta menos de un segundo — y así un
+      # guardián destripado se sabe en el PR que lo destripa, no al día siguiente.
+      - name: Sello — ¿corridas-guard distingue «ninguna fallida» de «ninguna»?
+        id: sello_corridas
+        continue-on-error: true
+        run: bash scripts/corridas-guard.test.sh
+
       - name: Sello — ¿el guardián del cableado muerde en las dos direcciones?
         id: sello_cableado
         continue-on-error: true
@@ -471,6 +483,7 @@ jobs:
             "alcance del riel · guardián|${{ steps.rail.outcome }}" \
             "tuberías que mienten · sello|${{ steps.sello_pipefail.outcome }}" \
             "tuberías que mienten · guardián|${{ steps.pipefail.outcome }}" \
+            "corridas que faltan · sello|${{ steps.sello_corridas.outcome }}" \
             "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
             "cableado del verdicto · guardián|${{ steps.cableado.outcome }}"
 
