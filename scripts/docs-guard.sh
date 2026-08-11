@@ -228,7 +228,7 @@ if [ "${MODO_RELEVANTE:-0}" = "1" ]; then
     fi
   done
 
-  if grep -qE '^(scripts/docs-guard|\.github/workflows/docs-guard\.yml$)' \
+  if grep -qE '^(scripts/docs-guard|\.github/workflows/ci\.yml$)' \
        < <(awk '{print $NF}' <<< "$cambios"); then
     echo "relevante: cambió el propio guardián" >&2
     echo "SI"; exit 0

@@ -85,7 +85,7 @@ if [ "${1:-}" = "--relevante" ]; then
     echo "sin diff — se corre entero, que es el lado seguro de no saber" >&2
     echo "SI"; exit 0
   fi
-  if grep -qE "$PATRON_MIGRACION|^docs/schema/|^scripts/schema-guard|^\.github/workflows/schema-guard\.yml$" <<< "$cambios"; then
+  if grep -qE "$PATRON_MIGRACION|^docs/schema/|^scripts/schema-guard|^\.github/workflows/ci\.yml$" <<< "$cambios"; then
     echo "relevante: cambió una migración, el documento del esquema o el propio guardián" >&2
     echo "SI"; exit 0
   fi

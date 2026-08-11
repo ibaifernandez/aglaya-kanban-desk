@@ -167,6 +167,17 @@ jobs:
             echo "FIN_DIFF"
           } >> "$GITHUB_ENV"
 
+          # Y la misma lista CON SU ESTADO. No es un lujo: `docs-guard` mira si
+          # hay borrados o renombrados —su regla LINKS comprueba que los enlaces
+          # sigan apuntando a algo que existe— y `rail-blindspot` también decide
+          # con el estado. Con `--name-only` esa información no está.
+          CON_ESTADO="$(git diff --name-status "$BASE" "$HEAD")"
+          {
+            echo "CAMBIOS_CON_ESTADO<<FIN_DIFF"
+            echo "$CON_ESTADO"
+            echo "FIN_DIFF"
+          } >> "$GITHUB_ENV"
+
           # `changelog-guard` necesita SABER SI SE BORRÓ un fragmento, no solo
           # qué ficheros cambiaron: ese borrado es lo único que distingue una
           # fusión legítima —que sí escribe el registro— de escribirlo a mano.
@@ -304,6 +315,100 @@ jobs:
         continue-on-error: true
         run: bash scripts/changelog-guard.sh
 
+      # ── docs-guard · schema-guard · alcance del riel ───────────────────────
+      # Estos tres eran WORKFLOWS SUELTOS y pagaban su propio minuto cada uno:
+      # 382 minutos facturados en once días por unos 24 segundos de trabajo por
+      # evento. Es exactamente lo que este job dejó de hacer con los otros cinco.
+      #
+      # ⚠️ LA COMPUERTA DE RELEVANCIA BAJA DEL YAML AL PASO, Y NO ES ESTILO.
+      # Allí era un `if:` que dejaba el paso en `skipped`, y aquí `skipped` es
+      # ROJO a propósito — el guardián del verdicto lo declara en su cabecera:
+      # «una comprobación que se salta sola es indistinguible de una que pasó».
+      #
+      # (Su nombre de fichero NO se escribe aquí, y no es despiste: el guardián
+      # del cableado busca esa cadena por subcadena para localizar el paso del
+      # verdicto, y no ignora los comentarios. Nombrarlo en uno hacía que
+      # tomara ESTE paso por el verdicto y diera «nadie juzga nada» sobre los 25.
+      # Medido al escribir esto.)
+      #
+      # Si trajera el
+      # `if:` tal cual, cada corrida irrelevante pondría el job en rojo; y si el
+      # verdicto aprendiera a tolerar `skipped`, perdería la única garantía que
+      # tiene. Así que el paso corre SIEMPRE y decide dentro: quien no tiene nada
+      # que mirar lo dice y sale en verde, y eso queda escrito en su log.
+      #
+      # Los SELLOS no llevan compuerta: cuestan menos de un segundo (salvo el de
+      # docs, cinco) y un guardián destripado no puede depender de que ese día
+      # hubiera algo que mirar.
+
+      - name: Sello — ¿docs-guard muerde en cada forma que dice vigilar?
+        id: sello_docs
+        continue-on-error: true
+        run: bash scripts/docs-guard.test.sh
+
+      # La ÚNICA con compuerta, y por su coste medido: 23 s, porque corre el
+      # sello entero ocho veces. Solo dice algo cuando el guardián o su sello
+      # cambian — y eso es justo lo que `--relevante` considera relevante.
+      - name: Mutación — ¿el sello nota si se destripa una regla de docs-guard?
+        id: mutacion_docs
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [ "$(DOCS_GUARD_CAMBIADOS="$CAMBIOS_CON_ESTADO" bash scripts/docs-guard.sh --relevante)" != "SI" ]; then
+            echo "Nada que mirar en este cambio: no se toca lo que docs-guard lee ni el propio guardián."
+            exit 0
+          fi
+          bash scripts/docs-guard.mutation.sh
+
+      - name: Guardián — ¿hay estado copiado en README.md / CLAUDE.md?
+        id: docs
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [ "$(DOCS_GUARD_CAMBIADOS="$CAMBIOS_CON_ESTADO" bash scripts/docs-guard.sh --relevante)" != "SI" ]; then
+            echo "Nada que mirar en este cambio."
+            exit 0
+          fi
+          DOCS_GUARD_CAMBIADOS="$CAMBIOS_CON_ESTADO" bash scripts/docs-guard.sh
+
+      - name: Sello — ¿schema-guard distingue estructura de datos y exige GRANT/RLS?
+        id: sello_schema
+        continue-on-error: true
+        run: bash scripts/schema-guard.test.sh
+
+      - name: Guardián — ¿una migración entra sin actualizar el esquema?
+        id: schema
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [ "$(SCHEMA_GUARD_CAMBIADOS="$CONTRACT_GUARD_CHANGED" bash scripts/schema-guard.sh --relevante)" != "SI" ]; then
+            echo "Nada que mirar en este cambio: ninguna migración ni el esquema."
+            exit 0
+          fi
+          SCHEMA_GUARD_CHANGED="$CONTRACT_GUARD_CHANGED" bash scripts/schema-guard.sh
+
+      - name: Sello — ¿rail-blindspot muerde en las dos direcciones?
+        id: sello_rail
+        continue-on-error: true
+        run: bash scripts/rail-blindspot.test.sh
+
+      # ⛔ SU RELOJ NO SE TOCA. `rail-scope.yml` sigue existiendo con su `cron`
+      # diario, y es lo único que queda ahí: un espacio creado un martes, sin que
+      # nadie toque el repo, queda invisible para toda la flota hasta el siguiente
+      # commit. Lo que se pliega aquí es su camino de `push`/`pull_request`.
+      - name: Guardián — ¿el alcance del riel es el que debería?
+        id: rail
+        continue-on-error: true
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          if [ "$(RAIL_SCOPE_CAMBIADOS="$CAMBIOS_CON_ESTADO" bash scripts/rail-blindspot.sh --relevante)" != "SI" ]; then
+            echo "Nada que mirar en este cambio: ni el guardián ni su lista de excepciones."
+            exit 0
+          fi
+          bash scripts/rail-blindspot.sh
+
       # ── ¿alguna tubería puede mentir cuando crezca lo que le pasas? ────────
       # No toca la base ni la red: lee ficheros del árbol. Por eso vive aquí,
       # entre las baratas.
@@ -357,6 +462,13 @@ jobs:
             "base-consultable · guardián|${{ steps.base_consultable.outcome }}" \
             "changelog · sello|${{ steps.sello_changelog.outcome }}" \
             "changelog · guardián|${{ steps.changelog.outcome }}" \
+            "docs-guard · sello|${{ steps.sello_docs.outcome }}" \
+            "docs-guard · mutación|${{ steps.mutacion_docs.outcome }}" \
+            "docs-guard · guardián|${{ steps.docs.outcome }}" \
+            "schema-guard · sello|${{ steps.sello_schema.outcome }}" \
+            "schema-guard · guardián|${{ steps.schema.outcome }}" \
+            "alcance del riel · sello|${{ steps.sello_rail.outcome }}" \
+            "alcance del riel · guardián|${{ steps.rail.outcome }}" \
             "tuberías que mienten · sello|${{ steps.sello_pipefail.outcome }}" \
             "tuberías que mienten · guardián|${{ steps.pipefail.outcome }}" \
             "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
