@@ -213,6 +213,12 @@ CREATE TABLE IF NOT EXISTS public.cards (
   -- autenticación: quien tiene TASK_SECRET declara el nombre que quiera. NULL en
   -- las creadas por la UI, por el riel, o antes del 2026-08-06.
   created_by_caller TEXT,
+  -- Clave que el llamante manda en POST /api/internal/create-card para que un
+  -- reintento devuelva la tarjeta que ya existe en vez de crear otra
+  -- (migration-idempotency-key.sql). UUID, exigido por la puerta. Espacio de
+  -- nombres GLOBAL: no se acota por llamante porque el llamante se autodeclara.
+  -- NULL en la UI, en el riel, y en todo lo anterior al 2026-08-10.
+  idempotency_key TEXT,
   "order"         INTEGER NOT NULL DEFAULT 0,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -221,6 +227,13 @@ CREATE TABLE IF NOT EXISTS public.cards (
 CREATE INDEX IF NOT EXISTS idx_cards_created_by_caller
   ON public.cards(created_by_caller, created_at DESC)
   WHERE created_by_caller IS NOT NULL;
+
+-- La garantía de la idempotencia vive AQUÍ, no en la ruta: comprobar-y-luego-
+-- insertar deja una ventana entre las dos consultas, y esa ventana es el
+-- defecto. La ruta mira antes por comodidad y trata el 23505 como repetición.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cards_idempotency_key
+  ON public.cards(idempotency_key)
+  WHERE idempotency_key IS NOT NULL;
 
 -- Historial de la descripción de una tarjeta (migration-card-description-history.sql).
 -- Guarda la versión ANTERIOR cada vez que `cards.description` cambia por
