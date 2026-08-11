@@ -210,14 +210,37 @@ jobs:
             "leerse como UNA racha, no como veinte avisos que se aprenden a ignorar." \
             > /tmp/cuerpo.md
 
-          ABIERTA=$(gh issue list --state open --label copia-fallida --limit 1 --json number --jq '.[0].number // empty')
+          # ⚠️ `--repo` EN TODAS, Y ESTE COMENTARIO ES EL MOTIVO. Faltaba, y por
+          # eso este aviso —que existe para que el fallo de la copia deje de ser
+          # silencioso— **murió en su primera línea durante cuatro fallos
+          # seguidos, sin dejar ni una incidencia**.
+          #
+          # `gh` deduce el repositorio del remoto de git, y aquí **no hay
+          # repositorio**: este workflow no hace `actions/checkout` porque no le
+          # hace falta para volcar la base. Así que la primera llamada moría con
+          #
+          #     failed to run git: fatal: not a git repository (…): .git
+          #
+          # y con `set -euo pipefail` el paso se acababa ahí — antes del comment y
+          # antes del create. **No era permisos:** `GH_TOKEN` estaba puesto y
+          # `issues: write` declarado.
+          #
+          # Se arregla con `--repo` y no añadiendo un `checkout` a propósito:
+          # traer el árbol entero para que una herramienta adivine un dato que ya
+          # está en el entorno es pagar un minuto por no escribir una bandera. Y
+          # el `checkout` puede quitarlo mañana quien vea que no se usa, dejando
+          # esto roto otra vez y en silencio.
+          REPO="${GITHUB_REPOSITORY}"
+
+          ABIERTA=$(gh issue list --repo "$REPO" --state open --label copia-fallida --limit 1 --json number --jq '.[0].number // empty')
 
           if [ -n "$ABIERTA" ]; then
             echo "Ya hay una incidencia abierta (#${ABIERTA}); se añade el fallo de hoy."
-            gh issue comment "$ABIERTA" --body-file /tmp/cuerpo.md
+            gh issue comment "$ABIERTA" --repo "$REPO" --body-file /tmp/cuerpo.md
           else
-            gh label create copia-fallida --description "La copia de seguridad diaria falló" --color B60205 2>/dev/null || true
+            gh label create copia-fallida --repo "$REPO" --description "La copia de seguridad diaria falló" --color B60205 2>/dev/null || true
             gh issue create \
+              --repo "$REPO" \
               --title "La copia de seguridad de la base de datos ha fallado" \
               --label copia-fallida \
               --body-file /tmp/cuerpo.md
