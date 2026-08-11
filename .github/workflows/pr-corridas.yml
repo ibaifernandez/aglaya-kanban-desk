@@ -1,0 +1,59 @@
+name: pr-corridas
+
+# ¿A los PR abiertos les corrió lo que debía correrles?
+#
+# ⛔ POR QUÉ ESTO ES UN WORKFLOW APARTE Y NO UN PASO DE `ci.yml`, que es donde
+# vive todo lo demás barato de esta casa:
+#
+# **El caso que existe para cazar es un PR que NO genera corridas.** Un conflicto
+# de fusión impide construir la ref, así que GitHub no ejecuta nada — y si esto
+# viviera dentro del CI de ese PR, **tampoco se ejecutaría él**. Un guardián que
+# se calla exactamente en el caso que vigila no es un guardián.
+#
+# Por eso vive fuera y mira desde fuera: por reloj sobre todos los PR abiertos, y
+# a mano cuando alguien va a mergear.
+#
+# QUÉ CUESTA, dicho. Un job al día. Este repo acaba de plegar tres workflows
+# sueltos justo para no pagar minutos de más, así que la excepción se justifica o
+# no se hace: aquí no hay alternativa barata — el plegado dentro de `ci.yml` es
+# imposible por lo de arriba, no por comodidad.
+#
+# Y NO se dispara con `push` ni con `pull_request` a propósito: sería volver a
+# meterlo dentro del CI del PR, con el mismo punto ciego.
+
+on:
+  schedule:
+    # 07:23 UTC. Minuto impar y separado de los otros dos relojes —copia a las
+    # 03:17, alcance del riel a las 06:41— por el mismo motivo que ellos: dos
+    # guardianes que despiertan a la vez comparten cualquier caída del corredor,
+    # y entonces el silencio de los dos significa lo mismo.
+    - cron: '23 7 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  corridas:
+    name: PR — ¿corrió todo lo que debía?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # El sello va ANTES, como en toda esta casa: si el guardián está
+      # destripado, se sabe aquí y da igual lo que conteste luego. Éste no toca
+      # la red — qué corrió se le inyecta— así que no gasta ni una llamada.
+      - name: Sello — ¿distingue «ninguna fallida» de «ninguna»?
+        run: bash scripts/corridas-guard.test.sh
+
+      - name: Guardián — ¿a algún PR abierto le falta una corrida?
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/corridas-guard.sh
