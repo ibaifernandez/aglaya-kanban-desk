@@ -465,6 +465,16 @@ jobs:
         continue-on-error: true
         run: bash scripts/verificar-volcado.test.sh
 
+      # ── ¿el avisador de despliegues avisa? ────────────────────────────────
+      # Solo el SELLO vive aquí: el avisador corre en `despliegue-fallido.yml`,
+      # cuando GitHub emite el estado. Su primera prueba real sería el primer
+      # despliegue fallido — y eso es justo lo que costó cuatro días con el aviso
+      # de la copia. Este sello lo ejerce sin desplegar nada.
+      - name: Sello — ¿el avisador de despliegues avisa, y calla cuando debe?
+        id: sello_despliegue
+        continue-on-error: true
+        run: bash scripts/aviso-despliegue.test.sh
+
       - name: Sello — ¿el guardián del cableado muerde en las dos direcciones?
         id: sello_cableado
         continue-on-error: true
@@ -514,6 +524,7 @@ jobs:
             "horas del digest · sello|${{ steps.sello_digest_horas.outcome }}" \
             "horas del digest · guardián|${{ steps.digest_horas.outcome }}" \
             "verificación del volcado · sello|${{ steps.sello_volcado.outcome }}" \
+            "aviso de despliegue · sello|${{ steps.sello_despliegue.outcome }}" \
             "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
             "cableado del verdicto · guardián|${{ steps.cableado.outcome }}"
 
