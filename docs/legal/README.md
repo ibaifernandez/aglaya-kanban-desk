@@ -41,7 +41,6 @@ Esta carpeta agrega la documentación de cumplimiento en privacidad y protecció
   - Cards archivadas: 24 meses post-archive → hard-delete automático
   - Comments: siguen vida de la card
   - Attachments huérfanos: auto-cleanup tras 90 días sin card asociada (workflow pendiente sprint 3)
-  - `digest_logs`: 12 meses
   - `notifications` leídas: 90 días
 - ✅ **Supabase Pro $25/mo declinado** por operador. Quick-win backup (workflow daily a R2) es la solución permanente.
 - ✅ **Representante UE Art. 27 RGPD diferido:** mientras base usuarios EU <5000/año estimado, no requerido obligatoriamente. Re-evaluar si volumen crece.

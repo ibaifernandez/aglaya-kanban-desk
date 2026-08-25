@@ -1,7 +1,7 @@
 # Medidas Técnicas y Organizativas (TOMs)
 
 **Marco legal:** RGPD Art. 32 (Seguridad del tratamiento) + Ley 21.719 Chile (Deber de seguridad) + LGPD Art. 46
-**Última actualización:** 2026-05-27 (post audit Mariana Trench)
+**Última actualización:** 2026-08-25 *(v1.1 — cesa el correo)*
 
 > RGPD Art. 32 obliga al responsable y al encargado a aplicar medidas técnicas y organizativas apropiadas para garantizar un nivel de seguridad adecuado al riesgo. Este documento enumera las TOMs aplicadas y las pendientes.
 
@@ -70,10 +70,10 @@ Netlify HTML sirve solo `strict-transport-security` (vía Cloudflare). Sin CSP e
 
 ### Monitorización y logging
 
-- **Health endpoint:** `GET /api/health` retorna `{status:'ok', timestamp}` — 🟡 **PENDIENTE D-16** deep healthcheck (verificar Supabase + Resend).
+- **Health endpoint:** `GET /api/health` retorna `{status:'ok', timestamp}` — 🟡 **PENDIENTE D-16** deep healthcheck (verificar Supabase). *(Resend sale de la comprobación: la nave no envía correo desde el 25-ago-2026.)*
 - **Logs:** Railway captura stdout/stderr. 🟠 **PENDIENTE D-02** structured logging con redaction PII.
 - **Error tracking:** 🔴 **PENDIENTE D-01** — sin Sentry. Próximo batch.
-- **Audit trail:** `digest_logs` table para envíos de email.
+- **Audit trail:** ~~`digest_logs`~~ — suprimida el 25-ago-2026 al retirarse el correo. **Hoy no hay audit trail de envíos porque no hay envíos.**
 
 ### Aislamiento de entornos
 

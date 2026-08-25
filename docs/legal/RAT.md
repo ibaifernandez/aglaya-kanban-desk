@@ -1,7 +1,7 @@
 # Registro de Actividades de Tratamiento (RAT)
 
 **Marco legal:** RGPD Art. 30 (Registro de actividades de tratamiento) + LGPD Art. 37 (Registro das atividades de tratamento) + Ley 21.719 Chile (registro interno)
-**Última actualización:** 2026-05-27
+**Última actualización:** 2026-08-25 *(v1.1 — el correo cesa; ver Actividades 3 y 5)*
 **Responsable del tratamiento:** Antonio Ibai Fernández Gutiérrez (AGLAYA) — Rua Palestina s/n, Belo Horizonte, MG, Brasil, CEP 30850-000 — info@aglaya.biz
 
 > **Nota legal:** RGPD Art. 30 obliga al responsable a llevar un registro escrito de actividades de tratamiento. Este documento es la **fuente de verdad operativa** del proyecto AGLAYA Kanban Desk. Debe revisarse trimestralmente o tras cualquier cambio de schema/integración.
@@ -15,9 +15,9 @@
 | **Finalidad** | Permitir acceso autenticado al kanban a colaboradores AGLAYA |
 | **Base legal** | Ejecución del contrato laboral / acuerdo de colaboración (RGPD Art. 6(1)(b)) |
 | **Categorías de titulares** | Empleados AGLAYA, freelancers contratados, clientes externos invitados a workspaces |
-| **Categorías de datos** | Email, nombre completo, role (superadmin/admin/colaborador/cliente/guest), organization_id, avatar_url, preferencias digest (hora + opt-out) |
-| **Categorías de destinatarios** | Internos: equipo AGLAYA con role admin. Externos: Supabase (Auth + DB), Resend (emails transaccionales), Railway (server hosting) |
-| **Transferencias internacionales** | Brasil (Supabase sa-east-1), US (Resend, Railway, Cloudflare, GitHub Actions). Ver `subprocessors.md` |
+| **Categorías de datos** | Email, nombre completo, role (superadmin/admin/colaborador/cliente/guest), organization_id, avatar_url |
+| **Categorías de destinatarios** | Internos: equipo AGLAYA con role admin. Externos: Supabase (Auth + DB), Railway (server hosting) |
+| **Transferencias internacionales** | Brasil (Supabase sa-east-1), US (Railway, Cloudflare, GitHub Actions). Ver `subprocessors.md` |
 | **Plazo de conservación** | Mientras relación contractual activa. Tras baja del colaborador: 30 días para hard-delete (ver `retention-policy.md`) |
 | **Medidas de seguridad** | Ver `TOMs.md` — bcrypt en Supabase Auth, JWT firmado HS256, RLS habilitada en DB, HTTPS obligatorio |
 
@@ -39,18 +39,28 @@
 
 ---
 
-## Actividad 3 — Notificaciones in-app y digest emails
+## Actividad 3 — Notificaciones dentro de la aplicación
 
 | Campo | Valor |
 |---|---|
 | **Finalidad** | Avisar al usuario sobre asignaciones, due dates, menciones |
-| **Base legal** | Ejecución contractual (RGPD Art. 6(1)(b)) + consentimiento granular para opt-out (RGPD Art. 6(1)(a)) |
+| **Base legal** | Ejecución contractual (RGPD Art. 6(1)(b)) |
 | **Categorías de titulares** | Colaboradores con account activa |
-| **Categorías de datos** | Email destinatario, user_id, hora preferida digest, contenido de notificación (referencia a card/comment), timestamp |
-| **Categorías de destinatarios** | Resend (proveedor email US) — sin acceso a contenido más allá del email body que enviamos |
-| **Transferencias internacionales** | US (Resend) |
-| **Plazo de conservación** | Notificaciones leídas: 90 días. Digest_logs (audit trail): **pendiente decisión** (sugerido 12 meses) |
-| **Opt-out** | `users.digest_enabled = false` deshabilita digest. Notificaciones in-app actualmente no opt-out (mejora pendiente) |
+| **Categorías de datos** | user_id, contenido de notificación (referencia a card/comment), timestamp |
+| **Categorías de destinatarios** | Ninguno externo: la notificación no sale del sistema |
+| **Transferencias internacionales** | Ninguna |
+| **Plazo de conservación** | Notificaciones leídas: 90 días |
+| **Opt-out** | No hay opt-out: el aviso está ligado al uso del servicio y no sale de él |
+
+> **⏹ El envío por correo de esta actividad CESÓ el 25-ago-2026.** Hasta esa fecha
+> esta finalidad incluía un resumen diario por email, con base de consentimiento
+> —un `toggle` de preferencias—, destinatario **Resend Inc.** y transferencia a
+> Estados Unidos. Se retiró el envío entero; lo que queda es el aviso in-app, que
+> no sale del sistema y por eso ya no tiene destinatario externo ni transferencia.
+>
+> **La actividad se marca como cesada en lugar de borrarse:** hubo datos tratados
+> de verdad entre el 27-may y el 25-ago-2026, y un registro del Art. 30 que borra
+> su pasado no puede responder qué se hizo con los datos de alguien entonces.
 
 ---
 
@@ -69,16 +79,23 @@
 
 ---
 
-## Actividad 5 — Audit trail (digest_logs)
+## Actividad 5 — Audit trail de envíos de correo (`digest_logs`) · ⏹ **CESADA**
 
 | Campo | Valor |
 |---|---|
-| **Finalidad** | Trazabilidad de envíos de email (compliance + debugging) |
+| **Estado** | **Cesada el 25-ago-2026.** El tratamiento no existe y sus datos fueron **suprimidos** |
+| **Finalidad (mientras estuvo activa)** | Trazabilidad de envíos de email (compliance + debugging) |
 | **Base legal** | Interés legítimo del responsable (RGPD Art. 6(1)(f)) |
-| **Categorías de titulares** | Cualquier user que recibe email |
+| **Categorías de titulares** | Cualquier user que recibía email |
 | **Categorías de datos** | Tipo (admin/user), recipient email, status (sent/failed), error message, timestamp, user_id |
-| **Plazo de conservación** | **Pendiente decisión** (sugerido 12-24 meses) |
-| **Medidas** | RLS — solo admins leen audit trail |
+| **Plazo de conservación anunciado** | 12 meses (política v1.0) |
+| **Destino real de los datos** | **Supresión total el 25-ago-2026**, antes de agotar ese plazo, al retirarse el correo. No se conservó copia |
+| **Medidas (mientras existió)** | RLS — solo admins leían el audit trail |
+
+> **Se conserva esta entrada, vacía de tratamiento, a propósito.** Es la única
+> constancia de que entre el 27-may y el 25-ago-2026 existió un registro con
+> direcciones de correo de titulares. Borrar la entrada haría desaparecer también
+> esa constancia, que es lo contrario de lo que un registro del Art. 30 sirve.
 
 ---
 
@@ -87,7 +104,7 @@
 | Tabla | PII contenida | Sensibilidad |
 |---|---|---|
 | `auth.users` (Supabase Auth) | email, password hash, last_sign_in, IP de último login | 🔴 ALTA |
-| `public.users` | email, name, role, organization_id, digest preferences | 🟠 MEDIA |
+| `public.users` | email, name, role, organization_id | 🟠 MEDIA |
 | `public.organizations` | name, slug, plan | 🟢 BAJA (datos corporativos, no personales directo) |
 | `public.workspaces` | name, emoji, type, organization_id, created_by | 🟢 BAJA |
 | `public.workspace_members` | user_id, workspace_id, role, invited_by | 🟢 BAJA (referencias) |
@@ -96,7 +113,7 @@
 | `public.cards` | title, description (texto libre), priority, due_date, owner_id, organization_id, **checklist** (con asignaciones + texto libre), **attachments** (filenames + URLs) | 🔴 ALTA — texto libre puede contener cualquier categoría de datos |
 | `public.categories` | name, color | 🟢 BAJA |
 | `public.notifications` | user_id, type, payload (referencia a card), read_at | 🟢 BAJA |
-| `public.digest_logs` | user_id, email recipient, status, errorMsg, timestamp | 🟠 MEDIA |
+| ~~`public.digest_logs`~~ | *(tabla suprimida el 25-ago-2026; contenía user_id, email de destinatario, estado, mensaje de error y timestamp)* | — |
 
 ---
 

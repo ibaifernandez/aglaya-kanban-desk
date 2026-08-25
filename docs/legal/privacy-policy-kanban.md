@@ -7,8 +7,8 @@
 > retention-policy, base-legal, breach-notification-procedure, subprocessors, DPIA).
 > Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).
 
-**Última actualización:** 2026-05-27
-**Versión:** 1.0
+**Última actualización:** 2026-08-25
+**Versión:** 1.1
 **Aplicable a:** https://kanban.aglaya.biz (y subdominios `*.kanban.aglaya.biz` futuros)
 
 ---
@@ -41,7 +41,6 @@ Al crear una cuenta (vía invitación de un administrador AGLAYA):
 - **Avatar** (opcional — imagen que tú subes)
 - **Rol asignado** (`superadmin`, `admin`, `colaborador`, `cliente`, `guest`)
 - **Organización** asociada
-- **Preferencias de digest:** hora preferida (0-23 UTC) + opt-out (`digest_enabled`)
 - **Metadatos de autenticación** (gestionados por Supabase Auth): timestamp de último inicio de sesión, IP del último login (vía proveedor de auth), confirmación de email
 
 ### 2.2 Contenido que tú generas
@@ -61,7 +60,6 @@ Cuando usas el kanban:
 
 Automáticamente generados:
 
-- **Logs de envío de email** (`digest_logs`): tipo de envío, estado, mensajes de error
 - **Notificaciones** generadas por asignaciones y menciones
 - **Timestamps** de creación, edición y borrado de cada registro
 - **Logs del servidor** (Railway): direcciones IP, user-agents, paths consultados — retenidos típicamente 7-30 días por Railway
@@ -84,9 +82,8 @@ Detalle completo en `docs/legal/RAT.md` (Registro de Actividades de Tratamiento)
 |---|---|
 | Permitir acceso al kanban | Ejecución contractual (RGPD Art. 6(1)(b)) |
 | Mostrar y gestionar tu trabajo (cards, comments) | Ejecución contractual + interés legítimo |
-| Enviar notificaciones en-app y digest emails | Ejecución contractual + consentimiento (opt-out granular vía `digest_enabled`) |
+| Enviar notificaciones dentro de la aplicación | Ejecución contractual |
 | Backups operacionales | Obligación legal de seguridad (Art. 6(1)(c) + Art. 32 RGPD) |
-| Audit trail (`digest_logs`) | Interés legítimo |
 
 > **Decisiones automatizadas (Art. 22 RGPD):** AGLAYA Kanban Desk NO toma decisiones automatizadas con efectos jurídicos sobre ti ni realiza profiling significativo. Las prioridades, asignaciones y aprobaciones siempre son humanas.
 
@@ -99,11 +96,19 @@ Compartimos datos con los siguientes encargados, sujetos a DPA (Data Processing 
 | Encargado | Función | Jurisdicción de datos | Página oficial sub-procesadores |
 |---|---|---|---|
 | **Supabase Inc.** | Base de datos (PostgreSQL), autenticación, almacenamiento | sa-east-1 (São Paulo, Brasil) | https://supabase.com/legal/subprocessors |
-| **Resend Inc.** | Envío de emails transaccionales (digest + notificaciones + recuperación de contraseña) | Estados Unidos | https://resend.com/legal/subprocessors |
 | **Railway Corp.** | Hosting del servidor backend | Estados Unidos | https://railway.com/legal/subprocessors |
 | **Netlify Inc.** | CDN del cliente web + proxy `/api/*` y `/uploads/*` | Global (red de distribución) | https://www.netlify.com/gdpr-ccpa/subprocessors/ |
 | **Cloudflare Inc.** | DNS de `aglaya.biz` + bucket R2 para backups diarios cifrados (WEUR — Europa) | Europa occidental (WEUR) para backups; DNS global | https://www.cloudflare.com/cloudflare-customer-subprocessors/ |
-| **GitHub Inc. (Microsoft)** | Triggers de cron jobs (digest horario, backup diario) | Estados Unidos | Cubierto por Microsoft Online Services DPA |
+| **GitHub Inc. (Microsoft)** | Trigger por reloj del backup diario | Estados Unidos | Cubierto por Microsoft Online Services DPA |
+
+> **Encargado cesado — Resend Inc. (envío de correo), hasta el 25-ago-2026.**
+> Prestó el envío de emails transaccionales, con transferencia a Estados Unidos
+> amparada en SCCs. **AGLAYA Kanban Desk dejó de enviar correo el 25-ago-2026** y
+> ese encargado ya no interviene en ningún tratamiento.
+>
+> Se declara como cesado en vez de borrarse: **hubo datos tratados de verdad**
+> mientras estuvo activo, y un registro que borra su pasado deja sin respuesta a
+> quien pregunte qué se hizo con los suyos entonces.
 
 > No vendemos tus datos personales. No compartimos datos con terceros más allá de los encargados listados.
 
@@ -113,7 +118,7 @@ Compartimos datos con los siguientes encargados, sujetos a DPA (Data Processing 
 
 Algunos encargados están fuera del Espacio Económico Europeo:
 
-- **Supabase / Resend / Railway / GitHub:** Estados Unidos. Garantías: Standard Contractual Clauses (SCCs) Implementing Decision 2021/914 incluidas en cada DPA.
+- **Supabase / Railway / GitHub:** Estados Unidos. Garantías: Standard Contractual Clauses (SCCs) Implementing Decision 2021/914 incluidas en cada DPA.
 - **Cloudflare R2:** región WEUR (UE) para backups — sin transferencia fuera de UE para este flujo específico.
 - **Netlify:** CDN global con SCCs.
 
@@ -132,7 +137,7 @@ Detalle completo en `docs/legal/retention-policy.md`. Resumen:
 | Cards y contenido del workspace | Indefinida mientras el workspace esté activo |
 | Cards archivadas | 24 meses post-archive, después hard-delete automático |
 | Notificaciones leídas | 90 días |
-| Audit logs (`digest_logs`) | 12 meses |
+| Logs de envío de correo (`digest_logs`) | **Suprimidos el 25-ago-2026.** Se anunciaba una retención de 12 meses; al retirarse el correo, el registro entero se destruyó antes de agotarla. No queda copia. |
 | Backups operacionales (Cloudflare R2) | 30 días con rotación automática |
 | Logs de servidor (Railway) | 7-30 días según plan |
 | Logs CDN (Netlify) | 7 días |
@@ -152,7 +157,7 @@ Como titular de los datos, tienes derecho a:
 | **Acceso (Art. 15 RGPD)** | Tu perfil en el menú de usuario muestra tus datos básicos |
 | **Portabilidad (Art. 20 RGPD)** | `GET /api/auth/me/export` — descarga JSON con todos tus datos. UI disponible en tu perfil |
 | **Supresión / "derecho al olvido" (Art. 17 RGPD)** | `DELETE /api/auth/me` — elimina tu cuenta. UI disponible en tu perfil |
-| **Oposición a comunicaciones (Art. 21 + Art. 6 LGPD)** | Toggle `digest_enabled` en preferencias de usuario deshabilita digest emails |
+| **Oposición a comunicaciones (Art. 21 + Art. 6 LGPD)** | **No hay comunicaciones a las que oponerse: esta aplicación no envía correo.** Los avisos ocurren dentro de la aplicación, ligados al uso del servicio |
 
 ### 7.2 Derechos vía contacto directo
 
@@ -161,7 +166,7 @@ Como titular de los datos, tienes derecho a:
 | **Rectificación (Art. 16 RGPD)** | Edita tu perfil directamente. Si necesitas corregir datos no editables, contacta `info@aglaya.biz` |
 | **Limitación del tratamiento (Art. 18 RGPD)** | Email a `info@aglaya.biz` con asunto `[RGPD] Limitación` + justificación |
 | **No estar sujeto a decisiones automatizadas (Art. 22 RGPD)** | N/A — AGLAYA Kanban Desk no toma decisiones automatizadas significativas |
-| **Retirar consentimiento** | Para tratamientos basados en consentimiento (ej. digest), toggle directo en preferencias. Efecto inmediato. |
+| **Retirar consentimiento** | **Hoy ningún tratamiento se apoya en consentimiento**, así que no hay consentimiento que retirar. El único que lo usaba —el resumen por correo— cesó el 25-ago-2026. |
 
 ### 7.3 Reclamación ante autoridad
 
@@ -228,9 +233,15 @@ AGLAYA Kanban Desk está dirigido a uso profesional. NO recopilamos conscienteme
 
 Esta política puede actualizarse. Cambios sustanciales se notificarán:
 
-- Email a usuarios con cuenta activa (mínimo 30 días antes del cambio)
-- Notificación in-app
+- **Notificación dentro de la aplicación**, con un mínimo de 30 días de antelación
 - Actualización de la fecha de "Última actualización" al inicio del documento
+- Si el cambio lo requiere, aviso por correo **enviado a mano por el responsable**
+  desde `info@aglaya.biz`
+
+> **Por qué ya no dice «email a usuarios con cuenta activa» sin más:** desde el
+> 25-ago-2026 **la aplicación no envía ningún correo**. Prometer un aviso
+> automático que el sistema no puede mandar es prometer lo que no se tiene, y es
+> el mismo defecto que esta versión viene a corregir.
 
 Si no estás de acuerdo con cambios sustanciales, puedes solicitar la supresión de tu cuenta (Art. 17 RGPD) en cualquier momento.
 
@@ -263,11 +274,46 @@ Estos documentos son fuente de verdad operativa y se actualizan con cada cambio 
 
 ---
 
-## Decisiones tomadas (2026-05-27 — esta versión 1.0)
+## Historial de versiones
+
+### 1.1 — 2026-08-25 · se retira el correo de esta política
+
+**Qué cambia y por qué.** El 25-ago-2026 AGLAYA Kanban Desk **dejó de enviar
+correo**: se retiraron los resúmenes por email, su reloj, sus rutas y el
+encargado que los enviaba. Esta política seguía describiéndolos, así que
+**prometía a un tercero cosas que ya no existían** — y una política publicada es
+el documento con el que alguien ejerce sus derechos, no una nota interna.
+
+Lo que se retira, uno a uno:
+
+| decía | por qué se va |
+|---|---|
+| un `toggle` en preferencias para deshabilitar los resúmenes | **ese control ya no existe**: se prometía un botón que no se puede pulsar |
+| «retirar consentimiento: toggle directo, efecto inmediato» | ningún tratamiento se apoya hoy en consentimiento |
+| `digest_logs` como dato tratado, con 12 meses de retención | la tabla **se suprimió el 25-ago-2026**, antes de agotar ese plazo |
+| **Resend Inc.** como encargado, con transferencia a EE. UU. | ya no interviene — queda **declarado como cesado**, no borrado |
+| aviso de cambios «por email a usuarios con cuenta activa» | la aplicación no puede mandarlo; ahora se avisa dentro de la aplicación |
+
+**La dirección del error era la benigna** —declaraba de más, no de menos— pero
+declarar de más en un registro de encargados **es afirmar un flujo de datos que
+no ocurre**, y eso tampoco es inocuo.
+
+**Qué NO cambia:** ninguna base legal de los tratamientos que siguen vivos,
+ningún derecho, ningún plazo de conservación de lo demás, ningún otro encargado.
+Por eso es 1.1 y no 2.0.
+
+**Los tratamientos cesados se marcan, no se borran** — aquí y en `RAT.md`,
+`DPA-registry.md` y `subprocessors.md`. Hubo datos tratados de verdad mientras
+estuvieron activos, y un registro que borra su pasado deja sin respuesta a quien
+pregunte qué se hizo con los suyos entonces.
+
+---
+
+## Decisiones tomadas (2026-05-27 — versión 1.0)
 
 - ✅ **Revisión legal externa declinada** por el operador. Esta versión es la fuente de verdad. Cambios sustanciales generarán versión 1.1+ documentada en este archivo.
 - ✅ **DPO informal:** Antonio Ibai Fernández (info@aglaya.biz). Sin email dedicado (decisión coste). Asunto del email diferencia: `[Privacidad]` / `[RGPD]`.
-- ✅ **Plazos retención fijados:** cards archivadas 24 meses, digest_logs 12 meses, notificaciones leídas 90 días.
+- ✅ **Plazos retención fijados:** cards archivadas 24 meses, notificaciones leídas 90 días. *(Los `digest_logs`, con 12 meses fijados aquí, se suprimieron el 25-ago-2026 al retirarse el correo.)*
 - ⚠️ **Representante UE (Art. 27 RGPD):** operador Brasil. Decisión: AGLAYA opera principalmente con titulares en Brasil/España; mientras el volumen de titulares EU sea bajo (<5000 únicos/año estimado) y no haya tratamiento sistemático, la designación de representante no es obligatoria. Re-evaluar si la base de usuarios EU crece.
 
 ## Acciones pendientes (operador — sin coste externo)

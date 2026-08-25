@@ -29,7 +29,7 @@
 Detalle en `RAT.md`. Resumen:
 1. Gestión de cuentas y acceso autenticado
 2. Coordinación de trabajo (cards, comments, asignaciones)
-3. Notificaciones operativas (in-app + digest emails)
+3. Notificaciones operativas dentro de la aplicación
 4. Backups de continuidad
 5. Audit trail
 
@@ -95,7 +95,7 @@ Detalle en `RAT.md`. Resumen:
 - ✅ Self-delete + self-export endpoints (RGPD Art. 17 + 20)
 - ✅ Helmet headers en API
 - ✅ Rate limiting en `/api/auth`
-- ✅ Audit trail digest_logs
+- ⏹ ~~Audit trail `digest_logs`~~ — suprimido el 25-ago-2026 con el correo
 - ✅ docs/legal/ completo (DPA, TOMs, RAT, retention, base-legal, breach-procedure, subprocessors)
 - ✅ CI workflow gate en PRs
 - ✅ Error tracking Sentry (operador setea DSN)

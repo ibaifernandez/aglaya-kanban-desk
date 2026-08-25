@@ -1,7 +1,7 @@
 # Sub-procesadores activos
 
 **Marco legal:** RGPD Art. 28(2) — el encargado del tratamiento no podrá contratar a otro encargado sin autorización del responsable + obligación de informar sub-procesadores
-**Última actualización:** 2026-05-27 (post audit Mariana — Cloudflare añadido)
+**Última actualización:** 2026-08-25 (v1.1 — Resend pasa a cesado: la nave dejó de enviar correo)
 
 > Esta lista debe mantenerse actualizada y sincronizada con la política privacidad kanban. Cambios requieren notificación al titular según contrato.
 
@@ -22,8 +22,28 @@
 
 | # | Procesador | Función | Región datos | DPA |
 |---|---|---|---|---|
-| 5 | **Resend** | Email transaccional (digest + notificaciones + welcome + password reset) | US | [Link](https://resend.com/legal/dpa) |
-| 6 | **GitHub Actions** | Cron triggers (digest-cron + db-backup) | US (cubierto Microsoft Online Services DPA) | [Link](https://www.microsoft.com/licensing/docs/view/Microsoft-Products-and-Services-Data-Protection-Addendum-DPA) |
+| 5 | **GitHub Actions** | Trigger por reloj del backup diario | US (cubierto Microsoft Online Services DPA) | [Link](https://www.microsoft.com/licensing/docs/view/Microsoft-Products-and-Services-Data-Protection-Addendum-DPA) |
+
+---
+
+## Sub-procesadores CESADOS
+
+Un encargado que deja de intervenir **se declara aquí, no se borra de este
+documento**. Borrarlo dejaría sin respuesta a quien pregunte por dónde pasaron
+sus datos mientras estuvo activo — que es exactamente lo que este registro sirve
+para contestar.
+
+| Procesador | Función que prestó | Región datos | Alta | Cese |
+|---|---|---|---|---|
+| **Resend** | Email transaccional (resumen diario + avisos de asignación) | US | 2026-04-27 | **2026-08-25** |
+
+**Motivo del cese:** AGLAYA Kanban Desk **dejó de enviar correo**. No se
+sustituyó por otro proveedor: se retiró el envío entero, así que hoy no hay
+ningún encargado de correo ni transferencia asociada a él.
+
+**Qué queda de aquel tratamiento:** nada en la base. El registro de envíos
+(`digest_logs`) se **suprimió el 25-ago-2026**. Lo que Resend conserve por su
+cuenta se rige por su propia política de retención, no por esta.
 
 ---
 
@@ -37,7 +57,6 @@ A través de los procesadores directos:
 | Railway | Google Cloud Platform | Infra Railway |
 | Netlify | AWS, Cloudflare | Infra Netlify |
 | Cloudflare | AWS (algunos servicios), GCP | Infra Cloudflare |
-| Resend | AWS | Infra Resend |
 | GitHub Actions | Microsoft Azure | Infra GitHub |
 
 ---
@@ -67,7 +86,7 @@ Política aglaya.biz menciona los siguientes, pero kanban NO los usa:
 | Destino | Procesadores | Mecanismo de transferencia |
 |---|---|---|
 | **Brasil (sa-east-1)** | Supabase | Dentro de Brasil. Desde UE: SCCs requeridas (Brasil no está en lista RGPD "países adecuados") |
-| **US** | Railway, Resend, GitHub Actions | SCCs (Standard Contractual Clauses) — cada procesador incluye SCCs en su DPA |
+| **US** | Railway, GitHub Actions | SCCs (Standard Contractual Clauses) — cada procesador incluye SCCs en su DPA |
 | **EU (Cloudflare R2 WEUR)** | Cloudflare (backups) | Dentro UE → desde Brasil: garantías adecuadas requeridas |
 | **Global CDN** | Netlify | Datos pueden replicarse globalmente — política Netlify cubre SCCs |
 

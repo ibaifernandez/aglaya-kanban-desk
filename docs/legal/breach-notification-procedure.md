@@ -1,7 +1,7 @@
 # Procedimiento de Notificación de Brechas
 
 **Marco legal:** RGPD Art. 33 (notificación a autoridad de control en 72h) + Art. 34 (notificación al titular) + LGPD Art. 48 + Ley 21.719 Chile (régimen breach)
-**Última actualización:** 2026-05-27 (creado audit Mariana C-08)
+**Última actualización:** 2026-08-25 *(v1.1 — cesa el correo)*
 **Owner runbook:** DPO designado (🟠 pendiente C-15) o Antonio Ibai Fernández (info@aglaya.biz)
 
 ---
@@ -39,7 +39,7 @@ T+30 días   Post-incident report + acciones correctivas documentadas
 
 - Sentry (🔴 PENDIENTE D-01 — sin error tracking, ceguera operativa actualmente)
 - Logs Railway (manual review)
-- `digest_logs` audit trail (envíos fallidos masivos puede indicar incidente)
+- ~~`digest_logs`~~ — suprimida el 25-ago-2026. **Esa señal de detección ya no existe**, y se dice en vez de dejarla en la lista: quien siga este procedimiento buscaría una tabla que no está
 - Report externo (usuario, security researcher, bug bounty)
 - npm audit / Dependabot
 - Auditoría manual (como audit Mariana)
