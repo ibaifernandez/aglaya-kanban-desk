@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.8.0
+- **Versión:** 3.9.0
 - **Última modificación:** 2026-08-25
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -73,6 +73,13 @@ Lo que el catálogo no te dice, y este contrato sí:
   No desactivar la compuerta.
 - **Asignar suena.** Asignar no es etiquetar: dispara la notificación in-app real
   a un humano. **También al nacer asignada** *(10-ago-2026)*.
+
+  **Y desde v3.9.0 las DOS puertas suenan** *(25-ago-2026)*. Esta cláusula vivía
+  solo aquí mientras la Puerta 2 creaba tarjetas asignadas y callaba: existían,
+  tenían dueño y su dueño no se enteraba salvo que abriera el tablero. No era
+  incumplimiento —la cláusula solo prometía por el riel— pero sí la misma
+  asimetría que el `warning` de brief vacío cerró en v3.7.0, y en la puerta por
+  la que entra el trabajo de fuera de esta máquina.
 
   **Y crear + asignar es UNA sola escritura** *(10-ago-2026)*. Eran dos —`POST` y
   luego `PUT`— y la segunda **no se comprobaba**: si fallaba, la tarjeta ya
@@ -416,8 +423,13 @@ y [`kanban-mcp/test_validation.py`](../../kanban-mcp/test_validation.py)).
   de clavar.
 - **A qué tablero va cada cosa.** El criterio de enrutado lo custodia el capitán;
   se le pregunta por su MCP, no se copia aquí.
-- **Paridad con la UI.** La Puerta 2 es una tubería administrativa: inserta en
-  crudo, sin notificaciones, sin validación de negocio, sin comprobar membresías.
+- **Paridad con la UI.** La Puerta 2 sigue siendo una tubería administrativa:
+  inserta en crudo, **sin validación de negocio y sin comprobar membresías**.
+
+  **«Sin notificaciones» salió de esta lista en v3.9.0** *(25-ago-2026)*, y se
+  dice en vez de borrarse: la puerta **sí avisa** a quien le clava trabajo. Lo
+  demás de esta cláusula se queda tal cual — **avisar no es validar**, y hay una
+  prueba que lo fija para que «ahora suena» no se lea como «ahora comprueba».
 
 ## Qué código implementa este contrato
 
@@ -490,6 +502,33 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**v3.9.0 — 2026-08-25 · MENOR.** Aditivo: **la Puerta 2 dispara la notificación
+in-app cuando la tarjeta nace asignada.** Decisión de Ibai. Ningún campo, ningún
+código de error y ninguna obligatoriedad cambian; lo que cambia es que esta
+puerta **promete un aviso que antes no prometía**, y por eso es MENOR y no «sin
+bump»: una promesa nueva se le puede exigir a la puerta, un modo de fallo que
+desaparece no.
+
+**Qué lo motiva.** Hasta el #56 ninguna puerta avisaba al nacer asignada. Aquél
+lo cerró para la Puerta 1 y para la UI, y dejó a la Puerta 2 sola: una comanda
+del capitán a una persona **existía, tenía dueño y no avisaba a nadie**. Es la
+familia «nace invisible» de esta casa — no falla, envejece.
+
+**Lo que NO cambia, y hay prueba de cada cosa:** la Puerta 2 sigue insertando en
+crudo, sin validación de negocio ni comprobación de membresías; el acuse tiene
+la misma forma; **una repetición por `idempotencyKey` NO vuelve a sonar** —no
+crea nada, y dos campanas por el mismo trabajo enseñan a ignorar la campana—; y
+**un aviso que falla no tumba la creación**: la tarjeta ya existe y el llamante
+recibe su `201`.
+
+**Y una asimetría que se declara en vez de taparse:** la guarda «a uno mismo no
+se le notifica» **no existe aquí**, porque por esta puerta no hay identidad de
+llamante — entra un secreto, no un usuario. Por eso `assignedBy` viaja como
+`null` en vez de inventarse un autor. Consecuencia aceptada: lo que se asigna al
+propio riel genera avisos que nadie lee. El día que el llamante tenga identidad,
+esa guarda entra sola.
+
 
 **Sin bump — 2026-08-25.** No cambia la forma de ninguna puerta: ni un campo, ni
 un código, ni una obligatoriedad. Lo que cambia es **quién vigila que este
@@ -606,6 +645,9 @@ escrita sin responsable si algo falla a mitad. Ya no puede — no por compensaci
 sino porque no hay segundo paso que falle.
 
 **Lo que sigue igual:** la Puerta 2 no promete avisos y no los da.
+*(⚠️ Cierto el 10-ago-2026, y **dejó de serlo en v3.9.0**. No se edita esta línea:
+un historial de versiones registra lo que se dijo el día que se dijo, y
+corregirlo hacia atrás borraría que la asimetría existió y durante cuánto.)*
 
 **v3.5.0 — 2026-08-09 · MENOR.** Aditivo: la Puerta 1 estrena
 `append_to_description`, que **añade al brief sin reenviar lo que ya estaba**.
