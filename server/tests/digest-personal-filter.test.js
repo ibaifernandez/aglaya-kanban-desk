@@ -45,9 +45,13 @@ describe('buildUserCards — exclusión de workspace personal (digest diario)', 
         { id: 'c-i', title: 'Backlog', board_id: 'b-i' },
         { id: 'c-p', title: 'Backlog', board_id: 'b-p' },
       ],
+      // `assignee_id` es del 25-ago-2026: desde entonces el digest solo lleva
+      // tarjetas del destinatario. Sin este campo las dos caerían por el filtro
+      // de responsable y esta prueba mediría lo que no es — el espacio personal
+      // quedaría «excluido» por el motivo equivocado.
       cards: [
-        { id: 'card-i', title: 'Interno card', priority: 'high', due_date: null, column_id: 'c-i', board_id: 'b-i', checklist: [] },
-        { id: 'card-p', title: 'Personal card', priority: 'high', due_date: null, column_id: 'c-p', board_id: 'b-p', checklist: [] },
+        { id: 'card-i', title: 'Interno card', priority: 'high', due_date: null, column_id: 'c-i', board_id: 'b-i', checklist: [], assignee_id: 'user-1' },
+        { id: 'card-p', title: 'Personal card', priority: 'high', due_date: null, column_id: 'c-p', board_id: 'b-p', checklist: [], assignee_id: 'user-1' },
       ],
     };
     supabaseAdmin.from.mockImplementation((table) => chain(byTable[table] ?? []));

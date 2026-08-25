@@ -15,7 +15,7 @@
 const { sendEmail }        = require('../../utils/mailer');
 const { supabaseAdmin }    = require('../../utils/supabase');
 const { logDigestAttempt } = require('../../utils/digestLogging');
-const { escHtml, dateLabel, todayStr, isOverdue, DONE_COLUMN_RE } = require('./shared');
+const { escHtml, dateLabel, todayStr, isOverdue, DONE_COLUMN_RE, ARCHIVE_BOARD_RE } = require('./shared');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -114,7 +114,7 @@ async function buildUserCards(userId, options = {}) {
   const today = todayStr();
   const { data: cards } = await supabaseAdmin
     .from('cards')
-    .select('id, title, priority, due_date, column_id, board_id, checklist')
+    .select('id, title, priority, due_date, column_id, board_id, checklist, assignee_id')
     .in('board_id', boardIds)
     .not('column_id', 'in', `(${[...doneColumnIds].join(',') || 'null'})`);
 
@@ -136,8 +136,39 @@ async function buildUserCards(userId, options = {}) {
     }
   }
 
+  // ── Los tres filtros del digest (2026-08-25) ───────────────────────────────
+  //
+  // El 24-ago el digest de Ibai encabezaba: «Tienes 79 tareas urgentes,
+  // prioritarias o vencidas que merecen tu atención hoy». **Ninguna era suya.**
+  // Tres defectos independientes se sumaban, y hacen falta los tres arreglos:
+  //
+  //   1. NO FILTRABA POR RESPONSABLE, y nunca lo hizo — `assignee_id` no
+  //      aparecía en este fichero. Se tomaban las tarjetas de todos los tableros
+  //      de todos los espacios de los que el destinatario es MIEMBRO: ser
+  //      miembro de un espacio te traía el trabajo de todos.
+  //   2. NO EXCLUÍA LOS TABLEROS DE ARCHIVO. Ver `ARCHIVE_BOARD_RE`.
+  //   3. INCLUÍA VENCIDAS DE CUALQUIER PRIORIDAD.
+  //
+  // ⚠️ CONSECUENCIAS ACEPTADAS, decididas por Ibai el 25-ago-2026 y escritas
+  // aquí para que nadie las «mejore» de vuelta creyendo que son un descuido:
+  //
+  //   · **Una tarjeta vencida con prioridad `medium` deja de aparecer.** Es
+  //     efecto directo del punto 3. Si alguien la echa de menos, eso es una
+  //     decisión nueva, no un defecto de ésta.
+  //   · **El digest puede salir vacío muchos días, y es lo esperado**: significa
+  //     que no tienes nada urgente TUYO.
+  //
+  // `isOverdue` se sigue usando más abajo para pintar la fecha, así que no se
+  // retira: lo que se retira es que una fecha vencida meta la tarjeta en el
+  // correo por sí sola.
+  const archiveBoardIds = new Set(
+    boards.filter((b) => ARCHIVE_BOARD_RE.test(b.title ?? '')).map((b) => b.id)
+  );
+
   const actionable = cards.filter((c) =>
-    URGENT_PRIORITIES.has(c.priority) || isOverdue(c.due_date)
+    c.assignee_id === userId
+    && URGENT_PRIORITIES.has(c.priority)
+    && !archiveBoardIds.has(c.board_id)
   );
 
   if (!actionable.length && !assignedItems.length) return { personal: [], interno: [], externo: [], total: 0, assignedItems };
@@ -364,8 +395,13 @@ function buildHtml(userName, sections) {
               </p>
               <p style="margin:8px 0 0;font-size:13px;color:#8b92a5;line-height:1.6;">
                 ${total === 1
-                  ? 'Tienes <strong style="color:#e8eaf0;">1 tarea</strong> urgente, prioritaria o vencida que merece tu atención hoy.'
-                  : `Tienes <strong style="color:#e8eaf0;">${total} tareas</strong> urgentes, prioritarias o vencidas que merecen tu atención hoy.`
+                  // El texto DERIVA de lo que el filtro deja pasar, y por eso
+                  // ya no dice «o vencidas»: desde el 25-ago-2026 una vencida
+                  // de prioridad media no entra. Un encabezado que promete más
+                  // de lo que trae es de la familia que esta casa persigue —
+                  // quien lo lea buscará en el correo algo que no está.
+                  ? 'Tienes <strong style="color:#e8eaf0;">1 tarea</strong> tuya, urgente o prioritaria, que merece tu atención hoy.'
+                  : `Tienes <strong style="color:#e8eaf0;">${total} tareas</strong> tuyas, urgentes o prioritarias, que merecen tu atención hoy.`
                 }
               </p>
             </td>
