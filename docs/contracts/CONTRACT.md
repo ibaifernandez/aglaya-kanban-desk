@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.7.0
+- **Versión:** 3.8.0
 - **Última modificación:** 2026-08-25
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -245,20 +245,59 @@ tarjeta en el kanban de esta nave.
 
 Crea una tarjeta sin JWT y sin login.
 
-**Payload:**
+**Payload:** `⭐` significa **uno de cada pareja es obligatorio** — espacio por id
+o por nombre, tablero por id o por nombre. El destino nunca es opcional; lo que
+v3.8.0 añade es una forma de darlo que no caduca.
 
 | Campo | Req. | Default | Notas |
 |---|---|---|---|
 | `title` | sí | — | Se hace `trim()`; vacío → 400 |
-| `boardName` | sí | — | Match parcial case-insensitive; vacío → 400, sin match → 404 |
-| `workspaceName` | sí | — | **Sin default, por diseño.** Omitirlo → 400 |
+| `workspaceId` | ⭐ | — | *(v3.8.0)* UUID del espacio. **Camino recomendado:** no es ambiguo y no caduca al renombrar. Mal formado → 400; sin match → 404 |
+| `boardId` | ⭐ | — | *(v3.8.0)* UUID del tablero. **Camino recomendado.** Si no pertenece al espacio pedido → **400 y no se escribe nada** |
+| `workspaceName` | ⭐ | — | Alternativa a `workspaceId`. **Sin default, por diseño.** Match parcial |
+| `boardName` | ⭐ | — | Alternativa a `boardId`. Match parcial case-insensitive; sin match → 404 |
 | `priority` | sí | — | `urgent`\|`high`\|`medium`\|`low`\|`none`. **Ausente → 400** *(v3.0.0; antes caía a `medium` en silencio)*. **Inválida → 400** con la lista de válidas *(v2.0.0)* |
 | `assignee` | sí | — | *(v3.0.0, campo nuevo)* Email, nombre exacto o UUID del responsable. Ausente → 400; sin match → 404; nombre que casa con varios → 400 con `candidates` |
 | `description` | no | `""` | El brief |
 | `dueDate` | no | `null` | ISO 8601 |
 | `idempotencyKey` | no | — | *(v3.6.0, campo nuevo)* UUID. Repetirla devuelve **`200` con la tarjeta que ya existe** en vez de crear otra. Presente y no-UUID → 400; presente y vacía → 400 (no se lee como ausente); `null` u omitida → sin idempotencia |
 
-**Comportamiento:** busca el espacio por nombre parcial; **si casa con más de uno
+⭐ **Hace falta el espacio (por id o por nombre) y el tablero (por id o por
+nombre).** Lo que v3.8.0 cambia no es la obligatoriedad del destino: es que ya
+hay una forma de apuntar que no caduca.
+
+**Apuntar por identificador es el camino principal desde v3.8.0.** El nombre es
+comodidad humana; el identificador es lo único que **no cambia cuando alguien
+renombra** desde la interfaz. Y el emparejamiento por nombre es parcial: medido
+contra la base real, **7 de 13 espacios casaban con `%AGLAYA%`**. Cada destino por
+nombre es una tirada; cada destino por identificador es determinista.
+
+El hueco que cierra era **media conversación**: esta puerta ya sabía DEVOLVER
+identificadores —`GET /list-workspaces` y `GET /list-boards` los dan— y una nave
+que leía el id correcto **no tenía dónde metérselo**.
+
+**Si vienen el id y el nombre, gana el id.** No se rechaza la pareja: quien manda
+los dos no está en conflicto consigo mismo, está siendo redundante — y de las dos
+lecturas, la que no depende de un renombrado es la buena.
+
+**Un identificador mal formado NO cae al nombre: es `400`.** Tragárselo y
+resolver por el nombre sería el destino a ciegas que esta puerta impide — el
+llamante creería haber apuntado con precisión.
+
+⚠️ **Y el tablero se comprueba contra el espacio** *(v3.8.0)*: un `boardId` que
+pertenece a otro espacio devuelve **`400` y no se escribe nada**, con los dos
+identificadores en el cuerpo. Sin esa guarda, aceptar identificadores habría
+estrenado un camino nuevo para aterrizar donde no era. Es la misma comprobación
+que la Puerta 1 hace entre espacio y columna, y existe por lo mismo: exigir un
+destino sin comprobarlo da sensación de control sin control.
+
+**Por el camino del nombre esa guarda no hace falta** — allí el tablero se busca
+ya acotado al espacio, así que no puede salir de otro sitio.
+
+**El nombre se queda, y no por nostalgia:** quitarlo sería incompatible, y este
+contrato prohíbe destinos implícitos a propósito.
+
+**Comportamiento (camino del nombre):** busca el espacio por nombre parcial; **si casa con más de uno
 → 400 con `candidates` (`id` y `name` de cada uno) y no se escribe nada**. Luego
 el tablero dentro de él, por nombre parcial, y ahí **sí toma el primero todavía**
 —la ambigüedad de tablero sigue abierta, ver más abajo—; elige la columna que
@@ -414,6 +453,28 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**v3.8.0 — 2026-08-25 · MENOR.** Aditivo: la Puerta 2 acepta **`workspaceId` y
+`boardId`**, y apuntar por identificador pasa a ser el camino recomendado. Los
+nombres siguen funcionando exactamente igual.
+
+**Por qué importa más de lo que parece:** el emparejamiento por nombre es parcial,
+y está medido contra la base real que **7 de 13 espacios casaban con `%AGLAYA%`**.
+Un identificador no es ambiguo y **no caduca cuando alguien renombra**. Esta
+puerta ya sabía devolver identificadores desde v1; lo que faltaba era poder
+dárselos — media conversación.
+
+**Modo de fallo nuevo, dicho:** un `boardId` que no pertenece al espacio pedido
+devuelve **`400` y no escribe nada**. Sin esa guarda, el arreglo habría estrenado
+un camino nuevo para aterrizar donde no era. Y un identificador **mal formado es
+`400`, no un silencioso vuelta-al-nombre**.
+
+**Absorbe dos cosas que estaban pendientes por separado:** la ambigüedad de
+TABLERO —dos títulos solapados dentro del mismo espacio resolvían al primero y
+devolvían `201`— deja de existir por este camino, porque con identificador no hay
+ambigüedad que resolver. Y el aviso de que «AGLAYA Kanban Desk» es el nombre del
+proyecto y no un destino válido **existía solo porque los nombres eran la forma
+de apuntar**.
 
 **v3.7.0 — 2026-08-25 · MENOR.** Aditivo: la Puerta 2 devuelve `warning` cuando
 la tarjeta se crea **sin contenido**, igual que ya hacía la Puerta 1. Cierra una
