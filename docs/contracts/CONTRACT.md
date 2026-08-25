@@ -1,8 +1,8 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.6.0
-- **Última modificación:** 2026-08-11
+- **Versión:** 3.7.0
+- **Última modificación:** 2026-08-25
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
 > Hasta hoy no existía: el registro de contratos del capitán describía la puerta
@@ -64,6 +64,11 @@ Lo que el catálogo no te dice, y este contrato sí:
 - **Una tarjeta sin contenido lo dice.** Si el brief sale vacío, la respuesta trae
   un `warning`. No es un error —una tarjeta solo-título es legítima a veces— pero
   deja de parecerse a una que salió bien.
+
+  **Desde v3.7.0 las DOS puertas lo hacen.** Estaba escrito aquí, dentro de la
+  sección de la Puerta 1, y la Puerta 2 creaba igual y callaba. No era
+  incumplimiento —la cláusula solo prometía por el riel— pero sí una asimetría:
+  quien probara una puerta creía conocer la otra.
 - **Las destructivas están cerradas con llave:** exigen `confirm=true`. Es diseño.
   No desactivar la compuerta.
 - **Asignar suena.** Asignar no es etiquetar: dispara la notificación in-app real
@@ -271,6 +276,26 @@ Desde v3.0.0 trae además el **responsable resuelto**: `assignee_id`/`assignee`
 por el que se puede aterrizar mal, y quien mandó un nombre parcial necesita ver
 en quién cayó.
 
+**Y desde v3.7.0, `warning` cuando la tarjeta sale sin contenido** — la misma
+regla que la Puerta 1, que ya lo hacía. Va **junto a `card`, no dentro**, y solo
+aparece cuando hay algo que avisar: un campo que siempre está deja de leerse.
+
+**El texto NO es el mismo que el del riel, y es deliberado:** aquél manda a mirar
+`description_md` y su alias, y esos nombres no existen aquí. Un aviso que nombra
+un campo inexistente manda a arreglar donde no está. **Se comparte la regla; el
+texto es de cada puerta.**
+
+**Por qué aviso y no `400`.** Se consideró y se descarta: una tarjeta solo-título
+es legítima a veces, así que un `400` rechazaría trabajo bueno para tapar un caso
+dudoso — e impedir que el trabajo entre es peor que pedir que alguien mire.
+Además obligaría a cambiar también el riel, que hoy avisa, y sería incompatible
+en las dos puertas a la vez.
+
+**Lo que este aviso NO cubre, dicho:** una **repetición** por `idempotencyKey`
+devuelve la tarjeta que ya existe **sin `warning`**, aunque aquélla esté vacía. El
+aviso es del acto de crear; la repetición no crea nada, y quien la recibe ya fue
+avisado —o no— la primera vez.
+
 **Ambigüedad de TABLERO — abierta, y se declara aquí para que no se lea como
 cerrada.** El `400` de arriba cubre el espacio, no el tablero: dos tableros con
 nombres solapados dentro del mismo espacio siguen resolviendo al primero y
@@ -389,6 +414,30 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**v3.7.0 — 2026-08-25 · MENOR.** Aditivo: la Puerta 2 devuelve `warning` cuando
+la tarjeta se crea **sin contenido**, igual que ya hacía la Puerta 1. Cierra una
+asimetría, no un incumplimiento: la cláusula «una tarjeta sin contenido lo dice»
+vivía dentro de la sección del riel, así que prometía por él y no por la otra.
+
+**Por qué pesa aunque nada se rompiera:** la Puerta 2 es la que usan las naves de
+fuera de esta máquina. Este contrato delega la verificación en el llamante
+—«verificar en la UI sigue siendo del llamante»— y **esa frase se escribió para
+un humano**. Una nave no abre la interfaz nunca, así que una tarjeta vacía creada
+en silencio era trabajo que solo se veía mirando el tablero a ojo.
+
+**No rompe a nadie:** el `201` y la forma de `card` no cambian, y `warning` solo
+aparece cuando hay algo que avisar. **`400` se consideró y se descartó** — una
+tarjeta solo-título es legítima, y rechazarla habría impedido que entrara trabajo
+bueno, además de obligar a cambiar el riel.
+
+**Y sí, este documento dice en v3.3.0 que «nadie compara un acuse de éxito» y que
+por eso allí hubo compuerta y no aviso. No se contradice, y conviene ver la
+diferencia:** allí lo que estaba en juego era **destruir** texto de otro, y un
+aviso que se puede ignorar no habría impedido nada. Aquí no se destruye nada —la
+tarjeta existe, está asignada y tiene prioridad, así que **es visible en el
+tablero**—; lo único que falta es su contenido. Cuando el remedio es mirar, avisa;
+cuando el remedio es no hacerlo, se cierra con llave.
 
 **v3.6.0 — 2026-08-11 · MENOR.** Aditivo: la Puerta 2 acepta `idempotencyKey`
 (UUID, opcional) y una repetición devuelve `200` con la tarjeta que ya existe.

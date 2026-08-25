@@ -453,7 +453,24 @@ router.post('/create-card', verifySecret, async (req, res) => {
     `· ${assigneeUser.name} · ${safePriority}`,
   );
 
-  res.status(201).json({
+  // Una tarjeta sin contenido se creó igual, pero deja de PARECERSE a una que
+  // salió bien. Es lo único que distingue el 201 honesto del 201 que miente.
+  //
+  // POR QUÉ AVISO Y NO `400`, que era la otra opción sobre la mesa. Una tarjeta
+  // solo-título es legítima a veces —lo dice el riel desde que existe—, así que
+  // un `400` rechazaría trabajo bueno para tapar un caso dudoso. Rechazar lo
+  // legítimo es peor que avisar de lo dudoso: lo primero impide que el trabajo
+  // entre, y lo segundo solo pide mirar.
+  //
+  // POR QUÉ NO SE COPIA EL TEXTO DEL RIEL, aunque la regla sea la misma: aquel
+  // manda a mirar `description_md` y su alias, y **esos nombres no existen en
+  // esta puerta**. Un aviso que nombra un campo inexistente manda a arreglar
+  // donde no está. Se comparte la regla; el texto es de cada puerta.
+  //
+  // Y NO mira el NOMBRE que vino, mira el RESULTADO: la tarjeta salió sin
+  // contenido. Enumerar nombres de parámetro es el vicio, no el remedio — quien
+  // invente `brief` o `body` seguiría perdiendo el texto igual.
+  const acuse = {
     ok:    true,
     card: {
       id:           card.id,
@@ -468,7 +485,17 @@ router.post('/create-card', verifySecret, async (req, res) => {
       assignee_id:  assigneeUser.id,
       assignee:     assigneeUser.name,
     },
-  });
+  };
+
+  if (!card.description || !String(card.description).trim()) {
+    acuse.warning =
+      'brief vacío: la tarjeta se creó SIN contenido. Si esperabas texto, el ' +
+      'nombre del parámetro no llegó — el brief va en `description`. ' +
+      'Compruébalo en el tablero: la respuesta de éxito no distingue una ' +
+      'tarjeta con brief de una sin él, y por eso se avisa aquí.';
+  }
+
+  res.status(201).json(acuse);
 });
 
 module.exports = router;

@@ -148,14 +148,20 @@ mutar "5 · borrar el payload «candidates» del 400 de ambigüedad" \
 # 6 · Acuse sin destino resuelto: el que clava trabajo no puede comprobar dónde
 #     aterrizó.
 #
-#     ⚠️ Se ancla al `res.status(201)` A PROPÓSITO. `board_id: board.id,` y
+#     ⚠️ Se ancla al INICIO DEL ACUSE a propósito. `board_id: board.id,` y
 #     `column_id: targetColumn.id,` aparecen DOS veces en la ruta: en el `insert`
 #     y en el acuse. Sin el ancla, la sustitución pega en la primera —el insert—
 #     y esta línea mide una mutación que no es la suya. Pasó al escribirla: dio
 #     verde, y el verde era correcto para el mutante equivocado.
+#
+#     El ancla era `res.status(201).json({` y dejó de existir el 25-ago-2026, al
+#     pasar el acuse a una variable para poder añadirle el aviso de tarjeta
+#     vacía. **La batería lo cazó en el acto** —«la mutación no se aplicó»— en vez
+#     de dar un verde por no haber medido nada, que es justo para lo que existe
+#     esa comprobación. Ahora ancla en `const acuse = {`.
 mutar "6 · borrar board_id y column_id del acuse" \
       "resuelve el tablero y la columna" \
-      "s/(res\.status\(201\)\.json\(\{.*?)^\s*board_id:\s+board\.id,\n/\$1/ms; s/(res\.status\(201\)\.json\(\{.*?)^\s*column_id:\s+targetColumn\.id,\n/\$1/ms"
+      "s/(const acuse = \{.*?)^\s*board_id:\s+board\.id,\n/\$1/ms; s/(const acuse = \{.*?)^\s*column_id:\s+targetColumn\.id,\n/\$1/ms"
 
 # 7 · MUTACIÓN DE DOMINIO: devolver la entrada en vez del nombre canónico. Es el
 #     defecto original —el acuse devolvía el espacio tal como entró, justo el
