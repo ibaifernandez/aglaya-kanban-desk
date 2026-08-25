@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { createAdminClient, createPublicClient } = require('../utils/supabase');
 const { requireAuth, invalidateUserCache } = require('../middleware/auth');
 const { getSyncedUserProfile } = require('../utils/userProfile');
+const { DIGEST_HOURS, digestHourError } = require('../constants/digest-hours');
 
 const router = express.Router();
 
@@ -190,12 +191,14 @@ router.patch('/me/preferences', requireAuth, async (req, res) => {
   const { digestHour, digestEnabled } = req.body ?? {};
 
   const update = {};
+  // La hora se valida contra la MISMA lista que visita el reloj, no contra
+  // «0..23». Aceptaba las 24 mientras el reloj visitaba menos, y esa diferencia
+  // era una hora huérfana: elegible aquí, nunca visitada allí. A quien la tuviera
+  // no le llegaba nada **y sin error que leer**.
   if (digestHour !== undefined) {
-    const h = Number(digestHour);
-    if (!Number.isInteger(h) || h < 0 || h > 23) {
-      return res.status(400).json({ error: 'digestHour debe ser un entero entre 0 y 23' });
-    }
-    update.digest_hour = h;
+    const err = digestHourError(digestHour);
+    if (err) return res.status(400).json({ error: err, digestHours: DIGEST_HOURS });
+    update.digest_hour = Number(digestHour);
   }
   if (digestEnabled !== undefined) {
     if (typeof digestEnabled !== 'boolean') {
@@ -206,6 +209,35 @@ router.patch('/me/preferences', requireAuth, async (req, res) => {
 
   if (!Object.keys(update).length) {
     return res.status(400).json({ error: 'Nada que actualizar' });
+  }
+
+  // ⚠️ REACTIVAR CON UNA HORA VIEJA HUÉRFANA. Validar lo que ENTRA no basta:
+  // hay filas anteriores a esta lista con horas que el reloj ya no visita. Si
+  // alguien vuelve a encender su digest sin tocar la hora, lo encendería para no
+  // recibir nada — y creyendo que sí. Es el mismo fallo, entrando por la puerta
+  // de al lado.
+  if (update.digest_enabled === true && update.digest_hour === undefined) {
+    const { data: actual, error: leerError } = await adminClient
+      .from('users')
+      .select('digest_hour')
+      .eq('id', req.user.id)
+      .single();
+
+    if (leerError) {
+      console.error('[auth] leer digest_hour:', leerError.message);
+      return res.status(500).json({ error: 'Error al comprobar la hora del digest' });
+    }
+
+    const err = digestHourError(actual?.digest_hour);
+    if (err) {
+      return res.status(400).json({
+        error:
+          `No se ha activado: la hora que tienes guardada (${actual?.digest_hour}) ` +
+          'ya no es una de las que se envían, así que activarlo te dejaría sin ' +
+          `digest y sin error que leer. Elige una hora admitida al activarlo. ${err}`,
+        digestHours: DIGEST_HOURS,
+      });
+    }
   }
 
   const { data, error } = await adminClient
