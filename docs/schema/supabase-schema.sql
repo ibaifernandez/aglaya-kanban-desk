@@ -112,10 +112,20 @@ CREATE TABLE IF NOT EXISTS public.users (
   -- ('guest' queda reservado al ámbito micro en workspace_members.role)
   organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
   avatar_url      TEXT,
-  -- ⚠️ SIN LECTOR desde el 25-ago-2026 («cero mails», ADR-027 de ARCHITECTURE.md).
-  -- Nadie las lee ni las escribe: no hay digest, ni reloj, ni endpoint de
-  -- preferencias. Se dejan en pie A PROPÓSITO y no por olvido — retirarlas es
-  -- una migración con su propio ciclo, y la decisión es de Ibai.
+  -- ⏳ EN RETIRADA. Sin lector desde el 25-ago-2026 («cero mails», ADR-027), y
+  -- **Ibai ya decidió quitarlas** ese mismo día. Las borra
+  -- `docs/schema/migration-retirar-esquema-del-correo.sql`, pendiente del
+  -- Operador.
+  --
+  -- Siguen declaradas aquí **a propósito, no por olvido**: este fichero es un
+  -- espejo de la base, y adelantarlo pondría `schema-drift-guard` rojo en `main`
+  -- hasta que alguien ejecutara el `DROP`. Un guardián que vive en rojo se
+  -- normaliza hasta que deja de mirarse.
+  --
+  -- Primero se aplica, después se borran estas líneas. Que no se olvide no
+  -- depende de que alguien se acuerde: `server/tests/esquema-del-correo-fuera.test.js`
+  -- se pone rojo en cuanto aquella migración diga «APLICADA» y esto siga aquí.
+  --
   -- Mientras estén, MIENTEN: un valor en `digest_hour` no significa que a esa
   -- hora pase nada.
   digest_hour     SMALLINT NOT NULL DEFAULT 7 CHECK (digest_hour BETWEEN 0 AND 23),
@@ -304,13 +314,23 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 -- Originalmente en migrations/create_digest_logs.sql; consolidada aquí para
 -- que el master schema sea completo.
 --
--- ⚠️ NADIE ESCRIBE AQUÍ desde el 25-ago-2026 («cero mails», ADR-027). Lo que
--- guarda es historia de envíos que SÍ ocurrieron, y por eso no se borra con el
--- correo: borrarla es perder registro, no limpiar. Se sigue leyendo en un solo
--- sitio — `GET /api/auth/me/export`, portabilidad RGPD.
--- Sus políticas de escritura (`service_insert`, `service_update`) quedan sin
--- usar; se dejan por la misma razón que la tabla. Retirar todo esto es decisión
--- de Ibai, no olvido de quien retiró el correo.
+-- ⏳ EN RETIRADA, Y ESO ES UN CAMBIO DE CRITERIO QUE CONVIENE VER ENTERO.
+--
+-- Aquí decía que esta tabla NO se borraba con el correo, porque guarda historia
+-- de envíos que sí ocurrieron. **Ibai decidió el 25-ago-2026 borrarla igualmente,
+-- y sin volcado previo** — con la alternativa delante. La retira
+-- `docs/schema/migration-retirar-esquema-del-correo.sql`, pendiente del Operador.
+--
+-- ⚠️ Es lo único irreversible de ese cambio: cuando se aplique, **a quién se le
+-- mandó qué y cuándo no existirá en ninguna parte**. Se escribe aquí para que no
+-- se lea como un descuido.
+--
+-- Su último lector, `GET /api/auth/me/export`, ya no la consulta: se retiró en
+-- el mismo cambio y ANTES del `DROP`, porque un `SELECT` contra una tabla que ya
+-- no existe no devuelve vacío, devuelve error.
+--
+-- Sigue declarada aquí hasta que se aplique, por lo mismo que las dos columnas
+-- de `users`: adelantar el espejo pone rojo al guardián de deriva.
 
 CREATE TABLE IF NOT EXISTS public.digest_logs (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
