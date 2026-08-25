@@ -34,9 +34,22 @@ jest.mock('../utils/supabase', () => {
     columns: [
       { id: 'col-backlog', board_id: 'board-1', title: 'Backlog', order: 1 },
     ],
+    // ⚠️ SIN NINGUNA DIRECCIÓN DE CORREO, y las dos razones importan:
+    //
+    //   · `scripts/email-guard.sh` exige que toda dirección del árbol esté
+    //     declarada, incluida una inventada. Su regla es «declarada o fuera», y
+    //     hace bien: un guardián que distinguiera direcciones «de mentira» de
+    //     las de verdad tendría que adivinar cuáles lo son.
+    //   · Y la primera versión de este banco usaba el **nombre de pila de una
+    //     persona real** sobre un dominio falso. El guardián ni lo miraba, pero
+    //     un fixture no necesita el nombre de nadie.
+    //
+    // Se resuelve por NOMBRE, que la puerta también admite: id, email o nombre.
+    // De paso, el banco ejerce esa tercera rama, que ninguna otra prueba de
+    // notificación tocaba.
     users: [
-      { id: 'user-mon',  name: 'Món',         email: 'mon@ejemplo.test' },
-      { id: 'user-rail', name: 'Kanban Rail', email: 'kanban-rail@aglaya.biz' },
+      { id: 'user-destino', name: 'Destinataria de Pruebas' },
+      { id: 'user-otra',    name: 'Otra Persona' },
     ],
     cards: [],
   };
@@ -156,7 +169,7 @@ const COMANDA = {
   boardName: 'Operaciones',
   workspaceName: 'AGLAYA Kanban',
   priority: 'high',
-  assignee: 'mon@ejemplo.test',
+  assignee: 'Destinataria de Pruebas',
 };
 
 // La campana se dispara sin esperarla —no puede bloquear el `201`—, así que hay
@@ -175,7 +188,7 @@ describe('la Puerta 2 avisa a quien le clava trabajo', () => {
     expect(__banco.campanas).toHaveLength(1);
 
     const [campana] = __banco.campanas;
-    expect(campana.user_id).toBe('user-mon');
+    expect(campana.user_id).toBe('user-destino');
     expect(campana.type).toBe('card_assignment');
     expect(campana.read).toBe(false);
   });
@@ -209,8 +222,8 @@ describe('la Puerta 2 avisa a quien le clava trabajo', () => {
     await dejarSonar();
 
     expect(res.body.ok).toBe(true);
-    expect(res.body.card.assignee).toBe('Món');
-    expect(res.body.card.assignee_id).toBe('user-mon');
+    expect(res.body.card.assignee).toBe('Destinataria de Pruebas');
+    expect(res.body.card.assignee_id).toBe('user-destino');
   });
 });
 
@@ -265,7 +278,7 @@ describe('lo que la campana NO puede hacer', () => {
   // Sin este caso, «ahora avisa» se leería como «ahora valida», que es otra
   // cosa y el contrato la mantiene fuera a propósito.
   it('sigue sin comprobar membresía: avisar no es validar', async () => {
-    // `user-mon` no es miembro de nada en este banco — no hay tabla de
+    // La destinataria no es miembro de nada en este banco — no hay tabla de
     // membresías siquiera — y la comanda entra igual.
     const res = await post(COMANDA);
     await dejarSonar();
