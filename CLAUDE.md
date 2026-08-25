@@ -215,9 +215,10 @@ allí.
   `priority` a `"none"` automáticamente»— y esa regla **se retira**.
 
   Se borraba un dato para arreglar una vista, y la vista ya tenía arreglo sin
-  pérdida: quien ordena por prioridad puede filtrar por columna, que es lo que
-  hace [`server/services/digest/user.js`](server/services/digest/user.js). Una
-  prioridad borrada no se recupera —no tiene historial— y **es la única señal de
+  pérdida: quien ordena por prioridad puede filtrar por columna. El ejemplo que
+  se citaba aquí era el digest, y **el digest ya no existe** —la nave no manda
+  correo—, pero el argumento no dependía de él: filtrar no pierde nada y borrar
+  sí. Una prioridad borrada no se recupera —no tiene historial— y **es la única señal de
   cuánto importaba** aquel trabajo, justo en la columna que lee quien audita: sin
   ella no se puede decir si lo cerrado fue lo urgente o lo cómodo.
 

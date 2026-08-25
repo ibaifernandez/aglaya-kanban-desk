@@ -90,16 +90,16 @@ rutas por higiene, sin saber que la asimetría es la puerta.
 **El test:** invitar a `tony@stark.com` con rol `cliente` → 201. Con un comentario
 que diga que la asimetría es deliberada, para que quien la vea no la «arregle».
 
-### 4 · El cliente no recibe lo que no es suyo — digests
+### 4 · ~~El cliente no recibe lo que no es suyo — digests~~ · RETIRADO
 
-**El código:** el digest agrupa por tipo de espacio e incluye `externo`.
+**No hay digest.** Se retiró el correo entero de la nave el 25-ago-2026
+(«cero mails», ADR-027). Este test describía la vía de fuga más silenciosa que
+tenía el sistema —un correo sale sin que nadie mire la pantalla— y **la vía ya
+no existe**, así que el test tampoco tiene qué vigilar.
 
-**El daño si se rompe:** un correo automático es la vía más silenciosa de fuga
-que existe: sale del sistema sin que nadie mire la pantalla.
-
-**El test:** el digest de un usuario `cliente` no incluye tarjetas de espacios
-internos. Hoy hay test de que el digest excluye los `personal`; este es su
-hermano y no existe.
+Se tacha en vez de borrarse porque **el riesgo vuelve con el correo**: el día
+que alguien reintroduzca un envío automático, esta es la comprobación que hay
+que escribir antes de encenderlo.
 
 ---
 

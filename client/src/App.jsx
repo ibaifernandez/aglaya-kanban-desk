@@ -300,7 +300,6 @@ function AuthenticatedApp({ user, logout, updateUser }) {
         onLogout={logout}
         onOpenAdmin={() => navigate('admin')}
         onAvatarChange={(url) => updateUser({ avatarUrl: url })}
-        onPreferencesChange={(prefs) => updateUser(prefs)}
         onNotificationNavigate={handleNotificationNavigate}
       />
     );
@@ -313,7 +312,6 @@ function AuthenticatedApp({ user, logout, updateUser }) {
         onBack={() => navigate('workspaces')}
         onLogout={logout}
         onAvatarChange={(url) => updateUser({ avatarUrl: url })}
-        onPreferencesChange={(prefs) => updateUser(prefs)}
       />
     );
   }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings, Search, X, ArrowRight, LogOut, Mail, ChevronLeft, UserCog, Camera, SlidersHorizontal } from 'lucide-react';
+import { Settings, Search, X, ArrowRight, LogOut, ChevronLeft, UserCog, Camera, SlidersHorizontal } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { AvatarCropModal } from '../UI/AvatarCropModal.jsx';
 import { NotificationBell } from '../UI/NotificationBell.jsx';
@@ -12,9 +12,6 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
   const { category, priority, tag, search = '', assignee = '', overdue = false } = filters;
   const { categories } = useCategoriesCtx();
   const [showSettings,  setShowSettings]  = useState(false);
-  const [showDigestConfirm, setShowDigestConfirm] = useState(false);
-  const [digestState,   setDigestState]   = useState('idle'); // 'idle' | 'sending' | 'ok' | 'error'
-  const [digestMsg,     setDigestMsg]     = useState('');
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarCropSrc,   setAvatarCropSrc]   = useState(null);
   const avatarFileRef = useRef(null);
@@ -26,8 +23,6 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
   const [globalLoading, setGlobalLoading] = useState(false);
   const timerRef  = useRef(null);
   const wrapRef   = useRef(null);
-
-  useEscapeKey(() => setShowDigestConfirm(false), showDigestConfirm && digestState !== 'sending');
 
   // Debounced fetch
   useEffect(() => {
@@ -58,22 +53,6 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
     onSelectBoard?.(card.boardId);
     setGlobalQ('');
     setGlobalOpen(false);
-  }
-
-  async function handleSendDigest() {
-    setDigestState('sending');
-    setDigestMsg('');
-    try {
-      const json = await api.sendPersonalDigest({ workspaceId: workspace?.id });
-      setDigestState('ok');
-      setDigestMsg(json.message);
-    } catch (err) {
-      setDigestState('error');
-      setDigestMsg(err.message);
-    } finally {
-      setShowDigestConfirm(false);
-      setTimeout(() => setDigestState('idle'), 4000);
-    }
   }
 
   function handleAvatarUpload(e) {
@@ -309,30 +288,6 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
         {/* Notification bell */}
         <NotificationBell user={user} onNavigate={onNotificationNavigate} />
 
-        {/* Workspace digest button */}
-        {workspace && (
-        <div className="relative">
-          <button
-            onClick={() => setShowDigestConfirm(true)}
-            disabled={digestState === 'sending'}
-            title="Recibir resumen de este espacio de trabajo"
-            className={`p-1.5 rounded transition-colors
-              ${digestState === 'ok'    ? 'text-green-400 bg-green-400/10' :
-                digestState === 'error' ? 'text-red-400 bg-red-400/10' :
-                'text-[#555b70] hover:text-[#e8eaf0] hover:bg-[#2e3140]'}
-              disabled:opacity-50 disabled:cursor-wait`}
-          >
-            <Mail size={15} />
-          </button>
-          {digestMsg && digestState !== 'idle' && (
-            <div className={`absolute right-0 top-full mt-1.5 z-50 w-64 rounded-lg px-3 py-2 text-xs shadow-xl
-              ${digestState === 'ok' ? 'bg-green-900/80 text-green-300 border border-green-700/50' : 'bg-red-900/80 text-red-300 border border-red-700/50'}`}>
-              {digestMsg}
-            </div>
-          )}
-        </div>
-        )}
-
         {/* Settings button — manage categories */}
         <button
           onClick={() => setShowSettings(true)}
@@ -384,40 +339,6 @@ export function Toolbar({ boardTitle, filters, onFilterChange, availableTags = [
       </header>
 
       {showSettings && <CategorySettings onClose={() => setShowSettings(false)} />}
-
-      {showDigestConfirm && workspace && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-          onClick={() => setShowDigestConfirm(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-xl border border-[#2e3140] bg-[#1e2028] p-6 shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h2 className="text-base font-semibold text-[#e8eaf0] mb-2">¿Recibir resumen del workspace?</h2>
-            <p className="text-sm text-[#8b90a0] mb-5">
-              ¿Quieres recibir el resumen de tus tareas <strong className="text-[#e8eaf0]">concernientes a este workspace</strong>?
-              <br />
-              <span className="text-[#555b70]">{workspace.emoji} {workspace.name}</span>
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowDigestConfirm(false)}
-                className="px-4 py-2 text-sm text-[#8b92a5] hover:text-[#e8eaf0] transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSendDigest}
-                disabled={digestState === 'sending'}
-                className="px-4 py-2 rounded-lg bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors"
-              >
-                {digestState === 'sending' ? 'Enviando…' : 'Enviar resumen'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {avatarCropSrc && (
         <AvatarCropModal

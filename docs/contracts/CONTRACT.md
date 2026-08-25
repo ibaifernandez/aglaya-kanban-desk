@@ -226,9 +226,11 @@ escribir y ningún mapa, así que la instrucción era incumplible.
 
 **Alcance, con su asimetría dicha en voz alta:** es el de `service_role` —todo lo
 que hay en la tabla, sin filtro de membresía— **menos los espacios de tipo
-`personal`, que se excluyen por REGLA.** Es la tercera superficie automática de
-esta nave que los excluye, y las otras dos ya estaban: el digest (fijado por su
-propio test) y `scripts/rail-blindspot.sh` (`WHERE w.type <> 'personal'`).
+`personal`, que se excluyen por REGLA.** Era la tercera superficie
+automática de esta nave que los excluye; hoy son dos, porque **el digest se
+retiró entero** (25-ago-2026, «cero mails»). La otra sigue en pie:
+`scripts/rail-blindspot.sh` (`WHERE w.type <> 'personal'`). Que quede una menos
+no ablanda esta regla — la deja más sola.
 
 El motivo es concreto y no es simetría por simetría: `TASK_SECRET` vive **fuera
 de esta máquina**, y sin ese filtro esta puerta entregaba el UUID del espacio

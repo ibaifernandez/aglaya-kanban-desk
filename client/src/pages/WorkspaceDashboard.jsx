@@ -504,7 +504,7 @@ function WorkspaceSection({ title, icon, workspaces, coverOverrides, onEnter, on
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, onOpenAdmin, onAvatarChange, onPreferencesChange, onNotificationNavigate }) {
+export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, onOpenAdmin, onAvatarChange, onNotificationNavigate }) {
   const { workspaces, loading, createWorkspace, updateWorkspace, deleteWorkspace } = useWorkspaces();
   const [showNew,       setShowNew]       = useState(false);
   const [editTarget,    setEditTarget]    = useState(null);
@@ -568,7 +568,6 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                 user={user}
                 onAvatarChange={onAvatarChange}
                 onLogout={onLogout}
-                onPreferencesChange={onPreferencesChange}
               />
             </div>
           </div>

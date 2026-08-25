@@ -112,6 +112,12 @@ CREATE TABLE IF NOT EXISTS public.users (
   -- ('guest' queda reservado al ámbito micro en workspace_members.role)
   organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
   avatar_url      TEXT,
+  -- ⚠️ SIN LECTOR desde el 25-ago-2026 («cero mails», ADR-027 de ARCHITECTURE.md).
+  -- Nadie las lee ni las escribe: no hay digest, ni reloj, ni endpoint de
+  -- preferencias. Se dejan en pie A PROPÓSITO y no por olvido — retirarlas es
+  -- una migración con su propio ciclo, y la decisión es de Ibai.
+  -- Mientras estén, MIENTEN: un valor en `digest_hour` no significa que a esa
+  -- hora pase nada.
   digest_hour     SMALLINT NOT NULL DEFAULT 7 CHECK (digest_hour BETWEEN 0 AND 23),
   digest_enabled  BOOLEAN NOT NULL DEFAULT true,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -297,6 +303,14 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 -- ── 7. Digest logs (audit de envíos de email) ───────────────
 -- Originalmente en migrations/create_digest_logs.sql; consolidada aquí para
 -- que el master schema sea completo.
+--
+-- ⚠️ NADIE ESCRIBE AQUÍ desde el 25-ago-2026 («cero mails», ADR-027). Lo que
+-- guarda es historia de envíos que SÍ ocurrieron, y por eso no se borra con el
+-- correo: borrarla es perder registro, no limpiar. Se sigue leyendo en un solo
+-- sitio — `GET /api/auth/me/export`, portabilidad RGPD.
+-- Sus políticas de escritura (`service_insert`, `service_update`) quedan sin
+-- usar; se dejan por la misma razón que la tabla. Retirar todo esto es decisión
+-- de Ibai, no olvido de quien retiró el correo.
 
 CREATE TABLE IF NOT EXISTS public.digest_logs (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),

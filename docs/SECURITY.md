@@ -76,9 +76,7 @@ El riel MCP (`kanban-mcp/`, ver ADR-026 en `ARCHITECTURE.md`) usa además `SUPAB
 | `SUPABASE_SERVICE_ROLE_KEY` | Solo `.env` server | 🔴 CRÍTICO — bypass de RLS |
 | `JWT_SECRET` | Solo `.env` server | 🔴 CRÍTICO — firma de tokens |
 | `SUPABASE_DATABASE_PASSWORD` | Solo `.env` server | 🔴 CRÍTICO — DDL directo (CLAUDE.md) |
-| `RESEND_API_KEY` | Solo `.env` server | 🟠 ALTO — envío emails |
 | `TASK_SECRET` | Solo `.env` server (Railway env) | 🟠 ALTO — auth de `/api/internal/*` |
-| `DIGEST_CRON_SECRET` | GitHub Secrets + Railway env | 🟠 ALTO — auth cron GitHub Actions |
 | `SUPABASE_PAT` | Solo `.env` server | 🟠 ALTO — Supabase Management API |
 | `SUPABASE_ANON_KEY` / `VITE_SUPABASE_ANON_KEY` | Server + Cliente (público por diseño) | 🟡 MEDIO — limitada por RLS |
 | `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_ENDPOINT` / `R2_BUCKET` | GitHub Secrets (workflow backup) | 🟠 ALTO — escritura R2 bucket backups |
@@ -119,8 +117,6 @@ El riel MCP (`kanban-mcp/`, ver ADR-026 en `ARCHITECTURE.md`) usa además `SUPAB
 #### Protegidos por `requireAuth` 🛡️
 
 - `GET /api/auth/me`
-- `PATCH /api/auth/me/preferences`
-- `/api/digest/*` (algunos con `requireRole('admin', 'superadmin')`)
 - `/api/admin/*`
 - `/api/categories/*`
 - `/api/notifications/*`
@@ -137,7 +133,12 @@ El riel MCP (`kanban-mcp/`, ver ADR-026 en `ARCHITECTURE.md`) usa además `SUPAB
 #### Protegidos por secret header 🔑
 
 - `/api/internal/*` — `x-task-secret` (B-09 abierto: sin rate limit + sin log)
-- `/api/digest/cron-trigger` — `x-cron-secret` (GitHub Actions)
+
+**Ya no hay superficie de correo.** `/api/digest/*` —incluida su puerta por
+`x-cron-secret`— y `PATCH /api/auth/me/preferences` se retiraron el 25-ago-2026
+(«cero mails»). La tabla `digest_logs` de más abajo **sigue existiendo** y se
+sigue exportando en `GET /api/auth/me/export`: es historia de envíos pasados,
+sin nadie que escriba en ella.
 
 ---
 
