@@ -112,32 +112,11 @@ CREATE TABLE IF NOT EXISTS public.users (
   -- ('guest' queda reservado al ámbito micro en workspace_members.role)
   organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
   avatar_url      TEXT,
-  -- ⏳ EN RETIRADA. Sin lector desde el 25-ago-2026 («cero mails», ADR-027), y
-  -- **Ibai ya decidió quitarlas** ese mismo día. Las borra
-  -- `docs/schema/migration-retirar-esquema-del-correo.sql`, pendiente del
-  -- Operador.
-  --
-  -- Siguen declaradas aquí **a propósito, no por olvido**: este fichero es un
-  -- espejo de la base, y adelantarlo pondría `schema-drift-guard` rojo en `main`
-  -- hasta que alguien ejecutara el `DROP`. Un guardián que vive en rojo se
-  -- normaliza hasta que deja de mirarse.
-  --
-  -- Primero se aplica, después se borran estas líneas. Que no se olvide no
-  -- depende de que alguien se acuerde: `server/tests/esquema-del-correo-fuera.test.js`
-  -- se pone rojo en cuanto aquella migración diga «APLICADA» y esto siga aquí.
-  --
-  -- Mientras estén, MIENTEN: un valor en `digest_hour` no significa que a esa
-  -- hora pase nada.
-  digest_hour     SMALLINT NOT NULL DEFAULT 7 CHECK (digest_hour BETWEEN 0 AND 23),
-  digest_enabled  BOOLEAN NOT NULL DEFAULT true,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Idempotencia para entornos ya inicializados:
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
-ALTER TABLE public.users ADD COLUMN IF NOT EXISTS digest_hour SMALLINT NOT NULL DEFAULT 7
-  CHECK (digest_hour BETWEEN 0 AND 23);
-ALTER TABLE public.users ADD COLUMN IF NOT EXISTS digest_enabled BOOLEAN NOT NULL DEFAULT true;
 
 
 -- ── 4. Workspaces (Micro) ───────────────────────────────────
@@ -310,40 +289,6 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 );
 
 
--- ── 7. Digest logs (audit de envíos de email) ───────────────
--- Originalmente en migrations/create_digest_logs.sql; consolidada aquí para
--- que el master schema sea completo.
---
--- ⏳ EN RETIRADA, Y ESO ES UN CAMBIO DE CRITERIO QUE CONVIENE VER ENTERO.
---
--- Aquí decía que esta tabla NO se borraba con el correo, porque guarda historia
--- de envíos que sí ocurrieron. **Ibai decidió el 25-ago-2026 borrarla igualmente,
--- y sin volcado previo** — con la alternativa delante. La retira
--- `docs/schema/migration-retirar-esquema-del-correo.sql`, pendiente del Operador.
---
--- ⚠️ Es lo único irreversible de ese cambio: cuando se aplique, **a quién se le
--- mandó qué y cuándo no existirá en ninguna parte**. Se escribe aquí para que no
--- se lea como un descuido.
---
--- Su último lector, `GET /api/auth/me/export`, ya no la consulta: se retiró en
--- el mismo cambio y ANTES del `DROP`, porque un `SELECT` contra una tabla que ya
--- no existe no devuelve vacío, devuelve error.
---
--- Sigue declarada aquí hasta que se aplique, por lo mismo que las dos columnas
--- de `users`: adelantar el espejo pone rojo al guardián de deriva.
-
-CREATE TABLE IF NOT EXISTS public.digest_logs (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  type        TEXT NOT NULL CHECK (type = ANY (ARRAY['admin','user'])),
-  user_id     UUID REFERENCES public.users(id) ON DELETE SET NULL,
-  recipient   TEXT NOT NULL,
-  status      TEXT NOT NULL CHECK (status = ANY (ARRAY['sent','failed','pending'])),
-  error_msg   TEXT,
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-
 -- ── 8. Índices de rendimiento ───────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_workspace_members_user_id ON public.workspace_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_boards_workspace_id       ON public.boards(workspace_id);
@@ -352,10 +297,6 @@ CREATE INDEX IF NOT EXISTS idx_cards_board_id            ON public.cards(board_i
 CREATE INDEX IF NOT EXISTS idx_users_organization_id     ON public.users(organization_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id     ON public.notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON public.notifications(user_id, read) WHERE (read = false);
-CREATE INDEX IF NOT EXISTS idx_digest_logs_user_id       ON public.digest_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_digest_logs_recipient     ON public.digest_logs(recipient);
-CREATE INDEX IF NOT EXISTS idx_digest_logs_type_status   ON public.digest_logs(type, status);
-CREATE INDEX IF NOT EXISTS idx_digest_logs_created_at    ON public.digest_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_card_description_history_card
   ON public.card_description_history(card_id, changed_at DESC);
 -- «Dame las versiones de ESTE campo de ESTA tarjeta». El de arriba sigue
@@ -369,11 +310,15 @@ CREATE INDEX IF NOT EXISTS idx_card_description_history_card_field
 -- `anon` solo SELECT; `authenticated` y `service_role` con escritura completa.
 -- RLS es el guard efectivo.
 --
--- ⚠️ CON UNA EXCEPCIÓN DESDE EL 2026-08-08, y hasta que el Operador la aplique
--- este fichero y la base NO coinciden en ella: `card_description_history` deja
--- de dar `UPDATE` y `DELETE` a `authenticated`. Lo declara este fichero; en la
--- base sigue como estaba hasta que se ejecute
--- `docs/schema/migration-historial-append-only.sql`. Tarjeta `2c034471`.
+-- ⚠️ CON UNA EXCEPCIÓN, YA APLICADA: `card_description_history` no le da a
+-- `authenticated` más que `SELECT`. Llegó en dos actos —`UPDATE` y `DELETE`
+-- entre el 8 y el 9-ago-2026 (tarjeta `2c034471`), e `INSERT` el 25-ago
+-- (tarjeta `cc37dc3a`)— y hoy fichero y base coinciden.
+--
+-- Aquí decía «hasta que el Operador la aplique, este fichero y la base NO
+-- coinciden», y esa línea sobrevivió a su propia verdad. **Es el defecto que
+-- esta casa persigue**: un documento que describe un estado transitorio y se
+-- queda ahí cuando el estado pasa. Se corrige en vez de dejarse.
 --
 -- ESTE BLOQUE RECORTA ANTES DE CONCEDER, y no es simetría. Hasta el 2026-08-06
 -- solo concedía, y un GRANT no quita nada: la base llevaba `MAINTAIN` de más en
@@ -465,7 +410,6 @@ ALTER TABLE public.columns           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cards             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.digest_logs       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.card_description_history ENABLE ROW LEVEL SECURITY;
 
 -- organizations
@@ -580,15 +524,6 @@ CREATE POLICY "Usuarios borran categorías de su org" ON public.categories
 CREATE POLICY "notifications_owner" ON public.notifications
   FOR ALL USING (user_id = auth.uid());
 
--- digest_logs (lectura admin/superadmin vía claim JWT; escritura service_role)
-CREATE POLICY "digest_logs_admin_read" ON public.digest_logs
-  FOR SELECT USING ((auth.jwt() ->> 'role') = ANY (ARRAY['admin','superadmin']));
-CREATE POLICY "digest_logs_superadmin_read" ON public.digest_logs
-  FOR SELECT USING ((auth.jwt() ->> 'role') = 'superadmin');
-CREATE POLICY "digest_logs_service_insert" ON public.digest_logs
-  FOR INSERT WITH CHECK (true);
-CREATE POLICY "digest_logs_service_update" ON public.digest_logs
-  FOR UPDATE USING (true) WITH CHECK (true);
 
 
 -- ── 11. Seed de organización ────────────────────────────────
