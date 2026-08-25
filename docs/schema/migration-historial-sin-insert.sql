@@ -1,10 +1,13 @@
 -- Migration: el historial de descripciones deja de ser ESCRIBIBLE por quien lo genera
 -- Tarjeta: «El historial append-only deja INSERT abierto a authenticated» (cc37dc3a)
 -- Created: 2026-08-25
--- ⏳ PENDIENTE DE APLICAR. Requiere al Operador (SQL Editor de Supabase).
+-- ✅ APLICADA el 2026-08-25 por Ibai desde el SQL Editor de Supabase, sobre el
+--    proyecto «AGLAYA Kanban Desk» (`main`, PRODUCTION). Comprobada en el mismo
+--    turno por el obrero, que NO la ejecutó — la salida real está más abajo, en
+--    el punto 3.
 --
--- ⚠️ CÓMO SE SABE SI SIGUE PENDIENTE, porque esta línea envejece y la de al lado
---    ya lo hizo: **no se cree esta cabecera, se mira el guardián**.
+-- ⚠️ CÓMO SE SABE SI ESTA CABECERA SIGUE SIENDO VERDAD, porque envejece y la de
+--    al lado ya lo hizo: **no se cree esta línea, se mira el guardián**.
 --    `scripts/grants-guard.sh` compara exacto la base contra el esquema, corre en
 --    cada CI y firma su salida con la hora. Su hermana
 --    `migration-historial-append-only.sql` dijo «PENDIENTE» durante diecisiete
@@ -95,11 +98,32 @@ GRANT SELECT                          ON public.card_description_history TO auth
 GRANT SELECT, INSERT, UPDATE, DELETE  ON public.card_description_history TO service_role;
 
 -- 3. Comprobación posterior. **La ejecuta quien NO la aplicó**, que es lo que la
---    tarjeta pide por escrito. Tiene que devolver exactamente estas tres filas:
+--    tarjeta pide por escrito.
+--
+--    LO QUE DEVOLVIÓ, 25-ago-2026, tras aplicar:
 --
 --      anon          | SELECT
 --      authenticated | SELECT
---      service_role  | DELETE, INSERT, SELECT, UPDATE
+--      service_role  | DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER,
+--                    | TRUNCATE, UPDATE
+--
+--    ⚠️ ESTE FICHERO ANUNCIABA CUATRO PRIVILEGIOS PARA `service_role` Y HAY OCHO,
+--    y la nota se queda porque el error es instructivo: la lista de cuatro se
+--    copió de la migración hermana **sin medirla**. Los otros cuatro no los pone
+--    esta migración —no toca `service_role`— sino las DEFAULT PRIVILEGES del
+--    proyecto, que conceden los ocho a toda tabla nueva; el recorte del 6-ago
+--    (`migration-recorte-privilegios-anon-authenticated.sql`) recortó **solo
+--    `anon` y `authenticated`, a propósito**. O sea que estaban ahí desde que la
+--    tabla nació.
+--
+--    **No es un hallazgo de seguridad**: `service_role` es la llave del servidor
+--    y salta RLS por definición; tenerlos de más no le da alcance nuevo. Lo que
+--    sí era un defecto es que un «tiene que devolver exactamente» inventado
+--    convierte una comprobación buena en una que parece fallar — y quien la
+--    corra sin saberlo dará por rota una migración correcta.
+--
+--    Lo que esta comprobación certifica, y es lo único que se pedía:
+--    **`authenticated` se queda en `SELECT`.**
 --
 --    Se usa `aclexplode` y NO `information_schema` a propósito: el segundo solo
 --    expone los siete privilegios del estándar SQL y dejó `MAINTAIN` sin ver
