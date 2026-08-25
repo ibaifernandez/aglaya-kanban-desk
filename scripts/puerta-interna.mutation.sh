@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# puerta-interna.mutation.sh — las siete que sobrevivieron, corridas como batería.
+# puerta-interna.mutation.sh — las que sobrevivieron, corridas como batería.
 #
 # ─────────────────────────────────────────────────────────────────────────────
 # QUÉ CIERRA, y por qué no es una prueba más
@@ -16,9 +16,15 @@
 # (#16 y el de contrato), pero **nada impide que vuelvan a aflojarse**: un doble
 # cómodo es más fácil de escribir que uno fiel, y su verde es indistinguible.
 #
-# Esto es lo que lo impide. Destripa la ruta siete veces —las siete exactas que
-# sobrevivieron— y **exige que la batería de tests se ponga ROJA en cada una**.
-# Si alguna sobrevive, el doble volvió a mentir y aquí se sabe, con nombre.
+# Esto es lo que lo impide. Destripa la ruta y **exige que la batería de tests se
+# ponga ROJA en cada mutación**. Si alguna sobrevive, el doble volvió a mentir y
+# aquí se sabe, con nombre.
+#
+# Nacieron SIETE, las siete exactas que sobrevivieron a aquella medición. **La
+# octava llegó el 25-ago-2026** y no por descuido: quitar el destino de la FILA
+# —no del acuse— dejaba una tarjeta sin tablero ni columna, y eso NO tenía
+# aserción. Se dejó fuera a propósito hasta tenerla, porque una batería que
+# estrena en rojo se normaliza; entró con su tarjeta (`bc1a8905`) y su prueba.
 #
 # POR QUÉ MUTACIÓN A MANO Y NO UNA HERRAMIENTA. Se encargó una herramienta de
 # mutación genérica y la medición desmiente la petición: de las siete, un mutador
@@ -32,16 +38,17 @@
 # Precedente de la casa: `scripts/docs-guard.mutation.sh` hace esto mismo con un
 # guardián, y `rail-blindspot.test.sh` sella inyectando filas de mentira.
 #
-# LO QUE NO PUEDE HACER: comprueba que la batería MUERDE ante siete defectos
-# conocidos, no que cubra todo lo que la puerta promete. Un octavo defecto que
-# nadie haya medido sigue sin vigilante.
+# LO QUE NO PUEDE HACER: comprueba que la batería MUERDE ante los defectos
+# CONOCIDOS, no que cubra todo lo que la puerta promete. Uno que nadie haya
+# medido sigue sin vigilante — y la octava es la prueba de que eso pasa de
+# verdad: estuvo nueve tarjetas ahí fuera antes de que alguien la escribiera.
 #
 # CÓMO TOCA EL ÁRBOL: escribe el mutante SOBRE la ruta real y la restaura al
 # salir (también si lo matan). Al terminar comprueba byte a byte que quedó igual
 # y se pone rojo si no — restaurar mal es peor que no mutar.
 #
 # Uso: bash scripts/puerta-interna.mutation.sh
-# Exit 0 = las siete mueren · 1 = alguna sobrevive, o la restauración falló.
+# Exit 0 = todas mueren · 1 = alguna sobrevive, o la restauración falló.
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -uo pipefail
@@ -111,7 +118,7 @@ mutar() {
   restaurar
 }
 
-echo "=== las siete que sobrevivieron: mutar la puerta y exigir rojo ==="
+echo "=== mutar la puerta y exigir rojo en cada una ==="
 echo
 
 # 1 · Proyección incompleta. La genera un mutador genérico; se conserva porque
@@ -170,6 +177,18 @@ mutar "7 · devolver la entrada en vez del nombre canónico del workspace" \
       "resuelve el workspace, no devuelve la entrada" \
       "s/workspace:\s+workspace\.name,/workspace:    workspaceName,/"
 
+# 8 · LA OCTAVA, y llegó nueve tarjetas más tarde. Quitar el destino de la FILA
+#     —no del acuse— dejaba una tarjeta en `cards` sin tablero ni columna: existe,
+#     devuelve 201, y no aparece en ningún tablero. La familia «nace invisible»,
+#     un piso más abajo: no aterriza mal, NO ATERRIZA.
+#
+#     No entró con las siete a propósito: entonces habría nacido ROJA, y una
+#     batería que estrena en rojo se normaliza. Entra ahora, con su aserción
+#     puesta (`internal-create-card-destino-en-la-fila.test.js`), o sea verde.
+mutar "8 · quitar board_id y column_id de la FILA, no del acuse" \
+      "la fila insertada trae board_id y column_id" \
+      "s/^\s*column_id:\s+targetColumn\.id,\n\s*board_id:\s+board\.id,\n//m"
+
 echo
 echo "Ruta íntegra: la batería debe estar VERDE (si no, no hay nada que medir)."
 restaurar
@@ -193,4 +212,4 @@ fi
 echo
 echo "=== $PASS ok · $FAIL fallos ==="
 [ "$FAIL" = "0" ] || exit 1
-echo "Las siete mueren. Los dobles ejercen el código que dicen vigilar."
+echo "Todas mueren. Los dobles ejercen el código que dicen vigilar."
