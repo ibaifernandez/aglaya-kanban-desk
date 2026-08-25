@@ -1,5 +1,6 @@
 const express        = require('express');
 const { supabaseAdmin } = require('../utils/supabase');
+const { createAssigneeNotification } = require('../utils/assigneeNotification');
 const { VALID_PRIORITY_SET: VALID_PRIORITIES, priorityList } = require('../constants/priorities');
 
 const router = express.Router();
@@ -592,6 +593,48 @@ router.post('/create-card', verifySecret, async (req, res) => {
   // Y NO mira el NOMBRE que vino, mira el RESULTADO: la tarjeta salió sin
   // contenido. Enumerar nombres de parámetro es el vicio, no el remedio — quien
   // invente `brief` o `body` seguiría perdiendo el texto igual.
+  // ── Asignar suena, también por esta puerta ──────────────────────────────────
+  //
+  // Decisión de Ibai, 25-ago-2026 (tarjeta `b0a46770`). Hasta hoy una comanda
+  // que entraba por aquí **existía, tenía dueño y no avisaba a nadie**: su
+  // responsable solo se enteraba abriendo el tablero. No era un incumplimiento
+  // —el contrato declaraba esta puerta «en crudo, sin notificaciones»— sino una
+  // asimetría que dejó de tener sentido: desde el #56 la Puerta 1 y la UI avisan
+  // al nacer asignadas, y **esta es justo la puerta por la que entra el trabajo
+  // de fuera de esta máquina**.
+  //
+  // VA DESPUÉS DE LA ESCRITURA Y NO LA BLOQUEA. La tarjeta ya está creada y el
+  // llamante va a recibir su `201` pase lo que pase con la campana: un aviso que
+  // falla no puede convertir en error una escritura que salió bien.
+  //
+  // ⚠️ LAS DOS GUARDAS DE LA PUERTA 1 NO CABEN IGUAL AQUÍ, y decirlo importa
+  // más que copiarlas:
+  //
+  //   · «Sin responsable no hay a quién avisar» **no puede darse**: `assignee`
+  //     es obligatorio en esta puerta y se resuelve contra `users` antes de
+  //     escribir nada. La comprobación se deja igualmente, porque una
+  //     obligatoriedad es una regla de hoy y una guarda es barata.
+  //   · «A uno mismo no se le notifica» **no se puede aplicar**: por aquí NO HAY
+  //     identidad de llamante. Quien entra trae `x-task-secret`, no un usuario,
+  //     así que no existe el «uno mismo» con el que comparar. Eso tiene tarjeta
+  //     propia en este tablero, y el día que el llamante tenga identidad, esta
+  //     guarda entra aquí sola.
+  //
+  // CONSECUENCIA ACEPTADA, dicha en voz alta: buena parte del tráfico de esta
+  // puerta se asigna **al propio riel**, así que le llegarán avisos que nadie
+  // lee. Es ruido barato en una tabla, y el remedio —callar según a quién se
+  // asigne— exigiría reconocer cuentas de servicio por su email dentro del
+  // código, que es la copia que envejece sola.
+  if (assigneeUser?.id) {
+    createAssigneeNotification(
+      card.id,
+      card.board_id,
+      card.title,
+      assigneeUser.id,
+      null,   // no se sabe quién asignó, y no se inventa
+    ).catch((err) => console.error('[internal/create-card] la campana falló:', err.message));
+  }
+
   const acuse = {
     ok:    true,
     card: {

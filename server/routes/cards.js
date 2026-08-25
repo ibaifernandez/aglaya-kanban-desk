@@ -1,4 +1,5 @@
 const { supabaseAdmin } = require('../utils/supabase');
+const { createAssigneeNotification } = require('../utils/assigneeNotification');
 const { isValidPriority, priorityList } = require('../constants/priorities');
 
 // ── Checklist notification helper ─────────────────────────────────────────────
@@ -47,24 +48,12 @@ async function createChecklistNotifications(cardId, boardId, cardTitle, oldCheck
   }
 }
 
-// ── Card-level assignee notification helper ───────────────────────────────────
-
-async function createAssigneeNotification(cardId, boardId, cardTitle, assigneeUserId, authorId) {
-  const { data: board } = await supabaseAdmin
-    .from('boards')
-    .select('workspace_id')
-    .eq('id', boardId)
-    .single();
-
-  if (!board?.workspace_id) return;
-
-  const payload = { cardId, cardTitle, boardId, workspaceId: board.workspace_id, assignedBy: authorId };
-  const { error } = await supabaseAdmin
-    .from('notifications')
-    .insert([{ user_id: assigneeUserId, type: 'card_assignment', payload, read: false }]);
-
-  if (error) console.error('[notifications] assignee insert:', error.message);
-}
+// La campana de asignación vive en `server/utils/assigneeNotification.js` desde
+// el 25-ago-2026: la Puerta 2 también avisa (tarjeta `b0a46770`), y dos campanas
+// separadas se desincronizan sin que nadie lo note.
+//
+// Las GUARDAS se quedan aquí, en cada llamada, y no se mudan con ella: dependen
+// de saber quién llama, y cada puerta sabe cosas distintas sobre eso.
 
 // ─────────────────────────────────────────────────────────────────────────────
 
