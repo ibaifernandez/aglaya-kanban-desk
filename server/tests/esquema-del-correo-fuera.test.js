@@ -165,7 +165,16 @@ describe('el código ya no lee lo que va a desaparecer', () => {
     const declarados = [
       'server/tests/esquema-del-correo-fuera.test.js',
       'server/tests/auth-self-service.test.js',
+      // Vigila que la política publicada NO ofrezca el `toggle` de
+      // `digest_enabled`, así que tiene que nombrarlo para prohibirlo — igual
+      // que los dos de arriba (tarjeta `ff792a8b`).
+      'server/tests/politica-publicada.test.js',
     ];
+
+    // ⚠️ Si esta lista sigue creciendo, deja de ser una excepción y pasa a ser
+    // un agujero: cada entrada es un fichero donde el guardián NO mira. Tres son
+    // los tres que nombran lo retirado para prohibirlo. El cuarto habría que
+    // mirarlo con lupa antes de añadirlo.
 
     const culpables = versionados
       .filter((rel) => !declarados.includes(rel))

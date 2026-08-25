@@ -1,7 +1,7 @@
 # Política de Retención de Datos
 
 **Marco legal:** RGPD Art. 5(1)(e) — limitación del plazo de conservación. RGPD Art. 13(2)(a) — información al titular del plazo. LGPD Art. 15. Ley 21.719 — principio de proporcionalidad.
-**Última actualización:** 2026-05-27 (borrador post-audit Mariana C-12)
+**Última actualización:** 2026-08-25 *(v1.1 — cesa el correo)*
 
 > RGPD obliga a definir y comunicar plazos de retención. Este documento es **borrador inicial** — los plazos exactos requieren decisión del operador (marcado 🟠 PENDIENTE DECISIÓN).
 
@@ -60,12 +60,17 @@
 | Notificación leída | **Sugerido 90 días** post-`read_at` |
 | Notificaciones tras supresión usuario | Hard-delete inmediato (`ON DELETE CASCADE` ya configurado) |
 
-### Audit trail (`public.digest_logs`)
+### ~~Audit trail (`public.digest_logs`)~~ · ⏹ **SUPRIMIDO**
 
 | Estado | Retención |
 |---|---|
-| Logs de envío email exitoso | 🟠 **PENDIENTE**: sugerido 12 meses |
-| Logs de envío email fallido | 🟠 **PENDIENTE**: sugerido 24 meses (debugging + compliance audit trail) |
+| Logs de envío de correo | **Suprimidos en su totalidad el 25-ago-2026.** No queda copia |
+
+La política publicada anunciaba 12 meses. Al retirarse el correo, el registro se
+**destruyó antes de agotar ese plazo** — que es la dirección segura del error:
+se conservó menos de lo anunciado, no más.
+
+Se deja la entrada, vacía: es la constancia de que ese registro existió.
 
 ### Backups operacionales (Cloudflare R2)
 
@@ -156,7 +161,7 @@ finalidad descrita. Plazos específicos:
 - [ ] Decidir retention exacta para cards archivadas (sugerido 24 meses)
 - [ ] Decidir retention para workspaces archivados (sugerido 12 meses)
 - [ ] Decidir auto-delete cuentas inactivas (sugerido aviso 24m + delete a 27m)
-- [ ] Decidir retention digest_logs (sugerido 12-24m)
+- [x] ~~Decidir retention `digest_logs`~~ — sin objeto: la tabla se suprimió el 25-ago-2026
 - [ ] Implementar `archived_at` en schema (cards, workspaces)
 - [ ] Implementar workflow `retention-cron.yml`
 - [ ] Implementar pre-deletion email aviso

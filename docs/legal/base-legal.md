@@ -1,7 +1,7 @@
 # Base Jurídica del Tratamiento
 
 **Marco legal:** RGPD Art. 6 (Licitud del tratamiento) + Ley 21.719 Art. 9 (Chile) + LGPD Art. 7 (Brasil)
-**Última actualización:** 2026-05-27 (borrador post-audit Mariana C-06)
+**Última actualización:** 2026-08-25 *(v1.1 — cesa el correo)*
 
 > RGPD Art. 5(1)(a) — principio de licitud: todo tratamiento requiere base jurídica explícita. Este documento la declara por finalidad.
 
@@ -13,9 +13,9 @@
 |---|---|---|---|---|
 | 1 | Gestión de cuentas colaboradores | Art. 6(1)(b) ejecución contractual | Art. 7(V) ejecução de contrato | Art. 9 ejecución contrato |
 | 2 | Cards y trabajo del equipo | Art. 6(1)(b) ejecución + Art. 6(1)(f) interés legítimo | Art. 7(V) + Art. 7(IX) interesse legítimo | Art. 9 consentimiento + interés legítimo |
-| 3 | Notificaciones in-app + digest emails | Art. 6(1)(b) ejecución + Art. 6(1)(a) consentimiento (opt-out granular) | Art. 7(V) + Art. 7(I) consentimento | Art. 9 ejecución + consentimiento |
+| 3 | Notificaciones dentro de la aplicación | Art. 6(1)(b) ejecución | Art. 7(V) execução | Art. 9 ejecución |
 | 4 | Backups operacionales | Art. 6(1)(c) obligación legal + Art. 6(1)(f) interés legítimo | Art. 7(II) cumprimento de obrigação legal | Art. 9 cumplimiento obligaciones legales |
-| 5 | Audit trail digest_logs | Art. 6(1)(f) interés legítimo | Art. 7(IX) interesse legítimo | Art. 9 interés legítimo |
+| ~~5~~ | ~~Audit trail `digest_logs`~~ ⏹ **cesado 2026-08-25** | *(fue Art. 6(1)(f) interés legítimo)* | *(fue Art. 7(IX))* | *(fue Art. 9)* |
 
 ---
 
@@ -61,16 +61,19 @@
 
 ---
 
-### Finalidad 3: notificaciones + digest emails
+### Finalidad 3: notificaciones dentro de la aplicación
 
-**Base primaria:** ejecución contractual (Art. 6(1)(b)) — comunicar al colaborador su trabajo asignado.
+**Base primaria y única:** ejecución contractual (Art. 6(1)(b)) — comunicar al
+colaborador su trabajo asignado.
 
-**Base secundaria:** consentimiento (Art. 6(1)(a)) para digest emails (que el usuario puede deshabilitar individual con `digest_enabled = false`).
-
-**Justificación opt-out granular:**
-- Digest email no es estrictamente necesario para ejecución (in-app notifications ya cumplen el rol).
-- Usuario puede deshabilitar sin afectar funcionalidad principal.
-- Por tanto digest es opt-out → consentimiento revocable.
+> **⏹ La base secundaria de consentimiento CESÓ el 25-ago-2026.** Amparaba el
+> resumen diario por correo, que era opt-out con un `toggle` de preferencias.
+> **Ese tratamiento ya no existe**: la aplicación no envía correo.
+>
+> Consecuencia que conviene ver: **hoy ningún tratamiento de esta nave se apoya
+> en consentimiento.** El aviso in-app va por ejecución contractual, está ligado
+> al uso del servicio y por eso no tiene opt-out — que es distinto de habérselo
+> quitado a alguien.
 
 ---
 
@@ -116,12 +119,15 @@
 
 ## Revocación / retirada de consentimiento
 
-Para tratamientos basados en consentimiento (digest emails, futuras opt-ins):
+**Hoy no hay ningún tratamiento basado en consentimiento**, así que no hay nada
+que retirar. El único que lo usaba —el resumen diario por correo— cesó el
+25-ago-2026 junto con su mecanismo de retirada.
 
-- **Mecanismo:** `PATCH /api/auth/me/preferences` con `{ digest_enabled: false }`.
-- **Frontend:** UI de `DigestPreferences.jsx` permite toggle.
-- **Efecto:** inmediato — próximo cron de digest excluye al usuario.
-- **Información:** el usuario debe ser informado del derecho a retirar antes de dar consent (Art. 7(3) RGPD).
+⚠️ **Y por eso esta sección no se borra:** si mañana entra un tratamiento con
+consentimiento, tiene que traer su mecanismo de retirada **antes** de recogerlo,
+y el usuario debe ser informado del derecho a retirar antes de darlo (Art. 7(3)
+RGPD). Lo que aquí había —un `toggle` de efecto inmediato— es el listón, no una
+sugerencia.
 
 ---
 
