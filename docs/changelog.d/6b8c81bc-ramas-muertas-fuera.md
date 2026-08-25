@@ -1,0 +1,8 @@
+Removed
+
+- **Fuera las ramas de trabajo ya mergeado.** Quedaban cuatro vivas en `origin` y en local, todas con su contenido dentro de `main`. Tarjeta `6b8c81bc`, pedida por Ibai.
+  - **No abre una regla: la ejecuta.** `lineas-maestras.md` ya declara el invariante — *«una tarjeta, una rama, un PR, muerta al mergearse»*—, y **un invariante que nadie ejecuta enseña que los invariantes son opcionales**.
+  - **Mergeado se comprobó por CONTENIDO, no por nombre**, una a una con `git merge-base --is-ancestor`, y **justo antes de cada borrado**, no en la lista que traía la tarjeta: entre escribirla y ejecutarla habían nacido y muerto otras dos.
+  - ⚠️ **La rama huérfana no se barrió: se etiquetó.** `agente/identidad-de-llamante` no estaba mergeada — eran **314 líneas terminadas** (migración, contrato v4.0.0 incompatible, código y banco de pruebas) de la tarjeta `78060c57`, que salió de la cola por anticipación. Se conserva en `descartado/78060c57-identidad-de-llamante`, **empujada al remoto y comprobada allí antes de borrar la rama** — al revés se pierde. Una etiqueta no sale en el listado de ramas: la lista de trabajo vivo queda limpia y el trabajo sigue a un `git switch` de distancia.
+  - **El nombre de la etiqueta lleva el identificador de su tarjeta**, así que quien la encuentre dentro de un año llega a la tarjeta y la tarjeta explica por qué no se mergeó. Dónde quedó ese trabajo se escribió **en `78060c57`**, que es de quien era la rama.
+  - **Cómo se comprobó que terminó:** `git ls-remote --heads origin` y `git branch` devuelven `main` y la rama del trabajo vivo del momento. Nada mergeado en pie.
