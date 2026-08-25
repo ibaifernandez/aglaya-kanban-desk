@@ -1,0 +1,111 @@
+name: despliegue-fallido
+
+# Un despliegue que falla tiene que chillar.
+#
+# EL HECHO. El 11-ago-2026 un despliegue de Railway terminó en `FAILED` y **no
+# avisó a nadie**. Se supo dos semanas después, mirando el panel por otro motivo.
+# Es el único fallido de la historia del proyecto — o sea que no es un ruido
+# habitual que nadie mire: es uno que ocurrió y nadie se enteró.
+#
+# POR QUÉ IMPORTA MÁS DE LO QUE PARECE. `lineas-maestras.md` dice literal:
+# **«Hecho» exige vivo, no mergeado.** Quien cierra una entrega comprueba que la
+# obra esté viva antes de mover la tarjeta. Si un despliegue falla en silencio,
+# esa comprobación se apoya en que alguien vaya a mirar el panel — y el día que no
+# mire, **una tarjeta pasa a «Hecho» sin estar viva**. Eso es «el trabajo cambia
+# de estado incorrectamente», la primera línea de la máxima de esta nave.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# POR QUÉ NO HACE FALTA NINGUNA CREDENCIAL, que era lo que parecía
+#
+# La primera idea era un reloj que le preguntara a Railway, y eso exigía un
+# `RAILWAY_TOKEN` en los secretos del repo — que no existe y es un acto humano.
+#
+# **Medido antes de construir: no hace falta.** Railway ya informa a GitHub. El
+# despliegue fallido de aquel día está registrado en la API del repo:
+#
+#   deployment 5851163289 · commit abcbaf62 · state: failure · 13:15:27Z
+#
+# Y GitHub emite `deployment_status` en cada cambio. **La información ya llegaba;
+# lo que faltaba era que alguien la recogiera.** Cero secretos nuevos, cero
+# esperas a un reloj: el aviso sale cuando pasa, no al día siguiente.
+#
+# QUÉ CUESTA. Este workflow arranca en cada cambio de estado de despliegue
+# —también en los buenos— pero el job **se salta** salvo que haya fallo, y GitHub
+# no factura jobs saltados. Esta casa vigila su gasto y por eso queda dicho.
+#
+# ⚠️ El `if` de aquí NO es el que decide si hay que avisar: solo evita arrancar
+# un corredor para nada. **La decisión vive en `scripts/aviso-despliegue.sh`**,
+# que tiene sello — porque la primera prueba real de un avisador es el primer
+# fallo, y esta casa ya pagó esa lectura con el aviso de la copia: se construyó
+# sin sello, no avisó nunca, y se descubrió cuatro fallos después.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  deployment_status:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.deployment.id }}
+  cancel-in-progress: false
+
+jobs:
+  avisar:
+    # Barato y grosero a propósito: filtra lo obvio para no arrancar un corredor.
+    # Lo que de verdad decide —incluidos los estados raros— está en el script.
+    if: >-
+      github.event.deployment_status.state == 'failure' ||
+      github.event.deployment_status.state == 'error'
+    name: Un despliegue fallido tiene que chillar
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout (hace falta para scripts/aviso-despliegue.sh)
+        uses: actions/checkout@v4
+
+      - name: ¿Hay que avisar? Y si sí, con qué texto
+        id: decidir
+        run: |
+          set -uo pipefail
+          bash scripts/aviso-despliegue.sh \
+            "${{ github.event.deployment_status.state }}" \
+            "${{ github.event.deployment.environment }}" \
+            "${{ github.event.deployment_status.target_url }}" \
+            "${{ github.event.deployment.sha }}" > /tmp/cuerpo.md
+          CODIGO=$?
+
+          # 10 = hay que avisar · 0 = no · cualquier otra cosa = no se pudo
+          # decidir, y eso NO es «todo bien».
+          case "$CODIGO" in
+            10) echo "avisar=si" >> "$GITHUB_OUTPUT" ;;
+            0)  echo "avisar=no" >> "$GITHUB_OUTPUT" ;;
+            *)  echo "::error::aviso-despliegue no pudo decidir (exit $CODIGO)."; exit 1 ;;
+          esac
+
+      # Mismo patrón que el aviso de la copia, y con `--repo` por el mismo motivo
+      # que allí: `gh` deduce el repositorio del remoto de git y la bandera lleva
+      # un dato que ya está en el entorno. Aquí hay `checkout`, pero el aviso NO
+      # puede depender de él — el día que alguien lo quite, esto seguiría vivo.
+      - name: Abrir la incidencia, o comentar en la que ya está
+        if: steps.decidir.outputs.avisar == 'si'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          REPO="${GITHUB_REPOSITORY}"
+
+          ABIERTA=$(gh issue list --repo "$REPO" --state open --label despliegue-fallido --limit 1 --json number --jq '.[0].number // empty')
+
+          if [ -n "$ABIERTA" ]; then
+            echo "Ya hay una incidencia abierta (#${ABIERTA}); se añade el fallo de hoy."
+            gh issue comment "$ABIERTA" --repo "$REPO" --body-file /tmp/cuerpo.md
+          else
+            gh label create despliegue-fallido --repo "$REPO" \
+              --description "Un despliegue terminó en failure o error" --color D93F0B 2>/dev/null || true
+            gh issue create \
+              --repo "$REPO" \
+              --title "Un despliegue ha fallado: lo mergeado NO está vivo" \
+              --label despliegue-fallido \
+              --body-file /tmp/cuerpo.md
+          fi
