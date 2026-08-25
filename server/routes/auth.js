@@ -237,11 +237,15 @@ router.get('/me/export', requireAuth, async (req, res) => {
           }));
       });
 
-    // 6. Digest logs (audit trail de envíos al usuario)
-    const { data: digestLogs } = await adminClient
-      .from('digest_logs')
-      .select('id, type, recipient, status, error_msg, created_at')
-      .eq('user_id', userId);
+    // El registro de digests se retiró del export el 25-ago-2026 (tarjeta
+    // `6d2801b5`): la nave no manda correo desde el #71 y la tabla `digest_logs`
+    // desaparece de la base. Leerla aquí devolvería vacío hasta el `DROP` y un
+    // error después, y en los dos casos exportaría una sección que no existe.
+    //
+    // ⚠️ Esto SÍ toca portabilidad (RGPD Art. 20), así que se dice: lo que deja
+    // de exportarse es historia de envíos **que ya no se conserva en ninguna
+    // parte** — se decidió borrarla sin volcado. No se oculta un dato que exista:
+    // se deja de prometer uno que dejó de existir.
 
     // 7. Auth user metadata (last_sign_in, created_at, etc.)
     let authMeta = null;
@@ -274,7 +278,6 @@ router.get('/me/export', requireAuth, async (req, res) => {
       owned_cards: ownedCards ?? [],
       assigned_checklist_items: assignedChecklistItems,
       notifications: notifications ?? [],
-      digest_logs: digestLogs ?? [],
     };
 
     const filename = `aglaya-kanban-export-${userId}-${new Date().toISOString().slice(0, 10)}.json`;

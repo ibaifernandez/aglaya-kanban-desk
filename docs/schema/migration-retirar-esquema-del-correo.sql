@@ -1,0 +1,122 @@
+-- Migration: se retira de la base lo que quedó del correo
+-- Tarjeta: «Retirar de la base lo que quedó del correo» (6d2801b5)
+-- Created: 2026-08-25
+-- ⏳ PENDIENTE DE APLICAR. Requiere al Operador (SQL Editor de Supabase).
+--
+-- ⚠️ NO SE CREE ESTA CABECERA: se mira el guardián. `scripts/schema-drift-guard.sh`
+--    compara el esquema documentado contra la base y corre con credencial propia.
+--    La cabecera de `migration-historial-append-only.sql` dijo «PENDIENTE»
+--    **diecisiete días después de aplicarse**, y una tarjeta entera se planificó
+--    sobre esa línea. El estado lo custodia la base.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- QUÉ RETIRA, Y POR QUÉ NO ES LIMPIEZA COSMÉTICA
+--
+-- El 25-ago-2026 la nave dejó de mandar correo (ADR-027, PR #71): no hay
+-- digests, ni reloj, ni rutas, ni envoltorio de envío. Quedaron sin lector:
+--
+--   · `users.digest_hour`     — SMALLINT NOT NULL DEFAULT 7, con su CHECK
+--   · `users.digest_enabled`  — BOOLEAN NOT NULL DEFAULT true
+--   · `public.digest_logs`    — la tabla y sus cuatro índices
+--
+-- El propio esquema declaró entonces por qué se quedaban y de quién era la
+-- decisión de quitarlas. **Ibai la tomó el 25-ago-2026: «supongo que quitarlas
+-- es lo más sano».**
+--
+-- El motivo está escrito en el esquema y no hace falta reescribirlo: *«mientras
+-- estén, MIENTEN — un valor en `digest_hour` no significa que a esa hora pase
+-- nada»*. Un campo que sobrevive a su lector es una trampa para quien lo
+-- encuentre dentro de seis meses y deduzca que existe un digest.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- ⚠️ ESTO ES IRREVERSIBLE, Y SE DECIDIÓ ASÍ A SABIENDAS
+--
+-- `digest_logs` guarda el registro de envíos que SÍ ocurrieron: a quién, cuándo
+-- y con qué resultado. **Se borra SIN volcado previo.** Decisión de Ibai,
+-- 25-ago-2026, tomada con la alternativa delante (exportar a CSV antes del
+-- `DROP`, un minuto de trabajo).
+--
+-- Queda escrito aquí porque después no se podrá reconstruir: si alguien pregunta
+-- algún día a quién se le mandó qué, **la respuesta ya no existe en ninguna
+-- parte**. No es un descuido de quien ejecutó: es lo que se eligió.
+--
+-- CUÁNTAS FILAS HABÍA: **no se sabe.** Ningún papel automático de esta casa
+-- puede consultar la base, así que nadie las contó antes de borrarlas. Se dice
+-- en vez de insinuar que eran pocas.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- RADIO DEL CAMBIO, MEDIDO SOBRE `main` (`acb2c21`) ANTES DE ESCRIBIR ESTO
+--
+--   · **Ningún código lee ni escribe estas columnas.** El único lector que
+--     quedaba era `GET /api/auth/me/export`, que traía `digest_logs` en el
+--     volcado de portabilidad. Se retira en el mismo cambio que esta migración
+--     —y ANTES de aplicarla— para que no quede un `SELECT` contra una tabla que
+--     va a desaparecer.
+--   · `users.digest_hour` / `digest_enabled`: cero apariciones fuera del esquema
+--     y de este fichero. La ruta que las escribía (`PATCH /me/preferences`) y la
+--     preferencia en la GUI se fueron con el correo.
+--
+-- ⚠️ LO QUE SÍ CAMBIA PARA UNA PERSONA, dicho porque toca un derecho: el export
+-- de portabilidad (RGPD Art. 20) **deja de traer la sección `digest_logs`**. No
+-- se oculta un dato que exista — se deja de prometer uno que dejó de existir.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- ORDEN DE EJECUCIÓN, y esta casa ya lo pagó dos veces
+--
+-- **Primero se aplica esto; DESPUÉS se cambia `docs/schema/supabase-schema.sql`.**
+-- Al revés, el esquema documentado declararía menos de lo que la base tiene y
+-- `schema-drift-guard` se pondría **rojo en `main`** —con razón— hasta que
+-- alguien ejecutara el SQL. Un guardián que vive en rojo se normaliza hasta que
+-- deja de mirarse.
+--
+-- Que no se olvide no depende de que alguien se acuerde:
+-- `server/tests/esquema-del-correo-fuera.test.js` se pone **rojo** en cuanto esta
+-- cabecera diga «APLICADA» y el esquema siga declarando las columnas o la tabla.
+-- Y también al revés.
+--
+-- Idempotente: `IF EXISTS` en todo. Se puede aplicar dos veces.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- 1. Las dos columnas sin lector. El `CHECK` de `digest_hour` se va con la
+--    columna: PostgreSQL borra las restricciones que dependen de ella.
+ALTER TABLE public.users DROP COLUMN IF EXISTS digest_hour;
+ALTER TABLE public.users DROP COLUMN IF EXISTS digest_enabled;
+
+-- 2. La tabla y, con ella, sus índices y sus políticas RLS. No hace falta
+--    borrarlos aparte —dependen de la tabla— y enumerarlos aquí sería una lista
+--    que envejece: si mañana hay un índice más, este fichero no lo sabría.
+--
+--    Sin `CASCADE` a propósito: si algo dependiera de esta tabla que nadie ha
+--    contado, quiero que el `DROP` **falle y lo diga**, no que se lleve por
+--    delante lo que sea que fuese. Si falla, eso es el hallazgo.
+DROP TABLE IF EXISTS public.digest_logs;
+
+-- 3. Comprobación posterior. **La ejecuta quien NO la aplicó.**
+--    Las tres consultas tienen que devolver CERO filas:
+--
+--   SELECT column_name
+--     FROM information_schema.columns
+--    WHERE table_schema = 'public'
+--      AND table_name   = 'users'
+--      AND column_name IN ('digest_hour', 'digest_enabled');
+--
+--   SELECT tablename
+--     FROM pg_tables
+--    WHERE schemaname = 'public'
+--      AND tablename  = 'digest_logs';
+--
+--   SELECT indexname
+--     FROM pg_indexes
+--    WHERE schemaname = 'public'
+--      AND indexname LIKE 'idx_digest_logs%';
+--
+--    Aquí `information_schema` SÍ vale, y conviene decir por qué cuando en las
+--    migraciones de privilegios no valía: allí se preguntaba por PRIVILEGIOS y
+--    se dejó `MAINTAIN` sin ver. Aquí se pregunta si una columna EXISTE, que es
+--    justo lo que `information_schema` sí expone entero.
+--
+-- 4. Y DESPUÉS de aplicar, en el mismo turno: retirar de
+--    `docs/schema/supabase-schema.sql` las dos columnas, sus dos `ALTER TABLE …
+--    IF NOT EXISTS`, el bloque de `digest_logs` con sus índices, su `ENABLE ROW
+--    LEVEL SECURITY` y sus cuatro políticas; y poner «APLICADA» en la cabecera
+--    de arriba. La prueba citada obliga a que las dos cosas viajen juntas.

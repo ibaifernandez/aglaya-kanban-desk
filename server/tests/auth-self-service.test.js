@@ -18,8 +18,6 @@ const mockUserProfile = {
   role: 'colaborador',
   organization_id: 'org-1',
   avatar_url: null,
-  digest_hour: 8,
-  digest_enabled: true,
   created_at: '2026-01-01T00:00:00.000Z',
 };
 
@@ -48,9 +46,6 @@ jest.mock('../utils/supabase', () => {
           return Promise.resolve({ data: [], error: null }).then(resolve, reject);
         }
         if (table === 'notifications') {
-          return Promise.resolve({ data: [], error: null }).then(resolve, reject);
-        }
-        if (table === 'digest_logs') {
           return Promise.resolve({ data: [], error: null }).then(resolve, reject);
         }
         return Promise.resolve({ data: [], error: null }).then(resolve, reject);
@@ -123,7 +118,12 @@ describe('GET /api/auth/me/export — RGPD Art. 20 portabilidad', () => {
     expect(body.memberships).toBeInstanceOf(Array);
     expect(body.owned_cards).toBeInstanceOf(Array);
     expect(body.notifications).toBeInstanceOf(Array);
-    expect(body.digest_logs).toBeInstanceOf(Array);
+
+    // El export ya NO trae `digest_logs`: la nave no manda correo y la tabla se
+    // retira de la base (tarjeta `6d2801b5`). Se asierta la AUSENCIA, no se
+    // borra la línea: sin esto, volver a exportar una sección vacía —o una que
+    // reviente contra una tabla inexistente— pasaría sin que nadie lo viera.
+    expect(body).not.toHaveProperty('digest_logs');
     expect(body.assigned_checklist_items).toBeInstanceOf(Array);
   });
 });
