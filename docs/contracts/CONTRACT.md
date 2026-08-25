@@ -417,6 +417,41 @@ y [`kanban-mcp/test_validation.py`](../../kanban-mcp/test_validation.py)).
 - **Paridad con la UI.** La Puerta 2 es una tubería administrativa: inserta en
   crudo, sin notificaciones, sin validación de negocio, sin comprobar membresías.
 
+## Qué código implementa este contrato
+
+**Esta lista la lee el guardián.** No es documentación decorativa:
+[`scripts/contract-guard.sh`](../../scripts/contract-guard.sh) la extrae de aquí
+y, partiendo de estos ficheros, sigue sus imports locales hasta agotar. Todo lo
+que quede dentro de ese cierre exige tocar este documento cuando cambia.
+
+<!-- contract-guard:puertas:inicio -->
+- `server/routes/internalRoute.js` — la Puerta 2 entera: payload, códigos, acuse.
+- `kanban-mcp/server.py` — las tools de la Puerta 1 y sus compuertas.
+- `server/routes/cards.js` — tres cláusulas vivas se sirven desde aquí: el `500`
+  que aborta el update si el historial no se puede guardar *(v2.1.0)*, el `409`
+  de sobrescritura ciega *(v3.3.0)* y los campos `field`/`oldValue` de
+  `card_history` *(v3.4.0)*.
+<!-- contract-guard:puertas:fin -->
+
+**Por qué la lista vive AQUÍ y no dentro del guardián.** Vivía allí, y el
+8-ago-2026 se midió lo que eso cuesta: alguien cambió la forma de respuesta de
+`card_history` en `server/routes/cards.js` y el guardián contestó *«ninguna
+puerta tocada — OK»*. El contrato subió a v3.4.0 **porque quien lo tocaba quiso**,
+no porque nada le obligara. Tres compuertas documentadas, servidas en vivo a la
+flota, y ningún guardián atándolas a su código.
+
+**Sigue siendo una lista, y conviene decirlo en vez de fingir que no.** Lo que
+cambia es **quién la ve**: aquí la mira quien añade una cláusula, que es
+exactamente el momento en que hay que preguntarse desde qué fichero se sirve. En
+el guardián solo la veía quien iba a tocar el guardián — es decir, casi nadie.
+
+**Añadir una cláusula que se sirve desde un fichero nuevo obliga a añadirlo aquí.**
+Si no, el guardián no lo vigila y este documento puede desalinearse en verde. Y un
+contrato desalineado no envejece en un rincón: **el capitán lo sirve en vivo**, así
+que se reparte.
+
+---
+
 ## Cómo se cambia esto
 
 Cualquier cambio en la forma de las dos puertas —nombres de campo, obligatoriedad,
@@ -453,6 +488,29 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**Sin bump — 2026-08-25.** No cambia la forma de ninguna puerta: ni un campo, ni
+un código, ni una obligatoriedad. Lo que cambia es **quién vigila que este
+documento no se desalinee del código**, y va aquí porque esta sección **es** el
+aviso al capitán — y él sirve este contrato en vivo.
+
+**Qué se midió.** `server/routes/cards.js` sirve **tres cláusulas vivas** de este
+documento —el `500` que aborta el update si el historial no se puede guardar
+*(v2.1.0)*, el `409` de sobrescritura ciega *(v3.3.0)* y los campos
+`field`/`oldValue` de `card_history` *(v3.4.0)*— y **no estaba en la lista de
+puertas que `contract-guard` vigila**. Cambiar la forma de respuesta de
+`card_history` en ese fichero devolvía «ninguna puerta tocada — OK». La versión
+subió porque quien la tocaba quiso, no porque nada le obligara.
+
+**Qué cambia.** La lista de ficheros que implementan este contrato **se muda
+aquí**, al bloque `contract-guard:puertas` de la sección «Qué código implementa
+este contrato», y el guardián la lee de ahí. Sigue siendo una lista —se dice en
+vez de fingir que no— pero **la mira quien añade una cláusula** en lugar de quien
+venga a tocar el guardián.
+
+**Y si el bloque desaparece, el guardián sale con `2`, no con verde.** «No he
+visto ninguna puerta tocada» y «no sé qué es una puerta» se leen igual desde
+fuera y significan lo contrario.
 
 **v3.8.0 — 2026-08-25 · MENOR.** Aditivo: la Puerta 2 acepta **`workspaceId` y
 `boardId`**, y apuntar por identificador pasa a ser el camino recomendado. Los
