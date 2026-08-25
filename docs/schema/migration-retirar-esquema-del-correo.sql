@@ -1,9 +1,15 @@
 -- Migration: se retira de la base lo que quedó del correo
 -- Tarjeta: «Retirar de la base lo que quedó del correo» (6d2801b5)
 -- Created: 2026-08-25
--- ⏳ PENDIENTE DE APLICAR. Requiere al Operador (SQL Editor de Supabase).
+-- ✅ APLICADA el 2026-08-25 por Ibai desde el SQL Editor de Supabase, sobre el
+--    proyecto «AGLAYA Kanban Desk» (`main`, PRODUCTION). Comprobada en el mismo
+--    turno por el obrero, que NO la ejecutó — salida real en el punto 3.
 --
--- ⚠️ NO SE CREE ESTA CABECERA: se mira el guardián. `scripts/schema-drift-guard.sh`
+--    **El `DROP TABLE` no dio error de dependencia**, y eso es una medición, no
+--    un alivio: como va sin `CASCADE`, ese silencio significa que nada más
+--    colgaba de `digest_logs`.
+--
+-- ⚠️ NO SE CREA ESTA CABECERA: se mira el guardián. `scripts/schema-drift-guard.sh`
 --    compara el esquema documentado contra la base y corre con credencial propia.
 --    La cabecera de `migration-historial-append-only.sql` dijo «PENDIENTE»
 --    **diecisiete días después de aplicarse**, y una tarjeta entera se planificó
@@ -109,6 +115,9 @@ DROP TABLE IF EXISTS public.digest_logs;
 --     FROM pg_indexes
 --    WHERE schemaname = 'public'
 --      AND indexname LIKE 'idx_digest_logs%';
+--
+--    LO QUE DEVOLVIERON, 25-ago-2026, tras aplicar: **cero filas las tres**.
+--    Ninguna columna, ninguna tabla, ningún índice sobrevivió.
 --
 --    Aquí `information_schema` SÍ vale, y conviene decir por qué cuando en las
 --    migraciones de privilegios no valía: allí se preguntaba por PRIVILEGIOS y
