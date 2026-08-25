@@ -438,6 +438,20 @@ jobs:
         continue-on-error: true
         run: bash scripts/corridas-guard.test.sh
 
+      # ── ¿el reloj del digest y las horas admisibles dicen lo mismo? ───────
+      # No toca la base ni la red: compara el `cron` del workflow con la lista
+      # canónica del servidor. Existe porque el YAML no puede importar el fichero
+      # JS, así que «la misma lista» no se sostiene sola.
+      - name: Sello — ¿digest-horas-guard muerde en las dos direcciones?
+        id: sello_digest_horas
+        continue-on-error: true
+        run: bash scripts/digest-horas-guard.test.sh
+
+      - name: Guardián — ¿el reloj del digest visita las horas que el servidor admite?
+        id: digest_horas
+        continue-on-error: true
+        run: bash scripts/digest-horas-guard.sh
+
       - name: Sello — ¿el guardián del cableado muerde en las dos direcciones?
         id: sello_cableado
         continue-on-error: true
@@ -484,6 +498,8 @@ jobs:
             "tuberías que mienten · sello|${{ steps.sello_pipefail.outcome }}" \
             "tuberías que mienten · guardián|${{ steps.pipefail.outcome }}" \
             "corridas que faltan · sello|${{ steps.sello_corridas.outcome }}" \
+            "horas del digest · sello|${{ steps.sello_digest_horas.outcome }}" \
+            "horas del digest · guardián|${{ steps.digest_horas.outcome }}" \
             "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
             "cableado del verdicto · guardián|${{ steps.cableado.outcome }}"
 

@@ -1,27 +1,32 @@
 name: Digest horario
 
-# CADENCIA: cada hora, y NO se baja sin un dato que aquí no se tiene.
+# CADENCIA: solo las horas de `server/constants/digest-hours.js`.
 #
-# La hora la elige cada usuario: `users.digest_hour` (0-23 UTC) decide a quién le
-# toca en cada pasada y el servidor filtra. Correr menos veces no manda menos
-# correo: manda CERO correo a quien tenga configurada una hora que ya no se
-# visita. Y no falla — nadie recibe un error, simplemente deja de llegarle. Es la
-# forma que esta nave persigue: no rompe, desaparece.
+# ⚠️ ESTAS HORAS NO SE TOCAN AQUÍ. La lista canónica vive en
+# `server/constants/digest-hours.js`, y `scripts/digest-horas-guard.sh` se pone
+# ROJO si este `cron` y esa lista dejan de decir lo mismo. Cambiar una sin la
+# otra es exactamente lo que este montaje existe para impedir.
 #
-# Cuáles son las horas realmente en uso no se puede leer desde aquí, y hace falta
-# para decidir:
+# POR QUÉ, Y QUÉ COSTÓ AVERIGUARLO. Este fichero corrió `0 * * * *` —24 pasadas
+# diarias— durante meses, y su cabecera declaraba por qué no se podía bajar: la
+# hora la elige cada usuario, así que **correr menos veces no manda menos correo,
+# manda CERO correo a quien tenga una hora que ya no se visita**. Y no falla:
+# nadie recibe un error, simplemente deja de llegarle.
 #
-#   SELECT digest_hour, count(*) FROM public.users
-#    WHERE digest_enabled GROUP BY 1 ORDER BY 1;
+# El dato que faltaba lo ejecutó Ibai el 11-ago-2026 y está pegado dentro de la
+# tarjeta `a1015f7c`: **un solo usuario con el digest activo, hora 11 UTC**. 23 de
+# las 24 pasadas no tenían a quién escribir.
 #
-# Queda escrito para quien tenga esa respuesta. Este workflow no la tiene, así
-# que no toca la cadencia.
+# Y NO SE BAJÓ SOLO CLAVANDO LA HORA, porque eso habría dejado la trampa intacta
+# para el siguiente cambio de preferencia. Ahora el servidor **rechaza** guardar
+# una hora que este reloj no visita: la lista es una y los dos la leen. Sin esa
+# mitad, esto no sería un ahorro sino un modo de fallo silencioso más barato.
 
 on:
   schedule:
-    # Cada hora UTC en punto. El server filtra qué usuarios reciben digest
-    # según su preferencia `users.digest_hour` (0-23 UTC).
-    - cron: '0 * * * *'
+    # Derivado de DIGEST_HOURS en server/constants/digest-hours.js. Vigilado por
+    # scripts/digest-horas-guard.sh — si esto y la lista divergen, CI se pone rojo.
+    - cron: '0 11 * * *'
   workflow_dispatch: # permite lanzarlo manualmente desde GitHub UI
 
 # Sin cancelación: aquí no hay corrida obsoleta que tirar — hay una tarea que o
