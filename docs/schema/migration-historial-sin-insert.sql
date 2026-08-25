@@ -1,0 +1,123 @@
+-- Migration: el historial de descripciones deja de ser ESCRIBIBLE por quien lo genera
+-- Tarjeta: «El historial append-only deja INSERT abierto a authenticated» (cc37dc3a)
+-- Created: 2026-08-25
+-- ⏳ PENDIENTE DE APLICAR. Requiere al Operador (SQL Editor de Supabase).
+--
+-- ⚠️ CÓMO SE SABE SI SIGUE PENDIENTE, porque esta línea envejece y la de al lado
+--    ya lo hizo: **no se cree esta cabecera, se mira el guardián**.
+--    `scripts/grants-guard.sh` compara exacto la base contra el esquema, corre en
+--    cada CI y firma su salida con la hora. Su hermana
+--    `migration-historial-append-only.sql` dijo «PENDIENTE» durante diecisiete
+--    días después de aplicarse, y una tarjeta entera se planificó sobre eso.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- QUÉ CIERRA, Y EN QUÉ SE DIFERENCIA DEL RECORTE ANTERIOR
+--
+-- `migration-historial-append-only.sql` retiró `UPDATE` y `DELETE` a
+-- `authenticated` sobre `public.card_description_history`: dejó de poder
+-- **alterar o borrar** lo guardado.
+--
+-- Queda `INSERT`, que es poder **añadir**. Y no es lo mismo ni es menos:
+--
+--   · Un historial al que se le pueden inyectar filas no es menos recuperable:
+--     es **menos creíble**. Se puede fabricar una versión anterior que nunca
+--     existió.
+--   · Y quien lo lea no tiene con qué distinguirla, porque **el historial no
+--     distingue autor**: todo sale como `Kanban Rail (orchestrator)`.
+--
+-- Lo que se retira, entonces, no es una capacidad de daño: es la capacidad de
+-- **mentir en el sitio al que se acude cuando ya no te fías de la tarjeta**.
+--
+-- Y lo dice el propio fichero que creó la tabla, quince líneas debajo de su
+-- GRANT: *«No se abre INSERT a `authenticated` a propósito: un historial que el
+-- propio usuario puede escribir a mano no es un historial, es otro campo
+-- editable»*. El comentario decía una cosa y el GRANT hacía otra — la misma
+-- contradicción que el recorte anterior cerró para `UPDATE` y `DELETE`, en el
+-- mismo fichero y en la misma frase.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- NO ES ALCANZABLE HOY, Y AUN ASÍ SE RECORTA
+--
+-- La RLS de esta tabla tiene **una sola política, y es de `SELECT`**. Sin
+-- política de escritura, `authenticated` no inserta ninguna fila por más
+-- privilegio que tenga: RLS es el guard efectivo.
+--
+-- Es pólvora seca, como lo eran `UPDATE` y `DELETE`. Se recorta por lo mismo: el
+-- día que alguien escriba una política permisiva con `FOR ALL` —el error de una
+-- línea— el privilegio ya está puesto y nadie va a volver a mirarlo.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- RADIO DEL CAMBIO: CERO, Y MEDIDO PARA `INSERT`, NO HEREDADO
+--
+-- La tarjeta avisa expresamente de que el radio se midió para `UPDATE` y
+-- `DELETE` y **no se había vuelto a medir para `INSERT`**. Medido el
+-- 25-ago-2026 sobre `main` (`7e096d1`):
+--
+--   · `server/routes/cards.js:449` — el ÚNICO `INSERT` sobre esta tabla en toda
+--     la nave, y lo hace con `supabaseAdmin`, que es `SUPABASE_SERVICE_ROLE_KEY`
+--     (`server/utils/supabase.js`). `service_role` conserva los cuatro
+--     privilegios.
+--   · `server/routes/cards.js:641` — la lectura, con el mismo cliente.
+--   · El navegador **nunca** llama `.from(...)`: comprobado sobre `client/src`,
+--     donde los únicos aciertos son `Array.from`. Su llave anónima se usa para
+--     autenticarse, no para tocar tablas.
+--
+-- Retirar `INSERT` a `authenticated` no rompe ningún camino vivo.
+--
+-- ─────────────────────────────────────────────────────────────────────────────
+-- ⚠️ ORDEN DE EJECUCIÓN, Y NO ES CEREMONIA
+--
+-- El esquema (`docs/schema/supabase-schema.sql`) **sigue declarando
+-- `SELECT, INSERT`** a propósito, y se cambia DESPUÉS de aplicar esto, no antes.
+--
+-- Motivo: `grants-guard.sh` compara la base contra esa declaración en cada CI.
+-- Si el esquema declarara `SELECT` a secas mientras la base conserva `INSERT`,
+-- el guardián se pondría **rojo con razón** —lo dice su propia cabecera— y se
+-- quedaría rojo en `main` hasta que alguien ejecutara esto. En esta casa **un
+-- guardián que vive en rojo se normaliza hasta que deja de mirarse**, y entonces
+-- se pierde el que sí avisa.
+--
+-- Que no se olvide no depende de que alguien se acuerde:
+-- `server/tests/historial-sin-insert.test.js` se pone **rojo** en cuanto esta
+-- cabecera diga «APLICADA» y el esquema siga declarando `INSERT`. El orden está
+-- vigilado por las dos puntas.
+--
+-- Idempotente: se puede aplicar dos veces. `REVOKE` sobre lo que no está no falla.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- 1. Recortar.
+REVOKE INSERT ON public.card_description_history FROM authenticated;
+
+-- 2. Y dejar escrito lo que queda, por si alguien vuelve a correr el bloque de
+--    GRANTs del esquema con una versión vieja del fichero.
+GRANT SELECT                          ON public.card_description_history TO anon;
+GRANT SELECT                          ON public.card_description_history TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE  ON public.card_description_history TO service_role;
+
+-- 3. Comprobación posterior. **La ejecuta quien NO la aplicó**, que es lo que la
+--    tarjeta pide por escrito. Tiene que devolver exactamente estas tres filas:
+--
+--      anon          | SELECT
+--      authenticated | SELECT
+--      service_role  | DELETE, INSERT, SELECT, UPDATE
+--
+--    Se usa `aclexplode` y NO `information_schema` a propósito: el segundo solo
+--    expone los siete privilegios del estándar SQL y dejó `MAINTAIN` sin ver
+--    durante días en esta misma base.
+--
+--   SELECT grantee::regrole::text AS rol,
+--          string_agg(DISTINCT privilege_type, ', ' ORDER BY privilege_type) AS privilegios
+--     FROM pg_class c
+--     CROSS JOIN LATERAL aclexplode(c.relacl)
+--    WHERE c.relname = 'card_description_history'
+--      AND grantee::regrole::text IN ('anon', 'authenticated', 'service_role')
+--    GROUP BY grantee
+--    ORDER BY rol;
+--
+-- 4. Y DESPUÉS de aplicar, en el mismo turno: cambiar en
+--    `docs/schema/supabase-schema.sql` la línea
+--
+--      GRANT SELECT, INSERT ON public.card_description_history TO authenticated;
+--
+--    por `GRANT SELECT`, y poner «APLICADA» en la cabecera de arriba. La prueba
+--    citada obliga a que las dos cosas viajen juntas.

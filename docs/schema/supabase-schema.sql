@@ -402,6 +402,21 @@ END $$;
 -- SELECT, y sin política no se inserta. El privilegio es pólvora seca, no una
 -- puerta abierta — y es exactamente por eso que se recorta antes de que alguien
 -- escriba una política de escritura pensando en otra cosa.
+--
+-- ⏳ 25-ago-2026 — YA ESTÁ DECIDIDO QUE `INSERT` SE VA (tarjeta `cc37dc3a`), y
+--    esta línea sigue diciendo `SELECT, INSERT` **a propósito, no por olvido**.
+--
+--    La retira `docs/schema/migration-historial-sin-insert.sql`, pendiente del
+--    Operador. Y el orden importa: `scripts/grants-guard.sh` compara EXACTO esta
+--    declaración contra la base en cada CI, así que declarar aquí `SELECT` a
+--    secas mientras la base conserva `INSERT` lo pondría **rojo en `main`** hasta
+--    que alguien ejecutara la migración. Un guardián que vive en rojo se
+--    normaliza hasta que deja de mirarse.
+--
+--    Primero se aplica, después se cambia esta línea. Que no se olvide no
+--    depende de que alguien se acuerde: `server/tests/historial-sin-insert.test.js`
+--    se pone rojo en cuanto aquella migración diga «APLICADA» y esto siga
+--    diciendo `INSERT`.
 REVOKE ALL ON public.card_description_history FROM anon;
 REVOKE ALL ON public.card_description_history FROM authenticated;
 GRANT SELECT                          ON public.card_description_history TO anon;
