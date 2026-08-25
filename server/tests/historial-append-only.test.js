@@ -1,12 +1,19 @@
 /**
  * El historial de descripciones no se declara borrable por quien lo genera.
  *
- * POR QUÉ ESTA PRUEBA EXISTE Y NO UN GUARDIÁN. Lo que de verdad hay que vigilar
- * —los privilegios de `authenticated` sobre `card_description_history` en la
- * base viva— hoy NO se puede vigilar sin nacer rojo: la base conserva `UPDATE` y
- * `DELETE` hasta que el Operador aplique
+ * POR QUÉ ESTA PRUEBA EXISTE Y NO UN GUARDIÁN. Cuando se escribió, lo que de
+ * verdad había que vigilar —los privilegios de `authenticated` sobre
+ * `card_description_history` en la base viva— NO se podía vigilar sin nacer
+ * rojo: la base conservaba `UPDATE` y `DELETE` hasta que el Operador aplicara
  * `docs/schema/migration-historial-append-only.sql`. Y en esta casa un guardián
  * que nace rojo se normaliza hasta que deja de mirarse.
+ *
+ * **Eso ya no es así, y la línea de arriba se corrige en vez de dejarse:** las
+ * dos migraciones están aplicadas —`UPDATE`/`DELETE` entre el 8 y el 9-ago-2026,
+ * `INSERT` el 25-ago-2026— y desde entonces **`scripts/grants-guard.sh` sí
+ * vigila la base viva** contra esta declaración, en cada CI y con la hora
+ * firmada. Lo de aquí sigue haciendo falta por lo de abajo, que el guardián no
+ * mira: la vía de regresión documental.
  *
  * Lo que sí puede estrenar verde hoy es la DECLARACIÓN, y no es un premio de
  * consolación: **la vía de regresión real es documental**. El bloque de GRANTs
@@ -23,9 +30,9 @@
  * como más de lo que es:
  *
  *   · **No mira la base.** Que el fichero lo declare no significa que esté
- *     aplicado. Mientras la migración esté pendiente, esto está verde y la base
- *     sigue abierta. La comprobación contra el servidor va escrita dentro de la
- *     propia migración, con `aclexplode`, y la ejecuta quien no la aplicó.
+ *     aplicado — eso lo contesta `grants-guard` en el CI, o la consulta con
+ *     `aclexplode` que va dentro de cada migración y que ejecuta quien no la
+ *     aplicó.
  *   · **No comprueba la RLS.** Hoy la política de SELECT es la única que hay, y
  *     es lo que hace que el privilegio no alcance nada. Si mañana aparece una
  *     política de escritura, esto sigue verde.
@@ -57,7 +64,17 @@ describe('el historial de descripciones se declara append-only para authenticate
     expect(bucle[0]).toMatch(new RegExp(`tablename\\s*<>\\s*'${TABLA}'`));
   });
 
-  test('el esquema le concede a authenticated SELECT e INSERT, y nada más', () => {
+  // 25-ago-2026: esta prueba exigía `['INSERT', 'SELECT']`, que era lo correcto
+  // mientras `INSERT` seguía concedido. La tarjeta `cc37dc3a` lo retiró —aplicado
+  // sobre la base y declarado aquí—, así que lo que se exige ahora es `SELECT` a
+  // secas. No se relaja nada: se estrecha.
+  //
+  // El objeto de esta prueba sigue siendo el mismo —que la tabla no vuelva al
+  // bucle de GRANTs que reparte escritura— y quien la cambie a la baja tiene que
+  // pasar también por la de abajo, que prohíbe `UPDATE`/`DELETE` por cualquier
+  // forma, y por `historial-sin-insert.test.js`, que ata esta línea a la cabecera
+  // de su migración.
+  test('el esquema le concede a authenticated SELECT, y nada más', () => {
     const linea = esquema
       .split('\n')
       .find((l) => /GRANT/.test(l) && l.includes(TABLA) && /TO authenticated/.test(l));
@@ -71,7 +88,7 @@ describe('el historial de descripciones se declara append-only para authenticate
       .filter(Boolean)
       .sort();
 
-    expect(privilegios).toEqual(['INSERT', 'SELECT']);
+    expect(privilegios).toEqual(['SELECT']);
   });
 
   test('ninguna línea del esquema le da UPDATE o DELETE a authenticated sobre el historial', () => {

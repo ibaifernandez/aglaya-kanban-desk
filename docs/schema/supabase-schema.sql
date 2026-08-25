@@ -403,24 +403,25 @@ END $$;
 -- puerta abierta — y es exactamente por eso que se recorta antes de que alguien
 -- escriba una política de escritura pensando en otra cosa.
 --
--- ⏳ 25-ago-2026 — YA ESTÁ DECIDIDO QUE `INSERT` SE VA (tarjeta `cc37dc3a`), y
---    esta línea sigue diciendo `SELECT, INSERT` **a propósito, no por olvido**.
+-- ✅ 25-ago-2026 — `INSERT` RETIRADO también (tarjeta `cc37dc3a`). Lo aplicó Ibai
+--    sobre la base, y `docs/schema/migration-historial-sin-insert.sql` lo
+--    registra con la salida real de la comprobación, hecha por quien no la
+--    ejecutó: `authenticated | SELECT`.
 --
---    La retira `docs/schema/migration-historial-sin-insert.sql`, pendiente del
---    Operador. Y el orden importa: `scripts/grants-guard.sh` compara EXACTO esta
---    declaración contra la base en cada CI, así que declarar aquí `SELECT` a
---    secas mientras la base conserva `INSERT` lo pondría **rojo en `main`** hasta
---    que alguien ejecutara la migración. Un guardián que vive en rojo se
---    normaliza hasta que deja de mirarse.
+--    Ahora `authenticated` sobre esta tabla no puede **añadir** al historial, y
+--    no es lo mismo que no poder alterarlo: un historial al que se le pueden
+--    inyectar filas no es menos recuperable, es **menos creíble** — y el
+--    historial no distingue autor, así que una fila fabricada no se distingue.
 --
---    Primero se aplica, después se cambia esta línea. Que no se olvide no
---    depende de que alguien se acuerde: `server/tests/historial-sin-insert.test.js`
---    se pone rojo en cuanto aquella migración diga «APLICADA» y esto siga
---    diciendo `INSERT`.
+--    ⚠️ Esta línea y la cabecera de aquella migración **viajan juntas**: si una
+--    dice «aplicada» y la otra sigue declarando `INSERT`,
+--    `server/tests/historial-sin-insert.test.js` se pone rojo. Y si se adelantara
+--    la declaración sin aplicar, `scripts/grants-guard.sh` se pondría rojo contra
+--    la base. Las dos puntas.
 REVOKE ALL ON public.card_description_history FROM anon;
 REVOKE ALL ON public.card_description_history FROM authenticated;
 GRANT SELECT                          ON public.card_description_history TO anon;
-GRANT SELECT, INSERT                  ON public.card_description_history TO authenticated;
+GRANT SELECT                          ON public.card_description_history TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE  ON public.card_description_history TO service_role;
 
 -- Y los DEFAULT PRIVILEGES, para que una tabla nueva no nazca con los ocho.
