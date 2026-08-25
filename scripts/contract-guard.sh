@@ -49,14 +49,71 @@ CONTRATO="docs/contracts/CONTRACT.md"
 
 RAIZ="${CONTRACT_GUARD_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
-# Las PUERTAS son dos, y son las que el contrato nombra:
+# ---------------------------------------------------------------------------
+# DE DÓNDE SALEN LAS PUERTAS, y por qué ya no salen de aquí
 #
-#   server/routes/internalRoute.js  → Puerta 2 entera (payload, códigos, acuse).
-#   kanban-mcp/server.py            → las tools de la Puerta 1 y sus compuertas.
+# Estaban escritas en este fichero, y el 8-ago-2026 se midió lo que costaba:
+# alguien cambió la forma de respuesta de `card_history` en
+# `server/routes/cards.js` y este guardián contestó «ninguna puerta tocada — OK».
+# Ese fichero sirve TRES cláusulas vivas del contrato y no estaba en la lista.
+# El contrato subió de versión porque quien lo tocaba quiso, no porque nada le
+# obligara.
+#
+# **Es la segunda vez, y con el mismo guardián.** `94e4e219` ya había cambiado
+# tres rutas tecleadas por derivación de imports. Aquello arregló que envejeciera
+# la lista de FICHEROS y dejó envejeciendo la lista de PUNTOS DE PARTIDA: se
+# movió el defecto un piso arriba en vez de quitarlo.
+#
+# Ahora las raíces se leen del propio contrato, del bloque marcado
+# `contract-guard:puertas`. **SIGUE SIENDO UNA LISTA** —conviene decirlo en vez
+# de fingir que no— pero cambia quién la ve: allí la mira quien añade una
+# cláusula, que es justo el momento de preguntarse desde qué fichero se sirve.
+# Aquí solo la veía quien venía a tocar el guardián, o sea casi nadie.
+#
+# Y si el bloque falta o sale vacío, esto sale con 2. Un guardián que no sabe qué
+# vigilar no da verde: **no medir NO es verde**, y menos éste, cuyo silencio es
+# indistinguible de que todo esté bien.
 #
 # Lo que se vigila NO es esa lista: es su CIERRE de imports locales. Ver abajo.
-PUERTAS_RAIZ="${CONTRACT_GUARD_PUERTAS:-server/routes/internalRoute.js
-kanban-mcp/server.py}"
+# ---------------------------------------------------------------------------
+
+_puertas_declaradas() {
+  python3 - "$RAIZ/$CONTRATO" <<'PY_PUERTAS'
+import re, sys
+try:
+    texto = open(sys.argv[1], encoding="utf-8").read()
+except OSError as e:
+    print("ERROR|no puedo leer el contrato: %s" % e); raise SystemExit(0)
+
+m = re.search(r"<!--\s*contract-guard:puertas:inicio\s*-->(.*?)<!--\s*contract-guard:puertas:fin\s*-->",
+              texto, re.S)
+if not m:
+    print("ERROR|el contrato no trae el bloque «contract-guard:puertas»")
+    raise SystemExit(0)
+
+rutas = re.findall(r"^\s*-\s+`([^`]+)`", m.group(1), re.M)
+if not rutas:
+    print("ERROR|el bloque «contract-guard:puertas» no declara ni una ruta")
+    raise SystemExit(0)
+print("OK|" + "\n".join(rutas))
+PY_PUERTAS
+}
+
+if [ -n "${CONTRACT_GUARD_PUERTAS+x}" ]; then
+  # Inyectado: lo usa el sello, que monta contratos de mentira.
+  PUERTAS_RAIZ="$CONTRACT_GUARD_PUERTAS"
+else
+  _DECLARADAS="$(_puertas_declaradas)"
+  if [ "${_DECLARADAS%%|*}" = "ERROR" ]; then
+    echo "::error::contract-guard: ${_DECLARADAS#*|}"
+    echo ""
+    echo "Sin saber qué puertas vigilar, este guardián no puede decir «ninguna"
+    echo "tocada»: diría que no ha visto nada, que es otra cosa. La lista vive en"
+    echo "$CONTRATO, entre los marcadores «contract-guard:puertas»."
+    exit 2
+  fi
+  PUERTAS_RAIZ="${_DECLARADAS#*|}"
+fi
 
 # ---------------------------------------------------------------------------
 # Qué se vigila, y por qué no es una lista escrita a mano

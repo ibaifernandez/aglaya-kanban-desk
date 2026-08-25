@@ -48,6 +48,13 @@ caso "Puerta 1: las tools del riel, sin contrato" 1 \
   "kanban-mcp/server.py"
 caso "Puerta 1: la validación que el contrato describe, sin contrato" 1 \
   "kanban-mcp/validation.py"
+# EL CASO DE LA TARJETA `89d26bdf`. Este fichero sirve tres cláusulas vivas del
+# contrato —el 500 del historial, el 409 de sobrescritura ciega, y los campos de
+# `card_history`— y durante meses NO estaba en la lista: cambiarlo daba
+# «ninguna puerta tocada — OK». Va aquí para que reaparecer sea imposible en
+# silencio.
+caso "cards.js, que sirve tres cláusulas y no estaba en la lista" 1 \
+  "server/routes/cards.js"
 caso "una puerta escondida entre ficheros inocentes" 1 \
   "README.md" "server/tests/algo.test.js" "kanban-mcp/server.py" "docs/CHANGELOG.md"
 # Tocar el CHANGELOG no exime: son documentos distintos con custodios distintos,
@@ -60,7 +67,7 @@ echo "Tiene que CALLAR:"
 caso "puerta tocada Y contrato tocado" 0 \
   "server/routes/internalRoute.js" "docs/contracts/CONTRACT.md"
 caso "ninguna puerta tocada" 0 \
-  "README.md" "server/routes/cards.js" "docs/ROADMAP.md"
+  "README.md" "docs/ROADMAP.md" "server/tests/health.test.js"
 caso "sin lista de ficheros no se inventa un veredicto" 0
 # Un nombre PARECIDO al de una puerta no es esa puerta.
 caso "un fichero que solo se parece en el nombre" 0 \
@@ -99,6 +106,20 @@ echo "Y esto se pone rojo si alguien vuelve a TECLEAR la lista:"
 # mano: se fabrica un repo de mentira donde una puerta importa un fichero que
 # NO existe en este repo, así que ningún patrón tecleado puede conocerlo. Solo
 # lo caza quien derive la lista siguiendo los imports.
+
+# Desde que las raíces se leen del CONTRATO, un repo de mentira necesita su
+# contrato de mentira. Es más fiel que antes: el fixture ejerce el mismo camino
+# que el repo real, incluida la lectura del bloque.
+contrato_falso() {
+  local raiz="$1"; shift
+  mkdir -p "$raiz/docs/contracts"
+  {
+    printf '# Contrato de mentira\n\n<!-- contract-guard:puertas:inicio -->\n'
+    for p in "$@"; do printf -- '- `%s` — puerta de mentira.\n' "$p"; done
+    printf '<!-- contract-guard:puertas:fin -->\n'
+  } > "$raiz/docs/contracts/CONTRACT.md"
+}
+
 FALSO="$(mktemp -d)"
 mkdir -p "$FALSO/server/routes" "$FALSO/server/nuevo" "$FALSO/kanban-mcp"
 cat > "$FALSO/server/routes/internalRoute.js" <<'JS'
@@ -116,6 +137,7 @@ printf 'module.exports = { FORMA: [] };\n' > "$FALSO/server/nuevo/forma-inventad
 printf 'module.exports = {};\n' > "$FALSO/server/routes/express.js"
 printf 'from ayudante import algo\n' > "$FALSO/kanban-mcp/server.py"
 printf 'algo = 1\n' > "$FALSO/kanban-mcp/ayudante.py"
+contrato_falso "$FALSO" "server/routes/internalRoute.js" "kanban-mcp/server.py"
 
 caso_falso() {
   local que="$1" esperado="$2"; shift 2
@@ -143,6 +165,7 @@ caso_falso "un paquete de node NO es el fichero vecino que se llama igual" 0 \
 # Una puerta que ya no está donde dice se caería del cierre en silencio y el
 # guardián seguiría dando verde con lo que quedara. Tiene que declararse roto.
 VACIO="$(mktemp -d)"
+contrato_falso "$VACIO" "server/routes/internalRoute.js" "kanban-mcp/server.py"
 salida_vacia="$(CONTRACT_GUARD_ROOT="$VACIO" CONTRACT_GUARD_CHANGED="README.md" bash "$GUARD" 2>&1)"
 code_vacio=$?
 if [ "$code_vacio" -eq 1 ]; then
@@ -157,6 +180,7 @@ fi
 MEDIO="$(mktemp -d)"
 mkdir -p "$MEDIO/kanban-mcp"
 printf 'x = 1\n' > "$MEDIO/kanban-mcp/server.py"
+contrato_falso "$MEDIO" "server/routes/internalRoute.js" "kanban-mcp/server.py"
 salida_medio="$(CONTRACT_GUARD_ROOT="$MEDIO" CONTRACT_GUARD_CHANGED="README.md" bash "$GUARD" 2>&1)"
 code_medio=$?
 if [ "$code_medio" -eq 1 ]; then
@@ -168,6 +192,38 @@ fi
 rm -rf "$MEDIO"
 
 rm -rf "$FALSO" "$VACIO"
+
+
+# ── Y qué pasa si el contrato deja de declarar sus puertas ──────────────────
+# La lista se mudó al contrato el 25-ago-2026. Eso abre una forma nueva de
+# vaciar este guardián: borrar el bloque. Tiene que salir con 2 —no medí— y NO
+# con 0, porque «no he visto ninguna puerta tocada» y «no sé qué es una puerta»
+# se leen igual desde fuera y significan cosas opuestas.
+SIN_BLOQUE="$(mktemp -d)"
+mkdir -p "$SIN_BLOQUE/docs/contracts"
+printf '# Contrato sin bloque\n\nNada que declarar.\n' > "$SIN_BLOQUE/docs/contracts/CONTRACT.md"
+salida_sb="$(CONTRACT_GUARD_ROOT="$SIN_BLOQUE" CONTRACT_GUARD_CHANGED="server/routes/cards.js" bash "$GUARD" 2>&1)"
+code_sb=$?
+if [ "$code_sb" -eq 2 ] && grep -qF "contract-guard:puertas" <<< "$salida_sb" \
+   && grep -qF "no trae el bloque" <<< "$salida_sb"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "sin el bloque de puertas, sale con 2 y no con verde"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s, y el mensaje tiene que decir dónde vive la lista\n' "sin el bloque de puertas" "$code_sb"
+  printf '%s\n' "$salida_sb" | sed 's/^/          /'
+fi
+
+BLOQUE_VACIO="$(mktemp -d)"
+mkdir -p "$BLOQUE_VACIO/docs/contracts"
+printf '# Contrato\n\n<!-- contract-guard:puertas:inicio -->\n<!-- contract-guard:puertas:fin -->\n' \
+  > "$BLOQUE_VACIO/docs/contracts/CONTRACT.md"
+salida_bv="$(CONTRACT_GUARD_ROOT="$BLOQUE_VACIO" CONTRACT_GUARD_CHANGED="server/routes/cards.js" bash "$GUARD" 2>&1)"
+code_bv=$?
+if [ "$code_bv" -eq 2 ] && grep -qF "no declara ni una ruta" <<< "$salida_bv"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "el bloque presente pero vacío tampoco es verde"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s, y el mensaje tiene que distinguir «vacío» de «ausente»\n' "bloque vacío" "$code_bv"
+  printf '%s\n' "$salida_bv" | sed 's/^/          /'
+fi
 
 echo
 echo "PASS=$PASS FAIL=$FAIL"
