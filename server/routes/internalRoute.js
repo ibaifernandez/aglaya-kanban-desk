@@ -82,13 +82,19 @@ router.get('/list-boards', verifySecret, async (req, res) => {
 //
 // Body:
 //   title        {string}  requerido
-//   boardName    {string}  requerido — nombre exacto (case-insensitive) del tablero
+//   workspaceId  {string}  UUID del espacio — RECOMENDADO desde v3.8.0
+//   boardId      {string}  UUID del tablero — RECOMENDADO desde v3.8.0
+//   workspaceName {string} nombre del espacio; alternativa a workspaceId
+//   boardName    {string}  nombre del tablero; alternativa a boardId
 //   priority     {string}  REQUERIDO — urgent|high|medium|low|none, sin default (ver abajo)
 //   assignee     {string}  REQUERIDO — email, nombre exacto o id del responsable
 //   description  {string}  opcional
 //   dueDate      {string}  opcional — ISO 8601
-//   workspaceName {string} REQUERIDO — sin default, a propósito (ver abajo)
 //   idempotencyKey {string} opcional — UUID; repetirlo devuelve 200 con la que ya existe
+//
+// EL DESTINO SIGUE SIENDO OBLIGATORIO: hace falta el espacio (por id o por
+// nombre) y el tablero (por id o por nombre). Lo que cambia en v3.8.0 no es la
+// obligatoriedad, es que ya hay una forma de apuntar que no caduca.
 
 // Por qué la clave de idempotencia es UUID y su espacio de nombres es global
 // (2026-08-10, contrato v3.6.0):
@@ -201,19 +207,70 @@ router.post('/create-card', verifySecret, async (req, res) => {
     description  = '',
     dueDate      = null,
     workspaceName,
+    workspaceId,
+    boardId,
     idempotencyKey,
   } = req.body;
 
+  // ── Apuntar por IDENTIFICADOR es el camino principal desde v3.8.0 ───────────
+  //
+  // El nombre es comodidad humana; el identificador es lo único que NO cambia
+  // cuando alguien renombra un espacio desde la interfaz. Y el emparejamiento por
+  // nombre es parcial (`ilike`): medido contra la base real, **7 de 13 espacios
+  // casaban con `%AGLAYA%`**. Cada destino por nombre es una tirada; cada destino
+  // por identificador es determinista.
+  //
+  // El hueco que esto cierra era «media conversación»: la puerta ya sabía
+  // DEVOLVER identificadores —`GET /list-workspaces` y `GET /list-boards` los
+  // dan— y una nave que leía el id correcto **no tenía dónde metérselo**.
+  //
+  // EL NOMBRE SE QUEDA, y no por nostalgia: quitarlo sería incompatible, y el
+  // contrato prohíbe destinos implícitos a propósito. Lo que cambia es cuál es el
+  // camino recomendado y cuál el de compatibilidad.
+  //
+  // GANA EL IDENTIFICADOR si vienen los dos, porque es el que no caduca. No se
+  // rechaza la pareja: un llamante que manda ambos no está en conflicto consigo
+  // mismo, está siendo redundante — y de las dos formas de leerlo, la que no
+  // depende de un renombrado es la buena.
+  const idWorkspace = typeof workspaceId === 'string' ? workspaceId.trim() : workspaceId;
+  const idBoard     = typeof boardId     === 'string' ? boardId.trim()     : boardId;
+
+  const idMalFormado = (valor, campo) => {
+    if (valor === undefined || valor === null) return null;
+    if (typeof valor !== 'string' || !UUID_RE.test(valor)) {
+      return (
+        `${campo} inválido: "${valor}". Tiene que ser un UUID. Los identificadores ` +
+        'vivos los dan GET /api/internal/list-workspaces y GET /api/internal/list-boards. ' +
+        `Si querías apuntar por nombre, usa ${campo === 'workspaceId' ? 'workspaceName' : 'boardName'} ` +
+        'y omite este campo — mandarlo mal no cae al nombre: un identificador ' +
+        'roto que se traga sería exactamente el destino a ciegas que esta puerta impide.'
+      );
+    }
+    return null;
+  };
+
+  for (const [valor, campo] of [[idWorkspace, 'workspaceId'], [idBoard, 'boardId']]) {
+    const err = idMalFormado(valor, campo);
+    if (err) return res.status(400).json({ error: err });
+  }
+
   if (!title?.trim())     return res.status(400).json({ error: 'title es obligatorio.' });
-  if (!boardName?.trim()) return res.status(400).json({ error: 'boardName es obligatorio.' });
-  if (!workspaceName?.trim()) {
+  if (!idBoard && !boardName?.trim()) {
     return res.status(400).json({
       error:
-        'workspaceName es obligatorio. No hay default por diseño: el anterior ' +
-        '("Ibai Fernández") apuntaba al workspace personal de Ibai, y omitir el ' +
-        'campo enviaba la card ahí devolviendo 201. Indica el workspace destino ' +
-        'explícitamente — los nombres vivos los da list_workspaces en el MCP ' +
-        'aglaya-kanban-desk.',
+        'Falta el tablero destino: manda boardId (recomendado) o boardName. ' +
+        'El identificador no cambia cuando alguien renombra el tablero; el nombre, sí.',
+    });
+  }
+  if (!idWorkspace && !workspaceName?.trim()) {
+    return res.status(400).json({
+      error:
+        'Falta el espacio destino: manda workspaceId (recomendado) o ' +
+        'workspaceName. No hay default por diseño: el anterior ("Ibai ' +
+        'Fernández") apuntaba al workspace personal de Ibai, y omitir el campo ' +
+        'enviaba la card ahí devolviendo 201. Los identificadores vivos los da ' +
+        'GET /api/internal/list-workspaces; los nombres, list_workspaces en el ' +
+        'MCP aglaya-kanban-desk.',
     });
   }
 
@@ -347,38 +404,103 @@ router.post('/create-card', verifySecret, async (req, res) => {
 
   const assigneeUser = users[0];
 
-  // 1. Workspace por nombre (partial match para tolerar emojis en el título)
-  const { data: workspaces, error: wsError } = await supabaseAdmin
-    .from('workspaces')
-    .select('id, organization_id, name')
-    .ilike('name', `%${workspaceName}%`);
+  // 1. Espacio. Por identificador si vino; por nombre si no.
+  //
+  // La rama del identificador NO pasa por `ilike` y por eso no tiene ambigüedad
+  // que resolver: no hay «casó con varios», hay o no hay.
+  let workspace;
 
-  if (wsError || !workspaces?.length) {
-    return res.status(404).json({ error: `Workspace "${workspaceName}" no encontrado.` });
+  if (idWorkspace) {
+    const { data: porId, error: wsIdError } = await supabaseAdmin
+      .from('workspaces')
+      .select('id, organization_id, name')
+      .eq('id', idWorkspace)
+      .limit(1);
+
+    if (wsIdError || !porId?.length) {
+      return res.status(404).json({
+        error:
+          `Workspace con id "${idWorkspace}" no encontrado. Un identificador no ` +
+          'se adivina: si lo copiaste de una lista vieja, vuelve a pedirla con ' +
+          'GET /api/internal/list-workspaces.',
+      });
+    }
+    workspace = porId[0];
+  } else {
+    // Camino de compatibilidad: nombre con emparejamiento parcial, para tolerar
+    // emojis en el título. Es el que puede aterrizar donde no era, y por eso el
+    // identificador es el recomendado desde v3.8.0.
+    const { data: workspaces, error: wsError } = await supabaseAdmin
+      .from('workspaces')
+      .select('id, organization_id, name')
+      .ilike('name', `%${workspaceName}%`);
+
+    if (wsError || !workspaces?.length) {
+      return res.status(404).json({ error: `Workspace "${workspaceName}" no encontrado.` });
+    }
+
+    // Detectar ambigüedad: si hay múltiples matches, rechazar
+    if (workspaces.length > 1) {
+      return res.status(400).json({
+        error: `Ambigüedad: "${workspaceName}" casó con múltiples workspaces. Sé explícito — o pasa workspaceId, que no tiene ambigüedad posible.`,
+        candidates: workspaces.map(w => ({ id: w.id, name: w.name })),
+      });
+    }
+
+    workspace = workspaces[0];
   }
 
-  // Detectar ambigüedad: si hay múltiples matches, rechazar
-  if (workspaces.length > 1) {
-    return res.status(400).json({
-      error: `Ambigüedad: "${workspaceName}" casó con múltiples workspaces. Sé explícito.`,
-      candidates: workspaces.map(w => ({ id: w.id, name: w.name })),
-    });
-  }
+  // 2. Tablero. Por identificador si vino; por nombre dentro del espacio si no.
+  let board;
 
-  const workspace = workspaces[0];
+  if (idBoard) {
+    const { data: porId, error: bIdError } = await supabaseAdmin
+      .from('boards')
+      .select('id, title, workspace_id')
+      .eq('id', idBoard)
+      .limit(1);
 
-  // 2. Tablero por nombre dentro del workspace (partial match para tolerar emojis)
-  const { data: boards, error: boardError } = await supabaseAdmin
-    .from('boards')
-    .select('id, title')
-    .eq('workspace_id', workspace.id)
-    .ilike('title', `%${boardName}%`);
+    if (bIdError || !porId?.length) {
+      return res.status(404).json({
+        error:
+          `Tablero con id "${idBoard}" no encontrado. Los identificadores vivos ` +
+          'los da GET /api/internal/list-boards.',
+      });
+    }
 
-  const board = boards?.[0];
-  const boardError2 = boardError || !board;
+    board = porId[0];
 
-  if (boardError2) {
-    return res.status(404).json({ error: `Tablero "${boardName}" no encontrado en workspace "${workspace.name}".` });
+    // ⚠️ EL TABLERO TIENE QUE SER DEL ESPACIO QUE SE PIDIÓ. Sin esto, un
+    // `boardId` de otro espacio aterrizaría ahí y devolvería `201`: el destino
+    // habría dejado de ser el que se declaró, en silencio. Es la misma guarda
+    // que la Puerta 1 aplica entre espacio y columna, y existe por lo mismo —
+    // exigir un destino sin comprobarlo da sensación de control sin control.
+    //
+    // Por el camino del nombre esto no hace falta: allí el tablero se busca ya
+    // acotado con `.eq('workspace_id', …)`, así que no puede salir de otro sitio.
+    if (board.workspace_id !== workspace.id) {
+      return res.status(400).json({
+        error:
+          `El tablero "${board.title}" no pertenece al workspace "${workspace.name}". ` +
+          'No se escribe nada: el destino declarado y el real no son el mismo, y ' +
+          'aterrizar en otro espacio devolviendo 201 es exactamente lo que esta ' +
+          'puerta impide.',
+        board_workspace_id: board.workspace_id,
+        workspace_id: workspace.id,
+      });
+    }
+  } else {
+    const { data: boards, error: boardError } = await supabaseAdmin
+      .from('boards')
+      .select('id, title')
+      .eq('workspace_id', workspace.id)
+      .ilike('title', `%${boardName}%`);
+
+    board = boards?.[0];
+
+    if (boardError || !board) {
+      return res.status(404).json({ error: `Tablero "${boardName}" no encontrado en workspace "${workspace.name}".` });
+    }
   }
 
   // 3. Columna Backlog (o primera columna del tablero)
