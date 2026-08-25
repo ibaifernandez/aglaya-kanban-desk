@@ -1,9 +1,31 @@
 -- Migration: el historial de descripciones deja de ser borrable por quien lo genera
 -- Tarjeta: «Quien está autenticado puede borrar y modificar el historial, y eso lo mide la base» (2c034471)
 -- Created: 2026-08-08
--- ⏳ PENDIENTE DE APLICAR. Requiere al Operador (SQL Editor de Supabase).
---    Cuando se aplique, esta cabecera pasa a decir la fecha y quién, como hace
---    `migration-recorte-privilegios-anon-authenticated.sql`.
+-- ✅ APLICADA. Esta cabecera decía «PENDIENTE DE APLICAR» hasta el 25-ago-2026,
+--    y llevaba **más de dos semanas mintiendo**.
+--
+--    NO SE SABE QUIÉN NI EL DÍA EXACTO, y se dice así en vez de inventar una
+--    fecha. Lo que sí está medido, y acota la ventana:
+--
+--      · `scripts/grants-guard.sh` compara EXACTO (`privs != esperado`) lo que
+--        la base concede contra lo que declara el esquema, y lee la excepción
+--        por tabla desde el 8-ago-2026 (`dc291a8`), el mismo día que el esquema
+--        la declaró (`00b6a16`).
+--      · Con la migración sin aplicar ese guardián estaría **rojo**: la base
+--        daría `UPDATE, DELETE` y el esquema declara `SELECT, INSERT`.
+--      · Está **verde desde el 9-ago-2026** (primera corrida posterior:
+--        `31313369793`, 2026-08-09T12:28:26Z) y lo seguía el 25-ago-2026 a las
+--        16:22:21Z (corrida `32871541732`, sobre `main`).
+--
+--    Conclusión: se aplicó entre el 8-ago y el 9-ago-2026. **La constatación es
+--    del 25-ago-2026 y es del obrero, que NO la aplicó** — que es como esta casa
+--    pide que se certifique.
+--
+--    ⚠️ Y lo que esto enseña: un fichero de migración es el peor sitio para
+--    guardar «si está aplicada o no». Ese estado lo custodia la base, y aquí
+--    envejeció en silencio. La tarjeta `cc37dc3a` planificó su trabajo sobre
+--    esta línea —«mientras no esté aplicada, las dos caben en una ejecución»— y
+--    esa ventana llevaba diecisiete días cerrada.
 --
 -- ─────────────────────────────────────────────────────────────────────────────
 -- QUÉ CIERRA
