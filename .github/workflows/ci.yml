@@ -452,6 +452,19 @@ jobs:
         continue-on-error: true
         run: bash scripts/digest-horas-guard.sh
 
+      # ── ¿la verificación de la copia acepta una copia buena? ──────────────
+      # Solo el SELLO vive aquí: el guardián corre dentro de `db-backup.yml`,
+      # sobre el volcado real. Este sello no toca la base ni la red — se fabrica
+      # un volcado de ~1 MB y lo verifica.
+      #
+      # Existe porque esa comprobación vivía dentro del YAML y era el único
+      # guardián de su día SIN sello: abortó cuatro copias buenas seguidas y no
+      # se supo hasta el cuarto día.
+      - name: Sello — ¿la verificación del volcado acepta una copia buena?
+        id: sello_volcado
+        continue-on-error: true
+        run: bash scripts/verificar-volcado.test.sh
+
       - name: Sello — ¿el guardián del cableado muerde en las dos direcciones?
         id: sello_cableado
         continue-on-error: true
@@ -500,6 +513,7 @@ jobs:
             "corridas que faltan · sello|${{ steps.sello_corridas.outcome }}" \
             "horas del digest · sello|${{ steps.sello_digest_horas.outcome }}" \
             "horas del digest · guardián|${{ steps.digest_horas.outcome }}" \
+            "verificación del volcado · sello|${{ steps.sello_volcado.outcome }}" \
             "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
             "cableado del verdicto · guardián|${{ steps.cableado.outcome }}"
 
