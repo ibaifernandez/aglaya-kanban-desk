@@ -36,7 +36,6 @@ Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo inter
 | Base de datos   | Supabase (PostgreSQL + RLS)                     |
 | Auth            | Supabase Auth + JWT middleware + bcryptjs       |
 | Storage         | Supabase Storage (adjuntos, avatares, portadas) |
-| Email           | Resend + node-cron (digests diarios)            |
 | Seguridad       | Helmet + express-rate-limit + CORS por entorno  |
 | Tests           | Jest + Supertest                                |
 | Deploy cliente  | Netlify (auto-deploy en push a `main`)          |
@@ -120,12 +119,15 @@ kanban-mcp/  (Python · stdio)
 - Portada de workspace (imagen real o mini-kanban generativo)
 - Mini-kanban decorativo determinista en tarjetas de workspace
 
-### Email y digests
+### La nave no manda correo
 
-- **Admin digest:** estadísticas globales, tarjetas vencidas, huérfanas, top tableros y datos de usuarios Supabase — enviado diariamente vía GitHub Actions
-- **User digest:** email personal con tarjetas urgentes/vencidas y asignaciones pendientes, segmentado por workspace (el diario **excluye los workspaces personales**)
-- Endpoint `POST /api/digest/send-me` para envío bajo demanda (admin)
-- Email vía [Resend](https://resend.com)
+**Decisión de Ibai, 25-ago-2026: «Cero mails».** Se retiraron los dos digests
+—el de administrador y el personal—, su reloj, sus rutas y el único envoltorio
+de envío. No queda ningún camino por el que esta aplicación mande un correo.
+
+**Lo que avisa sigue vivo:** la notificación **in-app**. Asignar una tarjeta
+suena dentro de la aplicación (tabla `notifications` + campana). Lo que se
+perdió es el **resumen diario**, no el aviso.
 
 ### Seguridad
 

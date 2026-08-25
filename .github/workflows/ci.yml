@@ -75,12 +75,12 @@ jobs:
         run: npm ci
 
       - name: Run server tests
-        # Env vars stub para evitar fallos en module-load (resend, jwt, etc).
+        # Env vars stub para evitar fallos en module-load (jwt, supabase).
         # NO son secrets reales — solo placeholders para que require() no explote.
+        # `RESEND_API_KEY` se cae con el correo: ya no hay nada que la lea.
         env:
           NODE_ENV: test
           JWT_SECRET: test-secret
-          RESEND_API_KEY: test_key
           SUPABASE_URL: http://localhost
           SUPABASE_SERVICE_ROLE_KEY: test_service_role
           SUPABASE_ANON_KEY: test_anon_key
@@ -438,19 +438,20 @@ jobs:
         continue-on-error: true
         run: bash scripts/corridas-guard.test.sh
 
-      # ── ¿el reloj del digest y las horas admisibles dicen lo mismo? ───────
-      # No toca la base ni la red: compara el `cron` del workflow con la lista
-      # canónica del servidor. Existe porque el YAML no puede importar el fichero
-      # JS, así que «la misma lista» no se sostiene sola.
-      - name: Sello — ¿digest-horas-guard muerde en las dos direcciones?
-        id: sello_digest_horas
+      # ── ¿ha vuelto el correo sin que nadie lo decida? ─────────────────────
+      # No toca la base ni la red: lee el árbol versionado. Existe porque un
+      # borrado no se sostiene solo — lo retirado vuelve por la puerta de al
+      # lado (un `npm install` «para avisar de una cosa») y entonces la nave
+      # manda correo otra vez sin decisión detrás.
+      - name: Sello — ¿correo-cero-guard muerde cada vía de vuelta?
+        id: sello_correo_cero
         continue-on-error: true
-        run: bash scripts/digest-horas-guard.test.sh
+        run: bash scripts/correo-cero-guard.test.sh
 
-      - name: Guardián — ¿el reloj del digest visita las horas que el servidor admite?
-        id: digest_horas
+      - name: Guardián — ¿queda alguna vía por la que la nave mande correo?
+        id: correo_cero
         continue-on-error: true
-        run: bash scripts/digest-horas-guard.sh
+        run: bash scripts/correo-cero-guard.sh
 
       # ── ¿la verificación de la copia acepta una copia buena? ──────────────
       # Solo el SELLO vive aquí: el guardián corre dentro de `db-backup.yml`,
@@ -521,8 +522,8 @@ jobs:
             "tuberías que mienten · sello|${{ steps.sello_pipefail.outcome }}" \
             "tuberías que mienten · guardián|${{ steps.pipefail.outcome }}" \
             "corridas que faltan · sello|${{ steps.sello_corridas.outcome }}" \
-            "horas del digest · sello|${{ steps.sello_digest_horas.outcome }}" \
-            "horas del digest · guardián|${{ steps.digest_horas.outcome }}" \
+            "correo cero · sello|${{ steps.sello_correo_cero.outcome }}" \
+            "correo cero · guardián|${{ steps.correo_cero.outcome }}" \
             "verificación del volcado · sello|${{ steps.sello_volcado.outcome }}" \
             "aviso de despliegue · sello|${{ steps.sello_despliegue.outcome }}" \
             "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \

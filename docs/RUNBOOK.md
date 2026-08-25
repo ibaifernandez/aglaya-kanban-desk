@@ -68,14 +68,13 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=<key_anon>
 SUPABASE_SERVICE_ROLE_KEY=<key_service_role>
 JWT_SECRET=<string_seguro>
-
-# Email Transaccional (Resend SDK — ya NO usa SMTP; vars SMTP_* eliminadas)
-RESEND_API_KEY=<api_key_resend>
-SMTP_FROM="AGLAYA <no-reply@aglaya.biz>"
-
-# Cron de digests (GitHub Actions → Railway)
-DIGEST_CRON_SECRET=<string_seguro>
 ```
+
+**Ya no hay variables de correo.** Aquí estaban las de Resend y la del cron de
+digests; desde el 25-ago-2026 la nave **no manda ningún correo** y nada las lee.
+Si siguen puestas en Railway o en GitHub Secrets, retirarlas es limpieza
+pendiente, no un requisito: el servidor arranca sin ellas y hay prueba de eso en
+[`server/tests/config.test.js`](../server/tests/config.test.js).
 
 ---
 
@@ -91,19 +90,9 @@ curl https://kanban.aglaya.biz/api/health
 ```
 
 ### Ejecutar Tareas Manuales
-```bash
-# Forzar el admin digest global (endpoint autenticado como admin)
-# POST /api/digest/send-me
-#
-# Disparar el ciclo horario de digests (lo mismo que hace GitHub Actions):
-# POST /api/digest/cron-trigger   con header   x-cron-secret: <DIGEST_CRON_SECRET>
-```
 
-```bash
-# Enviar digest personal/contextual vía API autenticada
-# POST /api/digest/send-my-digest
-# Body opcional: { "workspaceId": "<uuid-del-workspace>" }
-```
+Aquí vivían los tres disparos del digest. **`/api/digest/*` se retiró entero**
+(25-ago-2026, «cero mails»): no hay ninguna tarea de correo que lanzar a mano.
 
 ### Consultar Historial de Incidencias
 - Revisar [INCIDENTS.md](./INCIDENTS.md) antes de diagnosticar regresiones ya conocidas.

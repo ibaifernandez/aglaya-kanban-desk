@@ -30,7 +30,6 @@ const {
 const { getCategories, createCategory, updateCategory, deleteCategory } = require('./routes/categories');
 const { uploadImage, deleteImage } = require('./routes/uploads');
 const authRouter              = require('./routes/auth');
-const digestRouter            = require('./routes/digestRoute');
 const adminRouter             = require('./routes/admin');
 const workspacesRouter        = require('./routes/workspaces');
 const mediaRouter             = require('./routes/media');
@@ -68,7 +67,7 @@ if (isProd) {
   app.use((req, res, next) => {
     const host = req.headers.host || '';
     // Skip health (uptime monitors pueden tocar URL directa) e internal cron
-    if (req.path === '/api/health' || req.path.startsWith('/api/digest/cron-trigger')) {
+    if (req.path === '/api/health') {
       return next();
     }
     if (host.includes('.railway.app') || host.includes('.up.railway.app')) {
@@ -143,9 +142,6 @@ app.use('/api', globalLimiter);
 
 // ── Auth (rate-limited extra) ──────────────────────────────
 app.use('/api/auth', authLimiter, authRouter);
-
-// ── Digest ────────────────────────────────────────────────
-app.use('/api/digest', digestRouter);
 
 // ── Admin ─────────────────────────────────────────────────
 app.use('/api/admin', adminRouter);

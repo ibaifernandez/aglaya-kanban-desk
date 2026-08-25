@@ -14,7 +14,7 @@ const { Sentry, enabled: sentryEnabled } = require('./utils/sentry');
 // clientes de Supabase en carga de módulo y, sin credenciales, revienta con
 // "supabaseUrl is required" desde dentro de la librería. Poner la red de
 // seguridad detrás del agujero es no tenerla.
-const { validateCoreConfig, validateSmtpConfig, validateDigestSchedules } = require('./utils/smtpConfig');
+const { validateCoreConfig } = require('./utils/config');
 
 try {
   validateCoreConfig();
@@ -26,15 +26,6 @@ try {
 
 const app  = require('./app');
 const PORT = process.env.PORT || 3003;
-
-try {
-  validateSmtpConfig();
-  validateDigestSchedules();
-} catch (err) {
-  console.error(`❌ Startup failed: ${err.message}`);
-  if (sentryEnabled) Sentry.captureException(err);
-  process.exit(1);
-}
 
 // Global error handlers — capturan errores fuera del Express middleware chain
 process.on('uncaughtException', (err) => {

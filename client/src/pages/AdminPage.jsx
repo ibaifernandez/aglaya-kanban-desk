@@ -136,7 +136,7 @@ function InviteModal({ onClose, onSuccess }) {
   );
 }
 
-export default function AdminPage({ user, onBack, onLogout, onAvatarChange, onPreferencesChange }) {
+export default function AdminPage({ user, onBack, onLogout, onAvatarChange }) {
   const [users,       setUsers]       = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState('');
@@ -223,7 +223,6 @@ export default function AdminPage({ user, onBack, onLogout, onAvatarChange, onPr
             user={user}
             onAvatarChange={onAvatarChange}
             onLogout={onLogout}
-            onPreferencesChange={onPreferencesChange}
           />
         </div>
       </header>

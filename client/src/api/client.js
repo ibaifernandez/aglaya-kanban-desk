@@ -214,23 +214,4 @@ export const api = {
   getNotifications:         ()    => request('/notifications'),
   markNotificationRead:     (id)  => request(`/notifications/${id}/read`, { method: 'PATCH' }),
   markAllNotificationsRead: ()    => request('/notifications/read-all', { method: 'PATCH' }),
-
-  // User preferences (digest hour, digest enabled)
-  updatePreferences: (body) => request('/auth/me/preferences', { method: 'PATCH', body: JSON.stringify(body) }),
-
-  sendPersonalDigest: (body = {}) => {
-    const token = getToken();
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) headers.Authorization = `Bearer ${token}`;
-
-    return fetch('/api/digest/send-my-digest', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    }).then(async (response) => {
-      const json = await response.json();
-      if (!response.ok) throw new Error(json.error || `HTTP ${response.status}`);
-      return json;
-    });
-  },
 };

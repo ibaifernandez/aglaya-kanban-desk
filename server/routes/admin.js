@@ -3,7 +3,6 @@ const path = require('path');
 const fs = require('fs');
 const { createAdminClient } = require('../utils/supabase');
 const { requireAuth, requireRole, invalidateUserCache } = require('../middleware/auth');
-const { sendEmail } = require('../utils/mailer');
 
 const INVITE_TEMPLATE_PATH = path.join(__dirname, '../../docs/mails/supabase-email-invite.html');
 let _inviteTemplate = null;
