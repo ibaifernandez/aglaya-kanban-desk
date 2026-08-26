@@ -45,6 +45,32 @@ const MD = path.join(RAIZ, 'docs', 'legal', 'privacy-policy-kanban.md');
 
 const leer = (p) => fs.readFileSync(p, 'utf8');
 
+// ── El recorte de la tabla de retención, y por qué existe ─────────────────────
+//
+// La frase «No queda copia» aparece HOY, legítimamente, en el historial de
+// versiones de los dos documentos: la v1.2 **cita a la v1.1 para desmentirla**.
+// Una prohibición sobre el fichero entero mordería esa retractación y obligaría
+// a borrarla para pasar — o sea, a perder la constancia de que la frase existió.
+//
+// Lo que se prohíbe es la AFIRMACIÓN, y una afirmación vive en la tabla que
+// responde a «¿cuánto conserváis mis datos?». Por eso se recorta esa tabla.
+function tablaDeRetencion(texto, ruta) {
+  const esHtml = ruta.endsWith('.html');
+  const inicio = esHtml ? texto.indexOf('6. Plazos de Conservación') : texto.indexOf('| Categoría | Plazo |');
+  const fin = esHtml ? texto.indexOf('7. Tus Derechos') : texto.indexOf('## 7.');
+
+  // Si el documento se reorganiza y estas anclas dejan de existir, esto NO puede
+  // devolver cadena vacía y pasar por «no hay frase falsa»: no medir no es verde.
+  if (inicio < 0 || fin < 0 || fin <= inicio) {
+    throw new Error(
+      `politica-publicada: no encuentro la tabla de retención en ${path.basename(ruta)}. ` +
+      'Si la sección se renombró, hay que actualizar este recorte — no dar por bueno el silencio.',
+    );
+  }
+  return texto.slice(inicio, fin);
+}
+
+
 // Las promesas retiradas, en las dos formas en que estaban escritas. Cada una
 // ofrecía algo que hoy no se puede cumplir.
 const PROMESAS_MUERTAS = [
@@ -113,6 +139,23 @@ describe('la política publicada (HTML) no ofrece lo que no existe', () => {
     expect(persistencia).toMatch(/\d{1,2}-[a-z]{3}-\d{4}|\d+\s*días/);
   });
 
+  // ⚠️ ESTE es el caso que faltaba, y su ausencia era el defecto de la tarjeta
+  // `16b8063a`: la prohibición de la frase falsa vivía SOLO sobre el markdown.
+  //
+  // El HTML se genera A MANO, así que alguien puede reintroducirla al regenerar
+  // la página sin tocar el `.md` — y versión y fecha seguirían cuadrando, porque
+  // eso sí se comparaba. **El guardián sabía cuál era el fichero que la gente
+  // lee, lo decía en su propio comentario, y vigilaba el otro.**
+  it('no afirma en la tabla de retención que no quede copia', () => {
+    expect(tablaDeRetencion(html, HTML)).not.toMatch(/No queda copia/);
+  });
+
+  // Y la contraparte, que es la que impide «arreglarlo» borrando historia: la
+  // retractación de la v1.2 CITA la frase, y tiene que poder seguir citándola.
+  it('pero el historial sí puede citar la frase para desmentirla', () => {
+    expect(html).toMatch(/«No queda copia»/);
+  });
+
   // Y el mismo aviso donde de verdad lo va a buscar alguien: en su derecho.
   it('el derecho de supresión avisa de que no alcanza a las copias ya creadas', () => {
     const fila = html.slice(html.indexOf('DELETE /api/auth/me'), html.indexOf('DELETE /api/auth/me') + 500);
@@ -170,7 +213,6 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
   });
 
   it('tampoco afirma en la tabla de retención que no quede copia', () => {
-    const tabla = md.slice(md.indexOf('| Categoría | Plazo |'), md.indexOf('## 7.'));
-    expect(tabla).not.toMatch(/No queda copia/);
+    expect(tablaDeRetencion(md, MD)).not.toMatch(/No queda copia/);
   });
 });
