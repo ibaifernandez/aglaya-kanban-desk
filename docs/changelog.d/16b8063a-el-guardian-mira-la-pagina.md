@@ -1,0 +1,9 @@
+Fixed
+
+- **El guardián de la política vigilaba el fichero que nadie lee.** Tarjeta `16b8063a`, hallazgo del capataz auditando el guardián escrito **el mismo día**.
+  - **Qué pasaba:** `politica-publicada.test.js` prohibía la frase falsa —*«No queda copia»*— **solo en el markdown fuente**. Del HTML publicado comprobaba versión, fecha y una frase sobre el correo, pero no esa prohibición.
+  - ⚠️ **Y el propio guardián sabía cuál importaba.** Su comentario decía, dos líneas antes: *«El HTML se genera A MANO, así que nada impide que uno se actualice y el otro no. **Y el que la gente lee es el HTML**»*. Sabía cuál era la ventana buena y miraba por la otra — la familia exacta que esta casa lleva un mes cerrando.
+  - **El modo de fallo, concreto:** alguien regenera la página a mano, reintroduce la frase y **no toca el `.md`**. Versión y fecha seguirían cuadrando —eso sí se comparaba— y nada lo cazaría. Comprobado por mutación: **antes pasaba en verde; ahora tumba dos casos.**
+  - **La prohibición muerde la TABLA DE RETENCIÓN, no el fichero entero,** y esa precisión es la mitad del trabajo: la frase aparece hoy —legítimamente— en el historial de versiones, donde la v1.2 **cita a la v1.1 para desmentirla**. Prohibirla a secas obligaría a **borrar la retractación** para pasar, o sea a perder la constancia de que la frase existió. Hay un caso que exige que el historial pueda seguir citándola.
+  - **Y el recorte no puede fallar en silencio:** si la sección se renombra y las anclas no aparecen, la función **lanza** en vez de devolver cadena vacía y dar por bueno el silencio. **No medir no es verde**, y una prohibición sobre un recorte que no existe es exactamente un no-medir con cara de verde.
+  - Cuatro mutaciones, cuatro rojas: la frase de vuelta **solo en el HTML** (el defecto), solo en el markdown, borrar la retractación del historial, y renombrar la sección para que el recorte se pierda.
