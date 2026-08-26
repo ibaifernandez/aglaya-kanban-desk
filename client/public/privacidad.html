@@ -119,8 +119,8 @@ Esta versión refleja la realidad operativa del sistema documentada en <code>doc
 retention-policy, base-legal, breach-notification-procedure, subprocessors, DPIA).
 Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).</p>
 </blockquote>
-<p><strong>Última actualización:</strong> 2026-08-25
-<strong>Versión:</strong> 1.1
+<p><strong>Última actualización:</strong> 2026-08-26
+<strong>Versión:</strong> 1.2
 <strong>Aplicable a:</strong> <a href="https://kanban.aglaya.biz">https://kanban.aglaya.biz</a> (y subdominios <code>*.kanban.aglaya.biz</code> futuros)</p>
 <hr>
 <h2>1. Responsable del Tratamiento</h2>
@@ -335,7 +335,7 @@ pregunte qué se hizo con los suyos entonces.</p>
 </tr>
 <tr>
 <td>Logs de envío de correo (<code>digest_logs</code>)</td>
-<td><strong>Suprimidos el 25-ago-2026.</strong> Se anunciaba una retención de 12 meses; al retirarse el correo, el registro entero se destruyó antes de agotarla. No queda copia.</td>
+<td><strong>Suprimidos de la base el 25-ago-2026</strong>, antes de agotar los 12 meses que se anunciaban. <strong>Persisten en las copias de seguridad operacionales hasta su rotación (~24-sep-2026)</strong>, como cualquier otro dato — ver la fila de backups, justo debajo.</td>
 </tr>
 <tr>
 <td>Backups operacionales (Cloudflare R2)</td>
@@ -374,7 +374,7 @@ pregunte qué se hizo con los suyos entonces.</p>
 </tr>
 <tr>
 <td><strong>Supresión / &quot;derecho al olvido&quot; (Art. 17 RGPD)</strong></td>
-<td><code>DELETE /api/auth/me</code> — elimina tu cuenta. UI disponible en tu perfil</td>
+<td><code>DELETE /api/auth/me</code> — elimina tu cuenta. UI disponible en tu perfil. <strong>La supresión no alcanza retroactivamente a las copias de seguridad ya creadas</strong>: esos datos desaparecen con la rotación, a los 30 días como máximo</td>
 </tr>
 <tr>
 <td><strong>Oposición a comunicaciones (Art. 21 + Art. 6 LGPD)</strong></td>
@@ -527,6 +527,26 @@ ningún derecho, ningún plazo de conservación de lo demás, ningún otro encar
 <p><strong>Los tratamientos cesados se marcan, no se borran.</strong> Hubo datos tratados de
 verdad mientras estuvieron activos, y un registro que borra su pasado deja sin respuesta a
 quien pregunte qué se hizo con los suyos entonces.</p>
+<hr>
+<h3>1.2 — 2026-08-26 · la copia que sí queda</h3>
+<p><strong>La versión 1.1 introdujo una frase que no era cierta</strong>, y se corrige aquí en
+vez de reescribirla en silencio. Decía, sobre los registros de envío de correo suprimidos:
+<em>«No queda copia»</em>.</p>
+<p><strong>Se desmentía dos filas más abajo, en la misma tabla:</strong> las copias de
+seguridad diarias vuelcan la base <strong>entera</strong> y se conservan <strong>30
+días</strong>. Se tomaron copias el 25-ago-2026 a las 15:14Z y 15:18Z, y la supresión fue
+hacia las 20:30Z del mismo día.</p>
+<p><strong>Por qué importa más que una imprecisión:</strong> esa frase estaba en la fila que
+responde al <strong>derecho de supresión</strong>. A quien lo ejerza se le estaba diciendo que
+su dato ya no existe en ninguna parte, cuando existía y con fecha de caducidad conocida — es
+justo la afirmación que lleva a alguien a dejar de preguntar.</p>
+<p><strong>Las copias son una excepción legítima a la supresión, y lo correcto es
+declararlas, no ocultarlas.</strong> Ahora se dice hasta cuándo persisten, y el derecho de
+supresión lleva el mismo aviso: la supresión no alcanza retroactivamente a las copias ya
+creadas.</p>
+<p><strong>Y el defecto de fondo, dicho:</strong> aquella frase se afirmó <strong>sin poder
+comprobarla</strong> — nadie listó el bucket de copias, ni al escribirla ni al corregirla. Lo
+que sí se puede medir es la ventana de retención, y es lo que se declara.</p>
 <hr>
 <h2>Decisiones tomadas (2026-05-27 — versión 1.0)</h2>
 <ul>

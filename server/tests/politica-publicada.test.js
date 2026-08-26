@@ -81,7 +81,43 @@ describe('la política publicada (HTML) no ofrece lo que no existe', () => {
   // esto desapareciera, la política dejaría una promesa de conservación sin
   // cerrar sobre datos que ya no existen.
   it('dice qué pasó con los datos que anunciaba conservar 12 meses', () => {
-    expect(html).toMatch(/Suprimidos el 25-ago-2026/);
+    expect(html).toMatch(/Suprimidos de la base el 25-ago-2026/);
+  });
+
+  // ⚠️ EL CASO DE LA v1.2, y es el más caro de los de este fichero.
+  //
+  // La v1.1 escribió «No queda copia» en la fila de la supresión, y **el propio
+  // documento la desmentía dos filas más abajo**: las copias diarias vuelcan la
+  // base ENTERA y se guardan 30 días. A quien ejerce el Art. 17 se le estaba
+  // diciendo que su dato no existe en ninguna parte, cuando existía con fecha de
+  // caducidad conocida — la afirmación que lleva a alguien a dejar de preguntar.
+  //
+  // Se exige la forma HONESTA —hasta cuándo persiste—, no la ausencia de la
+  // palabra: las copias son una excepción legítima y lo correcto es declararlas.
+  it('la fila de los datos suprimidos dice hasta cuándo persisten en copias', () => {
+    // ⚠️ La celda EXACTA, no «los 400 caracteres siguientes». Comprobado por
+    // mutación: con una ventana ancha, quitar la fecha de la celda seguía en
+    // verde porque «rotación» aparecía en la fila de backups, dos más abajo — la
+    // prueba estaba leyendo el desmentido como si fuera la corrección.
+    const inicio = html.indexOf('Suprimidos de la base');
+    const celda = html.slice(inicio, html.indexOf('</td>', inicio));
+
+    expect(celda).toMatch(/Persisten en las copias de seguridad operacionales/);
+
+    // Y el hasta-cuándo tiene que ir DESPUÉS de «Persisten», no en cualquier
+    // parte de la celda. Segunda mutación superviviente del mismo caso: quitar
+    // «hasta su rotación (~24-sep-2026)» seguía verde porque la celda conserva
+    // la fecha de la SUPRESIÓN, que es otra cosa. Una fecha cerca no es la
+    // fecha que se pide.
+    const persistencia = celda.slice(celda.indexOf('Persisten'));
+    expect(persistencia).toMatch(/\d{1,2}-[a-z]{3}-\d{4}|\d+\s*días/);
+  });
+
+  // Y el mismo aviso donde de verdad lo va a buscar alguien: en su derecho.
+  it('el derecho de supresión avisa de que no alcanza a las copias ya creadas', () => {
+    const fila = html.slice(html.indexOf('DELETE /api/auth/me'), html.indexOf('DELETE /api/auth/me') + 500);
+    expect(fila).toMatch(/no alcanza retroactivamente a las copias/);
+    expect(fila).toMatch(/30 días/);
   });
 
   // La sección 12 prometía avisar por email de los cambios. La aplicación ya no
@@ -127,5 +163,14 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
   it('y explica el cambio en su historial de versiones', () => {
     expect(md).toMatch(/## Historial de versiones/);
     expect(md).toMatch(/1\.1 — 2026-08-25/);
+    // La 1.2 corrige a la 1.1. Que la entrada siga aquí es la constancia de que
+    // aquella frase existió y de por qué era falsa: borrarla dejaría el
+    // documento correcto y la lección perdida.
+    expect(md).toMatch(/1\.2 — 2026-08-26/);
+  });
+
+  it('tampoco afirma en la tabla de retención que no quede copia', () => {
+    const tabla = md.slice(md.indexOf('| Categoría | Plazo |'), md.indexOf('## 7.'));
+    expect(tabla).not.toMatch(/No queda copia/);
   });
 });
