@@ -64,11 +64,22 @@
 
 | Estado | Retención |
 |---|---|
-| Logs de envío de correo | **Suprimidos en su totalidad el 25-ago-2026.** No queda copia |
+| Logs de envío de correo | **Suprimidos de la base el 25-ago-2026.** Persisten en copias operacionales hasta su rotación (~24-sep-2026), igual que el resto de datos — ver §3 y el punto 3 de las limitaciones |
 
 La política publicada anunciaba 12 meses. Al retirarse el correo, el registro se
 **destruyó antes de agotar ese plazo** — que es la dirección segura del error:
 se conservó menos de lo anunciado, no más.
+
+⚠️ **Y una corrección del 26-ago-2026:** este documento y la política publicada
+decían *«no queda copia»*. **No era cierto, y se desmentía dos filas más abajo**
+en la misma tabla: las copias diarias a Cloudflare R2 vuelcan la base **entera**
+—`pg_dump` sin exclusiones— y se conservan **30 días**. Se tomaron copias el
+25-ago a las 15:14Z y 15:18Z, y el `DROP` fue hacia las 20:30Z del mismo día.
+
+La excepción de las copias **ya estaba declarada aquí** (§3 y limitación 3) y es
+legítima; lo que fallaba era una frase absoluta escrita al lado. **Nadie había
+listado el bucket** —no hay credencial para hacerlo— así que se afirmó lo que no
+se podía comprobar. Lo comprobable es la ventana, y es lo que ahora se declara.
 
 Se deja la entrada, vacía: es la constancia de que ese registro existió.
 

@@ -7,8 +7,8 @@
 > retention-policy, base-legal, breach-notification-procedure, subprocessors, DPIA).
 > Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).
 
-**Última actualización:** 2026-08-25
-**Versión:** 1.1
+**Última actualización:** 2026-08-26
+**Versión:** 1.2
 **Aplicable a:** https://kanban.aglaya.biz (y subdominios `*.kanban.aglaya.biz` futuros)
 
 ---
@@ -137,7 +137,7 @@ Detalle completo en `docs/legal/retention-policy.md`. Resumen:
 | Cards y contenido del workspace | Indefinida mientras el workspace esté activo |
 | Cards archivadas | 24 meses post-archive, después hard-delete automático |
 | Notificaciones leídas | 90 días |
-| Logs de envío de correo (`digest_logs`) | **Suprimidos el 25-ago-2026.** Se anunciaba una retención de 12 meses; al retirarse el correo, el registro entero se destruyó antes de agotarla. No queda copia. |
+| Logs de envío de correo (`digest_logs`) | **Suprimidos de la base el 25-ago-2026**, antes de agotar los 12 meses que se anunciaban. **Persisten en las copias de seguridad operacionales hasta su rotación (~24-sep-2026)**, como cualquier otro dato: ver la fila de backups, más abajo, y `docs/legal/retention-policy.md`. |
 | Backups operacionales (Cloudflare R2) | 30 días con rotación automática |
 | Logs de servidor (Railway) | 7-30 días según plan |
 | Logs CDN (Netlify) | 7 días |
@@ -156,7 +156,7 @@ Como titular de los datos, tienes derecho a:
 |---|---|
 | **Acceso (Art. 15 RGPD)** | Tu perfil en el menú de usuario muestra tus datos básicos |
 | **Portabilidad (Art. 20 RGPD)** | `GET /api/auth/me/export` — descarga JSON con todos tus datos. UI disponible en tu perfil |
-| **Supresión / "derecho al olvido" (Art. 17 RGPD)** | `DELETE /api/auth/me` — elimina tu cuenta. UI disponible en tu perfil |
+| **Supresión / "derecho al olvido" (Art. 17 RGPD)** | `DELETE /api/auth/me` — elimina tu cuenta. UI disponible en tu perfil. **La supresión no alcanza retroactivamente a las copias de seguridad ya creadas**: esos datos desaparecen con la rotación, a los 30 días como máximo |
 | **Oposición a comunicaciones (Art. 21 + Art. 6 LGPD)** | **No hay comunicaciones a las que oponerse: esta aplicación no envía correo.** Los avisos ocurren dentro de la aplicación, ligados al uso del servicio |
 
 ### 7.2 Derechos vía contacto directo
@@ -275,6 +275,32 @@ Estos documentos son fuente de verdad operativa y se actualizan con cada cambio 
 ---
 
 ## Historial de versiones
+
+### 1.2 — 2026-08-26 · la copia que sí queda
+
+**La versión 1.1 introdujo una frase que no era cierta**, y se corrige aquí en vez
+de reescribirla en silencio. Decía, sobre los registros de envío suprimidos: *«No
+queda copia»*.
+
+**Se desmentía dos filas más abajo, en la misma tabla:** las copias de seguridad
+diarias vuelcan la base **entera** —`pg_dump` sin exclusiones— y se conservan
+**30 días**. Se tomaron copias el 25-ago-2026 a las 15:14Z y 15:18Z; la supresión
+fue hacia las 20:30Z del mismo día.
+
+**Por qué importa más que una imprecisión:** esa frase estaba en la fila que
+responde al **derecho de supresión**. A quien lo ejerza se le decía que su dato ya
+no existe en ninguna parte, cuando existía y con fecha de caducidad conocida — es
+la afirmación que lleva a alguien a dejar de preguntar.
+
+**Las copias son una excepción legítima a la supresión** —ya declarada en
+`retention-policy.md` §3— **y lo correcto es declararlas, no ocultarlas.** Ahora
+se dice hasta cuándo persisten, y el derecho de supresión lleva el mismo aviso.
+
+**Y el defecto de fondo, dicho:** aquella frase se afirmó **sin poder
+comprobarla** — nadie listó el bucket de copias, ni al escribirla ni al
+corregirla. Lo comprobable es la ventana de retención, y es lo que se declara.
+
+---
 
 ### 1.1 — 2026-08-25 · se retira el correo de esta política
 
