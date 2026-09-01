@@ -57,35 +57,24 @@ const allowedOrigins = isProd
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(cookieParser());
 
-// ── B-03 host monitor — detecta acceso directo a Railway URL ──
-// Si request entra con Host: web-production-*.up.railway.app → log a
-// Sentry como signal de bypass intentado del proxy Netlify.
-// Cuando custom domain api.kanban.aglaya.biz esté setup, esto detecta
-// tráfico fuera del path esperado.
+// ── B-03 host monitor ─────────────────────────────────────
+// Detecta tráfico que NO entra por el dominio propio de la API.
+//
+// ⚠️ Es INERTE mientras ese dominio no exista, y no es un apaño: si solo hay una
+// puerta, no hay bypass posible que detectar. Vivió tres meses disparándose con
+// el **100% del tráfico** —un evento por petición— y se comió la cuota de Sentry
+// **de toda la organización**, dejando ciegas a las otras naves.
+//
+// La medición, la precondición y la agregación viven en el módulo, que es donde
+// se pueden probar.
 if (isProd) {
   const { Sentry, enabled: sentryEnabled } = require('./utils/sentry');
-  app.use((req, res, next) => {
-    const host = req.headers.host || '';
-    // Skip health (uptime monitors pueden tocar URL directa) e internal cron
-    if (req.path === '/api/health') {
-      return next();
-    }
-    if (host.includes('.railway.app') || host.includes('.up.railway.app')) {
-      const ua = req.headers['user-agent'] || '';
-      const forwardedFor = req.headers['x-forwarded-for'] || req.ip || '';
-      console.warn(`[B-03 monitor] direct railway access: host=${host} path=${req.path} ua=${ua.slice(0,80)} ip=${forwardedFor}`);
-      if (sentryEnabled) {
-        Sentry.captureMessage('B-03 direct railway access detected', {
-          level: 'warning',
-          tags: { audit: 'B-03', host, path: req.path },
-          extra: { user_agent: ua, ip: forwardedFor },
-        });
-      }
-      // NO bloqueamos todavía — solo loggeamos. Cambiar a 403 cuando
-      // el patrón de tráfico legítimo esté confirmado (≥1 semana data).
-    }
-    next();
-  });
+  const { crearHostMonitor } = require('./middleware/hostMonitor');
+
+  app.use(crearHostMonitor({
+    hostEsperado: process.env.PUBLIC_API_HOST,
+    capturar: sentryEnabled ? (msg, ctx) => Sentry.captureMessage(msg, ctx) : undefined,
+  }));
 }
 
 // ── Rate limiting (B-06 audit Mariana) ─────────────────────

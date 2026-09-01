@@ -31,7 +31,7 @@ Estado real de seguridad y superficie de ataque. Este documento se sincroniza co
 | **Internal route `/api/internal/*`** | ✅ RESUELTO (B-09) | `x-task-secret` + rate limit dedicado (10/min) anti secret-guessing. `6c31670` |
 | **Row Level Security (RLS)** | ✅ post-audit | RLS habilitada en todas las tablas de `public` (organizations se habilitó en `migration-organizations-rls.sql` durante el audit). Políticas SELECT explícitas; WRITE parciales (B-12, MEDIO). **Cuántas tablas hay y cuáles la tienen lo custodia la DB** (`pg_tables.rowsecurity`), no este documento: la cifra que había aquí decía 9/9 cuando ya eran 10/10, y el resumen de abajo decía 10/10 en la misma página |
 | Aislamiento Supabase clients | ✅ | `auth` y `admin` usan clientes frescos por request |
-| **Railway URL pública** | 🟠 PARCIAL (B-03) | Monitor activo que loguea acceso directo a la URL Railway (`app.js`). Custom domain + Cloudflare WAF pendientes. `66ca5eb` |
+| **Railway URL pública** | 🟠 ABIERTO (B-03) | **El monitor está INERTE a propósito desde el 01-sep-2026**, y decir que estaba «parcial» era la mitad del defecto: sin dominio propio no hay bypass que detectar, y la alarma se disparaba con el **100% del tráfico**, un evento de Sentry por petición. Se comió la cuota de la organización. Vuelve sola en cuanto exista el dominio (ver B-03 más abajo) |
 | **Uploads XSS** | ✅ MITIGADO | Hallazgo B-CRIT-01 (CVSS 8.0) detectado y resuelto durante audit. SHA fix `402b0d7`. 4-layer defense: ext blocklist + MIME blocklist + allowlist + magic-bytes |
 | **Backup strategy** | ✅ MITIGADO quick-win | B-CRIT-02 resuelto: GitHub Actions cron daily → Cloudflare R2. SHA `3ae6541`. Pendiente upgrade Supabase Pro estructural |
 | **npm audit** | 🟡 residuales justificadas (B-08) | Remediación del 2026-07-12: la CRÍTICA y todas las HIGH de entonces, cerradas. Quedan residuales conocidas y argumentadas — server (`file-type` bloqueado por ESM, `uuid` no aplica) y client (`vite`/`esbuild`, solo dev, no llegan a producción). Ver INCIDENTS.md. **La cifra la da `npm audit`, no este documento:** la que había escrita decía cuatro y el runner decía cinco |
@@ -39,7 +39,7 @@ Estado real de seguridad y superficie de ataque. Este documento se sincroniza co
 ### Resumen estado
 
 - **Verde:** auth flow + JWT refresh 15m (B-02), autorización middleware, re-validación de claims (B-07), helmet API + CSP HTML Netlify (B-05), CORS, rate limiting completo (B-06/B-09), RLS habilitada en `public` + GRANTs (anon sin escritura), sesión en sessionStorage, uploads XSS resuelto, backup resuelto.
-- **Amarillo abierto:** Railway URL sin gateway (B-03 parcial), vulnerabilidades residuales de dependencias (B-08), WRITE policies RLS parciales (B-12).
+- **Amarillo abierto:** Railway URL sin gateway (**B-03 abierto**, y su monitor inerte hasta que exista el dominio propio), vulnerabilidades residuales de dependencias (B-08), WRITE policies RLS parciales (B-12).
 - **Mitigado durante audit + cierre:** B-CRIT-01 (XSS uploads), B-CRIT-02 (backup), B-04/B-11 (organizations RLS), y B-02/03/05/06/07/09.
 
 ---
@@ -50,7 +50,7 @@ La mayoría de los ALTOS del audit se cerraron en el cierre formal (ver `docs/au
 
 | ID | Severidad | Estado |
 |---|---|---|
-| B-03 | ALTO | **Parcial** — monitor activo; falta custom domain `api.kanban.aglaya.biz` + Cloudflare WAF |
+| B-03 | ALTO | **Abierto** — falta el dominio propio `api.kanban.aglaya.biz` + Cloudflare WAF. El monitor **no es mitigación mientras no exista ese dominio**: ver la nota de abajo |
 | B-08 | MEDIO | **Remediado a residuales justificadas** (server: `file-type`, `uuid`; client: `vite`/`esbuild`, solo dev). La cifra viva la da `npm audit` |
 | B-12 | MEDIO | Policies WRITE explícitas por tabla (hoy RLS por-organización) |
 
@@ -139,6 +139,33 @@ El riel MCP (`kanban-mcp/`, ver ADR-026 en `ARCHITECTURE.md`) usa además `SUPAB
 («cero mails»). La tabla `digest_logs` de más abajo **sigue existiendo** y se
 sigue exportando en `GET /api/auth/me/export`: es historia de envíos pasados,
 sin nadie que escriba en ella.
+
+
+### B-03: por qué el monitor estaba contando tráfico, no bypass
+
+**Medido el 01-sep-2026 contra la API de Railway** (proyecto `aglaya-kanban-desk`,
+servicio `web`, entorno `production`): `customDomains: []`, un único
+`serviceDomains: web-production-099a0.up.railway.app`.
+
+El monitor emitía un evento **por cada petición cuyo `Host` contuviera
+`railway.app`** — o sea, por todas, porque no hay otra puerta. Tres meses.
+No detectaba un bypass: **detectaba que existía tráfico**.
+
+**El daño no fue de esta nave.** La cuota de Sentry es de la **organización**: se
+agotó el segundo día del periodo de facturación con el **42% de los eventos
+viniendo de este issue**, y Sentry empezó a descartar errores nuevos **de toda la
+flota**, incluido el escáner de `legal-reg-tech` en producción.
+
+**Qué se hizo:** el monitor pasa a exigir su precondición —un dominio propio
+declarado en `PUBLIC_API_HOST`— y queda **inerte mientras no exista**, diciéndolo
+por el registro al arrancar. Cuando el dominio se cree, se configura la variable
+y la alarma vuelve **ya con agregación**: como mucho un evento por (host, ruta) y
+hora, llevando dentro cuántas veces pasó.
+
+⚠️ **Esto NO cierra B-03**, y por eso sube de «parcial» a «abierto»: seguir
+llamándolo mitigación era contar como defensa algo que solo hacía ruido. Cerrarlo
+es crear el dominio — `docs/runbooks/railway-custom-domain.md`— y eso es acción
+del Operador.
 
 ---
 

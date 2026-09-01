@@ -125,6 +125,27 @@ Esfuerzo: 2-3h. Cierra B-03 al 100%.
 
 ---
 
+## ⚠️ Paso que NO puede olvidarse: rearmar el monitor B-03
+
+**Mientras no exista el dominio, el monitor de bypass está inerte a propósito**
+(`server/middleware/hostMonitor.js`). Lo estuvo emitiendo un evento de Sentry por
+**cada petición** durante tres meses porque la condición que miraba —«el Host es
+de Railway»— la cumplía el 100% del tráfico: no había otra puerta. Se agotó la
+cuota de Sentry **de toda la organización**.
+
+Al terminar este runbook, en el mismo turno:
+
+1. Configurar en Railway la variable **`PUBLIC_API_HOST`** con el dominio recién
+   creado (`api.kanban.aglaya.biz`).
+2. Comprobar en el registro de arranque que **ya no aparece** la línea
+   `[B-03 monitor] INERTE: …`. Si sigue apareciendo, la variable no llegó y la
+   alarma **no está mirando nada**.
+
+Sin ese paso, el dominio existe y el bypass sigue sin vigilarse — que es la mitad
+de lo que este runbook viene a cerrar.
+
+---
+
 ## Validación post-setup
 
 Tras completar pasos 1-6:
