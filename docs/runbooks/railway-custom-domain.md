@@ -135,16 +135,19 @@ cuota de Sentry **de toda la organización**.
 
 Al terminar este runbook, en el mismo turno:
 
-1. Configurar en Railway la variable **`PUBLIC_API_HOST`** con el dominio recién
+1. **Leer «⚠️ Lo que ese interruptor ARMA», justo debajo, y decidir si sigues.**
+   No es contexto: enciendes **dos defectos conocidos**, y ahí está el criterio
+   para saber si te dan igual o no. Si no lo has leído, no hagas el paso 2.
+2. Configurar en Railway la variable **`PUBLIC_API_HOST`** con el dominio recién
    creado (`api.kanban.aglaya.biz`).
-2. Comprobar en el registro de arranque que **ya no aparece** la línea
+3. Comprobar en el registro de arranque que **ya no aparece** la línea
    `[B-03 monitor] INERTE: …`. Si sigue apareciendo, la variable no llegó y la
    alarma **no está mirando nada**.
 
-Sin ese paso, el dominio existe y el bypass sigue sin vigilarse — que es la mitad
-de lo que este runbook viene a cerrar.
+Sin estos pasos, el dominio existe y el bypass sigue sin vigilarse — que es la
+mitad de lo que este runbook viene a cerrar.
 
-### ⚠️ Lo que ese interruptor ARMA, y conviene leer antes de accionarlo
+### ⚠️ Lo que ese interruptor ARMA — paso 1 de la lista de arriba
 
 Configurar esa variable no solo enciende la vigilancia: enciende también **dos
 defectos conocidos y medidos** que hoy no pueden morder porque el monitor está
