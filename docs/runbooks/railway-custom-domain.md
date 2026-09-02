@@ -135,14 +135,58 @@ cuota de Sentry **de toda la organización**.
 
 Al terminar este runbook, en el mismo turno:
 
-1. Configurar en Railway la variable **`PUBLIC_API_HOST`** con el dominio recién
+1. **Leer «⚠️ Lo que ese interruptor ARMA», justo debajo, y decidir si sigues.**
+   No es contexto: enciendes **dos defectos conocidos**, y ahí está el criterio
+   para saber si te dan igual o no. Si no lo has leído, no hagas el paso 2.
+2. Configurar en Railway la variable **`PUBLIC_API_HOST`** con el dominio recién
    creado (`api.kanban.aglaya.biz`).
-2. Comprobar en el registro de arranque que **ya no aparece** la línea
+3. Comprobar en el registro de arranque que **ya no aparece** la línea
    `[B-03 monitor] INERTE: …`. Si sigue apareciendo, la variable no llegó y la
    alarma **no está mirando nada**.
 
-Sin ese paso, el dominio existe y el bypass sigue sin vigilarse — que es la mitad
-de lo que este runbook viene a cerrar.
+Sin estos pasos, el dominio existe y el bypass sigue sin vigilarse — que es la
+mitad de lo que este runbook viene a cerrar.
+
+### ⚠️ Lo que ese interruptor ARMA — paso 1 de la lista de arriba
+
+Configurar esa variable no solo enciende la vigilancia: enciende también **dos
+defectos conocidos y medidos** que hoy no pueden morder porque el monitor está
+inerte. **No están arreglados a propósito** —arreglarlos antes de que exista el
+dominio sería construir para un mundo que no existe— pero quien acciona el
+interruptor tiene derecho a saber qué acciona.
+
+**1 · El recuento de repeticiones puede mentir a la baja.** El evento lleva un
+campo «cuántas veces pasó mientras callaba». La poda borra la clave caducada con
+su contador dentro, y la poda la dispara **cualquier otra ruta** al emitir. Si
+eso ocurre en medio, el siguiente evento de la primera ruta declara **0
+repeticiones donde hubo diez**.
+
+*Medido el 02-sep-2026 sobre `28232cb`: diez peticiones a una forma, ventana
+caducada, una ruta ajena emite en medio → el evento siguiente reporta `0`.*
+
+**El daño es de lectura, no de cuota:** el aviso llega igual, con el volumen
+subestimado. Si alguna vez se usa ese número para decidir algo, no vale como
+medida — vale como «esto sigue pasando».
+
+**2 · El techo de claves acota la MEMORIA, no los EVENTOS.** Un cliente que pida
+rutas con formas irrepetibles genera **un evento por forma**. Medido: 20.000
+formas distintas → **20.000 eventos**, con solo 461 claves vivas. La agregación
+protege contra el tráfico repetido —que era el incidente del 1-sep— pero no
+contra un patrón que nunca repite forma.
+
+*Preexistente y no introducido por el arreglo de la agregación: comprobado
+idéntico antes y después.*
+
+**Qué hacer con esto el día que acciones el interruptor:**
+
+- Si solo te importa la señal «hay tráfico fuera del dominio», enciéndelo: los
+  dos defectos son tolerables para eso.
+- Si vas a **contar** con el número de repeticiones, o si la API queda expuesta a
+  clientes que no controlas, **arréglalos primero** — y entonces sí, con fecha y
+  con causa, es trabajo que se cartea.
+
+**Este aviso vive aquí, y no en una tarjeta, a propósito:** un runbook se lee
+justo antes de ejecutar; una tarjeta en «Hecho» no se relee nunca.
 
 ---
 
