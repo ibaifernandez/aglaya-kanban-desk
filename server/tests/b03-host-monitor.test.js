@@ -28,7 +28,7 @@
  *     por la otra puerta.
  */
 
-const { crearHostMonitor } = require('../middleware/hostMonitor');
+const { crearHostMonitor, plantillaDeRuta, MAX_CLAVES } = require('../middleware/hostMonitor');
 
 const ESPERADO = 'api.kanban.aglaya.biz';
 const RAILWAY = 'web-production-099a0.up.railway.app';
@@ -64,6 +64,7 @@ function banco(opciones = {}) {
   return {
     eventos,
     avisos,
+    tamano: () => monitor.tamanoAcumulado(),
     avanzar: (ms) => { reloj += ms; },
     // `next` se cuenta: el monitor NO puede tragarse una petición pase lo que
     // pase. Es un observador, y un observador que corta tráfico es un fallo
@@ -212,5 +213,112 @@ describe('lo que el monitor no puede hacer nunca', () => {
     b.llamar({ headers: {}, path: '/api/cards', ip: '1.2.3.4' });
 
     expect(b.eventos).toHaveLength(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tarjeta `b9b58f10`: la agregación NO agregaba el tráfico del riel.
+//
+// La primera versión —mía, de ayer— agrupaba por `req.path` LITERAL. El tráfico
+// del riel lleva identificadores dentro (`/api/boards/<uuid>/columns`), así que
+// **cada petición producía una clave nueva**: mil peticiones, mil eventos. La
+// ventana funcionaba; lo que no funcionaba era la clave.
+//
+// Y el acumulador **no se podaba nunca**: ni un `delete`, ni un `clear`.
+//
+// Hoy no hacía daño —el monitor está inerte sin dominio propio— pero el runbook
+// del dominio manda encender esa variable. **Era una mecha con la instrucción de
+// encenderla ya escrita.**
+// ─────────────────────────────────────────────────────────────────────────────
+
+const UNO = '11111111-2222-4333-8444-555555555555';
+const OTRO = '99999999-8888-4777-8666-555555555555';
+
+describe('agrega por la FORMA de la ruta, no por la ruta', () => {
+  it('mil peticiones a la misma forma con identificadores distintos son UN evento', () => {
+    const b = banco();
+
+    for (let i = 0; i < 1000; i += 1) {
+      const id = `${i.toString(16).padStart(8, '0')}-2222-4333-8444-555555555555`;
+      b.llamar(peticion(RAILWAY, `/api/boards/${id}/columns`));
+    }
+
+    expect(b.eventos).toHaveLength(1);
+  });
+
+  it('formas distintas siguen siendo señales distintas', () => {
+    const b = banco();
+
+    b.llamar(peticion(RAILWAY, `/api/boards/${UNO}/columns`));
+    b.llamar(peticion(RAILWAY, `/api/columns/${OTRO}/cards`));
+
+    expect(b.eventos).toHaveLength(2);
+  });
+
+  // Los identificadores numéricos cuentan igual: si solo se normalizara el UUID,
+  // una API con ids enteros volvería a tener el mismo defecto.
+  it('también normaliza identificadores numéricos', () => {
+    const b = banco();
+
+    b.llamar(peticion(RAILWAY, '/api/cards/17/history'));
+    b.llamar(peticion(RAILWAY, '/api/cards/948/history'));
+
+    expect(b.eventos).toHaveLength(1);
+  });
+
+  it('la etiqueta que agrupa es la forma; la ruta concreta va como ejemplo', () => {
+    const b = banco();
+
+    b.llamar(peticion(RAILWAY, `/api/boards/${UNO}/columns`));
+
+    const { tags, extra } = b.eventos[0].contexto;
+    expect(tags.ruta).toBe('/api/boards/:id/columns');
+    expect(extra.path_ejemplo).toBe(`/api/boards/${UNO}/columns`);
+    // Y la ruta con el identificador NO puede ser etiqueta: en Sentry, una
+    // etiqueta distinta por petición es exactamente el defecto de ayer.
+    expect(JSON.stringify(tags)).not.toContain(UNO);
+  });
+
+  it('y la plantilla es una función aparte, medible sola', () => {
+    expect(plantillaDeRuta(`/api/boards/${UNO}/columns`)).toBe('/api/boards/:id/columns');
+    expect(plantillaDeRuta('/api/cards/42')).toBe('/api/cards/:n');
+    expect(plantillaDeRuta('/api/cards')).toBe('/api/cards');
+  });
+});
+
+describe('el acumulador no crece sin límite', () => {
+  // La otra mitad del defecto: agregar bien y no podar deja un `Map` que solo
+  // crece. Se mide por COMPORTAMIENTO —cuántas claves quedan vivas— y no por
+  // memoria: la cifra de MB que se citó en el hallazgo no se pudo reproducir, y
+  // esto no depende de ella.
+  it('poda lo que ya no puede agrupar nada al pasar la ventana', () => {
+    const b = banco({ ventanaMs: 1000 });
+
+    for (let i = 0; i < 50; i += 1) b.llamar(peticion(RAILWAY, `/api/cosa-${i}`));
+    expect(b.tamano()).toBe(50);
+
+    b.avanzar(1500);
+    b.llamar(peticion(RAILWAY, '/api/otra'));
+
+    // Las 50 viejas ya no agrupan nada: se van. Queda la nueva.
+    expect(b.tamano()).toBe(1);
+  });
+
+  it('con formas sin límite, se queda en el techo en vez de crecer', () => {
+    const b = banco();
+
+    for (let i = 0; i < MAX_CLAVES * 3; i += 1) b.llamar(peticion(RAILWAY, `/api/forma-${i}`));
+
+    expect(b.tamano()).toBeLessThanOrEqual(MAX_CLAVES);
+  });
+
+  // Y no lo hace en silencio: vaciar el recuento pierde información, así que
+  // tiene que quedar dicho — y además ESO es el hallazgo, no el tamaño.
+  it('y avisa cuando reinicia el recuento por llegar al techo', () => {
+    const b = banco();
+
+    for (let i = 0; i < MAX_CLAVES * 2; i += 1) b.llamar(peticion(RAILWAY, `/api/forma-${i}`));
+
+    expect(b.avisos.some((l) => /se reinicia el recuento/.test(l))).toBe(true);
   });
 });
