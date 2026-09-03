@@ -153,7 +153,12 @@ describe('la política publicada (HTML) no ofrece lo que no existe', () => {
   // Y la contraparte, que es la que impide «arreglarlo» borrando historia: la
   // retractación de la v1.2 CITA la frase, y tiene que poder seguir citándola.
   it('pero el historial sí puede citar la frase para desmentirla', () => {
-    expect(html).toMatch(/«No queda copia»/);
+    // ⚠️ Tolerante al salto de línea. El HTML se REGENERA a mano desde el
+    // markdown, y una regeneración reajusta dónde parten las líneas: el
+    // 03-sep-2026 la cita quedó como «No\nqueda copia» y esto se puso rojo con
+    // el contenido intacto. Un guardián que muerde el reajuste de un párrafo
+    // enseña a ignorarlo — y el que lo vea rojo pensará que perdió la cita.
+    expect(html).toMatch(/«No\s+queda\s+copia»/);
   });
 
   // Y el mismo aviso donde de verdad lo va a buscar alguien: en su derecho.

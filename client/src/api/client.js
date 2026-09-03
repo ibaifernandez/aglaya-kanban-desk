@@ -210,6 +210,9 @@ export const api = {
       });
   },
 
+  reorderWorkspaces: (ids) =>
+    request('/workspaces/reorder', { method: 'PATCH', body: JSON.stringify({ ids }) }),
+
   // Notifications
   getNotifications:         ()    => request('/notifications'),
   markNotificationRead:     (id)  => request(`/notifications/${id}/read`, { method: 'PATCH' }),

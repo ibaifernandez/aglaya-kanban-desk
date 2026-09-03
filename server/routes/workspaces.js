@@ -20,6 +20,11 @@ const toWorkspace = (row) => ({
   coverUrl:    row.cover_url ?? null,
   createdAt:   row.created_at,
   createdBy:   row.created_by,
+  // `null` mientras la migración del orden no esté aplicada. El cliente ordena
+  // por esto y cae al nombre si falta, así que la pantalla funciona igual en los
+  // dos mundos — que es lo que permite desplegar antes de que el Operador toque
+  // la base.
+  order:       row.order ?? null,
 });
 
 async function getWorkspaceContext(workspaceId) {
@@ -51,10 +56,32 @@ async function getUserProfile(userId) {
 // Returns all workspaces the authenticated user is a member of.
 
 router.get('/', requireAuth, async (req, res) => {
-  const { data, error } = await supabaseAdmin
-    .from('workspace_members')
-    .select('role, workspace:workspaces(id, name, emoji, description, type, cover_url, created_at, created_by)')
-    .eq('user_id', req.user.id);
+  // ⚠️ Se pide `order`, y si la columna todavía no existe se reintenta sin ella.
+  //
+  // No es cosmético: este código se despliega ANTES de que el Operador aplique
+  // `migration-orden-de-espacios.sql`, y PostgREST responde con error a un
+  // `select` que nombra una columna inexistente. Sin este reintento, la pantalla
+  // de espacios se quedaría en blanco entre el despliegue y la migración — o
+  // sea, el arreglo rompería lo que venía a mejorar.
+  const CAMPOS = 'id, name, emoji, description, type, cover_url, created_at, created_by';
+
+  const pedir = (conOrden) =>
+    supabaseAdmin
+      .from('workspace_members')
+      .select(`role, workspace:workspaces(${conOrden ? `${CAMPOS}, order` : CAMPOS})`)
+      .eq('user_id', req.user.id);
+
+  let { data, error } = await pedir(true);
+
+  // 42703 = undefined_column, y SOLO ese. Abrir esto a `if (error)` convertiría
+  // el reintento en un tapón: un permiso denegado, una caída de red o una
+  // consulta mal escrita se reintentarían «sin orden», saldrían bien, y el fallo
+  // real desaparecería del registro. Hay un caso que lo fija — otro código de
+  // error NO reintenta.
+  if (error?.code === '42703') {
+    console.warn('[workspaces] la columna `order` no existe todavía; se sirve sin orden. Falta aplicar migration-orden-de-espacios.sql');
+    ({ data, error } = await pedir(false));
+  }
 
   if (error) { console.error('[workspaces] GET /:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
 
@@ -92,6 +119,108 @@ router.get('/', requireAuth, async (req, res) => {
     console.error('[workspaces] GET / counts:', e.message);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
+});
+
+// ── PATCH /api/workspaces/reorder ─────────────────────────────────────────────
+// Reordena espacios DENTRO DE UNA SECCIÓN. Tarjeta `d0954969`.
+//
+// ⚠️ POR QUÉ NO SE COPIA `reorderBoards`, que era el molde natural. Aquél
+// renumera fila a fila con un `Promise.all` de `UPDATE` sueltos **cuyo resultado
+// no se comprueba**: si uno falla o el proceso muere a mitad, el orden queda
+// medio aplicado —dos espacios con el mismo número, o un hueco— y nadie se
+// entera. Esta casa ya lo pagó (`c1efd488`).
+//
+// Aquí el reorden es **una sola sentencia** dentro de `reorder_workspaces`, y una
+// sentencia es atómica por definición: o entra entera o no entra nada.
+//
+// LA SECCIÓN NO ES DECORACIÓN: el orden es por tipo (decisión de Ibai), así que
+// mezclar tipos en una misma llamada produciría números que la vista no puede
+// representar. Se rechaza con 400 en vez de guardarlo y que se vea raro después.
+router.patch('/reorder', requireAuth, async (req, res) => {
+  const { ids } = req.body ?? {};
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'ids debe ser un array no vacío' });
+  }
+
+  const unicos = [...new Set(ids.filter(Boolean))];
+  if (unicos.length !== ids.length) {
+    return res.status(400).json({ error: 'ids no puede traer repetidos ni vacíos' });
+  }
+
+  if (req.user.role === 'cliente') {
+    return res.status(403).json({ error: 'Los usuarios cliente no pueden reordenar espacios' });
+  }
+
+  // Alcance: solo espacios de los que este usuario es miembro. Se comprueba
+  // ANTES de escribir — un identificador ajeno no se ordena mal, se rechaza.
+  const { data: miembro, error: errorMiembro } = await supabaseAdmin
+    .from('workspace_members')
+    .select('workspace:workspaces(id, type, organization_id)')
+    .eq('user_id', req.user.id)
+    .in('workspace_id', unicos);
+
+  if (errorMiembro) {
+    console.error('[workspaces] reorder alcance:', errorMiembro.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+
+  const suyos = (miembro || []).map((r) => r.workspace).filter(Boolean);
+
+  if (suyos.length !== unicos.length) {
+    return res.status(400).json({ error: 'Uno o más espacios no existen o no son tuyos' });
+  }
+
+  const tipos = [...new Set(suyos.map((w) => w.type ?? 'externo'))];
+  if (tipos.length > 1) {
+    return res.status(400).json({
+      error: `El orden es por sección: no se pueden mezclar tipos en una misma llamada (${tipos.join(', ')})`,
+    });
+  }
+
+  const { data: aplicadas, error: errorOrden } = await supabaseAdmin.rpc('reorder_workspaces', {
+    p_org: req.user.organizationId,
+    p_ids: unicos,
+  });
+
+  if (errorOrden) {
+    // 42883 = undefined_function. Es el estado normal entre desplegar esto y que
+    // el Operador aplique la migración, y merece un mensaje que diga qué falta
+    // en vez de un 500 mudo que parezca una avería.
+    if (errorOrden.code === '42883' || /reorder_workspaces/.test(errorOrden.message || '')) {
+      console.warn('[workspaces] reorder: falta aplicar migration-orden-de-espacios.sql');
+      return res.status(503).json({
+        error: 'El orden de espacios todavía no está disponible: falta aplicar docs/schema/migration-orden-de-espacios.sql en la base.',
+      });
+    }
+    console.error('[workspaces] reorder:', errorOrden.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+
+  // ⚠️ LA FUNCIÓN DEVUELVE CUÁNTAS FILAS TOCÓ, Y AQUÍ SE MIRA.
+  //
+  // Antes se tiraba ese número y se contestaba `200` con los ids **pedidos**,
+  // no con los guardados. Si la función tocaba menos filas —una fila borrada
+  // entre la comprobación y la escritura, un espacio movido de organización—,
+  // la respuesta decía que todo salió bien.
+  //
+  // Y eso no es un `200` optimista: es un `200` que MIENTE, porque el cliente
+  // pinta el orden nuevo al soltar y lo deja ahí. La pantalla se quedaría
+  // mostrando un orden que la base no tiene, hasta que alguien recargue.
+  //
+  // Se pide devolver el conteo desde la base en vez de fiarse de lo enviado
+  // precisamente porque **lo enviado es lo que creemos, y lo devuelto es lo que
+  // pasó**.
+  if (typeof aplicadas === 'number' && aplicadas !== unicos.length) {
+    console.warn(`[workspaces] reorder: se pidieron ${unicos.length} y se aplicaron ${aplicadas}`);
+    return res.status(409).json({
+      error: 'El orden no se aplicó entero: alguno de esos espacios cambió mientras se guardaba. Recarga y vuelve a intentarlo.',
+      pedidos: unicos.length,
+      aplicados: aplicadas,
+    });
+  }
+
+  return res.json({ data: { ids: unicos, aplicados: aplicadas ?? unicos.length } });
 });
 
 // ── POST /api/workspaces ──────────────────────────────────────────────────────
