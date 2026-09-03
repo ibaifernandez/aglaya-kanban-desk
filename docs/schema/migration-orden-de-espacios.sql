@@ -1,7 +1,9 @@
 -- Migration: los espacios de trabajo se pueden ordenar
 -- Tarjeta: «Los espacios de trabajo no se pueden ordenar» (d0954969)
 -- Created: 2026-09-03
--- ⏳ PENDIENTE DE APLICAR. Requiere al Operador (SQL Editor de Supabase).
+-- ✅ APLICADA el 2026-09-03 por Ibai desde el SQL Editor de Supabase, sobre el
+--    proyecto «AGLAYA Kanban Desk» (`main`, PRODUCTION). Comprobada en el mismo
+--    turno por el obrero, que NO la ejecutó — salida real en el punto 5.
 --
 -- ⚠️ NO SE CREA ESTA CABECERA: se mira el guardián. `scripts/schema-drift-guard.sh`
 --    compara el esquema documentado contra la base y corre con credencial propia.
@@ -127,11 +129,27 @@ GRANT EXECUTE ON FUNCTION public.reorder_workspaces(UUID, UUID[]) TO service_rol
 --
 --    c) La función existe y solo la puede ejecutar `service_role`:
 --
---   SELECT grantee::regrole::text AS rol, privilege_type
+--   SELECT grantee, privilege_type
 --     FROM information_schema.routine_privileges
 --    WHERE routine_name = 'reorder_workspaces';
 --
--- 6. Y DESPUÉS de aplicar, en el mismo turno: declarar la columna y la función
---    en `docs/schema/supabase-schema.sql`, y poner «APLICADA» en la cabecera.
---    `server/tests/orden-de-espacios.test.js` se pone rojo si una cosa va sin la
---    otra — en las dos direcciones.
+--    LO QUE DEVOLVIÓ, 03-sep-2026: `postgres, service_role`.
+--
+--    ⚠️ Y AQUÍ HAY UNA EXPECTATIVA MÍA MAL ESCRITA, corregida en vez de
+--    disimulada: al pasar el SQL anuncié «service_role y nadie más». Sale
+--    también `postgres`, y **es correcto**: `postgres` es el DUEÑO de la
+--    función —la creó— y el propietario conserva `EXECUTE` por definición. El
+--    `REVOKE` de arriba va a `PUBLIC`, `anon` y `authenticated`, que es lo que
+--    importa: **ningún rol de cliente puede ejecutarla**.
+--
+--    Se deja escrito porque la próxima persona que corra esta comprobación
+--    vería dos filas donde se le anunció una, y **un «no coincide» sin
+--    explicación se lee como avería**. Es el segundo «tiene que devolver
+--    exactamente» que escribo sin medirlo antes.
+--
+--    Lo que SÍ hay que mirar aquí es que NO aparezcan `anon` ni
+--    `authenticated`. Si aparecen, eso sí es el hallazgo.
+--
+-- 6. Declarado ya en `docs/schema/supabase-schema.sql`, en el mismo turno que la
+--    aplicación. `server/tests/orden-de-espacios.test.js` se pone rojo si una
+--    cosa va sin la otra — en las dos direcciones.

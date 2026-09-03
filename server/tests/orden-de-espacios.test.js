@@ -234,10 +234,13 @@ describe('la migración', () => {
       .map((l) => l.replace(/--.*$/, ''))
       .join('\n');
 
-    const bloque = esquema.slice(
-      esquema.indexOf('CREATE TABLE IF NOT EXISTS public.workspaces'),
-      esquema.indexOf('CREATE TABLE IF NOT EXISTS public.workspace_members'),
-    );
+    // ⚠️ El bloque es el CREATE TABLE, no «hasta la tabla siguiente». Mutación
+    // superviviente: con la ventana ancha, borrar la columna de la definición
+    // seguía en verde porque el `ALTER … ADD COLUMN IF NOT EXISTS` de
+    // idempotencia, dos líneas más abajo, también la nombra. La prueba leía el
+    // remiendo y lo daba por la declaración.
+    const inicio = esquema.indexOf('CREATE TABLE IF NOT EXISTS public.workspaces');
+    const bloque = esquema.slice(inicio, esquema.indexOf('\n);', inicio));
     const declarada = /"order"\s+INTEGER/.test(bloque);
 
     expect(`aplicada=${aplicada} declarada=${declarada}`).toBe(`aplicada=${aplicada} declarada=${aplicada}`);

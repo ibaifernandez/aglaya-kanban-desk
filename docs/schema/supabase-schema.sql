@@ -131,22 +131,54 @@ CREATE TABLE IF NOT EXISTS public.workspaces (
   cover_url       TEXT,
   type            TEXT DEFAULT 'personal'
                     CHECK (type = ANY (ARRAY['personal','interno','externo'])),
-  created_at      TIMESTAMPTZ DEFAULT now()
-  -- ⏳ 03-sep-2026 — FALTA AQUÍ `"order" INTEGER NOT NULL DEFAULT 0`, y no está
-  --    escrito todavía a propósito: lo añade
-  --    `docs/schema/migration-orden-de-espacios.sql`, pendiente del Operador.
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  -- El orden de los espacios en la pantalla, POR SECCIÓN: se numera dentro de
+  -- cada `type` (decisión de Ibai, 03-sep-2026). Y es COMPARTIDO — vive en la
+  -- tabla, así que lo ven todos los miembros. Un orden por persona no sería esta
+  -- columna: sería una tabla de preferencias con su RLS.
   --
-  --    Este fichero es un espejo de la base: declararlo antes de aplicarlo
-  --    pondría `schema-drift-guard` rojo en `main` hasta que alguien ejecutara la
-  --    migración, y un guardián que vive en rojo se normaliza hasta que deja de
-  --    mirarse. Primero se aplica, después se declara aquí — y
-  --    `server/tests/orden-de-espacios.test.js` se pone rojo si una cosa va sin
-  --    la otra, en las dos direcciones.
-  --
-  --    Con la columna llega también `public.reorder_workspaces(uuid, uuid[])`,
-  --    que reordena en UNA sentencia: renumerar fila a fila sin transacción deja
-  --    el orden a medias si algo falla, y esta casa ya lo pagó (`c1efd488`).
+  -- `order` es palabra reservada → siempre entre comillas dobles, como en
+  -- `boards` y `columns`.
+  "order"         INTEGER NOT NULL DEFAULT 0
 );
+
+-- Idempotencia para entornos ya inicializados:
+ALTER TABLE public.workspaces ADD COLUMN IF NOT EXISTS "order" INTEGER NOT NULL DEFAULT 0;
+
+-- Reordena una sección en UNA sentencia. Aplicada el 03-sep-2026
+-- (`migration-orden-de-espacios.sql`).
+--
+-- ⚠️ Es una sentencia y no un bucle A PROPÓSITO: renumerar fila a fila sin
+-- transacción —el patrón de `reorderBoards`— deja el orden a medias si algo
+-- falla, con números repetidos o huecos, y nadie se entera. Esta casa ya lo pagó
+-- (`c1efd488`).
+--
+-- El filtro por `organization_id` es la comprobación de alcance, y vive DENTRO:
+-- un identificador ajeno no se ordena mal, no se toca.
+CREATE OR REPLACE FUNCTION public.reorder_workspaces(p_org UUID, p_ids UUID[])
+RETURNS INTEGER
+LANGUAGE sql
+AS $$
+  WITH nuevas AS (
+    SELECT id, pos FROM unnest(p_ids) WITH ORDINALITY AS t(id, pos)
+  ),
+  aplicadas AS (
+    UPDATE public.workspaces w
+       SET "order" = n.pos
+      FROM nuevas n
+     WHERE w.id = n.id AND w.organization_id = p_org
+    RETURNING w.id
+  )
+  SELECT COUNT(*)::INTEGER FROM aplicadas;
+$$;
+
+-- Recortar antes de conceder, como el resto del esquema. `postgres` conserva
+-- `EXECUTE` por ser el dueño de la función — eso no se recorta y no es un
+-- hallazgo; lo que importa es que ningún rol de cliente pueda ejecutarla.
+REVOKE ALL ON FUNCTION public.reorder_workspaces(UUID, UUID[]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.reorder_workspaces(UUID, UUID[]) FROM anon;
+REVOKE ALL ON FUNCTION public.reorder_workspaces(UUID, UUID[]) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.reorder_workspaces(UUID, UUID[]) TO service_role;
 
 CREATE TABLE IF NOT EXISTS public.workspace_members (
   workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
