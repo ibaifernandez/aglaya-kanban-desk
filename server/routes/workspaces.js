@@ -73,8 +73,11 @@ router.get('/', requireAuth, async (req, res) => {
 
   let { data, error } = await pedir(true);
 
-  // 42703 = undefined_column. Solo se reintenta por ESO: cualquier otro error se
-  // trata como error, para no tapar un fallo real con un segundo intento.
+  // 42703 = undefined_column, y SOLO ese. Abrir esto a `if (error)` convertiría
+  // el reintento en un tapón: un permiso denegado, una caída de red o una
+  // consulta mal escrita se reintentarían «sin orden», saldrían bien, y el fallo
+  // real desaparecería del registro. Hay un caso que lo fija — otro código de
+  // error NO reintenta.
   if (error?.code === '42703') {
     console.warn('[workspaces] la columna `order` no existe todavía; se sirve sin orden. Falta aplicar migration-orden-de-espacios.sql');
     ({ data, error } = await pedir(false));
@@ -175,7 +178,7 @@ router.patch('/reorder', requireAuth, async (req, res) => {
     });
   }
 
-  const { error: errorOrden } = await supabaseAdmin.rpc('reorder_workspaces', {
+  const { data: aplicadas, error: errorOrden } = await supabaseAdmin.rpc('reorder_workspaces', {
     p_org: req.user.organizationId,
     p_ids: unicos,
   });
@@ -194,7 +197,30 @@ router.patch('/reorder', requireAuth, async (req, res) => {
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 
-  return res.json({ data: { ids: unicos } });
+  // ⚠️ LA FUNCIÓN DEVUELVE CUÁNTAS FILAS TOCÓ, Y AQUÍ SE MIRA.
+  //
+  // Antes se tiraba ese número y se contestaba `200` con los ids **pedidos**,
+  // no con los guardados. Si la función tocaba menos filas —una fila borrada
+  // entre la comprobación y la escritura, un espacio movido de organización—,
+  // la respuesta decía que todo salió bien.
+  //
+  // Y eso no es un `200` optimista: es un `200` que MIENTE, porque el cliente
+  // pinta el orden nuevo al soltar y lo deja ahí. La pantalla se quedaría
+  // mostrando un orden que la base no tiene, hasta que alguien recargue.
+  //
+  // Se pide devolver el conteo desde la base en vez de fiarse de lo enviado
+  // precisamente porque **lo enviado es lo que creemos, y lo devuelto es lo que
+  // pasó**.
+  if (typeof aplicadas === 'number' && aplicadas !== unicos.length) {
+    console.warn(`[workspaces] reorder: se pidieron ${unicos.length} y se aplicaron ${aplicadas}`);
+    return res.status(409).json({
+      error: 'El orden no se aplicó entero: alguno de esos espacios cambió mientras se guardaba. Recarga y vuelve a intentarlo.',
+      pedidos: unicos.length,
+      aplicados: aplicadas,
+    });
+  }
+
+  return res.json({ data: { ids: unicos, aplicados: aplicadas ?? unicos.length } });
 });
 
 // ── POST /api/workspaces ──────────────────────────────────────────────────────

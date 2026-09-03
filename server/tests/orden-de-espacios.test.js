@@ -42,10 +42,18 @@ jest.mock('../utils/supabase', () => {
     // servidor renumerase por su cuenta, aparecerían aquí.
     updatesSueltos: 0,
     errorRpc: null,
+    // Cuántas filas dice la función que tocó. `null` = tantas como se pidieron.
+    aplicadas: null,
+    // Errores encolados para el `select` de `workspace_members` (GET /).
+    erroresSelect: [],
+    intentosSelect: 0,
     reset() {
       estado.llamadasRpc.length = 0;
       estado.updatesSueltos = 0;
       estado.errorRpc = null;
+      estado.aplicadas = null;
+      estado.erroresSelect.length = 0;
+      estado.intentosSelect = 0;
     },
   };
 
@@ -60,6 +68,12 @@ jest.mock('../utils/supabase', () => {
         update: () => { if (tabla === 'workspaces') estado.updatesSueltos += 1; return chain; },
         single: () => Promise.resolve({ data: null, error: null }),
         then: (resolve, reject) => {
+          if (tabla === 'workspace_members' && !filtroIn) {
+            // Camino de `GET /`: sin `in`, con posibles errores encolados.
+            estado.intentosSelect += 1;
+            const err = estado.erroresSelect.shift() || null;
+            return Promise.resolve({ data: err ? null : [], error: err }).then(resolve, reject);
+          }
           if (tabla === 'workspace_members' && filtroIn) {
             const filas = estado.mios
               .filter((w) => filtroIn.includes(w.id))
@@ -74,7 +88,8 @@ jest.mock('../utils/supabase', () => {
     rpc: (nombre, args) => {
       estado.llamadasRpc.push({ nombre, args });
       if (estado.errorRpc) return Promise.resolve({ data: null, error: estado.errorRpc });
-      return Promise.resolve({ data: args.p_ids.length, error: null });
+      const n = estado.aplicadas === null ? args.p_ids.length : estado.aplicadas;
+      return Promise.resolve({ data: n, error: null });
     },
   };
 
@@ -114,6 +129,30 @@ describe('reordenar espacios', () => {
 
     expect(__estado.updatesSueltos).toBe(0);
     expect(__estado.llamadasRpc).toHaveLength(1);
+  });
+});
+
+describe('la respuesta no puede mentir sobre lo guardado', () => {
+  // ⚠️ Devuelta del vigilante. La función dice cuántas filas tocó y el servidor
+  // lo tiraba: contestaba `200` con los ids PEDIDOS. Si la base aplicaba menos
+  // —una fila borrada entre comprobar y escribir—, la respuesta decía que todo
+  // fue bien, y el cliente, que pinta al soltar, se quedaba mostrando un orden
+  // que la base no tiene.
+  it('si la base aplicó menos filas de las pedidas, NO contesta 200', async () => {
+    __estado.aplicadas = 1;
+
+    const res = await reordenar(['ws-b', 'ws-a']);
+
+    expect(res.status).toBe(409);
+    expect(res.body.pedidos).toBe(2);
+    expect(res.body.aplicados).toBe(1);
+  });
+
+  it('cuando sí se aplicó entero, el 200 dice cuántas fueron', async () => {
+    const res = await reordenar(['ws-b', 'ws-a']);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.aplicados).toBe(2);
   });
 });
 
@@ -180,6 +219,32 @@ describe('mientras la migración no esté aplicada', () => {
   });
 });
 
+describe('el reintento del GET está acotado a la columna que falta', () => {
+  // ⚠️ Devuelta del vigilante: abrir el reintento a `if (error)` dejaba todo en
+  // verde, y eso es exactamente cómo se tapa un fallo real — un permiso
+  // denegado o una caída se reintentarían «sin orden» y saldrían bien.
+  const listar = () =>
+    request(app).get('/api/workspaces').set('Authorization', `Bearer ${token()}`);
+
+  it('con 42703 reintenta sin la columna y responde', async () => {
+    __estado.erroresSelect.push({ code: '42703', message: 'column workspaces.order does not exist' });
+
+    const res = await listar();
+
+    expect(res.status).toBe(200);
+    expect(__estado.intentosSelect).toBe(2);   // pidió con orden, reintentó sin él
+  });
+
+  it('con CUALQUIER otro error NO reintenta: es 500 y se ve en el registro', async () => {
+    __estado.erroresSelect.push({ code: '42501', message: 'permission denied for table workspaces' });
+
+    const res = await listar();
+
+    expect(res.status).toBe(500);
+    expect(__estado.intentosSelect).toBe(1);
+  });
+});
+
 describe('la migración', () => {
   const MIGRACION = path.join(__dirname, '..', '..', 'docs', 'schema', 'migration-orden-de-espacios.sql');
   const ESQUEMA = path.join(__dirname, '..', '..', 'docs', 'schema', 'supabase-schema.sql');
@@ -195,6 +260,14 @@ describe('la migración', () => {
     const sql = leer(MIGRACION);
     expect(sql).toMatch(/unnest\(p_ids\) WITH ORDINALITY/);
     expect(sql).toMatch(/CREATE OR REPLACE FUNCTION public\.reorder_workspaces/);
+  });
+
+  // ⚠️ Devuelta del vigilante: quitar este filtro dejaba las 379 en verde, y es
+  // **la afirmación más fuerte de la migración** — que un identificador ajeno no
+  // se ordena mal porque no se toca. Sin él, la función reordena filas de
+  // cualquier organización que le pasen.
+  it('el UPDATE de la función filtra por organización', () => {
+    expect(leer(MIGRACION)).toMatch(/w\.organization_id\s*=\s*p_org/);
   });
 
   // La decisión de Ibai, fijada donde se aplica: el relleno numera por tipo.
@@ -243,7 +316,13 @@ describe('la migración', () => {
     const bloque = esquema.slice(inicio, esquema.indexOf('\n);', inicio));
     const declarada = /"order"\s+INTEGER/.test(bloque);
 
-    expect(`aplicada=${aplicada} declarada=${declarada}`).toBe(`aplicada=${aplicada} declarada=${aplicada}`);
+    // Y la FUNCIÓN también. El lazo cubría solo la columna: renombrarla en el
+    // esquema documentado dejaba 17 verdes, aunque el paso 6 de la migración
+    // pide declarar las dos. Lo cazó el vigilante.
+    const funcion = /CREATE OR REPLACE FUNCTION public\.reorder_workspaces/.test(esquema);
+
+    expect(`aplicada=${aplicada} columna=${declarada} funcion=${funcion}`)
+      .toBe(`aplicada=${aplicada} columna=${aplicada} funcion=${aplicada}`);
   });
 
   it('la cabecera dice PENDIENTE o APLICADA, y no las dos', () => {
