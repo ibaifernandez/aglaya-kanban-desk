@@ -36,5 +36,22 @@ export function useWorkspaces() {
     setWorkspaces((prev) => prev.filter((w) => w.id !== id));
   }, []);
 
-  return { workspaces, loading, error, createWorkspace, updateWorkspace, deleteWorkspace, reload: load };
+  // Reordena una SECCIÓN. Optimista: la pantalla se mueve al soltar y, si el
+  // servidor lo rechaza, se recarga lo que la base tenga de verdad — nunca se
+  // deja una pantalla que muestra un orden que no está guardado.
+  const reordenarEspacios = useCallback(async (idsOrdenados) => {
+    setWorkspaces((prev) => {
+      const posicion = new Map(idsOrdenados.map((id, i) => [id, i + 1]));
+      return prev.map((w) => (posicion.has(w.id) ? { ...w, order: posicion.get(w.id) } : w));
+    });
+
+    try {
+      await api.reorderWorkspaces(idsOrdenados);
+    } catch (e) {
+      setError(e.message);
+      load();
+    }
+  }, [load]);
+
+  return { workspaces, loading, error, createWorkspace, updateWorkspace, deleteWorkspace, reordenarEspacios, reload: load };
 }

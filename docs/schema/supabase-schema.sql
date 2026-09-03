@@ -132,6 +132,20 @@ CREATE TABLE IF NOT EXISTS public.workspaces (
   type            TEXT DEFAULT 'personal'
                     CHECK (type = ANY (ARRAY['personal','interno','externo'])),
   created_at      TIMESTAMPTZ DEFAULT now()
+  -- ⏳ 03-sep-2026 — FALTA AQUÍ `"order" INTEGER NOT NULL DEFAULT 0`, y no está
+  --    escrito todavía a propósito: lo añade
+  --    `docs/schema/migration-orden-de-espacios.sql`, pendiente del Operador.
+  --
+  --    Este fichero es un espejo de la base: declararlo antes de aplicarlo
+  --    pondría `schema-drift-guard` rojo en `main` hasta que alguien ejecutara la
+  --    migración, y un guardián que vive en rojo se normaliza hasta que deja de
+  --    mirarse. Primero se aplica, después se declara aquí — y
+  --    `server/tests/orden-de-espacios.test.js` se pone rojo si una cosa va sin
+  --    la otra, en las dos direcciones.
+  --
+  --    Con la columna llega también `public.reorder_workspaces(uuid, uuid[])`,
+  --    que reordena en UNA sentencia: renumerar fila a fila sin transacción deja
+  --    el orden a medias si algo falla, y esta casa ya lo pagó (`c1efd488`).
 );
 
 CREATE TABLE IF NOT EXISTS public.workspace_members (

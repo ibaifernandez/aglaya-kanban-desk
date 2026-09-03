@@ -1,4 +1,20 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  rectSortingStrategy,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Plus, Users, LayoutGrid, ChevronRight, Camera, Pencil, Trash2 } from 'lucide-react';
 import { useWorkspaces } from '../hooks/useWorkspaces.js';
 import { Spinner } from '../components/UI/Spinner.jsx';
@@ -473,8 +489,43 @@ function DeleteConfirmModal({ ws, onConfirm, onClose }) {
   );
 }
 
+// ── Envoltorio arrastrable ────────────────────────────────────────────────────
+//
+// Envuelve en vez de tocar `WorkspaceCard` a propósito: esa tarjeta también la
+// pinta la vista de cliente, que NO ordena. Meterle el arrastre dentro le daría
+// asas a una vista donde no hacen nada.
+//
+// El asa NO es toda la tarjeta: entrar en un espacio es un clic, y si toda la
+// superficie arrastrara, cada clic empezaría un arrastre de un píxel antes de
+// abrir. La asa es la esquina, visible solo al pasar por encima.
+function EspacioArrastrable({ ws, children }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: ws.id, data: { type: 'workspace', ws } });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`relative group/orden ${isDragging ? 'opacity-60 z-10' : ''}`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        aria-label={`Reordenar ${ws.name}`}
+        title="Arrastra para reordenar"
+        className="absolute top-2 left-2 z-20 px-1.5 py-0.5 rounded text-[#8b92a5] bg-[#1e2028]/80
+                   opacity-0 group-hover/orden:opacity-100 focus:opacity-100 cursor-grab
+                   active:cursor-grabbing transition-opacity"
+      >
+        ⠿
+      </button>
+      {children}
+    </div>
+  );
+}
+
 // ── Workspace section ─────────────────────────────────────────────────────────
-function WorkspaceSection({ title, icon, workspaces, coverOverrides, onEnter, onCoverChange, onContextMenu, onEdit, onDelete, emptyMsg }) {
+function WorkspaceSection({ title, icon, workspaces, coverOverrides, onEnter, onCoverChange, onContextMenu, onEdit, onDelete, emptyMsg, onReordenar }) {
   return (
     <div className="mb-10">
       <div className="flex items-center gap-2 mb-4">
@@ -485,19 +536,26 @@ function WorkspaceSection({ title, icon, workspaces, coverOverrides, onEnter, on
       {workspaces.length === 0 ? (
         <p className="text-xs text-[#3a3f50] pl-1">{emptyMsg}</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {workspaces.map((ws) => (
-            <WorkspaceCard
-              key={ws.id}
-              ws={{ ...ws, coverUrl: coverOverrides[ws.id] ?? ws.coverUrl }}
-              onEnter={onEnter}
-              onCoverChange={onCoverChange}
-              onContextMenu={onContextMenu}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ))}
-        </div>
+        // Cada sección tiene su propio contexto de ordenación: el orden es POR
+        // SECCIÓN (decisión de Ibai), así que una tarjeta no puede salirse de su
+        // grupo arrastrando. Con un solo contexto para todo, se podría — y el
+        // servidor rechazaría la mezcla con un 400 después del gesto.
+        <SortableContext items={workspaces.map((w) => w.id)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {workspaces.map((ws) => (
+              <EspacioArrastrable key={ws.id} ws={ws}>
+                <WorkspaceCard
+                  ws={{ ...ws, coverUrl: coverOverrides[ws.id] ?? ws.coverUrl }}
+                  onEnter={onEnter}
+                  onCoverChange={onCoverChange}
+                  onContextMenu={onContextMenu}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              </EspacioArrastrable>
+            ))}
+          </div>
+        </SortableContext>
       )}
     </div>
   );
@@ -505,7 +563,7 @@ function WorkspaceSection({ title, icon, workspaces, coverOverrides, onEnter, on
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, onOpenAdmin, onAvatarChange, onNotificationNavigate }) {
-  const { workspaces, loading, createWorkspace, updateWorkspace, deleteWorkspace } = useWorkspaces();
+  const { workspaces, loading, createWorkspace, updateWorkspace, deleteWorkspace, reordenarEspacios } = useWorkspaces();
   const [showNew,       setShowNew]       = useState(false);
   const [editTarget,    setEditTarget]    = useState(null);
   const [deleteTarget,  setDeleteTarget]  = useState(null);
@@ -518,9 +576,45 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
     ? TYPE_OPTS.filter((option) => option.value === 'personal')
     : TYPE_OPTS;
 
-  const personal = workspaces.filter((ws) => ws.type === 'personal');
-  const interno  = workspaces.filter((ws) => ws.type === 'interno');
-  const externo  = workspaces.filter((ws) => ws.type === 'externo');
+  // El orden guardado manda; si todavía no hay ninguno —la migración está
+  // pendiente y el servidor devuelve `order: null`— se cae al nombre, que es
+  // estable y predecible. Sin ese respaldo, la pantalla quedaría en el orden en
+  // que la base devuelva las filas, que puede cambiar entre recargas.
+  const porOrden = (a, b) => {
+    if (a.order != null && b.order != null && a.order !== b.order) return a.order - b.order;
+    if (a.order != null && b.order == null) return -1;
+    if (a.order == null && b.order != null) return 1;
+    return (a.name || '').localeCompare(b.name || '');
+  };
+
+  const personal = workspaces.filter((ws) => ws.type === 'personal').sort(porOrden);
+  const interno  = workspaces.filter((ws) => ws.type === 'interno').sort(porOrden);
+  const externo  = workspaces.filter((ws) => ws.type === 'externo').sort(porOrden);
+
+  const sensors = useSensors(
+    // 6px antes de considerar que es un arrastre: sin esto, un clic con un
+    // temblor mínimo sobre el asa arrastraría en vez de no hacer nada.
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const seccionDe = (tipo) => (tipo === 'personal' ? personal : tipo === 'interno' ? interno : externo);
+
+  function alSoltarEspacio({ active, over }) {
+    if (!over || active.id === over.id) return;
+
+    const tipo = active.data.current?.ws?.type ?? 'externo';
+    const seccion = seccionDe(tipo);
+    const desde = seccion.findIndex((w) => w.id === active.id);
+    const hasta = seccion.findIndex((w) => w.id === over.id);
+
+    // Soltar fuera de la propia sección no reordena nada. No debería poder
+    // ocurrir —cada sección tiene su contexto— pero si ocurriera, no mando al
+    // servidor una mezcla de tipos que va a rechazar.
+    if (desde < 0 || hasta < 0) return;
+
+    reordenarEspacios(arrayMove(seccion, desde, hasta).map((w) => w.id));
+  }
 
   function handleCoverChange(wsId, coverUrl) {
     setCoverOverrides((prev) => ({ ...prev, [wsId]: coverUrl }));
@@ -633,7 +727,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
             </div>
           ) : (
             // ── Collaborator/Admin view: sectioned ──────────────────────────
-            <>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={alSoltarEspacio}>
               <WorkspaceSection
                 title="Espacio personal" icon="🏠"
                 workspaces={personal}
@@ -652,7 +746,7 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
                 emptyMsg="No hay espacios de clientes asignados."
                 {...sharedCardProps}
               />
-            </>
+            </DndContext>
           )}
         </div>
       </main>
