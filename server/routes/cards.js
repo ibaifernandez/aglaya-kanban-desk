@@ -646,15 +646,51 @@ const searchCards = async (req, res) => {
   if (!tablerosVisibles.length) return res.json({ data: [] });
 
   // 3. Y ahora sí, las tarjetas — acotadas a esos tableros.
-  const { data: cards, error } = await supabaseAdmin
+  //
+  // ⚠️ DOS CONSULTAS, NO UN GRUPO `or`. Y no es preferencia de estilo.
+  //
+  // Aquí había `.or(\`title.ilike.%${q}%,description.ilike.%${q}%\`)`, con `q`
+  // —texto del usuario— interpolado dentro del lenguaje de filtros de PostgREST,
+  // donde la coma separa condiciones y el paréntesis agrupa. Una búsqueda con
+  // coma no buscaba una coma: **añadía una condición al filtro**.
+  //
+  // Un filtro por columna suelto no tiene ese problema: fuera de un grupo, la
+  // coma y el paréntesis no significan nada — los filtros se separan por `&`,
+  // y `&` sí lo escapa el cliente. Medido sobre la URL que genera de verdad
+  // `postgrest-js`, no supuesto (ver `server/tests/busqueda-sin-inyeccion.test.js`).
+  //
+  // Se descartó entrecomillar el valor dentro del `or` porque su corrección vive
+  // en la gramática del servidor PostgREST, que desde aquí no se puede preguntar.
+  //
+  // Y los comodines de `like` se escapan con la barra invertida, que es el
+  // escape por defecto de Postgres: sin esto, buscar «100%» encuentra cualquier
+  // cosa que empiece por 100. ⚠️ ESTA PARTE NO ESTÁ MEDIDA DESDE AQUÍ —descansa
+  // en que PostgREST pase el patrón tal cual a `ILIKE`—, y no sostiene ninguna
+  // afirmación de seguridad: un comodín solo ensancha DENTRO de las filas que ya
+  // te tocan. Lo que cierra la inyección es la forma de la consulta, no esto.
+  const patron = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  const acotada = () => supabaseAdmin
     .from('cards')
     .select('*')
     .eq('organization_id', req.user.organizationId)
-    .in('board_id', tablerosVisibles)
-    .or(`title.ilike.%${q}%,description.ilike.%${q}%`)
-    .limit(15);
+    .in('board_id', tablerosVisibles);
 
+  const [porTitulo, porDescripcion] = await Promise.all([
+    acotada().ilike('title', patron).limit(15),
+    acotada().ilike('description', patron).limit(15),
+  ]);
+
+  const error = porTitulo.error || porDescripcion.error;
   if (error) { console.error('[cards] searchCards:', error.message); return res.status(500).json({ error: 'Error interno del servidor' }); }
+
+  // La unión se hace aquí, y el `limit` de arriba es POR consulta: sin esto una
+  // tarjeta que case por los dos campos saldría dos veces.
+  const porId = new Map();
+  for (const fila of [...(porTitulo.data || []), ...(porDescripcion.data || [])]) {
+    if (!porId.has(fila.id)) porId.set(fila.id, fila);
+  }
+  const cards = [...porId.values()].slice(0, 15);
+
   if (!cards?.length) return res.json({ data: [] });
 
   const columnIds = [...new Set(cards.map((c) => c.column_id))];

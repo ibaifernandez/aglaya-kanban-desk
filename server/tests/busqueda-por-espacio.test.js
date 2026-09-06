@@ -30,6 +30,8 @@ const YO = 'user-yo';
 const ORG = 'org-1';
 
 jest.mock('../utils/supabase', () => {
+  const { likeARegExp } = require('./helpers/like');
+
   const TABLAS = {
     // Soy miembro de ws-mio. NO de ws-ajeno.
     workspace_members: [
@@ -73,17 +75,15 @@ jest.mock('../utils/supabase', () => {
         // tarjeta pasaría con el filtro quitado: sería una tautología sobre la
         // fixture en vez de una medición del código.
         in: (col, valores) => { filas = filas.filter((r) => valores.includes(r[col])); return chain; },
-        // El `or` del ilike: se aplica sobre título y descripción, que es lo que
-        // hace la ruta. Sin esto, «buscar» devolvería todo y el caso mediría otra
-        // cosa.
-        or: (expr) => {
-          const m = /title\.ilike\.%(.*?)%/.exec(expr);
-          const aguja = (m ? m[1] : '').toLowerCase();
-          filas = filas.filter(
-            (r) =>
-              String(r.title || '').toLowerCase().includes(aguja) ||
-              String(r.description || '').toLowerCase().includes(aguja),
-          );
+        // El `ilike` por columna, que es lo que hace la ruta desde que dejó de
+        // interpolar dentro de un grupo `or` (tarjeta `2c6c81b3`). Sin esto,
+        // «buscar» devolvería todo y el caso mediría otra cosa.
+        //
+        // Se aplica con semántica de `like`: `%` comodín, y `\` escapa — que es
+        // como lo manda la ruta.
+        ilike: (col, patron) => {
+          const re = likeARegExp(patron);
+          filas = filas.filter((r) => re.test(String(r[col] || '')));
           return chain;
         },
         limit: () => chain,
