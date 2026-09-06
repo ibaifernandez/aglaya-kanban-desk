@@ -51,3 +51,7 @@ graphify-out/
 
 # Local Netlify folder
 .netlify
+
+# Documentos de trabajo del Operador (Pages). No son fuente ni entregable
+# versionado: se generan, se editan a mano y pesan. Fuera del árbol.
+*.pages

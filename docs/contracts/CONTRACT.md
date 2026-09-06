@@ -503,6 +503,28 @@ y cuesta un renglón.
 
 ### Historial de versiones
 
+**Sin bump — 2026-09-06.** No cambia la forma de ninguna puerta: ni un campo, ni
+un código, ni una obligatoriedad. Va aquí porque **se tocó `server/routes/cards.js`**,
+que sirve tres cláusulas vivas de este documento, y esta sección **es** el aviso
+al capitán.
+
+**Qué cambió, y por qué no le afecta.** `GET /api/cards/search` aislaba solo por
+organización, yendo por `service_role` —que salta las políticas de fila—, así que
+devolvía tarjetas de espacios a los que quien preguntaba no pertenece. Ahora se
+acota a **los espacios de los que el usuario es miembro** (tarjeta `0092a0c0`).
+
+**Medido antes de escribir esto, no supuesto:** esa ruta **no la consume ninguna
+puerta de este contrato**. El riel (Puerta 1) **no expone ninguna herramienta de
+búsqueda** —comprobado en `kanban-mcp/server.py`— y este documento no la
+mencionaba en ninguna cláusula. Su único llamante es la barra de la aplicación
+web.
+
+**Lo que sí conviene que el capitán sepa igualmente:** si algún día se añade una
+búsqueda al riel, **verá solo los espacios de los que el riel sea miembro** — que
+es el mismo alcance asimétrico que ya declara `GET /list-workspaces`, y el mismo
+punto ciego. No es una regla nueva: es la de siempre, aplicada donde faltaba.
+
+
 **v3.9.0 — 2026-08-25 · MENOR.** Aditivo: **la Puerta 2 dispara la notificación
 in-app cuando la tarjeta nace asignada.** Decisión de Ibai. Ningún campo, ningún
 código de error y ninguna obligatoriedad cambian; lo que cambia es que esta

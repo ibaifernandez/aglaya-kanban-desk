@@ -582,15 +582,75 @@ const deleteCard = async (req, res) => {
   res.json({ success: true });
 };
 
+// ── Búsqueda global ───────────────────────────────────────────────────────────
+//
+// ⚠️ AISLAMIENTO: por ESPACIO, no por organización. Tarjeta `0092a0c0`.
+//
+// Esta ruta filtraba solo por `organization_id`, y va por `supabaseAdmin`, que
+// **salta las políticas de fila**: las 32 que protegen el resto del producto no
+// intervenían aquí. El aislamiento era ese `.eq` y nada más.
+//
+// Y no era una decisión de diseño: **era la única ruta de tarjetas sin
+// `requireWorkspaceMember`**, mientras sus seis hermanas lo llevan en las líneas
+// contiguas del registro. Una ruta que se quedó fuera del patrón de su familia.
+//
+// POR QUÉ NO SE LE PONE EL MIDDLEWARE Y YA. Porque `requireWorkspaceMember`
+// necesita un espacio concreto, y esta búsqueda **es global a propósito**: la
+// barra de la aplicación busca «en todos los tableros». Exigir un espacio
+// cambiaría la función que se usa, no solo su guarda.
+//
+// Lo que se hace es acotar el conjunto alcanzable a **los espacios de los que el
+// usuario es miembro**, que es lo que el middleware garantiza en las otras seis:
+// misma promesa, expresada donde esta ruta puede expresarla.
+//
+// CONSECUENCIA QUE HAY QUE SABER: quien no sea miembro de ningún espacio no
+// encuentra nada. Es correcto —no hay nada suyo que encontrar— y es distinto de
+// «la búsqueda está rota».
 const searchCards = async (req, res) => {
   const raw = typeof req.query.q === 'string' ? req.query.q.trim() : '';
   if (raw.length < 2) return res.json({ data: [] });
   const q = raw.slice(0, 100); // cap at 100 chars to prevent abuse
 
+  // 1. Los espacios de los que ESTE usuario es miembro.
+  const { data: membresias, error: errorMiembro } = await supabaseAdmin
+    .from('workspace_members')
+    .select('workspace_id')
+    .eq('user_id', req.user.id);
+
+  if (errorMiembro) {
+    console.error('[cards] searchCards membresías:', errorMiembro.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+
+  const espacios = [...new Set((membresias || []).map((m) => m.workspace_id))];
+  // Atajo, no guarda: ahorra una consulta cuando no hay nada que buscar. La
+  // protección la da el `in` de abajo, así que quitar esta línea no cambia el
+  // resultado — y por eso NO hay caso que la fije. Se dice para que nadie
+  // busque el que falta.
+  if (!espacios.length) return res.json({ data: [] });
+
+  // 2. Los tableros de esos espacios. El filtro por organización se conserva:
+  //    es una segunda condición, no la sustituye ninguna de las otras.
+  const { data: tableros, error: errorTableros } = await supabaseAdmin
+    .from('boards')
+    .select('id')
+    .eq('organization_id', req.user.organizationId)
+    .in('workspace_id', espacios);
+
+  if (errorTableros) {
+    console.error('[cards] searchCards tableros:', errorTableros.message);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+
+  const tablerosVisibles = [...new Set((tableros || []).map((b) => b.id))];
+  if (!tablerosVisibles.length) return res.json({ data: [] });
+
+  // 3. Y ahora sí, las tarjetas — acotadas a esos tableros.
   const { data: cards, error } = await supabaseAdmin
     .from('cards')
     .select('*')
     .eq('organization_id', req.user.organizationId)
+    .in('board_id', tablerosVisibles)
     .or(`title.ilike.%${q}%,description.ilike.%${q}%`)
     .limit(15);
 
