@@ -503,6 +503,29 @@ y cuesta un renglón.
 
 ### Historial de versiones
 
+**Sin bump — 2026-09-06 (b).** Segundo cambio del mismo día sobre
+`server/routes/cards.js`, y **la misma ruta que el de abajo**:
+`GET /api/cards/search`. Tampoco cambia la forma de ninguna puerta.
+
+**Qué cambió.** La búsqueda metía el texto del usuario dentro de un grupo `or`
+de PostgREST —donde la coma separa condiciones—, así que una búsqueda con coma
+**añadía una condición al filtro**. Ahora son dos filtros por columna, unidos en
+el servidor (tarjeta `2c6c81b3`).
+
+**Medido, y acota lo que se puede afirmar:** el cliente **sí escapa `&`**, así
+que aquel texto **no podía crear otro parámetro** y **no llegaba a los `AND`** de
+organización ni de tablero. Era **ensanchado dentro del alcance ya permitido y
+error de sintaxis, no fuga entre inquilinos**. Se arregló igual.
+
+**Por qué le sigue sin afectar al capitán:** vale lo medido en la entrada de
+abajo — el riel no expone búsqueda y este documento no la menciona.
+
+**Y lo que sí es nuevo para quien escriba puertas aquí:** ninguna cláusula de
+este contrato debe construir un filtro de PostgREST concatenando texto de fuera.
+No es una obligación del contrato hacia sus consumidores; es una nota sobre cómo
+se implementan sus rutas, y por eso no sube versión.
+
+
 **Sin bump — 2026-09-06.** No cambia la forma de ninguna puerta: ni un campo, ni
 un código, ni una obligatoriedad. Va aquí porque **se tocó `server/routes/cards.js`**,
 que sirve tres cláusulas vivas de este documento, y esta sección **es** el aviso
