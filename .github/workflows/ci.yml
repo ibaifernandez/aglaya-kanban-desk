@@ -42,11 +42,39 @@ name: CI
 #     hacen trabajo de verdad y los únicos que crecerán.
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ─────────────────────────────────────────────────────────────────────────────
+# POR QUÉ `pull_request` YA NO FILTRA POR RAMA BASE (7-sep-2026, tarjeta `ff703591`)
+#
+# Decía `branches: [main]`, y `ci.yml` **es el único workflow que reacciona a un
+# PR** —los otros seis son de reloj o de `deployment_status`—. Consecuencia: **un
+# PR cuya base no fuera `main` llegaba con cero comprobaciones propias.**
+#
+# Y eso es peor que un hueco de cobertura. `lineas-maestras.md` prohíbe mergear
+# sin que «las comprobaciones que la configuración de la nave manda correr para
+# ese PR» estén en verde. Si la configuración no manda correr ninguna, **la frase
+# se cumple en vacío** y quien la aplica cree haber comprobado.
+#
+# Pasó: el PR #86 nació apilado sobre una rama de agente y llegó con un solo
+# check —de una integración externa—. Lo cazó una persona contando a mano.
+#
+# ⚠️ SE QUITA EL FILTRO ENTERO EN VEZ DE AÑADIR `agente/**`, y la diferencia
+# importa: una lista de prefijos de rama es una copia que envejece —la casa ya
+# pagó esa lección con las puertas de `contract-guard`— y solo cubre las bases
+# que alguien se acordó de escribir. Sin filtro, **cualquier** base dispara.
+#
+# QUÉ CUESTA, medido antes de tocarlo, porque hay una tarjeta abierta por el
+# gasto de Actions y aquí se factura por job: de los 86 PR de la historia de este
+# repo, **85 tenían base `main`** y ya pagaban esta corrida. El único que no,
+# **no pagó nada** — y ése es justo el defecto. El delta no es gasto nuevo: es el
+# gasto que se estaba saltando.
+#
+# `push` NO se toca: sigue solo en `main`. Empujar a una rama de agente no
+# dispara nada, y la corrida del PR es la que juzga.
+# ─────────────────────────────────────────────────────────────────────────────
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   workflow_dispatch:
 
 # Cancela runs anteriores si llega un nuevo push al mismo branch
