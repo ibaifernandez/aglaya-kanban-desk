@@ -1,0 +1,7 @@
+Fixed
+
+- **La búsqueda podía contestar «no hay» cuando lo que pasaba era «no se pudo mirar», y nada lo impedía.** `searchCards` consulta membresías y tableros antes de buscar tarjetas; los dos errores se manejaban con un `500`, pero **ninguna prueba obligaba a que siguieran manejándose**. Tarjeta `1753729e`.
+  - **El modo de fallo es el que peor sienta a esta casa.** Sin ese `500`, un error de la base sale por la puerta como `{ data: [] }` — **«no hay» indistinguible de «no se pudo mirar»**, y sobre una ruta de **búsqueda**, donde la lista vacía es el resultado más normal del mundo y nadie sospecha. Alguien no encuentra su tarjeta y **la vuelve a crear**: trabajo duplicado, primera línea de la máxima.
+  - **Medido en las dos direcciones, que es lo que lo convierte en evidencia:** con el banco anterior, desactivar cualquiera de los dos manejos dejaba **403 de 403 en verde**; con los dos casos nuevos, cada mutación cae. Tres pasadas coincidentes —vigilante, capataz y ésta.
+  - **Deuda de `0fad2a5`**, que fue quien introdujo esas dos consultas: antes, la función solo miraba tarjetas. Se cierra con el mismo patrón que su hermana `2c6c81b3` ya usa para las otras dos consultas de la misma función — no hubo que inventar nada.
+  - **Lo declarado que NO se toca:** que el filtro por organización de la consulta de tableros sea redundante por el camino normal sigue siendo redundancia declarada, no defecto, y no entra aquí.
