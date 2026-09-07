@@ -60,13 +60,17 @@ jest.mock('../utils/supabase', () => {
     TABLAS,
     // Sin membresías: para el caso «quien no es miembro de nada no ve nada».
     sinMembresias: false,
-    reset() { estado.sinMembresias = false; },
+    // Nombre de la tabla cuya consulta debe fallar. Para los casos de la tarjeta
+    // `1753729e`: «no se pudo mirar» no puede contestarse como «no hay».
+    fallaEn: null,
+    reset() { estado.sinMembresias = false; estado.fallaEn = null; },
   };
 
   const supabaseAdmin = {
     from: (tabla) => {
       let filas = JSON.parse(JSON.stringify(TABLAS[tabla] ?? []));
       if (tabla === 'workspace_members' && estado.sinMembresias) filas = [];
+      const falla = estado.fallaEn === tabla;
 
       const chain = {
         select: () => chain,
@@ -88,7 +92,9 @@ jest.mock('../utils/supabase', () => {
         },
         limit: () => chain,
         single: () => Promise.resolve({ data: filas[0] ?? null, error: null }),
-        then: (resolve, reject) => Promise.resolve({ data: filas, error: null }).then(resolve, reject),
+        then: (resolve, reject) => Promise.resolve(
+          falla ? { data: null, error: { message: 'la base dijo que no' } } : { data: filas, error: null },
+        ).then(resolve, reject),
       };
       return chain;
     },
@@ -155,6 +161,35 @@ describe('la búsqueda solo alcanza los espacios de los que eres miembro', () =>
     const ids = res.body.data.map((c) => c.id);
     expect(ids).toContain('c-mia');
     expect(ids).not.toContain('c-rara');
+  });
+
+  // ⚠️ LOS DOS CASOS DE LA TARJETA `1753729e`, y el modo de fallo que cierran es
+  // el que peor sienta a esta casa.
+  //
+  // `searchCards` consulta membresías y tableros ANTES de buscar tarjetas. Los
+  // dos errores se manejaban con un `500` y **nada obligaba a que siguieran
+  // manejándose**: medido por tres pasadas —vigilante, capataz y ésta— que
+  // desactivar cualquiera de los dos `if` dejaba la batería entera en verde.
+  //
+  // Sin ese `500`, un error de la base sale por la puerta como `{ data: [] }`:
+  // **«no hay» indistinguible de «no se pudo mirar»**. Y ocurre sobre una ruta
+  // de BÚSQUEDA, donde la lista vacía es el resultado más normal del mundo y
+  // nadie sospecha — alguien no encuentra su tarjeta y la vuelve a crear. Eso es
+  // trabajo duplicado, primera línea de la máxima.
+  //
+  // Las dos consultas las introdujo `0fad2a5`: antes, esta función solo miraba
+  // tarjetas. Es deuda de aquella obra, cerrada aquí con el mismo patrón que su
+  // hermana `2c6c81b3` ya usa para las otras dos consultas de la misma función.
+  it.each([
+    ['la de membresías', 'workspace_members'],
+    ['la de tableros',   'boards'],
+  ])('si %s falla, contesta 500 y no una lista vacía', async (_, tabla) => {
+    __estado.fallaEn = tabla;
+
+    const res = await buscar('secreto');
+
+    expect(res.status).toBe(500);
+    expect(res.body.data).toBeUndefined();
   });
 
   it('sigue sin buscar con menos de dos caracteres', async () => {
