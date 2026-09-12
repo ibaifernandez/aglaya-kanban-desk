@@ -93,8 +93,30 @@ if [ "${1:-}" = "--relevante" ]; then
 fi
 ALLOWED="${RAIL_BLINDSPOT_ALLOWED:-$REPO_ROOT/scripts/rail-blindspot.allowed}"
 RAIL_EMAIL="${RAIL_EMAIL:-kanban-rail@aglaya.biz}"
+
 # Quién define el alcance. No es una lista de espacios: es la PROPIEDAD.
-DUENO_EMAIL="${RAIL_SCOPE_OWNER:-info@ibaifernandez.com}"
+#
+# ⚠️ AQUÍ ESTABA TECLEADA LA DIRECCIÓN PERSONAL DEL OPERADOR, y salió el
+# 2026-09-12 (tarjeta `9dbfbd0d`): este repositorio es público. Se sustituye por
+# el PAPEL —el superadmin humano—, que es lo que la condición quería decir de
+# todos modos: el dueño no es esa dirección, es quien tiene ese papel.
+#
+# Las dos cuentas superadmin de esta nave son el humano y el riel (ver
+# `docs/ARCHITECTURE.md`), así que «humano» se expresa excluyendo al riel — cuya
+# dirección es de ROL y sí puede escribirse.
+#
+# CONSECUENCIA, dicha: si algún día hay un segundo superadmin humano, el alcance
+# se ensancha solo. Es correcto —serían dos dueños de verdad— pero conviene
+# saberlo antes de que pase, y no descubrirlo por un rojo.
+#
+# `RAIL_SCOPE_OWNER` sigue existiendo para fijar UNA dirección concreta cuando
+# haga falta —lo usa quien depura—, y si no se da, manda el papel.
+DUENO_EMAIL="${RAIL_SCOPE_OWNER:-}"
+if [ -n "$DUENO_EMAIL" ]; then
+  COND_DUENO="x.email = '${DUENO_EMAIL}'"
+else
+  COND_DUENO="x.role = 'superadmin' AND x.email <> '${RAIL_EMAIL}'"
+fi
 
 # La pregunta, entera, en un sitio. Excluye `personal` por regla (ver cabecera).
 read -r -d '' QUERY <<SQL
@@ -108,7 +130,7 @@ WITH alcance AS (
                     JOIN users x ON x.id = o.user_id
                    WHERE o.workspace_id = w.id
                      AND o.role = 'owner'
-                     AND x.email = '${DUENO_EMAIL}')
+                     AND ${COND_DUENO})
           AND w.type <> 'personal')                                      AS deberia
     FROM workspaces w)
 SELECT id, name, type,

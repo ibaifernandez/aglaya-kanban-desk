@@ -1819,7 +1819,7 @@ ALTER TABLE public.columns  ADD COLUMN IF NOT EXISTS default_sort   TEXT DEFAULT
 - Datos personales de Ibai en `server/data/tasks.json` → respaldados en `tasks.personal-backup.json`
 - Adjuntos personales en `server/uploads/` (5 archivos: 2 PNG, 1 PDF, 1 CSV, 1 MD)
 - `estrategia.ibaifernandez.com.md` de la raíz del proyecto
-- Credenciales SMTP personales (info@ibaifernandez.com) del archivo `.env`
+- Credenciales SMTP personales (del dominio personal del Operador) del archivo `.env`
 
 ### Añadido
 - **Dummy data corporativa** en `server/data/tasks.json`:

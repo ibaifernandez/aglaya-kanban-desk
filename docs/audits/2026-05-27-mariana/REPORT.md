@@ -5,7 +5,7 @@
 **Repo SHA inicio:** `23cdd06`
 **Repo SHA fin:** `6862947`
 **Auditor:** Claude Opus 4.7 (1M context)
-**Operador:** Antonio Ibai Fernández (info@ibaifernandez.com)
+**Operador:** Antonio Ibai Fernández 
 
 ---
 

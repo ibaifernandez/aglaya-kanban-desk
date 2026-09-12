@@ -9,7 +9,7 @@ Este documento es la fuente de verdad única sobre la jerarquía, privacidad y c
 
 Determinan el acceso general a la infraestructura y qué tipos de recursos puede crear el usuario. Se basan en el `user_role` del perfil (`users.role`).
 
-### 👑 Superadmin (info@ibaifernandez.com)
+### 👑 Superadmin (la cuenta humana — su dirección la custodia `users`)
 
 _Locus de control total y auditoría._
 

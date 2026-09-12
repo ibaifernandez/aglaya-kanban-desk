@@ -43,7 +43,7 @@ El sistema utiliza una capa de seguridad concéntrica:
 - `requireWorkspaceMember`: El "muro de fuego" **Micro**. Verifica si el usuario pertenece al espacio de trabajo. Es un middleware *context-aware* capaz de derivar el `workspaceId` desde un `boardId`, `columnId` o `cardId`.
 
 ### Modo Dios (Superadmin)
-El bypass "Modo Dios" es **por rol** (`role='superadmin'`), no por email: permite auditar/operar cualquier workspace por acceso directo, actuando como Propietario virtual sin estar invitado. Hoy hay **dos** cuentas superadmin — el operador humano (`info@ibaifernandez.com`) y la cuenta de servicio del riel MCP (`kanban-rail@aglaya.biz`; ver ADR-026 + `SECURITY.md`).
+El bypass "Modo Dios" es **por rol** (`role='superadmin'`), no por email: permite auditar/operar cualquier workspace por acceso directo, actuando como Propietario virtual sin estar invitado. Hoy hay **dos** cuentas superadmin — el operador humano (Ibai; **su dirección la custodia la tabla `users`**, no este documento — repositorio público) y la cuenta de servicio del riel MCP (`kanban-rail@aglaya.biz`, que es una dirección de rol; ver ADR-026 + `SECURITY.md`).
 
 ### Roles Micro
 Definidos en la tabla `workspace_members`:
