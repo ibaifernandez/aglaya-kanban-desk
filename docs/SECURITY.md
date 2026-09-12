@@ -60,7 +60,7 @@ El bypass "God Mode" es **por rol** (`role='superadmin'`), no por email. Cuentas
 
 | Cuenta | Uso | Credencial |
 |---|---|---|
-| `info@ibaifernandez.com` | Operador humano (Ibai) | Login personal |
+| *(la custodia `users`)* | Operador humano (Ibai) | Login personal |
 | `kanban-rail@aglaya.biz` | **Cuenta de servicio del riel MCP** (orquestador; escribe cards vía API) | Server-side en `~/.config/aglaya/kanban-rail.env` (chmod 600), nunca en código/logs. Revocable: borrar user o bajar rol |
 
 El riel MCP (`kanban-mcp/`, ver ADR-026 en `ARCHITECTURE.md`) usa además `SUPABASE_SERVICE_ROLE_KEY` para lecturas puntuales vía PostgREST — misma custodia server-side.

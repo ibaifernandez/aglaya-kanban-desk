@@ -47,13 +47,23 @@ dominio  aglaya.biz           # buzones de rol de AGLAYA, incluida la cuenta de 
 dominio  aglaya.is            # dominio de fixtures de test de la casa
 
 # ---------------------------------------------------------------------------
-# Dominios propios de quien publicó el repositorio. Publicar su propia dirección
-# es decisión suya y ya la tomó: están en la web pública de esos dominios.
-# La distinción que sostiene todo este guardián es ésa — la dirección de quien
-# NO decidió publicarla no entra, y por eso gmail.com no está aquí arriba.
+# Dominios propios de quien publicó el repositorio: RETIRADOS el 2026-09-12.
+#
+# Aquí estaban `ibaifernandez.com` y `lfi.la`, con este motivo escrito:
+# «publicar su propia dirección es decisión suya y ya la tomó». **El Operador
+# tomó la decisión contraria el 2026-09-12** (tarjeta `9dbfbd0d`): su dirección
+# se retira del árbol. Un dominio abierto entero dejaba entrar en silencio la
+# siguiente dirección suya que alguien escribiera, y eso es justo lo que había
+# pasado — once ubicaciones, todas en verde.
+#
+# Lo que NO cambia: su dirección sigue estando en la web pública de esos
+# dominios. Lo que se retira no es el dato, es que este repositorio sea uno de
+# los sitios donde está. El custodio de la dirección es la tabla `users`.
+#
+# Si algún día vuelve a hacer falta —un buzón de contacto en un documento
+# público, por ejemplo— se declara **una** dirección por `sha256`, no el dominio
+# entero.
 # ---------------------------------------------------------------------------
-dominio  ibaifernandez.com    # dominio personal de Ibai, publicado por él
-dominio  lfi.la               # dominio legado de Ibai, ya en desuso
 
 # ---------------------------------------------------------------------------
 # Direcciones sueltas, una a una, en dominios que NO se abren enteros.

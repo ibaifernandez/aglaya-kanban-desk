@@ -119,7 +119,8 @@ WITH alcance AS (
                  WHERE m.workspace_id = w.id AND u.email = 'kanban-rail@aglaya.biz') AS riel_dentro,
          EXISTS (SELECT 1 FROM workspace_members o JOIN users x ON x.id = o.user_id
                  WHERE o.workspace_id = w.id AND o.role = 'owner'
-                   AND x.email = 'info@ibaifernandez.com') AND w.type <> 'personal' AS deberia
+                   AND x.role = 'superadmin' AND x.email <> 'kanban-rail@aglaya.biz')
+                 AND w.type <> 'personal' AS deberia
   FROM workspaces w)
 SELECT name, type,
        CASE WHEN deberia THEN 'PUNTO CIEGO' ELSE 'FUGA' END AS desviacion
@@ -198,7 +199,7 @@ medido o la medida.
 - [x] Middleware `requireAuth` (JWT) para rutas protegidas
 - [x] Middleware `requireRole(...roles)` para rutas por rol
 - [x] Restricción de dominio en registro corporativo: solo @aglaya.biz e @ibaifernandez.com
-- [x] Usuario superadmin actualizado: info@ibaifernandez.com
+- [x] Usuario superadmin actualizado: la cuenta humana (su dirección la custodia `users`)
 
 ### Frontend — Autenticación ✅
 - [x] `AuthContext` con token + user en sessionStorage (`aglaya_session`) con migración suave desde localStorage legado

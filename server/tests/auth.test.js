@@ -191,7 +191,7 @@ describe('POST /api/auth/login', () => {
   });
 
   it('repairs stale public.users email from Supabase Auth on login', async () => {
-    profileState = { ...profileState, email: 'legacy@lfi.la' };
+    profileState = { ...profileState, email: 'legado@example.com' };
 
     const res = await request(app).post('/api/auth/login').send({
       email: 'test@aglaya.biz',

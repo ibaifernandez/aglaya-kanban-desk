@@ -1,5 +1,5 @@
 # PRD (Product Requirements Document) — AGLAYA Kanban Desk
-**Owner:** AGLAYA · info@ibaifernandez.com
+**Owner:** AGLAYA · Ibai Fernández
 **Fecha:** 2026-07-12 (Sincronizado con codebase)
 
 > Aquí ponía la fase y la versión. Ninguna de las dos las custodia este

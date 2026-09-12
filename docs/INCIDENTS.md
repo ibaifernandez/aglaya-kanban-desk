@@ -204,7 +204,7 @@ Este documento resume los fallos relevantes encontrados durante la estabilizaci�
 ## 2026-04-27 — Resend rechaza envío por dominio no verificado
 
 **Síntoma**
-- `The ibaifernandez.com domain is not verified` al intentar enviar desde `info@ibaifernandez.com`.
+- `The ibaifernandez.com domain is not verified` al intentar enviar desde una dirección del dominio personal del Operador.
 
 **Causa raíz**
 - Resend exige verificación del dominio remitente. `ibaifernandez.com` no estaba verificado en la cuenta de Resend.
@@ -295,7 +295,7 @@ Este documento resume los fallos relevantes encontrados durante la estabilizaci�
 
 **Síntoma**
 - El icono de correo en la navbar interior del workspace disparaba un digest administrativo global.
-- El feedback podía mostrar un destinatario legado (`ibai@lfi.la`) en vez del usuario autenticado actual.
+- El feedback podía mostrar un destinatario legado (una dirección del dominio legado del Operador) en vez del usuario autenticado actual.
 
 **Causa raíz**
 - El botón de la toolbar seguía conectado a `POST /api/digest/send-me`, pensado para el admin digest de plataforma.
@@ -359,7 +359,7 @@ Este documento resume los fallos relevantes encontrados durante la estabilizaci�
 - Supabase Authentication → Email → SMTP Settings: configurado `smtp.resend.com:465` con `resend`/apikey y sender `info@aglaya.biz` — todos los emails de Supabase pasan ahora por Resend con SPF/DKIM/DMARC PASS.
 
 **Verificación** (2026-04-28)
-- Email recibido en ibai600@gmail.com con asunto "Bienvenid@ a AGLAYA Kanban Desk", remitente "AGLAYA Kanban Desk <info@aglaya.biz>", SPF/DKIM/DMARC PASS, botón "Activar mi cuenta", `type=invite` en URL.
+- Email recibido en un buzón personal del Operador con asunto "Bienvenid@ a AGLAYA Kanban Desk", remitente "AGLAYA Kanban Desk <info@aglaya.biz>", SPF/DKIM/DMARC PASS, botón "Activar mi cuenta", `type=invite` en URL.
 
 ---
 

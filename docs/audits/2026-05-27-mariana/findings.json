@@ -7,7 +7,7 @@
     "repo_sha_start": "23cdd06",
     "repo_sha_end": "6862947",
     "auditor": "Claude Opus 4.7 (1M context)",
-    "operator": "Antonio Ibai Fernández (info@ibaifernandez.com)",
+    "operator": "Antonio Ibai Fernández",
     "scope_dimensions": [
       "security_owasp",
       "accessibility_wcag",

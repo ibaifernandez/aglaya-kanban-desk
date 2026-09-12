@@ -44,7 +44,7 @@ jest.mock('../utils/supabase', () => {
       // Dos filas con el MISMO nombre y emails distintos. No es rebuscado: el
       // email es único en la tabla y el nombre no, así que resolver por nombre
       // es el único camino que puede casar con varios.
-      { id: 'user-ibai-1', name: 'Ibai Fernández', email: 'info@ibaifernandez.com' },
+      { id: 'user-ibai-1', name: 'Ibai Fernández', email: 'ibai@example.com' },
       { id: 'user-ibai-2', name: 'Ibai Fernández', email: 'ibai@aglaya.biz' },
     ],
     cards: [],
