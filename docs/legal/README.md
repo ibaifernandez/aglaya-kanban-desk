@@ -42,6 +42,7 @@ Esta carpeta agrega la documentación de cumplimiento en privacidad y protecció
   - Comments: siguen vida de la card
   - Attachments huérfanos: auto-cleanup tras 90 días sin card asociada (workflow pendiente sprint 3)
   - `notifications` leídas: 90 días
+  - ⚠️ **Retirado el 2026-09-12 (tarjeta `0779da47`): los tres plazos automáticos de arriba nunca se implementaron** —ni archivado, ni limpieza de adjuntos, ni supresión de notificaciones— y la política publicada los prometía igual. **Decisión vigente: la supresión es a petición, no por calendario.** El detalle vive en `retention-policy.md`; la supresión automática queda aparcada con disparador en `9167d685`. *(Se tacha con nota en vez de borrarse: esto es un registro de lo que se decidió en mayo, y lo que se decidió fue eso.)*
 - ✅ **Supabase Pro $25/mo declinado** por operador. Quick-win backup (workflow daily a R2) es la solución permanente.
 - ✅ **Representante UE Art. 27 RGPD diferido:** mientras base usuarios EU <5000/año estimado, no requerido obligatoriamente. Re-evaluar si volumen crece.
 - ✅ **Revisión legal externa declinada** por operador. Política aprobada in-house por audit Mariana + responsable Ibai. Versión 1.0 publishable.
