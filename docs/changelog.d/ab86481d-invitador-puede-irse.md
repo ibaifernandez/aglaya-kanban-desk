@@ -1,0 +1,8 @@
+Fixed
+
+- **Quien había invitado a alguien no podía eliminar su cuenta: la ruta contestaba 500 y la cuenta seguía viva.** Tarjeta `ab86481d`. **Migración escrita y medida; pendiente de que la aplique el Operador.**
+  - **La cadena:** `DELETE /api/auth/me` borra en Auth, `public.users` cae en cascada, y `workspace_members.invited_by` apunta a `users` **sin `ON DELETE`** — `NO ACTION`. La cascada choca con esa clave y todo se deshace. La política publicada describe la eliminación como algo que termina.
+  - **Arreglo propuesto: `ON DELETE SET NULL`** (`docs/schema/migration-invitador-puede-irse.sql`). Es el patrón de las otras cuatro claves hacia `users`, y arregla **cualquier** ruta de borrado, no solo esta. Se conserva la membresía de la persona invitada; se pierde quién la invitó.
+  - ⚠️ **La clave se busca por columna en `pg_constraint`, no por nombre.** Medido con un mutante: la versión que hace `DROP CONSTRAINT IF EXISTS <nombre esperado>` **sale con código 0**, deja dos claves —una en `NO ACTION`— y el borrado **sigue fallando**. La migración parecía funcionar y el defecto no se iba.
+  - **Medido con Postgres real** (`docs/schema/pruebas/invitador-puede-irse.sh`, en Docker): con la clave en `NO ACTION` el borrado falla (contraprueba); con la migración, **termina** y la membresía de la persona invitada se conserva con `invited_by = NULL`; y aplicada dos veces, sale con 0 y deja una sola clave. Las pruebas de la API simulan el cliente de Supabase y no podían ver esto.
+  - **La comprobación de la migración lista todas las claves hacia `public.users`**, no solo esta: el esquema documentado solo tiene `invited_by` en `NO ACTION`, pero `schema-drift` compara columnas, no acciones de clave, y la base viva podría tener otra.

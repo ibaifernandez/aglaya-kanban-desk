@@ -185,7 +185,10 @@ CREATE TABLE IF NOT EXISTS public.workspace_members (
   user_id      UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   role         TEXT NOT NULL DEFAULT 'member'
                  CHECK (role = ANY (ARRAY['owner','admin','member','guest'])),
-  invited_by   UUID REFERENCES public.users(id),   -- NO ON DELETE (NO ACTION)
+  -- SET NULL, no NO ACTION: con NO ACTION, eliminar la cuenta de quien invitó
+  -- chocaba con esta clave y la eliminación entera se deshacía (tarjeta
+  -- `ab86481d`, `migration-invitador-puede-irse.sql`).
+  invited_by   UUID REFERENCES public.users(id) ON DELETE SET NULL,
   invited_at   TIMESTAMPTZ DEFAULT now(),
   PRIMARY KEY (workspace_id, user_id)
 );
