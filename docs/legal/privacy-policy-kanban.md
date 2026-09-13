@@ -8,7 +8,7 @@
 > Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).
 
 **Última actualización:** 2026-09-13
-**Versión:** 1.3
+**Versión:** 1.4
 **Aplicable a:** https://kanban.aglaya.biz (y subdominios `*.kanban.aglaya.biz` futuros)
 
 ---
@@ -100,6 +100,7 @@ Compartimos datos con los siguientes encargados, sujetos a DPA (Data Processing 
 | **Netlify Inc.** | CDN del cliente web + proxy `/api/*` y `/uploads/*` | Global (red de distribución) | https://www.netlify.com/gdpr-ccpa/subprocessors/ |
 | **Cloudflare Inc.** | DNS de `aglaya.biz` + bucket R2 para backups diarios cifrados (WEUR — Europa) | Europa occidental (WEUR) para backups; DNS global | https://www.cloudflare.com/cloudflare-customer-subprocessors/ |
 | **GitHub Inc. (Microsoft)** | Trigger por reloj del backup diario | Estados Unidos | Cubierto por Microsoft Online Services DPA |
+| **Functional Software, Inc. (Sentry)** | Registro de errores del servidor. Recibe **solo** el mensaje y la traza de pila del error, el método y la ruta de la petición **sin su query**, la ruta de las peticiones salientes sin query, y tiempos de rendimiento. **No** recibe el cuerpo de la petición, cabeceras, cookies, IP, User-Agent, datos de usuario ni el texto de los registros del servidor. *El mensaje de un error lo escribe el propio código y, excepcionalmente, podría incluir algún fragmento de dato.* | Estados Unidos | https://sentry.io/legal/subprocessors/ |
 
 > **Encargado cesado — Resend Inc. (envío de correo), hasta el 25-ago-2026.**
 > Prestó el envío de emails transaccionales, con transferencia a Estados Unidos
@@ -193,7 +194,7 @@ AGLAYA Kanban Desk NO usa cookies de tracking publicitario ni analytics de terce
 
 Estos elementos son estrictamente necesarios para que la app funcione. RGPD/Ley 21.719/LGPD exceptúan los elementos "estrictamente necesarios" del requisito de consentimiento previo.
 
-> **Sentry (futuro):** si se activa la observabilidad técnica con Sentry, capturará información de errores anonimizada. Detalles técnicos: ver `docs/SECURITY.md` y `docs/legal/TOMs.md`. La política se actualizará para reflejar este uso antes de su activación.
+> **Sentry está activo** desde mayo de 2026, como encargado del tratamiento (sección 4). Registra errores del servidor y **no instala cookies ni rastreadores en tu navegador**: no afecta a lo que dice esta sección. *(Hasta la versión 1.3 este aviso decía «futuro» y prometía actualizar la política antes de activarlo. No se hizo, y se corrige en la 1.4.)*
 
 ---
 
@@ -276,6 +277,26 @@ Estos documentos son fuente de verdad operativa y se actualizan con cada cambio 
 ---
 
 ## Historial de versiones
+
+### 1.4 — 2026-09-13 · Sentry, que estaba y no se decía
+
+**Las versiones 1.0 a 1.3 decían que Sentry era «futuro»** y prometían actualizar
+esta política **antes** de activarlo. **Estaba activo desde mayo de 2026**, y la
+política no se actualizó. Se corrige aquí en vez de reescribirlo en silencio.
+
+**Antes de declararlo, se recortó lo que se le manda.** Medido provocando un error
+a propósito: con la configuración de entonces le llegaban el **cuerpo** de la
+petición —títulos y descripciones de tarjetas—, la **cookie de sesión**, la query,
+el User-Agent y los filtros de las consultas del servidor a la base. Hoy le llega
+solo lo que hace falta para saber qué falló y dónde. Declarar primero y recortar
+después habría obligado a declarar dos veces — y a declarar datos que no hacía
+falta mandar.
+
+**Lo que no se ha podido verificar desde aquí:** la región exacta la fija la
+configuración del servicio. Se declara Estados Unidos, que es lo que registró la
+auditoría de mayo de 2026.
+
+---
 
 ### 1.3 — 2026-09-13 · la supresión es a petición
 

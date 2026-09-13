@@ -204,10 +204,14 @@ function crearHostMonitor({
         // va en `extra`, como ejemplo de la que disparó el aviso — un ejemplo,
         // no la lista.
         tags: { audit: 'B-03', host, ruta: forma },
+        // ⚠️ SIN `user_agent` NI `ip` desde el 2026-09-13 (tarjeta `f428d080`). Iban
+        // aquí, y la política publicada dice que Sentry no recibe ninguno de los
+        // dos. Siguen en la línea de log de arriba —Railway—, que es donde hacen
+        // falta para investigar; a Sentry le basta con la forma y el recuento.
+        // `server/utils/sentry.js` los quita igualmente si alguien los vuelve a
+        // poner: su lista de `extra` permitidos no los incluye.
         extra: {
           path_ejemplo: req.path,
-          user_agent: ua,
-          ip,
           host_esperado: esperado,
           // Sin esto, agregar sería perder información: el evento tiene que
           // decir cuánto tráfico representa, o «uno» y «mil» se leen igual.

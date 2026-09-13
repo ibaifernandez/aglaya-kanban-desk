@@ -37,7 +37,7 @@ T+30 días   Post-incident report + acciones correctivas documentadas
 
 **Fuentes de detección:**
 
-- Sentry (🔴 PENDIENTE D-01 — sin error tracking, ceguera operativa actualmente)
+- **Sentry** — errores del servidor, activo desde mayo de 2026. ⚠️ **Es señal de fallo, no de brecha:** registra excepciones, no accesos indebidos que terminan en éxito. Y no lleva datos de la petición (recortados el 2026-09-13), así que sirve para saber **qué** falló y **dónde**, no **a quién** afectó. *(Hasta esa fecha esta línea decía «sin error tracking, ceguera operativa actualmente».)*
 - Logs Railway (manual review)
 - ~~`digest_logs`~~ — suprimida el 25-ago-2026. **Esa señal de detección ya no existe**, y se dice en vez de dejarla en la lista: quien siga este procedimiento buscaría una tabla que no está
 - Report externo (usuario, security researcher, bug bounty)
@@ -200,7 +200,7 @@ Atentamente,
 
 ## Mejoras pendientes al procedimiento
 
-- 🔴 Sentry / error tracking (D-01) → mejora detección automática
+- ~~🔴 Sentry / error tracking (D-01)~~ — **existe desde mayo de 2026**. Lo que sigue pendiente es otra cosa: **alertas** sobre él, para que un pico de errores despierte a alguien en vez de esperar a que alguien mire el panel.
 - 🟠 Slack/email webhook alerts on cron failures (D-08) → reduce TTD
 - 🟠 Healthcheck deep (D-16) → detecta caída dependency antes que usuario
 - 🟠 Endpoint "maintenance mode" para deshabilitar app durante contención

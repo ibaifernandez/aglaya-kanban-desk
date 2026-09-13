@@ -98,6 +98,27 @@ describe('la política publicada (HTML) no ofrece lo que no existe', () => {
     expect(tabla).not.toMatch(/Resend/);
   });
 
+  // ⚠️ LOS CASOS DE LA v1.4 (tarjeta `f428d080`). Hasta el 13-sep-2026 esta
+  // política decía «Sentry (futuro)» y prometía actualizarse ANTES de activarlo.
+  // Llevaba activo desde mayo. Una política que dice que un encargado no existe
+  // mientras recibe datos es el mismo defecto que declarar uno que ya no está —
+  // en la dirección peligrosa.
+  it('Sentry figura en la tabla de encargados en activo', () => {
+    const tabla = html.slice(
+      html.indexOf('4. Encargados del Tratamiento'),
+      html.indexOf('Encargado cesado'),
+    );
+    expect(tabla).toMatch(/Functional Software, Inc\. \(Sentry\)/);
+    // Y declara lo que NO recibe: es la mitad que el recorte hace cierta, y la
+    // que alguien leerá para saber si su cuerpo de petición sale del servidor.
+    expect(tabla).toMatch(/No<\/strong> recibe el cuerpo de la petición, cabeceras, cookies/);
+  });
+
+  it('y ya no se anuncia como «futuro»', () => {
+    expect(html).not.toMatch(/Sentry \(futuro\)/);
+    expect(html).not.toMatch(/si se activa la observabilidad técnica con Sentry/);
+  });
+
   it('pero SÍ queda declarado como cesado, con su fecha', () => {
     expect(html).toMatch(/Encargado cesado — Resend Inc\./);
     expect(html).toMatch(/25-ago-2026/);
@@ -265,5 +286,12 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
 
   it('y el historial explica la v1.3', () => {
     expect(md).toMatch(/1\.3 — 2026-09-13/);
+  });
+
+  it('tampoco anuncia Sentry como futuro, y lo declara como encargado', () => {
+    expect(md).not.toMatch(/Sentry \(futuro\)/);
+    const tabla = md.slice(md.indexOf('## 4. Encargados'), md.indexOf('Encargado cesado'));
+    expect(tabla).toMatch(/Functional Software, Inc\. \(Sentry\)/);
+    expect(md).toMatch(/1\.4 — 2026-09-13/);
   });
 });
