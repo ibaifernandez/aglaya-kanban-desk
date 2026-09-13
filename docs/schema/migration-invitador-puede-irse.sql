@@ -1,9 +1,21 @@
 -- Migration: quien ha invitado a alguien puede eliminar su cuenta
 -- Tarjeta: «Quien ha invitado a alguien no puede eliminar su cuenta» (ab86481d)
 -- Created: 2026-09-13
--- ⏳ NO APLICADA. La ejecuta el Operador desde el SQL Editor de Supabase; esta
---    cabecera se cambia a «APLICADA» en el mismo commit que declara el cambio en
---    `docs/schema/supabase-schema.sql`, y no antes.
+-- ✅ APLICADA el 2026-09-13 por Ibai desde el SQL Editor de Supabase, proyecto
+--    «AGLAYA Kanban Desk» (`main`, PRODUCTION). La transacción completó y la
+--    comprobación del final devolvió 7 claves hacia `public.users`, ninguna en
+--    NO ACTION ni RESTRICT (transcrito en la tarjeta `ab86481d`):
+--
+--      workspace_members        workspace_members_user_id_fkey           CASCADE
+--      notifications            notifications_user_id_fkey               CASCADE
+--      boards                   boards_owner_id_fkey                     SET NULL
+--      cards                    cards_assignee_id_fkey                   SET NULL
+--      workspaces               workspaces_created_by_fkey               SET NULL
+--      workspace_members        workspace_members_invited_by_fkey        SET NULL   ← esta
+--      card_description_history card_description_history_changed_by_fkey SET NULL
+--
+--    El esquema documentado (`supabase-schema.sql`) lo declara desde el commit que
+--    trajo esta migración; se mergea ahora que la base coincide.
 --
 -- ─────────────────────────────────────────────────────────────────────────────
 -- QUÉ DEFECTO CIERRA
