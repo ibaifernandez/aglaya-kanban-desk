@@ -23,7 +23,7 @@
 | # | Procesador | Función | Región datos | DPA |
 |---|---|---|---|---|
 | 5 | **GitHub Actions** | Trigger por reloj del backup diario | US (cubierto Microsoft Online Services DPA) | [Link](https://www.microsoft.com/licensing/docs/view/Microsoft-Products-and-Services-Data-Protection-Addendum-DPA) |
-| 6 | **Sentry** (Functional Software, Inc.) | Registro de errores del servidor, **desde mayo de 2026** | US *(la registró la auditoría de mayo; la región real la fija el DSN en Railway y **no se ha verificado desde el repositorio**)* | [Link](https://sentry.io/legal/dpa/) · ⏳ **sin archivar** — ver `DPA-registry.md` |
+| 6 | **Sentry** (Functional Software, Inc.) | Registro de errores del servidor, **desde mayo de 2026** | US — **verificado** en el panel de Sentry (*Data Storage Region*), captura del Operador del 13-sep-2026 | [Link](https://sentry.io/legal/dpa/) · ✅ **aceptado 2026-09-13, v5.1.0** — ver `DPA-registry.md` |
 
 **Qué recibe Sentry, medido y no supuesto** (tarjeta `f428d080`, 2026-09-13):
 
