@@ -75,7 +75,10 @@ jest.mock('../utils/supabase', () => {
   const estado = {
     // { [workspace_id]: papel } del usuario que hace las peticiones.
     papeles: {},
-    reset() { estado.papeles = {}; },
+    // Tabla cuya lectura devuelve error: para el caso «si no se puede resolver el
+    // recurso, se cierra — no se vuelve al cuerpo».
+    fallaLectura: null,
+    reset() { estado.papeles = {}; estado.fallaLectura = null; },
   };
 
   const filas = (tabla) => {
@@ -102,7 +105,9 @@ jest.mock('../utils/supabase', () => {
         delete: () => { escritura = { op: 'delete', tabla }; escrituras.push(escritura); return chain; },
         upsert: (payload) => { escrituras.push({ op: 'upsert', tabla, payload }); return chain; },
         rpc: () => Promise.resolve({ data: null, error: null }),
-        single: () => Promise.resolve({ data: rows[0] ?? null, error: rows[0] ? null : { message: 'no rows' } }),
+        single: () => (estado.fallaLectura === tabla
+          ? Promise.resolve({ data: null, error: { message: 'lectura fallida' } })
+          : Promise.resolve({ data: rows[0] ?? null, error: rows[0] ? null : { message: 'no rows' } })),
         maybeSingle: () => Promise.resolve({ data: rows[0] ?? null, error: null }),
         then: (res, rej) => Promise.resolve({ data: rows, error: null, count: rows.length }).then(res, rej),
       };
@@ -146,6 +151,16 @@ describe('la matriz de permisos se aplica', () => {
       expect(res.status).toBe(403);
     });
 
+    it('NO puede eliminar a otro miembro', async () => {
+      const res = await conToken(request(app).delete('/api/workspaces/ws-ajeno/members/otro'));
+      expect(res.status).toBe(403);
+    });
+
+    it('SÍ puede editar tarjetas', async () => {
+      const res = await conToken(request(app).put('/api/cards/k-ajeno').send({ title: 'editada' }));
+      expect(res.status).not.toBe(403);
+    });
+
     // La contraparte: la matriz SÍ le deja crear tarjetas. Sin esto, un
     // middleware que respondiera 403 a todo pasaría el bloque de arriba.
     it('SÍ puede crear tarjetas', async () => {
@@ -172,12 +187,65 @@ describe('la matriz de permisos se aplica', () => {
       const res = await conToken(request(app).post('/api/workspaces/ws-ajeno/members').send({ userId: 'otro', role: 'member' }));
       expect(res.status).toBe(403);
     });
+
+    // ⚠️ Las dos filas que faltaban, y las señaló el vigilante al revisar: quitó
+    // `requireWorkspaceRole('owner','admin')` de estas dos rutas y la batería
+    // entera siguió en verde. La matriz decía «verificado por prueba» sin que lo
+    // estuvieran.
+    it('NO puede cambiar el papel de otro miembro', async () => {
+      const res = await conToken(request(app).patch('/api/workspaces/ws-ajeno/members/otro').send({ role: 'admin' }));
+      expect(res.status).toBe(403);
+    });
+
+    it('NO puede mover un tablero a otro espacio, aunque sea miembro de los dos', async () => {
+      __estado.papeles = { 'ws-ajeno': 'member', 'ws-propio': 'member' };
+      const res = await conToken(request(app).put('/api/boards/b-ajeno').send({ workspaceId: 'ws-propio' }));
+      expect(res.status).toBe(403);
+    });
+
+    // Contrapartes: sin ellas, restringir DE MÁS pasaría la prueba.
+    it('SÍ puede crear columnas', async () => {
+      const res = await conToken(request(app).post('/api/boards/b-ajeno/columns').send({ title: 'x' }));
+      expect(res.status).not.toBe(403);
+    });
+
+    it('SÍ puede borrar columnas', async () => {
+      const res = await conToken(request(app).delete('/api/columns/c-ajeno'));
+      expect(res.status).not.toBe(403);
+    });
+
+    it('SÍ puede crear tableros', async () => {
+      const res = await conToken(request(app).post('/api/boards').send({ title: 'x', workspaceId: 'ws-ajeno' }));
+      expect(res.status).not.toBe(403);
+    });
+
+    it('SÍ puede borrar tarjetas', async () => {
+      const res = await conToken(request(app).delete('/api/cards/k-ajeno'));
+      expect(res.status).not.toBe(403);
+    });
   });
 
   it('un admin NO puede eliminar el espacio', async () => {
     COMO('admin');
     const res = await conToken(request(app).delete('/api/workspaces/ws-ajeno'));
     expect(res.status).toBe(403);
+  });
+
+  // Y lo que el admin SÍ puede, para que un gate endurecido a `owner` se note.
+  it.each([
+    ['configurar el espacio',         () => request(app).patch('/api/workspaces/ws-ajeno').send({ name: 'x' })],
+    ['cambiar el papel de un miembro', () => request(app).patch('/api/workspaces/ws-ajeno/members/otro').send({ role: 'member' })],
+    ['eliminar a un miembro',          () => request(app).delete('/api/workspaces/ws-ajeno/members/otro')],
+  ])('un admin SÍ puede %s', async (_, peticion) => {
+    COMO('admin');
+    const res = await conToken(peticion());
+    expect(res.status).not.toBe(403);
+  });
+
+  it('un propietario SÍ puede eliminar el espacio', async () => {
+    COMO('owner');
+    const res = await conToken(request(app).delete('/api/workspaces/ws-ajeno'));
+    expect(res.status).not.toBe(403);
   });
 });
 
@@ -242,6 +310,33 @@ describe('nadie esquiva la matriz nombrando otro espacio en el cuerpo', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// BLOQUE 2c — si el recurso de la URL no se resuelve, se CIERRA. No se vuelve al
+// `workspaceId` del cuerpo. Nota de diseño del vigilante: un error transitorio al
+// leer el tablero fallaba en abierto justo en el punto que este arreglo cierra.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('si el recurso de la URL no se resuelve, no manda el cuerpo', () => {
+  beforeEach(() => { __estado.papeles = { 'ws-propio': 'owner' }; });
+
+  it('un recurso que no existe no deja elegir espacio', async () => {
+    const res = await conToken(request(app).delete('/api/cards/no-existe').send({ workspaceId: 'ws-propio' }));
+
+    expect(res.status).toBe(400);
+    expect(escrituras).toEqual([]);
+  });
+
+  it.each([
+    ['del tablero',  'boards', () => request(app).put('/api/boards/b-lejano').send({ workspaceId: 'ws-propio', title: 'x' })],
+    ['de la tarjeta', 'cards', () => request(app).delete('/api/cards/k-lejano').send({ workspaceId: 'ws-propio' })],
+  ])('una lectura fallida %s tampoco', async (_, tabla, peticion) => {
+    __estado.fallaLectura = tabla;
+    const res = await conToken(peticion());
+
+    expect(res.status).toBe(400);
+    expect(escrituras).toEqual([]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // BLOQUE 2b — un CLIENTE solo entra en espacios `externo`, y eso vale para TODOS
 // los espacios que toque la petición, no solo para el primero.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -278,6 +373,15 @@ describe('un cliente no alcanza un espacio interno nombrándolo en el cuerpo', (
 describe('mover un tablero entre espacios mira el origen y el destino', () => {
   it('siendo admin del origen pero solo invitado en el destino, NO puede', async () => {
     __estado.papeles = { 'ws-ajeno': 'admin', 'ws-propio': 'guest' };
+    const res = await conToken(request(app).put('/api/boards/b-ajeno').send({ workspaceId: 'ws-propio' }));
+    expect(res.status).toBe(403);
+  });
+
+  // ⚠️ La otra mitad, y la que sobrevivía a la mutación: quitar la comprobación
+  // del ORIGEN dejaba el banco en verde, porque ningún caso tenía papel bajo en el
+  // origen y alto en el destino — que es justo el caso de llevarse un tablero.
+  it('siendo solo miembro del origen, aunque sea dueño del destino, NO puede', async () => {
+    __estado.papeles = { 'ws-ajeno': 'member', 'ws-propio': 'owner' };
     const res = await conToken(request(app).put('/api/boards/b-ajeno').send({ workspaceId: 'ws-propio' }));
     expect(res.status).toBe(403);
   });

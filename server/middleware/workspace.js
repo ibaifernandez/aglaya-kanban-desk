@@ -91,10 +91,29 @@ async function resolverEspacioDelRecurso(req) {
  * Lo que NO decide esto: qué papel hace falta en un destino. La matriz lo pide
  * solo para mover tableros, y lo comprueba `updateBoard`.
  */
+/** ¿La URL nombra un recurso concreto? Si lo nombra, el cuerpo no puede sustituirlo. */
+function urlNombraRecurso(req) {
+  const { id, workspaceId, boardId, columnId, cardId } = req.params;
+  const ruta = `${req.baseUrl || ''}${req.path || req.originalUrl || ''}`;
+  return Boolean(workspaceId || boardId || columnId || cardId
+    || (id && /\/(workspaces|boards|columns|cards)\b/.test(ruta)));
+}
+
 async function requireWorkspaceMember(req, res, next) {
   const body = req.body || {};
 
-  const actor = (await resolverEspacioDelRecurso(req)) || body.workspaceId || null;
+  const delRecurso = await resolverEspacioDelRecurso(req);
+
+  // ⚠️ CERRAR, NO ABRIR. Si la URL nombra un recurso y su espacio no se resuelve
+  // —porque no existe, o porque la lectura falló—, aquí se volvía al
+  // `body.workspaceId`: exactamente la puerta que este middleware cierra, y justo
+  // en el caso en que nadie mira. Un error transitorio al leer el tablero dejaba
+  // al usuario elegir el espacio. Lo señaló el vigilante al revisar `05efbd1d`.
+  if (urlNombraRecurso(req) && !delRecurso) {
+    return res.status(400).json({ error: 'Contexto de workspace no encontrado' });
+  }
+
+  const actor = delRecurso || body.workspaceId || null;
 
   // Los espacios de lo que el cuerpo nombra. Uno que no existe resuelve a null y
   // se ignora aquí: no hay nada que escribir en él, y el manejador contestará 404.
