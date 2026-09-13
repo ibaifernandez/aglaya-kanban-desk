@@ -120,7 +120,7 @@ retention-policy, base-legal, breach-notification-procedure, subprocessors, DPIA
 Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).</p>
 </blockquote>
 <p><strong>Última actualización:</strong> 2026-09-13
-<strong>Versión:</strong> 1.3
+<strong>Versión:</strong> 1.4
 <strong>Aplicable a:</strong> <a href="https://kanban.aglaya.biz">https://kanban.aglaya.biz</a> (y subdominios <code>*.kanban.aglaya.biz</code> futuros)</p>
 <hr>
 <h2>1. Responsable del Tratamiento</h2>
@@ -279,6 +279,12 @@ Cambios sustanciales requieren nueva versión documentada en este mismo archivo 
 <td>Estados Unidos</td>
 <td>Cubierto por Microsoft Online Services DPA</td>
 </tr>
+<tr>
+<td><strong>Functional Software, Inc. (Sentry)</strong></td>
+<td>Registro de errores del servidor. Recibe <strong>solo</strong> el mensaje y la traza de pila del error, el método y la ruta de la petición <strong>sin su query</strong>, la ruta de las peticiones salientes sin query, y tiempos de rendimiento. <strong>No</strong> recibe el cuerpo de la petición, cabeceras, cookies, IP ni User-Agent.</td>
+<td>Estados Unidos</td>
+<td><a href="https://sentry.io/legal/subprocessors/">https://sentry.io/legal/subprocessors/</a></td>
+</tr>
 </tbody></table>
 <blockquote>
 <p><strong>Encargado cesado — Resend Inc. (envío de correo), hasta el 25-ago-2026.</strong>
@@ -435,7 +441,7 @@ quien pregunte qué se hizo con los suyos entonces.</p>
 </tbody></table>
 <p>Estos elementos son estrictamente necesarios para que la app funcione. RGPD/Ley 21.719/LGPD exceptúan los elementos &quot;estrictamente necesarios&quot; del requisito de consentimiento previo.</p>
 <blockquote>
-<p><strong>Sentry (futuro):</strong> si se activa la observabilidad técnica con Sentry, capturará información de errores anonimizada. Detalles técnicos: ver <code>docs/SECURITY.md</code> y <code>docs/legal/TOMs.md</code>. La política se actualizará para reflejar este uso antes de su activación.</p>
+<p><strong>Sentry está activo</strong> desde mayo de 2026, como encargado del tratamiento (sección 4). Registra errores del servidor y <strong>no instala cookies ni rastreadores en tu navegador</strong>: no afecta a lo que dice esta sección. <em>(Hasta la versión 1.3 este aviso decía «futuro» y prometía actualizar la política antes de activarlo. No se hizo, y se corrige en la 1.4.)</em></p>
 </blockquote>
 <hr>
 <h2>9. Seguridad de los Datos</h2>
@@ -501,6 +507,21 @@ el mismo defecto que esta versión viene a corregir.</p>
 <p>Estos documentos son fuente de verdad operativa y se actualizan con cada cambio en la infraestructura o procesadores.</p>
 <hr>
 <h2>Historial de versiones</h2>
+<h3>1.4 — 2026-09-13 · Sentry, que estaba y no se decía</h3>
+<p><strong>Las versiones 1.0 a 1.3 decían que Sentry era «futuro»</strong> y prometían actualizar
+esta política <strong>antes</strong> de activarlo. <strong>Estaba activo desde mayo de 2026</strong>, y la
+política no se actualizó. Se corrige aquí en vez de reescribirlo en silencio.</p>
+<p><strong>Antes de declararlo, se recortó lo que se le manda.</strong> Medido provocando un error
+a propósito: con la configuración de entonces le llegaban el <strong>cuerpo</strong> de la
+petición —títulos y descripciones de tarjetas—, la <strong>cookie de sesión</strong>, la query,
+el User-Agent y los filtros de las consultas del servidor a la base. Hoy le llega
+solo lo que hace falta para saber qué falló y dónde. Declarar primero y recortar
+después habría obligado a declarar dos veces — y a declarar datos que no hacía
+falta mandar.</p>
+<p><strong>Lo que no se ha podido verificar desde aquí:</strong> la región exacta la fija la
+configuración del servicio. Se declara Estados Unidos, que es lo que registró la
+auditoría de mayo de 2026.</p>
+<hr>
 <h3>1.3 — 2026-09-13 · la supresión es a petición</h3>
 <p><strong>Las versiones 1.0 a 1.2 prometían dos supresiones automáticas que nunca
 ocurrieron:</strong></p>

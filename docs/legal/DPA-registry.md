@@ -85,6 +85,7 @@
 | Netlify | ✅ archivado 2026-05-27 | ✅ kanban-policy v1.0 | ✅ Netlify doc | Global |
 | Cloudflare | ✅ archivado 2026-05-27 (v6.4) | ✅ kanban-policy v1.0 | ✅ Cloudflare doc | EU (WEUR) |
 | GitHub Actions | ✅ archivado 2026-05-27 (Microsoft DPA WW May 2026) | ✅ kanban-policy v1.0 | Microsoft Azure | US |
+| **Sentry** | ⏳ **SIN ARCHIVAR — acto del Operador.** Aceptarlo o descargarlo desde el panel de la organización en Sentry es un acto sobre la cuenta, no algo que pueda hacer un agente. Enlace: https://sentry.io/legal/dpa/ | ✅ kanban-policy **v1.4** *(activo desde mayo de 2026 sin declarar: la v1.0–1.3 lo daban por «futuro»)* | https://sentry.io/legal/subprocessors/ | US *(no verificado desde el repo)* |
 
 ---
 

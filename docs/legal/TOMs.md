@@ -72,7 +72,7 @@ Netlify HTML sirve solo `strict-transport-security` (vía Cloudflare). Sin CSP e
 
 - **Health endpoint:** `GET /api/health` retorna `{status:'ok', timestamp}` — 🟡 **PENDIENTE D-16** deep healthcheck (verificar Supabase). *(Resend sale de la comprobación: la nave no envía correo desde el 25-ago-2026.)*
 - **Logs:** Railway captura stdout/stderr. 🟠 **PENDIENTE D-02** structured logging con redaction PII.
-- **Error tracking:** 🔴 **PENDIENTE D-01** — sin Sentry. Próximo batch.
+- **Error tracking:** ✅ **Sentry, activo desde mayo de 2026** (`server/utils/sentry.js`). Recibe mensaje, traza, método y ruta **sin query**; **no** recibe cuerpo, cabeceras, cookies, IP ni User-Agent — medido provocando un error y fijado por `server/tests/sentry-recorte.test.js` (2026-09-13). *(Hasta esa fecha esta línea decía «🔴 PENDIENTE — sin Sentry», y el documento de medidas del Art. 32 negaba una capacidad que la casa tenía.)*
 - **Audit trail:** ~~`digest_logs`~~ — suprimida el 25-ago-2026 al retirarse el correo. **Hoy no hay audit trail de envíos porque no hay envíos.**
 
 ### Aislamiento de entornos
@@ -142,7 +142,7 @@ Netlify HTML sirve solo `strict-transport-security` (vía Cloudflare). Sin CSP e
 | B-06 | ALTO | Rate limit incompleto |
 | B-07 | ALTO | JWT claims stale |
 | B-12 | MEDIO | Policies WRITE incompletas RLS |
-| D-01 | CRÍTICO | Sin error tracking — ceguera operativa |
+| D-01 | ~~CRÍTICO~~ ✅ | ~~Sin error tracking — ceguera operativa~~ — **resuelto en mayo de 2026 con Sentry**; declarado aquí el 2026-09-13 |
 | D-02 | ALTO | Sin structured logging — leak risk PII en stdout |
 
 Resolución completa: ver `docs/audits/2026-05-27-mariana/REPORT.md` roadmap sprints.

@@ -8,8 +8,9 @@
  * Si SENTRY_DSN NO está, exporta no-op stubs para que el código consumer
  * no necesite checks.
  *
- * Operador: configurar SENTRY_DSN en Railway env vars cuando esté listo.
- * Mientras tanto, todo loguea normalmente a stdout (Railway logs).
+ * ACTIVO en producción desde mayo de 2026 (SENTRY_DSN en Railway). Aquí decía
+ * «configurar cuando esté listo»: ya lo estaba, y los documentos legales llegaron
+ * a negar que existiera. Sin DSN —en local y en tests—, todo va a stdout.
  */
 'use strict';
 
@@ -19,6 +20,83 @@ const SENTRY_RELEASE = process.env.SENTRY_RELEASE || process.env.GIT_SHA;
 
 let Sentry = null;
 let enabled = false;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ⚠️ EL RECORTE — tarjeta `f428d080`, decisión del Operador del 2026-09-12:
+// «primero recortar lo que se le manda, y comprobarlo con un error provocado a
+// propósito — no dar por hecho que la opción hace lo que su nombre dice».
+//
+// Y NO lo hacía. Medido el 2026-09-13 con la configuración de abajo
+// (`sendDefaultPii: false` + el saneador por regex), un error provocado dentro de
+// una petición mandaba a Sentry:
+//
+//   · `request.data`          → EL CUERPO ENTERO: título y descripción de la
+//                               tarjeta, y cualquier campo sensible que no se
+//                               llamara literalmente `password`;
+//   · `request.cookies` y `request.headers.cookie` → la cookie de refresco;
+//   · `request.query_string` y la query dentro de `request.url`;
+//   · `request.headers.user-agent`;
+//   · y en la transacción, `http.query` de las peticiones SALIENTES — que en esta
+//     nave son las consultas a Supabase, con sus filtros (`email=eq.…`).
+//
+// Lo que `sendDefaultPii: false` sí quitaba: la IP y la cabecera Authorization.
+// El nombre de la opción promete bastante más de lo que hace.
+//
+// Por eso el recorte no se fía de opciones del SDK: se queda con lo MÍNIMO para
+// saber qué falló y dónde —método y ruta sin query— y tira todo lo demás. Cuanto
+// menos viaja, menos hay que declarar como encargado del tratamiento.
+//
+// Lo sostiene `server/tests/sentry-recorte.test.js`, que provoca el error de
+// verdad y mira lo que sale del SDK.
+// ─────────────────────────────────────────────────────────────────────────────
+const sinQuery = (url) => (typeof url === 'string' ? url.split('?')[0] : url);
+
+// Claves de datos de span y de miga de pan que llevan la query o la URL completa.
+const CLAVES_CON_QUERY = ['http.query', 'url.query', 'http.url', 'url.full', 'http.target', 'url'];
+
+// Atributos de traza que llevan cabeceras de la petición. Medido: en las
+// TRANSACCIONES —no en los eventos de error— la cookie y el User-Agent viajaban
+// en `contexts.trace.data` como `http.request.header.cookie.*`,
+// `http.request.header.user_agent` y `http.user_agent`. En producción las trazas
+// se muestrean al 10 %: una de cada diez peticiones mandaba su cookie de refresco.
+const PREFIJOS_DE_CABECERA = ['http.request.header.', 'http.response.header.'];
+const CLAVES_DE_AGENTE = ['http.user_agent', 'user_agent.original'];
+
+function recortarDatos(datos) {
+  if (!datos || typeof datos !== 'object') return datos;
+  for (const clave of Object.keys(datos)) {
+    if (PREFIJOS_DE_CABECERA.some((p) => clave.startsWith(p)) || CLAVES_DE_AGENTE.includes(clave)) {
+      delete datos[clave];
+    }
+  }
+  for (const clave of CLAVES_CON_QUERY) {
+    if (!(clave in datos)) continue;
+    if (clave === 'http.query' || clave === 'url.query') delete datos[clave];
+    else datos[clave] = sinQuery(datos[clave]);
+  }
+  return datos;
+}
+
+function recortar(event) {
+  if (!event || typeof event !== 'object') return event;
+
+  // 1. La petición: método y ruta. Nada de cuerpo, cabeceras, cookies ni query.
+  if (event.request) {
+    event.request = {
+      ...(event.request.method ? { method: event.request.method } : {}),
+      ...(event.request.url ? { url: sinQuery(event.request.url) } : {}),
+    };
+  }
+
+  // 2. Las migas de pan (peticiones salientes, navegación).
+  for (const miga of event.breadcrumbs || []) recortarDatos(miga.data);
+
+  // 3. Los spans de una transacción, y el contexto de traza.
+  for (const span of event.spans || []) recortarDatos(span.data);
+  recortarDatos(event.contexts?.trace?.data);
+
+  return event;
+}
 
 if (SENTRY_DSN) {
   try {
@@ -32,7 +110,12 @@ if (SENTRY_DSN) {
       // sendDefaultPii=false evita que Sentry inyecte automatically headers,
       // cookies o user IPs. Solo capturamos lo que añadimos manualmente.
       sendDefaultPii: false,
+      // Las transacciones llevan los spans de las peticiones salientes: mismo recorte.
+      beforeSendTransaction: (event) => recortar(event),
       beforeSend(event) {
+        // Primero el recorte estructural; después, como segunda capa, el saneo
+        // por patrón de lo que pudiera quedar en mensajes y trazas de pila.
+        recortar(event);
         // Sanea email/JWT/password de cualquier string en breadcrumbs/exceptions
         try {
           const json = JSON.stringify(event);
@@ -69,4 +152,4 @@ if (SENTRY_DSN) {
   };
 }
 
-module.exports = { Sentry, enabled };
+module.exports = { Sentry, enabled, recortar };

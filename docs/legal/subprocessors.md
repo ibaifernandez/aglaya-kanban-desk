@@ -1,7 +1,7 @@
 # Sub-procesadores activos
 
 **Marco legal:** RGPD Art. 28(2) — el encargado del tratamiento no podrá contratar a otro encargado sin autorización del responsable + obligación de informar sub-procesadores
-**Última actualización:** 2026-08-25 (v1.1 — Resend pasa a cesado: la nave dejó de enviar correo)
+**Última actualización:** 2026-09-13 (v1.2 — se declara Sentry, activo desde mayo sin declarar)
 
 > Esta lista debe mantenerse actualizada y sincronizada con la política privacidad kanban. Cambios requieren notificación al titular según contrato.
 
@@ -23,6 +23,20 @@
 | # | Procesador | Función | Región datos | DPA |
 |---|---|---|---|---|
 | 5 | **GitHub Actions** | Trigger por reloj del backup diario | US (cubierto Microsoft Online Services DPA) | [Link](https://www.microsoft.com/licensing/docs/view/Microsoft-Products-and-Services-Data-Protection-Addendum-DPA) |
+| 6 | **Sentry** (Functional Software, Inc.) | Registro de errores del servidor, **desde mayo de 2026** | US *(la registró la auditoría de mayo; la región real la fija el DSN en Railway y **no se ha verificado desde el repositorio**)* | [Link](https://sentry.io/legal/dpa/) · ⏳ **sin archivar** — ver `DPA-registry.md` |
+
+**Qué recibe Sentry, medido y no supuesto** (tarjeta `f428d080`, 2026-09-13):
+
+| recibe | **no** recibe |
+|---|---|
+| mensaje y traza de pila del error (con líneas del código del servidor) | cuerpo de la petición |
+| método y ruta de la petición, **sin query** | cabeceras, cookies |
+| ruta de las peticiones salientes, **sin query** | query de la petición ni de las salientes |
+| tiempos de rendimiento, entorno y versión | IP, User-Agent |
+
+**Hasta esa fecha recibía también el cuerpo, la cookie de sesión, la query y el User-Agent** —medido provocando un error—, pese a `sendDefaultPii: false`. El recorte vive en `server/utils/sentry.js` y lo sostiene `server/tests/sentry-recorte.test.js`, que provoca el error de verdad.
+
+**Residuo declarado:** el **mensaje** de una excepción lo escribe quien la lanza, y podría arrastrar un fragmento de dato. Como segunda capa se sanean por patrón correos y tokens; no hay forma de garantizar más sin dejar de mandar el mensaje, que es lo que hace útil el registro.
 
 ---
 
