@@ -503,6 +503,27 @@ y cuesta un renglón.
 
 ### Historial de versiones
 
+**Sin bump — 2026-09-13.** No cambia la forma de ninguna puerta, pero **sí lo que
+la Puerta 1 puede alcanzar**, y por eso va aquí aunque ningún fichero de la lista
+de puertas se haya tocado (el cambio vive en `server/middleware/workspace.js`).
+
+**Qué cambió.** El middleware de pertenencia decidía en qué espacio se juzgaba una
+petición mirando primero el `workspaceId` del cuerpo, y los espacios de un
+`columnId` o `boardId` del cuerpo no se comprobaban. Ahora **todo espacio que
+toque una petición tiene que ser uno del que quien la hace es miembro** (tarjeta
+`05efbd1d`).
+
+**Qué le afecta al riel, dicho en concreto:** `move_card` hacia una columna de un
+espacio del que el riel **no es miembro** pasa de ejecutarse a devolver **403**.
+Antes funcionaba, y era un error: es exactamente el alcance que esta nave declara
+para la Puerta 1 —solo los espacios de los que el riel es miembro— y que el código
+no hacía cumplir. Los espacios `personal`, donde el riel no debe escribir jamás,
+quedan así cerrados también por el servidor, no solo por disciplina.
+
+**Lo que no cambia:** la Puerta 2 va por `service_role` y no pasa por este
+middleware. Y en los diez espacios que el riel ve hoy es `admin`: ninguna llamada
+suya dentro de su alcance cambia de resultado.
+
 **Sin bump — 2026-09-06 (b).** Segundo cambio del mismo día sobre
 `server/routes/cards.js`, y **la misma ruta que el de abajo**:
 `GET /api/cards/search`. Tampoco cambia la forma de ninguna puerta.

@@ -88,7 +88,7 @@ kanban-mcp/  (Python · stdio)
 ### Workspaces y roles
 
 - Tres tipos de workspace: `personal` / `interno` / `externo`
-- Dos roles de usuario: `colaborador` (acceso completo) y `cliente` (solo workspaces externos asignados)
+- Cuatro roles de usuario: `superadmin` (acceso a cualquier workspace por URL, **sin comprobación de miembro**), `admin` (gestión de usuarios y de cualquier tipo de workspace), `colaborador` (solo crea workspaces `personal`) y `cliente` (solo workspaces externos asignados). El detalle, en [`docs/PERMISSIONS.md`](docs/PERMISSIONS.md)
 - Roles por workspace: `owner` / `admin` / `member` / `guest`
 - Creación automática de workspace personal al registrarse
 - Ajustes de workspace desde la UI: editar nombre, emoji, tipo, descripción y portada
@@ -229,8 +229,9 @@ Incluye:
 ## Tests
 
 Suite Jest + Supertest sobre el servidor. Cubre autenticación (registro, login,
-refresh token con cookie HttpOnly, self-delete y self-export RGPD), aislamiento
-multi-tenant por workspace y rol, validación de enums y tipos en mutaciones,
+refresh token con cookie HttpOnly, self-delete y self-export RGPD), la matriz de
+permisos por rol de workspace y que nadie la esquive nombrando otro workspace en
+el cuerpo de la petición (`server/tests/matriz-de-permisos.test.js`), validación de enums y tipos en mutaciones,
 notificaciones, digests y su registro de envíos, endurecimiento de uploads
 (bloqueo SVG/HTML, magic-bytes, límites) y respuestas 401/404 en JSON.
 

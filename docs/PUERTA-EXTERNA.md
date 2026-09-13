@@ -35,7 +35,7 @@ El camino completo para dar de alta a `tony@stark.com`:
 | Supabase manda el correo de invitación y Tony pone contraseña | `inviteUserByEmail` | Sí |
 | Tony entra | `POST /api/auth/login` | Sí — el login no filtra por dominio |
 | Tony solo ve el espacio externo | `server/routes/workspaces.js` | Sí, por código. **Sin ningún test** |
-| Tony no puede entrar en un espacio interno | `server/middleware/workspace.js` | Sí, por código. **Sin ningún test** |
+| Tony no puede entrar en un espacio interno | `server/middleware/workspace.js` | Sí, **y hay test** desde el 2026-09-13 — también cuando el espacio interno solo aparece en el cuerpo de la petición (`matriz-de-permisos.test.js`). *Hasta esa fecha decía «sin ningún test», y el middleware solo miraba el primer espacio de la petición.* |
 | Tony no puede crear espacios | `server/routes/workspaces.js` | Sí, **y hay test** |
 | Tony no puede ser metido en un espacio no externo | `server/routes/workspaces.js` | Sí, **y hay test** |
 
