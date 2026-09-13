@@ -80,6 +80,14 @@ describe('lo que llega a Sentry de un error provocado', () => {
 
   // Y la de las transacciones: sin ella, el recorte de spans pasaría si no saliera
   // ninguna — que es lo que ocurría con el muestreo de producción.
+  // Contraparte de la lista blanca: el aviso llega, y con lo que SÍ está permitido.
+  // Sin esto, un recorte que tirara `extra` y `tags` enteros —o el evento— pasaría.
+  it('sí llega el aviso, con el extra y la etiqueta permitidos', () => {
+    expect(resultado.texto).toContain('aviso provocado a proposito');
+    expect(resultado.texto).toContain('424242');
+    expect(resultado.texto).toMatch(/"audit":\s*"B-03"/);
+  });
+
   it('sí sale una transacción', () => {
     expect(resultado.texto).toMatch(/"type":\s*"transaction"/);
   });
@@ -91,6 +99,15 @@ describe('lo que llega a Sentry de un error provocado', () => {
     ['la query de la petición',    'QUERY'],
     ['el User-Agent',              'AGENTE'],
     ['la query de una petición saliente a la base', 'SALIENTE'],
+    // ⚠️ Los de la devolución del vigilante: la política ya decía «no recibe IP ni
+    // User-Agent», y por estas tres vías llegaban.
+    ['la IP de una línea de log (miga de consola)',     'IP-MIGA'],
+    ['el agente de una línea de log (miga de consola)', 'UA-MIGA'],
+    ['una IP en `extra`',                               'IP-EXTRA'],
+    ['un agente en `extra`',                            'UA-EXTRA'],
+    ['una etiqueta no permitida',                       'TAG-LIBRE'],
+    ['el usuario, ni su IP',                            'IP-USUARIO'],
+    ['el identificador de usuario',                     'USUARIO'],
   ])('NO llega %s', (_, sonda) => {
     expect(resultado.texto).not.toContain(S(sonda));
   });

@@ -100,7 +100,7 @@ Compartimos datos con los siguientes encargados, sujetos a DPA (Data Processing 
 | **Netlify Inc.** | CDN del cliente web + proxy `/api/*` y `/uploads/*` | Global (red de distribución) | https://www.netlify.com/gdpr-ccpa/subprocessors/ |
 | **Cloudflare Inc.** | DNS de `aglaya.biz` + bucket R2 para backups diarios cifrados (WEUR — Europa) | Europa occidental (WEUR) para backups; DNS global | https://www.cloudflare.com/cloudflare-customer-subprocessors/ |
 | **GitHub Inc. (Microsoft)** | Trigger por reloj del backup diario | Estados Unidos | Cubierto por Microsoft Online Services DPA |
-| **Functional Software, Inc. (Sentry)** | Registro de errores del servidor. Recibe **solo** el mensaje y la traza de pila del error, el método y la ruta de la petición **sin su query**, la ruta de las peticiones salientes sin query, y tiempos de rendimiento. **No** recibe el cuerpo de la petición, cabeceras, cookies, IP ni User-Agent. | Estados Unidos | https://sentry.io/legal/subprocessors/ |
+| **Functional Software, Inc. (Sentry)** | Registro de errores del servidor. Recibe **solo** el mensaje y la traza de pila del error, el método y la ruta de la petición **sin su query**, la ruta de las peticiones salientes sin query, y tiempos de rendimiento. **No** recibe el cuerpo de la petición, cabeceras, cookies, IP, User-Agent, datos de usuario ni el texto de los registros del servidor. *El mensaje de un error lo escribe el propio código y, excepcionalmente, podría incluir algún fragmento de dato.* | Estados Unidos | https://sentry.io/legal/subprocessors/ |
 
 > **Encargado cesado — Resend Inc. (envío de correo), hasta el 25-ago-2026.**
 > Prestó el envío de emails transaccionales, con transferencia a Estados Unidos

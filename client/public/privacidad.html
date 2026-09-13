@@ -281,7 +281,7 @@ Cambios sustanciales requieren nueva versión documentada en este mismo archivo 
 </tr>
 <tr>
 <td><strong>Functional Software, Inc. (Sentry)</strong></td>
-<td>Registro de errores del servidor. Recibe <strong>solo</strong> el mensaje y la traza de pila del error, el método y la ruta de la petición <strong>sin su query</strong>, la ruta de las peticiones salientes sin query, y tiempos de rendimiento. <strong>No</strong> recibe el cuerpo de la petición, cabeceras, cookies, IP ni User-Agent.</td>
+<td>Registro de errores del servidor. Recibe <strong>solo</strong> el mensaje y la traza de pila del error, el método y la ruta de la petición <strong>sin su query</strong>, la ruta de las peticiones salientes sin query, y tiempos de rendimiento. <strong>No</strong> recibe el cuerpo de la petición, cabeceras, cookies, IP, User-Agent, datos de usuario ni el texto de los registros del servidor. <em>El mensaje de un error lo escribe el propio código y, excepcionalmente, podría incluir algún fragmento de dato.</em></td>
 <td>Estados Unidos</td>
 <td><a href="https://sentry.io/legal/subprocessors/">https://sentry.io/legal/subprocessors/</a></td>
 </tr>

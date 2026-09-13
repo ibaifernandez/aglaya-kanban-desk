@@ -77,6 +77,18 @@ function recortarDatos(datos) {
   return datos;
 }
 
+// Las únicas claves de `extra` y `tags` que salen. Todas sin dato personal: la
+// FORMA de la ruta y recuentos del monitor B-03, y el nombre de host (un dominio
+// de la casa, no del usuario).
+const EXTRA_PERMITIDOS = new Set(['path_ejemplo', 'host_esperado', 'repeticiones_en_ventana_anterior', 'ventana_minutos']);
+const TAGS_PERMITIDOS = new Set(['audit', 'host', 'ruta']);
+
+function soloPermitidas(objeto, permitidas) {
+  if (!objeto || typeof objeto !== 'object') return objeto;
+  const limpio = Object.fromEntries(Object.entries(objeto).filter(([k]) => permitidas.has(k)));
+  return Object.keys(limpio).length ? limpio : undefined;
+}
+
 function recortar(event) {
   if (!event || typeof event !== 'object') return event;
 
@@ -88,12 +100,36 @@ function recortar(event) {
     };
   }
 
-  // 2. Las migas de pan (peticiones salientes, navegación).
-  for (const miga of event.breadcrumbs || []) recortarDatos(miga.data);
+  // 2. Las migas de pan. Las de CONSOLA fuera enteras —llevan cada `console.*`
+  //    del servidor, incluidas líneas con `ip=… ua=…` y con identificadores—, y
+  //    de las demás, fuera el `message`, que es texto libre. Queda su `data`
+  //    (método, ruta, estado), recortada de query.
+  //
+  //    La integración de consola ya va desactivada en `init`; esto es la segunda
+  //    capa, por si alguien la vuelve a activar. Lo encontró el vigilante al
+  //    revisar `f428d080`: la política ya decía «no recibe IP ni User-Agent».
+  if (Array.isArray(event.breadcrumbs)) {
+    event.breadcrumbs = event.breadcrumbs.filter((m) => m.category !== 'console');
+    for (const miga of event.breadcrumbs) {
+      delete miga.message;
+      recortarDatos(miga.data);
+    }
+  }
 
   // 3. Los spans de una transacción, y el contexto de traza.
   for (const span of event.spans || []) recortarDatos(span.data);
   recortarDatos(event.contexts?.trace?.data);
+
+  // 4. `extra` y `tags`: LISTA BLANCA, no lista negra. Quien llama a
+  //    `captureMessage` puede meter cualquier cosa, y una lista de claves
+  //    prohibidas se queda corta el día que alguien invente otra. Lo que no está
+  //    aquí, no sale. Hoy el único emisor es el monitor B-03.
+  event.extra = soloPermitidas(event.extra, EXTRA_PERMITIDOS);
+  event.tags = soloPermitidas(event.tags, TAGS_PERMITIDOS);
+
+  // 5. Y el usuario: nada en esta nave lo fija, pero la política dice que Sentry
+  //    no recibe IP — y `user.ip_address` es exactamente eso.
+  delete event.user;
 
   return event;
 }
@@ -110,6 +146,9 @@ if (SENTRY_DSN) {
       // sendDefaultPii=false evita que Sentry inyecte automatically headers,
       // cookies o user IPs. Solo capturamos lo que añadimos manualmente.
       sendDefaultPii: false,
+      // Sin migas de consola: llevaban cada `console.*` del servidor —con IPs,
+      // agentes e identificadores— como texto libre. `recortar` las quita también.
+      integrations: (porDefecto) => porDefecto.filter((i) => i.name !== 'Console'),
       // Las transacciones llevan los spans de las peticiones salientes: mismo recorte.
       beforeSendTransaction: (event) => recortar(event),
       beforeSend(event) {

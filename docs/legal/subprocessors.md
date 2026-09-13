@@ -33,6 +33,11 @@
 | método y ruta de la petición, **sin query** | cabeceras, cookies |
 | ruta de las peticiones salientes, **sin query** | query de la petición ni de las salientes |
 | tiempos de rendimiento, entorno y versión | IP, User-Agent |
+| del monitor B-03 *(inerte hoy)*: forma de la ruta, host y recuentos | datos de usuario (`user`) |
+| | **texto de los registros del servidor** (migas de consola) |
+| | cualquier clave de `extra` o `tags` fuera de una **lista blanca** |
+
+**Y una segunda vuelta, tras la revisión del vigilante:** las **líneas de log del servidor** llegaban como migas de pan —con `ip=… ua=…` del monitor B-03 e identificadores—, y `extra`, `tags` y `user` salían sin recortar. Ahora las migas de consola están desactivadas (y filtradas, por si alguien las reactiva), y `extra`/`tags` pasan por **lista blanca**: lo que no está permitido, no sale.
 
 **Hasta esa fecha recibía también el cuerpo, la cookie de sesión, la query y el User-Agent** —medido provocando un error—, pese a `sendDefaultPii: false`. El recorte vive en `server/utils/sentry.js` y lo sostiene `server/tests/sentry-recorte.test.js`, que provoca el error de verdad.
 

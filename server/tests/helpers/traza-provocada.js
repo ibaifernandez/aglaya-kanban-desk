@@ -50,6 +50,8 @@ receptor.listen(0, async () => {
 
     const r = express.Router();
     r.post('/__revienta', async (_req, _res, next) => {
+      // Una miga de CONSOLA con IP y agente, como la línea de log del monitor B-03.
+      console.log(`[prueba] acceso ip=${S('IP-MIGA')} ua=${S('UA-MIGA')}`);
       await new Promise((ok) => http.get(
         `http://127.0.0.1:${puerto}/rest/v1/users?email=eq.${S('SALIENTE')}`,
         (s) => { s.resume(); s.on('end', ok); },
@@ -68,6 +70,18 @@ receptor.listen(0, async () => {
       .set('Cookie', `refresco=${S('GALLETA')}`)
       .set('User-Agent', `${S('AGENTE')}/1.0`)
       .send({ title: S('TITULO'), description: S('DESCRIPCION') });
+
+    // Un aviso con `extra`, `tags` y usuario, como los que emite el monitor B-03.
+    // Mezcla claves permitidas y prohibidas: las permitidas tienen que llegar, o
+    // la lista blanca estaría tirándolo todo sin que nadie lo notara.
+    Sentry.withScope((scope) => {
+      scope.setUser({ id: S('USUARIO'), ip_address: S('IP-USUARIO') });
+      Sentry.captureMessage('aviso provocado a proposito', {
+        level: 'warning',
+        tags: { audit: 'B-03', path: S('TAG-LIBRE') },
+        extra: { ip: S('IP-EXTRA'), user_agent: S('UA-EXTRA'), repeticiones_en_ventana_anterior: 424242 },
+      });
+    });
 
     await Sentry.flush(3000);
     receptor.close();
