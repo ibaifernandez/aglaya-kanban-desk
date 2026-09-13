@@ -15,7 +15,7 @@
 - **URL del proyecto:** https://supabase.com/dashboard/project/jowtasxhnluqqcgkeoll
 - **Región datos:** sa-east-1 (São Paulo, Brasil)
 - **DPA template oficial:** https://supabase.com/legal/dpa
-- **Estado DPA:** ✅ **ARCHIVADO 2026-05-27** — firmado vía PandaDoc 2026-05-26 (ronda completa same-day). PDF en `docs/legal/dpas/supabase-dpa-2026-05-26.pdf` (790 KB).
+- **Estado DPA:** ✅ **ARCHIVADO 2026-05-27** — firmado vía PandaDoc 2026-05-26 (ronda completa same-day). PDF (790 KB) **fuera del repositorio desde el 2026-09-13**: contiene la dirección personal del Operador, y este repositorio es público. Se conserva en la máquina del Operador, en `~/Local Sites/mis-dpa/aglaya-kanban-desk/supabase-dpa-2026-05-26.pdf` — carpeta **sin remoto, por decisión suya** (tarjeta `9dbfbd0d`). Huella para comprobar que la copia es la misma que estuvo versionada hasta `26a93a5`: `sha256 1c07eddb7e01c29bc67fd980ba2a2e4c84333b8e610fdd88754901266eaba9c7`.
 - **TIA archivado:** ✅ `docs/legal/dpas/supabase-tia-2025-03-14.pdf` (descargado 2026-05-27 — Transfer Impact Assessment Supabase oficial fechado 2025-03-14, sirve para flujo Brasil↔EU↔US).
 - **Sub-procesadores Supabase:** AWS (infra), ver https://supabase.com/legal/subprocessors
 - **Transferencia internacional:** Brasil (sa-east-1) — no es transferencia desde Brasil. Desde UE → Brasil requiere garantías adicionales (Brasil tiene LGPD pero NO está en lista RGPD países adecuados → SCCs requeridos)
@@ -40,7 +40,7 @@
 - **Función:** Hosting del server Express (kanban backend)
 - **URL prod:** https://web-production-099a0.up.railway.app
 - **DPA template oficial:** https://railway.com/legal/dpa
-- **Estado DPA:** ✅ **ARCHIVADO 2026-05-27** — Railway Corporation Data Processing Addendum descargado. PDF en `docs/legal/dpas/railway-dpa-2026-05-27.pdf` (427 KB).
+- **Estado DPA:** ✅ **ARCHIVADO 2026-05-27** — Railway Corporation Data Processing Addendum descargado. PDF (427 KB) **fuera del repositorio desde el 2026-09-13**: contiene la dirección personal del Operador, y este repositorio es público. Se conserva en la máquina del Operador, en `~/Local Sites/mis-dpa/aglaya-kanban-desk/railway-dpa-2026-05-27.pdf` — carpeta **sin remoto, por decisión suya** (tarjeta `9dbfbd0d`). Huella para comprobar que la copia es la misma que estuvo versionada hasta `26a93a5`: `sha256 d7566ea1905ad4c0b53e5cff190b972af645021ef79474fdb1f8ff6cc6567fc4`.
 - **Acción:** completada. Re-descargar si Railway actualiza versión.
 - **Sub-procesadores Railway:** GCP (infra), ver https://railway.com/legal/subprocessors
 - **Transferencia internacional:** US — SCCs incluidas en el DPA
@@ -104,7 +104,10 @@ Los siguientes están en política aglaya.biz pero NO se usan en kanban:
 Cuando aceptes un DPA en dashboard del procesador:
 
 1. Descargar copia (PDF / link permanente).
-2. Guardar en `docs/legal/dpas/` (carpeta a crear cuando exista primer DPA archivable).
+2. **Mirar antes si el PDF lleva datos personales** —firma, correo o nombre de quien firma—, **con dos instrumentos**: bytes crudos (`grep -ai`) **y** texto extraído (`pdftotext`), los dos insensibles a mayúsculas. Cada uno por separado es ciego a un fichero real de esta casa: el de Railway solo aparece en bytes crudos, el de Supabase solo en el texto, y uno de sus correos va en mayúsculas.
+   - **Si lleva datos personales** → guardar en `~/Local Sites/mis-dpa/aglaya-kanban-desk/` (sin remoto) y escribir aquí la ruta y su `sha256`. **Nunca** en el repositorio: es público.
+   - **Si no lleva ninguno** → `docs/legal/dpas/`.
+   *(Aquí decía «Guardar en `docs/legal/dpas/`» sin condición, y por eso entraron los dos DPA firmados en un repositorio público.)*
 3. Actualizar este documento con fecha de aceptación + link a la copia archivada.
 4. Verificar que la política privacidad kanban (cuando se publique) lista al procesador.
 
@@ -112,9 +115,9 @@ Cuando aceptes un DPA en dashboard del procesador:
 
 ## Acciones pendientes (operador)
 
-- [x] Verificar/aceptar DPA Supabase (2026-05-27 firmado vía PandaDoc + archivado en `docs/legal/dpas/supabase-dpa-2026-05-26.pdf`) + TIA archivado en `docs/legal/dpas/supabase-tia-2025-03-14.pdf`
+- [x] Verificar/aceptar DPA Supabase (2026-05-27 firmado vía PandaDoc + archivado — **fuera del repositorio desde el 2026-09-13**, ver la ficha de Supabase arriba) + TIA archivado en `docs/legal/dpas/supabase-tia-2025-03-14.pdf`
 - [x] Verificar/aceptar DPA Resend (2026-05-27 archivado en `docs/legal/dpas/resend-dpa-2026-05-27.pdf`) — *encargado cesado el 2026-08-25; el archivo se conserva como prueba del periodo activo*
-- [x] Verificar/aceptar DPA Railway (2026-05-27 archivado en `docs/legal/dpas/railway-dpa-2026-05-27.pdf`)
+- [x] Verificar/aceptar DPA Railway (2026-05-27 archivado — **fuera del repositorio desde el 2026-09-13**, ver la ficha de Railway arriba)
 - [x] Verificar/aceptar DPA Netlify (2026-05-27 archivado en `docs/legal/dpas/netlify-dpa-2026-05-27.pdf`)
 - [x] **🔴 PRIORITARIO:** aceptar DPA Cloudflare (2026-05-27 archivado en `docs/legal/dpas/cloudflare-dpa-v6.4-2026-04-03.pdf`)
 - [x] Verificar status GitHub DPA (2026-05-27 Microsoft Products and Services DPA WW May 2026 archivado en `docs/legal/dpas/microsoft-dpa-2026-05.docx`; cuenta GitHub personal free → DPA Microsoft aplica)

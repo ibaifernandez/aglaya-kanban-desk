@@ -1,0 +1,8 @@
+Security
+
+- **Los DPA firmados de Railway y Supabase salen del repositorio público: llevaban la dirección personal del Operador.** Tarjeta `9dbfbd0d`, decisión del Operador del 2026-09-13.
+  - **Dónde están ahora:** en la máquina del Operador, `~/Local Sites/mis-dpa/aglaya-kanban-desk/`, carpeta **sin remoto por decisión suya**. `DPA-registry.md` apunta ahí con el `sha256` de cada fichero, para poder comprobar que la copia es la misma que estuvo versionada. La copia se verificó byte a byte **antes** de retirar nada del árbol.
+  - **Por qué esa carpeta y no un repositorio privado:** no añade ningún encargado, la cuadrilla puede comprobar el puntero porque trabaja en esa misma máquina, y perderla no es irrecuperable —Railway se vuelve a descargar, Supabase sigue en PandaDoc, y los dos permanecen en el historial de git, que no se reescribe—.
+  - ⚠️ **Hicieron falta dos instrumentos, y cada uno por separado es ciego a uno de los dos ficheros.** En el de Railway la dirección está **4 veces en los bytes crudos y 0 en el texto extraído**; en el de Supabase, **0 en los bytes y 2 en el texto** — y una de las dos en **mayúsculas**, así que un patrón sensible a mayúsculas da 1. Un recuento con un solo instrumento, o sensible a mayúsculas, dejaba uno de los dos por limpio.
+  - **Y el procedimiento que los metió, cambiado:** `DPA-registry.md` decía «guardar en `docs/legal/dpas/`» sin condición. Ahora exige mirar antes si el PDF lleva datos personales, con los dos instrumentos, y si los lleva va a la carpeta privada. Sin esto, el próximo DPA firmado entraba por el mismo sitio.
+  - **Lo que no se hace, y está decidido:** el historial de git no se reescribe (decisión del 2026-09-12). Lo retirado sigue en los commits anteriores.
