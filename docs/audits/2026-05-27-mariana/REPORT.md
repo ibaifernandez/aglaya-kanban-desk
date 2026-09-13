@@ -346,7 +346,7 @@ be582cd  chore(ops): scaffold daily DB backup workflow + restore runbook
 
 ### Acciones operador pendientes (no urgentes)
 
-Ver `docs/operator-checklist.md`:
+Ver `docs/operator-checklist.md` *(retirado el 2026-09-13, tarjeta `c2a41b7f`: todas sus acciones estaban hechas o retiradas; última versión en el commit `17289ad`)*:
 - Item 5: borrar `kanban-backup-prod-v2` R2 token huérfano ← ✅ completado durante sesión
 - Item 9-11: UptimeRobot, retention cron, Caveman statusline (nice-to-have)
 
@@ -386,7 +386,7 @@ Ver `docs/operator-checklist.md`:
 - `docs/runbooks/db-restore.md` — runbook backup restore
 - `docs/runbooks/key-rotation.md` — runbook rotación secrets
 - `docs/runbooks/railway-custom-domain.md` — runbook B-03 cierre futuro
-- `docs/operator-checklist.md` — items operador con estado
+- `docs/operator-checklist.md` — items operador con estado *(retirado el 2026-09-13, tarjeta `c2a41b7f`: todas sus acciones estaban hechas o retiradas; última versión en el commit `17289ad`)*
 - `docs/backlog/audit-mariana-roadmap.md` — A/B/C/D restantes
 
 ---

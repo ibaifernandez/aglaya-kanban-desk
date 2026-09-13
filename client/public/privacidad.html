@@ -532,8 +532,7 @@ ocurrieron:</strong></p>
 <th>qué había de verdad</th>
 </tr>
 </thead>
-<tbody>
-<tr>
+<tbody><tr>
 <td>cards archivadas: <em>«24 meses post-archive, después hard-delete automático»</em></td>
 <td><strong>no existe el archivado de cards</strong>, ni campo en el esquema que lo registre, ni tarea que borre nada</td>
 </tr>
@@ -541,8 +540,7 @@ ocurrieron:</strong></p>
 <td>notificaciones leídas: <em>«90 días»</em></td>
 <td><strong>ninguna tarea las suprime</strong>; solo desaparecen al eliminarse la cuenta de su destinatario</td>
 </tr>
-</tbody>
-</table>
+</tbody></table>
 <p><strong>Por qué importa:</strong> una política publicada es una declaración al titular, y el
 reglamento no pide tener plazos — pide <strong>poder demostrar</strong> que se cumplen. Estos
 dos no se podían demostrar porque no se cumplían. Y la propia política de
@@ -628,13 +626,6 @@ pregunte qué se hizo con los suyos entonces.</p>
 <li>✅ <strong>DPO informal:</strong> Antonio Ibai Fernández (<a href="mailto:info@aglaya.biz">info@aglaya.biz</a>). Sin email dedicado (decisión coste). Asunto del email diferencia: <code>[Privacidad]</code> / <code>[RGPD]</code>.</li>
 <li>✅ <strong>Plazos retención fijados:</strong> cards archivadas 24 meses, notificaciones leídas 90 días. <em>(Los <code>digest_logs</code>, con 12 meses fijados aquí, se suprimieron el 25-ago-2026 al retirarse el correo.)</em> <em>(<strong>Los dos plazos de cards y notificaciones nunca tuvieron mecanismo detrás y nunca se aplicaron.</strong> Retirados de la tabla en la versión 1.3 — ver el historial.)</em></li>
 <li>⚠️ <strong>Representante UE (Art. 27 RGPD):</strong> operador Brasil. Decisión: AGLAYA opera principalmente con titulares en Brasil/España; mientras el volumen de titulares EU sea bajo (&lt;5000 únicos/año estimado) y no haya tratamiento sistemático, la designación de representante no es obligatoria. Re-evaluar si la base de usuarios EU crece.</li>
-</ul>
-<h2>Acciones pendientes (operador — sin coste externo)</h2>
-<ul>
-<li><input disabled="" type="checkbox"> <strong>Aceptar DPAs en dashboards procesadores</strong> (todos free / click-through). Lista paso a paso en <code>docs/operator-checklist.md</code>.</li>
-<li><input disabled="" type="checkbox"> <strong>Publicar esta política como URL pública</strong> <code>kanban.aglaya.biz/privacidad</code>. Mecanismo: añadir ruta SPA en <code>client/src/App.jsx</code> que sirva un componente que renderice este markdown vía <code>react-markdown</code> (ya está como dep).</li>
-<li><input disabled="" type="checkbox"> <strong>Versión trilingüe</strong> ES/EN/PT-BR opcional — esperar hasta que haya tracción EN/PT-BR real para justificar el esfuerzo de mantener 3 versiones sincronizadas.</li>
-<li><input disabled="" type="checkbox"> <strong>Versionado de cambios</strong> vía git history + lista en sección 12 de cambios sustanciales.</li>
 </ul>
 
     </article>

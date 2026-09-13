@@ -17,7 +17,7 @@
   status = 200
   force  = true
 
-# Páginas legales estáticas (generadas por scripts/build-legal-pages.js)
+# Páginas legales estáticas (generadas por client/scripts/build-legal-pages.cjs, en el prebuild del cliente)
 # Deben ir ANTES del SPA fallback para que /privacidad no caiga en index.html
 [[redirects]]
   from   = "/privacidad"

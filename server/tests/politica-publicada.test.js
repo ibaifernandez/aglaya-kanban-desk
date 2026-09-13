@@ -163,8 +163,9 @@ describe('la política publicada (HTML) no ofrece lo que no existe', () => {
   // ⚠️ ESTE es el caso que faltaba, y su ausencia era el defecto de la tarjeta
   // `16b8063a`: la prohibición de la frase falsa vivía SOLO sobre el markdown.
   //
-  // El HTML se genera A MANO, así que alguien puede reintroducirla al regenerar
-  // la página sin tocar el `.md` — y versión y fecha seguirían cuadrando, porque
+  // El HTML se versiona aparte del markdown —aunque lo genere
+  // `client/scripts/build-legal-pages.cjs`—, así que alguien puede reintroducirla
+  // en uno sin tocar el otro — y versión y fecha seguirían cuadrando, porque
   // eso sí se comparaba. **El guardián sabía cuál era el fichero que la gente
   // lee, lo decía en su propio comentario, y vigilaba el otro.**
   it('no afirma en la tabla de retención que no quede copia', () => {
@@ -228,9 +229,29 @@ describe('la política publicada (HTML) no ofrece lo que no existe', () => {
   });
 });
 
+// ⚠️ Tarjeta `c2a41b7f`. La política publicada terminaba con una lista de
+// «Acciones pendientes (operador)» ya hechas —entre ellas «publicar esta política
+// como URL pública», servida en esa misma URL—. Una lista de tareas internas no
+// pinta nada en el documento con el que un titular ejerce sus derechos, y esa
+// además era falsa.
+describe('la política publicada no lleva una lista de pendientes del operador', () => {
+  it.each([['HTML', HTML], ['markdown', MD]])('el %s no tiene «Acciones pendientes»', (_, ruta) => {
+    expect(leer(ruta)).not.toMatch(/Acciones pendientes/i);
+  });
+
+  it('ni remite a un checklist del operador como procedimiento', () => {
+    expect(leer(HTML)).not.toMatch(/operator-checklist/);
+  });
+});
+
 describe('el HTML publicado y el markdown fuente no se separan', () => {
-  // El HTML se genera A MANO (`docs/operator-checklist.md`), así que nada impide
-  // que uno se actualice y el otro no. Y el que la gente lee es el HTML.
+  // El HTML lo genera `client/scripts/build-legal-pages.cjs` desde el markdown, en
+  // el `prebuild` del cliente. Pero se VERSIONA, y nada impide commitear uno sin
+  // regenerar el otro: la página servida sale del markdown y la versionada puede
+  // quedarse atrás. Y el que la gente lee es el servido.
+  //
+  // Aquí decía «se genera A MANO (`docs/operator-checklist.md`)». Era falso: el
+  // generador existe desde mayo, y ese documento se retiró el 13-sep-2026.
   const version = (t) => (t.match(/Versión:?<\/strong>\s*([0-9]+\.[0-9]+)/) || t.match(/\*\*Versión:\*\*\s*([0-9]+\.[0-9]+)/) || [])[1];
   const fecha = (t) => (t.match(/Última actualización:<\/strong>\s*([0-9]{4}-[0-9]{2}-[0-9]{2})/) || t.match(/\*\*Última actualización:\*\*\s*([0-9]{4}-[0-9]{2}-[0-9]{2})/) || [])[1];
 

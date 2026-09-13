@@ -113,11 +113,6 @@ fi
 #                               jest@29.7.0» ES la decisión: la versión es el
 #                               contenido, no una copia. Su cabecera sí llevaba
 #                               la versión del producto y se quitó.
-#   docs/operator-checklist.md→ evidencia de compliance RGPD, fechada y
-#                               referenciada por documentos inmutables. Sus
-#                               cifras son las del audit que las midió. Además es
-#                               una checklist: V3 mordería sus casillas, que son
-#                               su forma legítima.
 
 # rules_for <ruta relativa> — qué reglas aplican a este fichero.
 # Se intersecta siempre con RULES para que amputar una regla de la tabla la

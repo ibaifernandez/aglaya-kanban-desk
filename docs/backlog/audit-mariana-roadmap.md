@@ -210,5 +210,5 @@ Roadmap producto que el equipo necesita usar daily. Decisión del operador.
 
 - Audit findings JSON: `docs/audits/2026-05-27-mariana/findings.json`
 - Audit REPORT.md: `docs/audits/2026-05-27-mariana/REPORT.md`
-- Operator checklist: `docs/operator-checklist.md`
+- Operator checklist: `docs/operator-checklist.md` *(retirado el 2026-09-13, tarjeta `c2a41b7f`: todas sus acciones estaban hechas o retiradas; última versión en el commit `17289ad`)*
 - Session handoff: `.claude/handoffs/2026-05-28-mariana-trench-cierre.md` (generado al final sesión)
