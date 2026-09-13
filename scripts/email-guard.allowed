@@ -68,7 +68,12 @@ dominio  aglaya.is            # dominio de fixtures de test de la casa
 # ---------------------------------------------------------------------------
 # Direcciones sueltas, una a una, en dominios que NO se abren enteros.
 # ---------------------------------------------------------------------------
-sha256   877890c213c2529dde43e6d54a3e231b3f1f5af7baf13e839e4ac59d37b59f91  # ib***@gmail.com — de Ibai, en docs/INCIDENTS.md como destinatario de una verificación de correo del 2026-04-28. Suya y publicada por él; gmail.com NO se abre entero por esto.
+# (Retirada el 2026-09-13, tarjeta `dc93d7f3`: aquí se declaraba el gmail personal del
+# Operador «en docs/INCIDENTS.md… suya y publicada por él». Esa aparición se redactó en
+# `9dbfbd0d`, y la declaración se quedó huérfana: no protegía nada y dejaba pasar esa
+# dirección en verde si alguien la volvía a escribir. Su motivo contradecía además la
+# decisión del Operador del 12-sep. `server/tests/email-guard-sin-huerfanas.test.js` impide
+# que una declaración suelta sobreviva a la dirección que justificaba.)
 sha256   02ee7bdc4ccf5c94808a0118eb531822f13e7e38e3810ab29ebefb2c2feb8e58  # us***@gmail.com — fixture de test que existe para comprobar que un dominio no corporativo se RECHAZA. No es de nadie.
 # (Retiradas el 2026-09-13, tarjeta `c2a41b7f`: los buzones de Railway y Cloudflare
 # para pedir DPA, y el DSN de ejemplo de Sentry, vivían solo en docs/operator-checklist.md,
