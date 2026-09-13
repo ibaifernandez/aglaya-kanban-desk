@@ -7,8 +7,8 @@
 > retention-policy, base-legal, breach-notification-procedure, subprocessors, DPIA).
 > Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).
 
-**Última actualización:** 2026-08-26
-**Versión:** 1.2
+**Última actualización:** 2026-09-13
+**Versión:** 1.3
 **Aplicable a:** https://kanban.aglaya.biz (y subdominios `*.kanban.aglaya.biz` futuros)
 
 ---
@@ -134,13 +134,14 @@ Detalle completo en `docs/legal/retention-policy.md`. Resumen:
 |---|---|
 | Datos de cuenta (activa) | Indefinida mientras la cuenta esté activa |
 | Datos de cuenta tras solicitud de supresión | Eliminados en máximo 30 días desde solicitud verificada |
-| Cards y contenido del workspace | Indefinida mientras el workspace esté activo |
-| Cards archivadas | 24 meses post-archive, después hard-delete automático |
-| Notificaciones leídas | 90 días |
+| Cards y contenido del workspace | Indefinida mientras existan. Se suprimen cuando un miembro las elimina, o al eliminarse su tablero o su workspace. **No hay archivado ni supresión por calendario.** Eliminar tu cuenta **no** suprime las cards que creaste: pertenecen al workspace y quedan sin autor. |
+| Notificaciones | Mientras exista tu cuenta. Se suprimen al eliminarla. **No se suprimen por calendario**, ni siquiera las leídas. |
 | Logs de envío de correo (`digest_logs`) | **Suprimidos de la base el 25-ago-2026**, antes de agotar los 12 meses que se anunciaban. **Persisten en las copias de seguridad operacionales hasta su rotación (~24-sep-2026)**, como cualquier otro dato: ver la fila de backups, más abajo, y `docs/legal/retention-policy.md`. |
 | Backups operacionales (Cloudflare R2) | 30 días con rotación automática |
 | Logs de servidor (Railway) | 7-30 días según plan |
 | Logs CDN (Netlify) | 7 días |
+
+> **La supresión es a petición, no automática.** Salvo las copias de seguridad —que rotan solas a los 30 días—, ningún dato de esta tabla se suprime por el paso del tiempo: se suprime cuando alguien lo elimina o cuando ejerces tu derecho de supresión (sección 7).
 
 > Conservamos algunos datos durante períodos más largos si lo exige obligación legal (Art. 17(3)(b) RGPD): procesos judiciales, requerimientos de autoridad, obligaciones fiscales/contables brasileñas (5 años).
 
@@ -276,6 +277,35 @@ Estos documentos son fuente de verdad operativa y se actualizan con cada cambio 
 
 ## Historial de versiones
 
+### 1.3 — 2026-09-13 · la supresión es a petición
+
+**Las versiones 1.0 a 1.2 prometían dos supresiones automáticas que nunca
+ocurrieron:**
+
+| decía | qué había de verdad |
+|---|---|
+| cards archivadas: *«24 meses post-archive, después hard-delete automático»* | **no existe el archivado de cards**, ni campo en el esquema que lo registre, ni tarea que borre nada |
+| notificaciones leídas: *«90 días»* | **ninguna tarea las suprime**; solo desaparecen al eliminarse la cuenta de su destinatario |
+
+**Por qué importa:** una política publicada es una declaración al titular, y el
+reglamento no pide tener plazos — pide **poder demostrar** que se cumplen. Estos
+dos no se podían demostrar porque no se cumplían. Y la propia política de
+retención de la casa lo decía, con las casillas de implementarlos sin marcar.
+
+**Qué se decidió:** declarar lo que el sistema hace —**supresión a petición, no
+por calendario**— en vez de construir un borrado automático que nadie ha pedido.
+Borrar por calendario es irreversible por diseño, y solo compensa el día que esta
+aplicación se ofrezca a un tercero; ese día se construye y se vuelve a prometer,
+con el mecanismo detrás.
+
+**Y se añade algo que la tabla callaba:** eliminar tu cuenta **no** suprime las
+cards que creaste. Pertenecen al workspace y quedan sin autor.
+
+La promesa antigua no se borra del registro de decisiones de más abajo: queda
+citada con la nota de que nunca se aplicó.
+
+---
+
 ### 1.2 — 2026-08-26 · la copia que sí queda
 
 **La versión 1.1 introdujo una frase que no era cierta**, y se corrige aquí en vez
@@ -339,7 +369,7 @@ pregunte qué se hizo con los suyos entonces.
 
 - ✅ **Revisión legal externa declinada** por el operador. Esta versión es la fuente de verdad. Cambios sustanciales generarán versión 1.1+ documentada en este archivo.
 - ✅ **DPO informal:** Antonio Ibai Fernández (info@aglaya.biz). Sin email dedicado (decisión coste). Asunto del email diferencia: `[Privacidad]` / `[RGPD]`.
-- ✅ **Plazos retención fijados:** cards archivadas 24 meses, notificaciones leídas 90 días. *(Los `digest_logs`, con 12 meses fijados aquí, se suprimieron el 25-ago-2026 al retirarse el correo.)*
+- ✅ **Plazos retención fijados:** cards archivadas 24 meses, notificaciones leídas 90 días. *(Los `digest_logs`, con 12 meses fijados aquí, se suprimieron el 25-ago-2026 al retirarse el correo.)* *(**Los dos plazos de cards y notificaciones nunca tuvieron mecanismo detrás y nunca se aplicaron.** Retirados de la tabla en la versión 1.3 — ver el historial.)*
 - ⚠️ **Representante UE (Art. 27 RGPD):** operador Brasil. Decisión: AGLAYA opera principalmente con titulares en Brasil/España; mientras el volumen de titulares EU sea bajo (<5000 únicos/año estimado) y no haya tratamiento sistemático, la designación de representante no es obligatoria. Re-evaluar si la base de usuarios EU crece.
 
 ## Acciones pendientes (operador — sin coste externo)

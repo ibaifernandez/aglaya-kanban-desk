@@ -33,7 +33,7 @@
 | **Categorías de datos** | Títulos y descripciones de cards (contenido libre — **posible PII en función del uso**), comentarios, checklist items, asignaciones (user_id), adjuntos (filenames + storage URLs), fechas, prioridades, etiquetas |
 | **Categorías de destinatarios** | Miembros del workspace (verificado por `requireWorkspaceMember` middleware) |
 | **Transferencias internacionales** | Brasil (Supabase) + US/Global (Railway/Netlify/Cloudflare R2 para backups) |
-| **Plazo de conservación** | Cards activas: mientras workspace activo. Cards archivadas: **pendiente decisión operador** (sugerido 24 meses post-archive). Attachments huérfanos: pendiente auto-cleanup runbook |
+| **Plazo de conservación** | Cards: mientras existan; se suprimen cuando un miembro las elimina o al eliminarse su tablero o workspace. **Sin archivado y sin supresión por calendario** (decidido 2026-09-12, tarjeta `0779da47`). Adjuntos huérfanos: se conservan, sin limpieza automática. Detalle: `retention-policy.md`. |
 | **Medidas de seguridad** | RLS por workspace_id, ON DELETE CASCADE en FK, uploads con magic-bytes validation (post B-CRIT-01 audit) |
 | **⚠️ Riesgo especial** | Cards pueden contener categorías especiales Art. 9 RGPD (datos salud, religión, sindicales) si usuarios las introducen libremente. **Decisión pendiente operador: prohibición explícita en T&C o filtrado automático** |
 
@@ -49,7 +49,7 @@
 | **Categorías de datos** | user_id, contenido de notificación (referencia a card/comment), timestamp |
 | **Categorías de destinatarios** | Ninguno externo: la notificación no sale del sistema |
 | **Transferencias internacionales** | Ninguna |
-| **Plazo de conservación** | Notificaciones leídas: 90 días |
+| **Plazo de conservación** | Notificaciones: mientras exista la cuenta del destinatario; se suprimen al eliminarla. **Sin supresión por calendario**, ni siquiera las leídas (decidido 2026-09-12). *(Hasta esa fecha decía «leídas: 90 días», y nunca ocurrió.)* |
 | **Opt-out** | No hay opt-out: el aviso está ligado al uso del servicio y no sale de él |
 
 > **⏹ El envío por correo de esta actividad CESÓ el 25-ago-2026.** Hasta esa fecha

@@ -1,0 +1,15 @@
+Fixed
+
+- **La política de privacidad publicada prometía al titular dos supresiones automáticas que nunca ocurrieron.** Tarjeta `0779da47`. Pasa a la **versión 1.3**.
+  - **Qué decía y qué había.** *«Cards archivadas: 24 meses post-archive, después hard-delete automático»* — **no existe el archivado de cards**, ni campo en el esquema, ni tarea que borre nada. *«Notificaciones leídas: 90 días»* — **ninguna tarea las suprime**. Medido: el servidor no tiene ninguna tarea periódica, y el único workflow que borra algo es el de copias de seguridad.
+  - **Decisión del Operador (2026-09-12): la política dice la verdad.** La supresión es **a petición, no por calendario**. Borrar por calendario es irreversible por diseño y solo compensa el día que la aplicación se ofrezca a un tercero: queda aparcado con disparador en `9167d685`.
+  - ⚠️ **No era un documento: eran cinco diciendo tres cosas.** La tarjeta citaba el markdown de la política; **el HTML publicado** —el que lee la gente— lo repetía, y también `docs/legal/README.md` y el registro de actividades `RAT.md`, que declaraba los 90 días como hecho. `retention-policy.md` los tenía como «sugeridos» con las casillas de implementarlos sin marcar. **Los cinco dicen ahora lo mismo.**
+  - **Y se declara algo que la tabla callaba:** eliminar tu cuenta **no** suprime las cards que creaste — pertenecen al workspace y quedan sin autor (`ON DELETE SET NULL`).
+  - **Nada se borra del registro.** Las promesas se citan en el historial de la v1.3 para desmentirlas, y los registros de decisiones de mayo conservan la línea con su nota. Las casillas sin marcar se **tachan** con su remisión: una casilla vacía en un documento legal se lee como pendiente sin dueño; una borrada no deja rastro de que la pregunta existió.
+  - **Y se retira una tercera copia**: `retention-policy.md` llevaba una plantilla con los plazos escritos otra vez, apuntando a un `privacy-policy-kanban.draft.md` que ya no existe. Ahora remite a la política publicada.
+  - **Cinco mutaciones rojas:** volver a meter el borrado automático en la tabla HTML, los 90 días de notificaciones, o el borrado solo en el markdown; quitar la frase «a petición»; y **borrar la rotación de backups por simetría**, que es la única supresión automática que sí existe y tiene que seguir declarada. Los casos miran **dentro de la tabla**, no el documento, para que el historial pueda seguir citando lo que desmiente.
+
+Known
+
+- **La supresión en cascada de las notificaciones al eliminar la cuenta está declarada en el esquema, no medida contra la base.** `schema-drift` compara presencia de columnas, no acciones de clave foránea. La política la afirma porque la declaran el esquema y el propio borrado de cuenta; si alguien necesita demostrarla, es una consulta a la base que hoy no hace ningún guardián.
+- **`node-cron` sigue en las dependencias y nadie lo importa.** No se toca aquí: no promete nada al titular. Se menciona porque su presencia es lo primero que haría creer a un lector que existe una tarea periódica.

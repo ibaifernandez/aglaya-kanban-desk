@@ -168,6 +168,38 @@ describe('la política publicada (HTML) no ofrece lo que no existe', () => {
     expect(fila).toMatch(/30 días/);
   });
 
+  // ⚠️ LOS CASOS DE LA v1.3 (tarjeta `0779da47`), y son la misma clase de defecto
+  // que el botón que ya no existía: una promesa al titular sin mecanismo detrás.
+  //
+  // Hasta el 13-sep-2026 la tabla anunciaba «cards archivadas: 24 meses
+  // post-archive, después hard-delete automático» y «notificaciones leídas: 90
+  // días». **Ninguna de las dos ocurrió nunca**: no existe el archivado de cards,
+  // no existe tarea periódica en el servidor, y ningún workflow borra nada salvo
+  // las copias de seguridad. El reglamento no pide plazos: pide poder demostrar
+  // que se cumplen.
+  //
+  // Se prohíbe DENTRO DE LA TABLA, no en el documento: el historial de la v1.3
+  // cita las dos frases para desmentirlas, y tiene que poder seguir citándolas.
+  it.each([
+    ['el borrado automático de cards archivadas', /hard-delete autom[aá]tico/i],
+    ['el plazo de 24 meses de cards archivadas', /24 meses post-archive/i],
+    ['la supresión de notificaciones leídas a 90 días', /Notificaciones leídas<\/td>\s*<td>90 días/i],
+  ])('la tabla de retención ya no promete %s', (_, re) => {
+    expect(tablaDeRetencion(html, HTML)).not.toMatch(re);
+  });
+
+  // Y la afirmación positiva, que es la que impide «arreglarlo» borrando la fila
+  // sin decir nada: el titular tiene que leer que la supresión es a petición.
+  it('y dice que la supresión es a petición, no automática', () => {
+    expect(tablaDeRetencion(html, HTML)).toMatch(/La supresión es a petición, no automática/);
+  });
+
+  // La única supresión automática que SÍ existe se sigue declarando: quitarla de
+  // la tabla por simetría sería el error contrario.
+  it('pero las copias de seguridad siguen declarando su rotación automática', () => {
+    expect(tablaDeRetencion(html, HTML)).toMatch(/30 días con rotación automática/);
+  });
+
   // La sección 12 prometía avisar por email de los cambios. La aplicación ya no
   // puede mandar correo: era la misma clase de promesa imposible.
   it('no promete avisar de los cambios por un correo que la nave no puede enviar', () => {
@@ -219,5 +251,19 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
 
   it('tampoco afirma en la tabla de retención que no quede copia', () => {
     expect(tablaDeRetencion(md, MD)).not.toMatch(/No queda copia/);
+  });
+
+  // Los mismos casos de la v1.3 sobre el markdown: el HTML se regenera a mano, y
+  // la divergencia entre los dos es exactamente cómo sobrevivió la frase de la v1.1.
+  it('tampoco promete borrados automáticos en su tabla de retención', () => {
+    const tabla = tablaDeRetencion(md, MD);
+    expect(tabla).not.toMatch(/hard-delete autom[aá]tico/i);
+    expect(tabla).not.toMatch(/24 meses post-archive/i);
+    expect(tabla).not.toMatch(/\|\s*Notificaciones leídas\s*\|\s*90 días/i);
+    expect(tabla).toMatch(/La supresión es a petición, no automática/);
+  });
+
+  it('y el historial explica la v1.3', () => {
+    expect(md).toMatch(/1\.3 — 2026-09-13/);
   });
 });
