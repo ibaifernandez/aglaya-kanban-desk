@@ -70,6 +70,6 @@ dominio  aglaya.is            # dominio de fixtures de test de la casa
 # ---------------------------------------------------------------------------
 sha256   877890c213c2529dde43e6d54a3e231b3f1f5af7baf13e839e4ac59d37b59f91  # ib***@gmail.com — de Ibai, en docs/INCIDENTS.md como destinatario de una verificación de correo del 2026-04-28. Suya y publicada por él; gmail.com NO se abre entero por esto.
 sha256   02ee7bdc4ccf5c94808a0118eb531822f13e7e38e3810ab29ebefb2c2feb8e58  # us***@gmail.com — fixture de test que existe para comprobar que un dominio no corporativo se RECHAZA. No es de nadie.
-sha256   902dd4e1c59f5a947e3540589f31c4a3e4b5d0d73945784d9cb4fc72317f9449  # le***@railway.app — buzón corporativo del proveedor, en docs/operator-checklist.md para pedir el DPA.
-sha256   746a480cf9ed7ba82b02489b80cf1aeefa0a44c807ddd2bf2baa49e24398dc3d  # dp***@cloudflare.com — buzón corporativo del proveedor, mismo motivo y mismo fichero.
-sha256   d0a47362123f5f7b77d7bad2985b761d82b8d429f21479469b215cca429858d3  # ab***@o12345.ingest.us.sentry.io — no es una dirección: es el userinfo de un DSN de ejemplo de Sentry en docs/operator-checklist.md. Casa con el patrón por accidente.
+# (Retiradas el 2026-09-13, tarjeta `c2a41b7f`: los buzones de Railway y Cloudflare
+# para pedir DPA, y el DSN de ejemplo de Sentry, vivían solo en docs/operator-checklist.md,
+# que se retiró. Si vuelven a hacer falta, se declaran otra vez.)
