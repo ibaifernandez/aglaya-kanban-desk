@@ -83,5 +83,6 @@ Valores internos reales:
 
 ## 📝 Notas de Implementación
 
-- **Backend**: Verificado por middlewares `requireAuth` (Macro), `requireRole` (Macro) y `requireWorkspaceMember` (Micro).
+- **Backend**: `requireAuth` y `requireRole` (Macro); `requireWorkspaceMember` (Micro: pertenencia) y `requireWorkspaceRole` (Micro: papel, en las rutas de workspace). **Las filas de tableros, columnas y tarjetas las comprueba cada manejador por dentro** (`server/routes/boards.js`, `columns.js`, `cards.js`), no el montaje de la ruta — quien lea solo `server/app.js` concluirá que no se aplican, y se equivocará: le pasó a la auditoría del 2026-09-11.
+- **Verificado por prueba, no solo por código:** [`server/tests/matriz-de-permisos.test.js`](../server/tests/matriz-de-permisos.test.js) recorre la matriz por papel **y** comprueba que **ningún espacio que toque una petición** —el del recurso, o cualquiera que se nombre en el cuerpo— sea uno del que el usuario no es miembro. Hasta el 2026-09-13 esta línea decía «verificado» sin prueba detrás, y el papel se juzgaba contra el espacio que el propio usuario nombraba en el cuerpo (tarjeta `05efbd1d`).
 - **Frontend**: Ocultación dinámica de UI basada en la combinación de `user.role` y `workspace.myRole`.

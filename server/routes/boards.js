@@ -105,7 +105,17 @@ const updateBoard = async (req, res) => {
 
   if (workspaceId) {
     // 🛡️ Biblia Rule: Mover tableros entre WS is Propietario/Admin ONLY
-    if (!['owner', 'admin'].includes(wsRole)) {
+    //
+    // ⚠️ EN LOS DOS ESPACIOS (tarjeta `05efbd1d`). `wsRole` es el papel en el
+    // espacio del TABLERO —el de origen—, porque el middleware ya no deja que el
+    // cuerpo lo elija. Hasta hoy era al revés: se juzgaba con el papel en el
+    // destino, y bastaba con ser dueño del espacio propio para llevarse a él un
+    // tablero de un espacio del que no se era ni miembro.
+    //
+    // El papel en el destino lo trae `req.workspaceRoles`, y el middleware ya ha
+    // exigido que sea miembro. Aquí se exige además el papel que pide la matriz.
+    const papelDestino = req.workspaceRoles?.[workspaceId];
+    if (!['owner', 'admin'].includes(wsRole) || !['owner', 'admin'].includes(papelDestino)) {
       return res.status(403).json({ error: 'Solo Propietarios y Admins pueden mover tableros entre workspaces' });
     }
 
