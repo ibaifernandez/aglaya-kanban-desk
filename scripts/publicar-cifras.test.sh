@@ -29,6 +29,7 @@ publicar() {
     CIFRAS_REMOTO="$T/remoto.git" CIFRAS_MEDIDO_EL="2026-09-16T10:00:00Z" \
     CIFRAS_EJECUCION="https://github.com/x/y/actions/runs/1" CIFRAS_COMMIT="$SHA" \
     CIFRAS_TESTS="484" CIFRAS_TABLAS_RLS="11" CIFRAS_POLICIES_RLS="32" \
+    CIFRAS_FOREIGN_KEYS="26" CIFRAS_FK_CON_ACCION="22" CIFRAS_INDICES_ADICIONALES="10" \
     "$@" bash "$SCRIPT" >"$T/salida" 2>&1
 }
 cabeza() { git --git-dir="$T/remoto.git" rev-parse -q --verify refs/heads/cifras 2>/dev/null || echo "(no existe)"; }
@@ -45,6 +46,15 @@ publicar CIFRAS_COMMIT="main"; r=$?
 
 publicar CIFRAS_POLICIES_RLS="treinta"; r=$?
 [ "$r" = 1 ] && [ "$(cabeza)" = "(no existe)" ] && ok "recuento de políticas no numérico → exit 1" || mal "políticas no numéricas: exit $r"
+
+publicar CIFRAS_FOREIGN_KEYS="veintiséis"; r=$?
+[ "$r" = 1 ] && [ "$(cabeza)" = "(no existe)" ] && ok "recuento de claves foráneas no numérico → exit 1" || mal "foreign_keys no numérico: exit $r"
+
+publicar CIFRAS_INDICES_ADICIONALES=""; r=$?
+[ "$r" = 1 ] && [ "$(cabeza)" = "(no existe)" ] && ok "sin recuento de índices adicionales → exit 1" || mal "indices_adicionales vacío: exit $r"
+
+publicar CIFRAS_FK_CON_ACCION="27"; r=$?
+[ "$r" = 1 ] && [ "$(cabeza)" = "(no existe)" ] && ok "más claves con acción al borrar que claves foráneas → exit 1" || mal "fk_con_accion > foreign_keys: exit $r"
 
 # Sin costuras de RLS y sin DATABASE_URL: no hay forma de medir la base.
 env -i PATH="$PATH" HOME="$T" CIFRAS_REMOTO="$T/remoto.git" CIFRAS_COMMIT="$SHA" \
@@ -66,14 +76,17 @@ forma="$(printf '%s' "$json" | node -e '
       const c = j.cifras || {};
       const bien = j.contrato === "cifras-publicas" && j.version === 1 && j.nave === "aglaya-kanban-desk"
         && /^[0-9a-f]{40}$/.test(j.commit) && /Z$/.test(j.medido_el) && /^https:/.test(j.ejecucion)
-        && ["version","tests","tablas_rls","policies_rls"].every(k => c[k] && "valor" in c[k] && c[k].fuente)
-        && !("tablas_backup" in c)
+        && Object.keys(c).sort().join() === ["fk_con_accion_al_borrar","foreign_keys","indices_adicionales","policies_rls","tablas_rls","tests","version"].join()
+        && Object.values(c).every(v => "valor" in v && v.fuente)
         && c.tests.valor === 484 && c.tablas_rls.valor === 11 && c.policies_rls.valor === 32
-        && /recuento/.test(c.policies_rls.fuente);
+        && c.foreign_keys.valor === 26 && c.fk_con_accion_al_borrar.valor === 22 && c.indices_adicionales.valor === 10
+        && /recuento/.test(c.policies_rls.fuente)
+        && /confdeltype/.test(c.fk_con_accion_al_borrar.fuente)
+        && /no sostienen una PK ni una restricción UNIQUE\/EXCLUDE/.test(c.indices_adicionales.fuente);
       console.log(bien ? "OK" : "MAL " + s);
     } catch (e) { console.log("MAL JSON ilegible"); }
   });')"
-[ "$forma" = "OK" ] && ok "JSON con la forma del contrato, sin tablas_backup, y policies_rls dice «recuento»" || mal "forma: $forma"
+[ "$forma" = "OK" ] && ok "JSON con la forma del contrato: exactamente siete claves (sin tablas_backup), valores y fuentes que describen su consulta" || mal "forma: $forma"
 
 [ "$(git --git-dir="$T/remoto.git" rev-list --count cifras)" = 1 ] && ok "rama huérfana: un solo commit, sin historia de main" || mal "la rama no es huérfana"
 [ "$(git --git-dir="$T/remoto.git" ls-tree --name-only cifras)" = "cifras.json" ] && ok "la rama solo contiene cifras.json" || mal "la rama contiene más que cifras.json"
