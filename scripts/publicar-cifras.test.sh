@@ -32,6 +32,17 @@ publicar() {
     CIFRAS_FOREIGN_KEYS="26" CIFRAS_FK_CON_ACCION="22" CIFRAS_INDICES_ADICIONALES="10" \
     "$@" bash "$SCRIPT" >"$T/salida" 2>&1
 }
+# Un `psql` FALSO en el PATH: devuelve las filas `clave|valor` que se le den, así
+# estos casos recorren la ruta REAL de lectura por nombre (tarjeta `0ceaecac`) en
+# vez de saltársela con las costuras CIFRAS_*.
+mkdir -p "$T/bin"
+printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$FILAS_FALSAS"\n' > "$T/bin/psql"; chmod +x "$T/bin/psql"
+por_catalogo() {
+  env -i PATH="$T/bin:$PATH" HOME="$T" DATABASE_URL="postgres://falso" FILAS_FALSAS="$1" \
+    CIFRAS_REMOTO="$T/remoto.git" CIFRAS_MEDIDO_EL="2026-09-18T10:00:00Z" \
+    CIFRAS_EJECUCION="https://github.com/x/y/actions/runs/1" CIFRAS_COMMIT="$SHA" CIFRAS_TESTS="486" \
+    bash "$SCRIPT" >"$T/salida" 2>&1
+}
 cabeza() { git --git-dir="$T/remoto.git" rev-parse -q --verify refs/heads/cifras 2>/dev/null || echo "(no existe)"; }
 
 echo "Tiene que NO publicar:"
@@ -55,6 +66,15 @@ publicar CIFRAS_INDICES_ADICIONALES=""; r=$?
 
 publicar CIFRAS_FK_CON_ACCION="27"; r=$?
 [ "$r" = 1 ] && [ "$(cabeza)" = "(no existe)" ] && ok "más claves con acción al borrar que claves foráneas → exit 1" || mal "fk_con_accion > foreign_keys: exit $r"
+
+por_catalogo "$(printf 'tablas_rls|1\npolicies_rls|2\nforeign_keys|3\nindices_adicionales|5')"; r=$?
+[ "$r" = 1 ] && [ "$(cabeza)" = "(no existe)" ] && ok "al catálogo le falta una clave → exit 1" || mal "clave que falta: exit $r"
+
+por_catalogo "$(printf 'tablas_rls|1\npolicies_rls|2\nforeign_keys|3\nfk_con_accion_al_borrar|3\nindices_adicionales|5\ntablas_rls|9')"; r=$?
+[ "$r" = 1 ] && [ "$(cabeza)" = "(no existe)" ] && ok "el catálogo repite una clave → exit 1" || mal "clave repetida: exit $r"
+
+por_catalogo "$(printf 'tablas_rls|1\npolicies_rls|2\nforeign_keys|3\nfk_con_accion_al_borrar|3\nindices_adicionales|5\nindices|7')"; r=$?
+[ "$r" = 1 ] && [ "$(cabeza)" = "(no existe)" ] && ok "el catálogo trae una clave que no se publica → exit 1" || mal "clave desconocida: exit $r"
 
 # Sin costuras de RLS y sin DATABASE_URL: no hay forma de medir la base.
 env -i PATH="$PATH" HOME="$T" CIFRAS_REMOTO="$T/remoto.git" CIFRAS_COMMIT="$SHA" \
@@ -102,6 +122,17 @@ publicar CIFRAS_TESTS="485" CIFRAS_MEDIDO_EL="2026-09-17T10:00:00Z"; r=$?
 [ "$r" = 0 ] && [ "$(git --git-dir="$T/remoto.git" rev-list --count cifras)" = 2 ] \
   && git --git-dir="$T/remoto.git" merge-base --is-ancestor "$primera" cifras \
   && ok "dos commits, el primero es antecesor del segundo" || mal "segunda publicación: exit $r"
+
+echo
+echo "Por el catálogo, se lee por NOMBRE: el orden de las filas no cambia qué valor va a qué clave:"
+por_catalogo "$(printf 'indices_adicionales|5\nfk_con_accion_al_borrar|4\npolicies_rls|2\nforeign_keys|6\ntablas_rls|1')"; r=$?
+mapa="$(git --git-dir="$T/remoto.git" show cifras:cifras.json 2>/dev/null | node -e '
+  let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+    try { const c = JSON.parse(s).cifras;
+      console.log(["tablas_rls","policies_rls","foreign_keys","fk_con_accion_al_borrar","indices_adicionales"].map(k => k+"="+c[k].valor).join(" "));
+    } catch (e) { console.log("ilegible"); } });')"
+[ "$r" = 0 ] && [ "$mapa" = "tablas_rls=1 policies_rls=2 foreign_keys=6 fk_con_accion_al_borrar=4 indices_adicionales=5" ] \
+  && ok "filas desordenadas → cada valor en su clave" || mal "por nombre: exit $r, publicado «$mapa»"
 
 echo
 echo "PASS=$PASS FAIL=$FAIL"
