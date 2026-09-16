@@ -2,9 +2,9 @@
   "contrato": "cifras-publicas",
   "version": 1,
   "nave": "aglaya-kanban-desk",
-  "commit": "e05f084bf0fad36669e5a33d49130ae50eb25b2c",
-  "medido_el": "2026-09-16T15:11:33Z",
-  "ejecucion": "https://github.com/ibaifernandez/aglaya-kanban-desk/actions/runs/35113513338",
+  "commit": "f9d00c88dccd904f885f51f5e9a8ef8891b2eb58",
+  "medido_el": "2026-09-16T20:44:29Z",
+  "ejecucion": "https://github.com/ibaifernandez/aglaya-kanban-desk/actions/runs/35148243436",
   "cifras": {
     "version": {
       "valor": "1.4.0",
@@ -24,6 +24,21 @@
       "valor": 32,
       "unidad": "políticas",
       "fuente": "catálogo de Postgres: recuento de pg_policies en public (recuento, no verificación)"
+    },
+    "foreign_keys": {
+      "valor": 21,
+      "unidad": "claves foráneas",
+      "fuente": "catálogo de Postgres: pg_constraint con contype = f en tablas de public"
+    },
+    "fk_con_accion_al_borrar": {
+      "valor": 20,
+      "unidad": "claves foráneas",
+      "fuente": "catálogo de Postgres: claves foráneas de public con confdeltype <> a (hacen algo al borrar: CASCADE, SET NULL, SET DEFAULT o RESTRICT; un NO ACTION escrito no se distingue de uno omitido)"
+    },
+    "indices_adicionales": {
+      "valor": 11,
+      "unidad": "índices",
+      "fuente": "catálogo de Postgres: índices de tablas de public que no sostienen una PK ni una restricción UNIQUE/EXCLUDE"
     }
   }
 }
