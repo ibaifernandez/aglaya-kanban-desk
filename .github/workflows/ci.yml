@@ -77,6 +77,13 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Permisos del token: SOLO LECTURA por defecto. El único job que escribe es
+# `publicar-cifras`, y declara `contents: write` para él solo (contrato
+# `cifras-publicas` v1). Sin esta línea, el permiso por defecto lo decide la
+# configuración del repositorio, y podría ser escritura para todos los jobs.
+permissions:
+  contents: read
+
 # Cancela runs anteriores si llega un nuevo push al mismo branch
 concurrency:
   group: ci-${{ github.head_ref || github.ref }}
@@ -89,6 +96,11 @@ jobs:
     name: Server tests (jest)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # El recuento de tests de ESTA ejecución, para `publicar-cifras`. Solo existe
+    # si la batería salió entera en verde: el paso que lo cuenta no llega a correr
+    # si jest falla, y sin recuento no se publica.
+    outputs:
+      tests: ${{ steps.contar_tests.outputs.tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -120,7 +132,22 @@ jobs:
             --runInBand \
             --no-watchman \
             --forceExit \
-            --ci
+            --ci \
+            --json --outputFile=jest-resultados.json
+
+      - name: Contar tests (para las cifras públicas)
+        id: contar_tests
+        run: |
+          set -euo pipefail
+          # Se exige éxito Y cero fallos Y más de cero tests: un informe que no
+          # cumpla las tres cosas no deja recuento, y no se publica nada.
+          tests="$(node -e '
+            const r = require("./jest-resultados.json");
+            if (!r.success || r.numFailedTests !== 0 || !(r.numTotalTests > 0)) process.exit(1);
+            process.stdout.write(String(r.numTotalTests));
+          ')"
+          echo "tests=$tests" >> "$GITHUB_OUTPUT"
+          echo "Tests en verde en esta ejecución: $tests"
 
       # Un verde de arriba dice que las pruebas pasan, NO que midan el código:
       # los dobles de `supabaseAdmin` de la puerta interna llegaron a devolver
@@ -523,6 +550,13 @@ jobs:
       - name: Sello — ¿el verdicto pone rojo un resultado vacío o saltado?
         run: bash scripts/ci-verdicto.test.sh
 
+      # El publicador de cifras públicas: que no publique nada inválido, que la
+      # rama nazca huérfana, y que una publicación rota no toque lo publicado.
+      - name: Sello — ¿publicar-cifras publica lo válido y nada más?
+        id: sello_cifras
+        continue-on-error: true
+        run: bash scripts/publicar-cifras.test.sh
+
       - name: Verdicto — ¿pasó alguna en rojo?
         run: |
           bash scripts/ci-verdicto.sh \
@@ -555,7 +589,8 @@ jobs:
             "verificación del volcado · sello|${{ steps.sello_volcado.outcome }}" \
             "aviso de despliegue · sello|${{ steps.sello_despliegue.outcome }}" \
             "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
-            "cableado del verdicto · guardián|${{ steps.cableado.outcome }}"
+            "cableado del verdicto · guardián|${{ steps.cableado.outcome }}" \
+            "cifras públicas · sello|${{ steps.sello_cifras.outcome }}"
 
   client-build:
     name: Client build (vite)
@@ -593,3 +628,41 @@ jobs:
 # y aun así gastaba un corredor y un minuto facturado en cada PR y en cada
 # empujón a `main`. Un aviso que nadie puede desoír no necesita correr dos veces
 # por tarjeta: necesita llegar.
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PUBLICAR CIFRAS — contrato `cifras-publicas` v1 (tarjeta `c82aa8b9`)
+  #
+  # Publica `version`, `tests`, `tablas_rls` y `policies_rls` en la rama huérfana
+  # `cifras`, para que el portafolio las LEA en vez de teclearlas.
+  #
+  #   · Solo en `push` a `main`: en un PR no hay secretos, y no es lo desplegado.
+  #   · `needs` de los tres jobs que miden: si cualquiera sale en rojo, este no
+  #     corre, y queda publicada la última medición en verde, con su fecha.
+  #   · `contents: write` SOLO aquí.
+  #   · Sin cancelación: dos publicaciones seguidas se ponen en fila, y el `push`
+  #     del script no es forzado, así que una no pisa a la otra.
+  #
+  # NO publica `tablas_backup`: ningún proceso de CI restaura la copia.
+  # ─────────────────────────────────────────────────────────────────────────────
+  publicar-cifras:
+    name: Publicar cifras (cifras-publicas v1)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [server-tests, comprobaciones-baratas, client-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    concurrency:
+      group: publicar-cifras
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Medir y publicar en la rama `cifras`
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CIFRAS_TESTS: ${{ needs.server-tests.outputs.tests }}
+          CIFRAS_COMMIT: ${{ github.sha }}
+          CIFRAS_EJECUCION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: bash scripts/publicar-cifras.sh

@@ -55,3 +55,6 @@ graphify-out/
 # Documentos de trabajo del Operador (Pages). No son fuente ni entregable
 # versionado: se generan, se editan a mano y pesan. Fuera del árbol.
 *.pages
+
+# Informe de jest que CI usa para contar tests (cifras-publicas); nunca se versiona.
+jest-resultados.json
