@@ -108,9 +108,26 @@ else
   command -v psql >/dev/null 2>&1 || falla 2 "falta psql en el corredor"
   # Una sola consulta, solo catálogo. Es el mismo fichero que mide a mano
   # `docs/schema/pruebas/cifras-catalogo.sh` contra casos conocidos.
-  fila="$(psql "$conn" -t -A -F ' ' -v ON_ERROR_STOP=1 -f "$RAIZ/scripts/cifras-catalogo.sql")" \
+  filas="$(psql "$conn" -t -A -F '|' -v ON_ERROR_STOP=1 -f "$RAIZ/scripts/cifras-catalogo.sql")" \
     || falla 2 "la consulta al catálogo falló"
-  read -r tablas_rls policies_rls foreign_keys fk_con_accion indices_adicionales <<<"$fila"
+  # POR NOMBRE, no por posición (tarjeta `0ceaecac`): cada fila es `clave|valor`,
+  # y reordenar la SQL no puede cambiar qué valor va a qué clave. Una clave que
+  # no se conoce o que se repite para en seco; una que falta, la valida el paso 2.
+  tablas_rls=""; policies_rls=""; foreign_keys=""; fk_con_accion=""; indices_adicionales=""
+  vistas=" "
+  while IFS='|' read -r clave valor; do
+    [ -n "$clave" ] || continue
+    case "$vistas" in *" $clave "*) falla 1 "la consulta devolvió «$clave» dos veces";; esac
+    vistas="$vistas$clave "
+    case "$clave" in
+      tablas_rls)              tablas_rls="$valor" ;;
+      policies_rls)            policies_rls="$valor" ;;
+      foreign_keys)            foreign_keys="$valor" ;;
+      fk_con_accion_al_borrar) fk_con_accion="$valor" ;;
+      indices_adicionales)     indices_adicionales="$valor" ;;
+      *) falla 1 "la consulta devolvió una clave que no se publica: «$clave»" ;;
+    esac
+  done <<<"$filas"
 fi
 
 # ── 2 · validar, antes de tocar git ──────────────────────────────────────────

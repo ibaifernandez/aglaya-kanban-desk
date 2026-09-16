@@ -73,19 +73,21 @@ SQL
 #   foreign_keys 7                       fk_con_accion_al_borrar 4 (cascade, set null, set default, restrict)
 #   indices_adicionales 2 (hijo_en_cascada_idx, hijo_a_nulo_unico_idx)
 #     — no cuentan: padre_pkey, padre_codigo_key, hijo_pkey, nieto_pkey, el de EXCLUDE.
-ESPERADO="2 3 7 4 2"
-medido="$(P -F ' ' < "$SQL")" || { echo "ERROR: la consulta falló — no se ha medido nada"; exit 2; }
+# Por NOMBRE y ordenado: el orden de las filas de la SQL no importa (tarjeta `0ceaecac`).
+ESPERADO="fk_con_accion_al_borrar=4 foreign_keys=7 indices_adicionales=2 policies_rls=3 tablas_rls=2"
+salida="$(P -F '=' < "$SQL")" || { echo "ERROR: la consulta falló — no se ha medido nada"; exit 2; }
+medido="$(printf '%s\n' "$salida" | sed '/^$/d' | sort | tr '\n' ' ' | sed 's/ $//')"
 
 FALLOS=0
 if [ "$medido" = "$ESPERADO" ]; then
-  echo "  ok    cifras-catalogo.sql → «$medido» (tablas_rls policies_rls foreign_keys fk_con_accion_al_borrar indices_adicionales)"
+  echo "  ok    cifras-catalogo.sql → «$medido»"
 else
   echo "  FALLA cifras-catalogo.sql → «$medido», esperado «$ESPERADO»"; FALLOS=1
 fi
 
 # Contraprueba: la cuenta ingenua de índices tiene que diferir (7 en este montaje).
 ingenuo="$(P -c "SELECT count(*) FROM pg_index i JOIN pg_class t ON t.oid = i.indrelid JOIN pg_namespace n ON n.oid = t.relnamespace WHERE n.nspname = 'public';")"
-if [ "$ingenuo" != "$(echo "$ESPERADO" | cut -d' ' -f5)" ]; then
+if [ "$ingenuo" != "2" ]; then
   echo "  ok    contraprueba: contar todos los índices da $ingenuo — el montaje distingue"
 else
   echo "  FALLA contraprueba: la cuenta ingenua coincide ($ingenuo) — el montaje no discrimina"; FALLOS=1
