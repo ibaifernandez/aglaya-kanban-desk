@@ -69,7 +69,7 @@ Detalle en `RAT.md`. Resumen:
 | Pérdida de datos por corruption / DROP / migration | Baja (post B-CRIT-02 mitigado quick-win) | Alto | 🟡 MEDIO |
 | Atacante con JWT vigente 7d sin rotación | Baja-Media | Medio | 🟠 ALTO (B-02 abierto) |
 | Stale role en JWT post-cambio admin→user | Baja | Medio | 🟡 MEDIO (B-07 abierto) |
-| Fuga entre espacios de trabajo por un fallo en la autorización del servidor (RLS no filtra tarjetas por espacio, solo por organización) | Muy baja | Alto | 🟡 MEDIO |
+| Fuga entre espacios de trabajo por un fallo en la autorización del servidor (el servidor salta RLS con service_role: no hay segunda barrera que la contenga) | Muy baja | Alto | 🟡 MEDIO |
 | Brecha en backups expuestos | Muy baja | Crítico | 🟡 MEDIO |
 
 ### Categorías especiales (Art. 9 RGPD)

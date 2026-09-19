@@ -204,7 +204,7 @@ Aplicamos medidas técnicas y organizativas adecuadas (RGPD Art. 32). Detalle co
 
 - HTTPS obligatorio en producción + HSTS
 - Autenticación multi-capa (JWT firmado + middleware de autorización por workspace)
-- Row Level Security (RLS) activa en todas las tablas de la base, como segunda barrera tras la autorización del servidor
+- Row Level Security (RLS) activa en todas las tablas de la base. No protege el uso normal de la aplicación: el servidor accede con una credencial de servicio que la salta, y la separación entre espacios de trabajo depende de la autorización del servidor (punto anterior). RLS cierra otra puerta: el acceso directo a la base con las claves públicas
 - Cifrado de datos en reposo (Supabase Postgres + Cloudflare R2)
 - Validación de uploads en 4 capas (extension/MIME blocklist + MIME allowlist + magic-bytes)
 - Backups diarios cifrados con retención 30 días
@@ -284,8 +284,10 @@ Estos documentos son fuente de verdad operativa y se actualizan con cada cambio 
 lo da, porque no hay varios inquilinos: el Kanban trabaja con **una sola
 organización**, por decisión. Lo que separa los espacios de trabajo —personal,
 interno y de cliente— es la **autorización del servidor**, que ya figuraba en la
-línea anterior. RLS está activa en todas las tablas como segunda barrera, pero en
-tarjetas, columnas y categorías filtra por organización, no por espacio.
+línea anterior, **y solo ella**: el servidor accede con una credencial de servicio
+que se salta RLS. RLS está activa en todas las tablas, pero protege otra puerta, el
+acceso directo a la base con las claves públicas, y ahí filtra tarjetas, columnas y
+categorías por organización, no por espacio.
 
 **No cambia ningún tratamiento ni ninguna medida**: cambia cómo se describe una.
 Se sube de versión igualmente, porque es un texto publicado que afirmaba algo

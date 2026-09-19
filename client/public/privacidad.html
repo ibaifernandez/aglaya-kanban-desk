@@ -449,7 +449,7 @@ quien pregunte qué se hizo con los suyos entonces.</p>
 <ul>
 <li>HTTPS obligatorio en producción + HSTS</li>
 <li>Autenticación multi-capa (JWT firmado + middleware de autorización por workspace)</li>
-<li>Row Level Security (RLS) activa en todas las tablas de la base, como segunda barrera tras la autorización del servidor</li>
+<li>Row Level Security (RLS) activa en todas las tablas de la base. No protege el uso normal de la aplicación: el servidor accede con una credencial de servicio que la salta, y la separación entre espacios de trabajo depende de la autorización del servidor (punto anterior). RLS cierra otra puerta: el acceso directo a la base con las claves públicas</li>
 <li>Cifrado de datos en reposo (Supabase Postgres + Cloudflare R2)</li>
 <li>Validación de uploads en 4 capas (extension/MIME blocklist + MIME allowlist + magic-bytes)</li>
 <li>Backups diarios cifrados con retención 30 días</li>
@@ -512,8 +512,10 @@ el mismo defecto que esta versión viene a corregir.</p>
 lo da, porque no hay varios inquilinos: el Kanban trabaja con <strong>una sola
 organización</strong>, por decisión. Lo que separa los espacios de trabajo —personal,
 interno y de cliente— es la <strong>autorización del servidor</strong>, que ya figuraba en la
-línea anterior. RLS está activa en todas las tablas como segunda barrera, pero en
-tarjetas, columnas y categorías filtra por organización, no por espacio.</p>
+línea anterior, <strong>y solo ella</strong>: el servidor accede con una credencial de servicio
+que se salta RLS. RLS está activa en todas las tablas, pero protege otra puerta, el
+acceso directo a la base con las claves públicas, y ahí filtra tarjetas, columnas y
+categorías por organización, no por espacio.</p>
 <p><strong>No cambia ningún tratamiento ni ninguna medida</strong>: cambia cómo se describe una.
 Se sube de versión igualmente, porque es un texto publicado que afirmaba algo
 que no era.</p>
