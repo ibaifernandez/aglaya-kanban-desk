@@ -51,7 +51,7 @@ Detalle en `RAT.md`. Resumen:
 ### ¿Es proporcional?
 
 - ✅ Datos limitados a lo necesario para finalidad declarada
-- ✅ Acceso restringido por workspace_id (RLS)
+- ✅ Acceso restringido por espacio de trabajo, en la autorización del servidor, por membresía (el servidor accede con service_role y salta RLS; ver la fila de fuga entre espacios en el análisis de riesgos)
 - ✅ Retención limitada (ver `retention-policy.md`)
 - 🟠 Texto libre en cards → riesgo de PII no controlada (test pendiente — política de uso T&C)
 
