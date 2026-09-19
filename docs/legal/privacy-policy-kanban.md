@@ -7,8 +7,8 @@
 > retention-policy, base-legal, breach-notification-procedure, subprocessors, DPIA).
 > Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).
 
-**Última actualización:** 2026-09-13
-**Versión:** 1.4
+**Última actualización:** 2026-09-19
+**Versión:** 1.5
 **Aplicable a:** https://kanban.aglaya.biz (y subdominios `*.kanban.aglaya.biz` futuros)
 
 ---
@@ -204,7 +204,7 @@ Aplicamos medidas técnicas y organizativas adecuadas (RGPD Art. 32). Detalle co
 
 - HTTPS obligatorio en producción + HSTS
 - Autenticación multi-capa (JWT firmado + middleware de autorización por workspace)
-- Row Level Security (RLS) en base de datos para aislamiento multi-tenant
+- Row Level Security (RLS) activa en todas las tablas de la base. No protege el uso normal de la aplicación: el servidor accede con una credencial de servicio que la salta, y la separación entre espacios de trabajo depende de la autorización del servidor (punto anterior). RLS cierra otra puerta: el acceso directo a la base con las claves públicas
 - Cifrado de datos en reposo (Supabase Postgres + Cloudflare R2)
 - Validación de uploads en 4 capas (extension/MIME blocklist + MIME allowlist + magic-bytes)
 - Backups diarios cifrados con retención 30 días
@@ -277,6 +277,21 @@ Estos documentos son fuente de verdad operativa y se actualizan con cada cambio 
 ---
 
 ## Historial de versiones
+
+### 1.5 — 2026-09-19 · la base no aísla «multi-tenant»
+
+**Hasta la 1.4, la sección 9 decía que RLS daba «aislamiento multi-tenant».** No
+lo da, porque no hay varios inquilinos: el Kanban trabaja con **una sola
+organización**, por decisión. Lo que separa los espacios de trabajo —personal,
+interno y de cliente— es la **autorización del servidor**, que ya figuraba en la
+línea anterior, **y solo ella**: el servidor accede con una credencial de servicio
+que se salta RLS. RLS está activa en todas las tablas, pero protege otra puerta, el
+acceso directo a la base con las claves públicas, y ahí filtra tarjetas, columnas y
+categorías por organización, no por espacio.
+
+**No cambia ningún tratamiento ni ninguna medida**: cambia cómo se describe una.
+Se sube de versión igualmente, porque es un texto publicado que afirmaba algo
+que no era.
 
 ### 1.4 — 2026-09-13 · Sentry, que estaba y no se decía
 

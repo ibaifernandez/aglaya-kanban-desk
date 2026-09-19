@@ -12,7 +12,7 @@ Para el historial completo de la evolución del sistema, consulte el **Registro 
 
 ## 🏗️ 1. Descripción General
 
-AGLAYA es una plataforma SaaS de gestión de tareas tipo Kanban con aislamiento multi-tenant. La arquitectura está diseñada para soportar múltiples equipos y clientes dentro de una misma organización, garantizando que los datos sean privados y seguros.
+AGLAYA Kanban Desk es una plataforma de gestión de tareas tipo Kanban para **una sola organización, por decisión** (ADR-020): el esquema lleva `organization_id` y está listo para varias, pero no se activa. **No es multi-tenant.** Dentro de esa organización separa espacios de trabajo —personal, interno y de cliente—, y **ese aislamiento lo pone el servidor**, por membresía (`requireWorkspaceMember`, `server/middleware/workspace.js`). El servidor accede siempre con `service_role`, que se salta RLS: **por la API, RLS no actúa, y si falla esa autorización no hay segunda barrera.** RLS cierra otra puerta, el acceso directo a la base con las claves públicas: ahí, en espacios, membresías y tableros filtra por membresía, y en tarjetas, columnas y categorías **solo por organización** (`INCIDENTS.md`, DOC-05).
 
 ### Stack Tecnológico
 - **Frontend**: React 18 + Vite (SPA)
@@ -200,7 +200,7 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 2. **Infraestructura Soberana (AGLAYA)**: La visión final es el control total en servidores propios de AGLAYA. Se utiliza Railway de forma provisional para agilizar demos sin sacrificar la modularidad del backend (ADR-003/010).
 3. **Control de Plan (Freemium)**: Gestor mediante campo `plan` en base de datos para simplificar la Phase 1 sin depender de pasarelas de pago externas como Stripe en la fase beta (ADR-004).
 4. **Propiedad Intelectual**: El repositorio fuente es privado de AGLAYA. Los desploys se realizan mediante artefactos compilados para proteger el código fuente durante la fase de negociación inicial (ADR-005).
-5. **Aislamiento Multi-tenant (Workspaces)**: Implementado mediante una tabla dedicada de membresías y funciones SQL `SECURITY DEFINER` para evitar recursión en las políticas RLS de Supabase (ADR-012/009).
+5. **Aislamiento entre espacios de trabajo**: lo impone el servidor por membresía (`requireWorkspaceMember`), y **solo él**: el servidor usa `service_role` y RLS no actúa sobre la API. Para el acceso directo con claves públicas, las políticas RLS que filtran por membresía —espacios, membresías y tableros— se apoyan en una tabla dedicada de membresías y funciones SQL `SECURITY DEFINER` para evitar recursión (ADR-012/009); las de tarjetas, columnas y categorías filtran solo por organización. Aquí ponía «Aislamiento Multi-tenant»: la organización es una sola, por decisión (ADR-020).
 6. **Hardening de Cascada**: Cambio de `ON DELETE CASCADE` a `SET NULL` en campos de autoría para asegurar que el contenido sobreviva a la rotación de personal (ADR-013).
 7. **Identidad Visual**: Consolidación de **AGLAYA Kanban Desk** como plataforma independiente y profesional (ADR-011).
 
@@ -209,7 +209,7 @@ Cada una de estas decisiones ha moldeado el estado actual de AGLAYA para garanti
 ### ADR-011: Consolidación de Marca e Identidad
 **Fecha:** 2026-04-11
 **Estado:** Aceptado
-**Contexto:** La plataforma ha evolucionado hacia un modelo multi-tenant independiente bajo la marca AGLAYA.
+**Contexto:** La plataforma ha evolucionado hacia un producto independiente bajo la marca AGLAYA. *(Aquí decía «un modelo multi-tenant independiente». No lo es: una organización por decisión, ADR-020.)*
 **Decisión:** Eliminar toda referencia a marcas anteriores y dominios de terceros. Estandarizar mocks de prueba en `aglaya.biz`.
 **Consecuencias:** Coherencia total en la experiencia de usuario y propiedad intelectual protegida.
 

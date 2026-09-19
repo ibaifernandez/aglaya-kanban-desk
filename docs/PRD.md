@@ -17,7 +17,7 @@ AGLAYA es capaz de gestionar simultáneamente múltiples clientes, campañas y o
 
 ### Propuesta de valor
 1. **Zero vendor lock-in**: Todo el código y los datos residen en infraestructura soberana AGLAYA.
-2. **Privacidad Micro/Macro**: Soporte nativo para multi-tenant con separación estricta de espacios de clientes y espacios internos.
+2. **Privacidad Micro/Macro**: separación estricta entre espacios de cliente y espacios internos, por membresía y en el servidor. Una sola organización por decisión (ADR-020): no es multi-tenant.
 3. **Optimización de Costes**: Sin licencias por asiento; acceso ilimitado para personal y clientes.
 
 ---

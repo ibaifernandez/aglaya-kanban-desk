@@ -4,14 +4,14 @@
 **Creado:** 2026-05-27 (post audit Mariana C-09)
 **Estado:** 🟡 Plantilla inicial — completar por DPO/responsable cuando aplique
 
-> Art. 35 obliga DPIA cuando un tratamiento "entrañe un alto riesgo para los derechos y libertades de las personas físicas". Multi-tenant + clientes externos + texto libre en cards califica probablemente.
+> Art. 35 obliga DPIA cuando un tratamiento "entrañe un alto riesgo para los derechos y libertades de las personas físicas". Espacios de clientes externos + texto libre en cards califica probablemente.
 
 ---
 
 ## 1. Descripción sistemática de las operaciones
 
 ### Naturaleza del tratamiento
-- Plataforma kanban multi-tenant SaaS para gestión de proyectos
+- Plataforma kanban para gestión de proyectos, de una sola organización (ADR-020), con espacios de trabajo para clientes externos
 - Procesamiento server-side con base de datos compartida + Row Level Security
 - Usuarios humanos consultan/editan datos via web
 
@@ -69,7 +69,7 @@ Detalle en `RAT.md`. Resumen:
 | Pérdida de datos por corruption / DROP / migration | Baja (post B-CRIT-02 mitigado quick-win) | Alto | 🟡 MEDIO |
 | Atacante con JWT vigente 7d sin rotación | Baja-Media | Medio | 🟠 ALTO (B-02 abierto) |
 | Stale role en JWT post-cambio admin→user | Baja | Medio | 🟡 MEDIO (B-07 abierto) |
-| Multi-tenant leak via RLS bypass / bug | Muy baja | Alto | 🟡 MEDIO |
+| Fuga entre espacios de trabajo por un fallo en la autorización del servidor (el servidor salta RLS con service_role: no hay segunda barrera que la contenga) | Muy baja | Alto | 🟡 MEDIO |
 | Brecha en backups expuestos | Muy baja | Crítico | 🟡 MEDIO |
 
 ### Categorías especiales (Art. 9 RGPD)
@@ -127,7 +127,7 @@ Detalle en `RAT.md`. Resumen:
 
 🟡 **DPIA inicial PENDIENTE COMPLETAR** por DPO designado.
 
-**Acción inmediata:** evaluar si tratamiento actual entra en lista AEPD/ANPD/Chile de tratamientos que requieren DPIA obligatoria (multi-tenant + datos potenciales Art. 9 sugiere SÍ).
+**Acción inmediata:** evaluar si tratamiento actual entra en lista AEPD/ANPD/Chile de tratamientos que requieren DPIA obligatoria (clientes externos + datos potenciales Art. 9 sugiere SÍ).
 
 **Próxima revisión DPIA:** cada 12 meses + tras cualquier cambio sustancial en finalidades, encargados, o categorías de datos.
 

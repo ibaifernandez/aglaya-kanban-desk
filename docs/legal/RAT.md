@@ -34,7 +34,7 @@
 | **Categorías de destinatarios** | Miembros del workspace (verificado por `requireWorkspaceMember` middleware) |
 | **Transferencias internacionales** | Brasil (Supabase) + US/Global (Railway/Netlify/Cloudflare R2 para backups) |
 | **Plazo de conservación** | Cards: mientras existan; se suprimen cuando un miembro las elimina o al eliminarse su tablero o workspace. **Sin archivado y sin supresión por calendario** (decidido 2026-09-12, tarjeta `0779da47`). Adjuntos huérfanos: se conservan, sin limpieza automática. Detalle: `retention-policy.md`. |
-| **Medidas de seguridad** | RLS por workspace_id, ON DELETE CASCADE en FK, uploads con magic-bytes validation (post B-CRIT-01 audit) |
+| **Medidas de seguridad** | Aislamiento por espacio de trabajo **solo** en la autorización del servidor (accede con service_role, que salta RLS: no hay segunda barrera); RLS activa en todas las tablas para el acceso directo con claves públicas (espacios y tableros por membresía; tarjetas, columnas y categorías solo por organización), ON DELETE CASCADE en FK, uploads con magic-bytes validation (post B-CRIT-01 audit) |
 | **⚠️ Riesgo especial** | Cards pueden contener categorías especiales Art. 9 RGPD (datos salud, religión, sindicales) si usuarios las introducen libremente. **Decisión pendiente operador: prohibición explícita en T&C o filtrado automático** |
 
 ---
