@@ -119,8 +119,8 @@ Esta versión refleja la realidad operativa del sistema documentada en <code>doc
 retention-policy, base-legal, breach-notification-procedure, subprocessors, DPIA).
 Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).</p>
 </blockquote>
-<p><strong>Última actualización:</strong> 2026-09-13
-<strong>Versión:</strong> 1.4
+<p><strong>Última actualización:</strong> 2026-09-19
+<strong>Versión:</strong> 1.5
 <strong>Aplicable a:</strong> <a href="https://kanban.aglaya.biz">https://kanban.aglaya.biz</a> (y subdominios <code>*.kanban.aglaya.biz</code> futuros)</p>
 <hr>
 <h2>1. Responsable del Tratamiento</h2>
@@ -449,7 +449,7 @@ quien pregunte qué se hizo con los suyos entonces.</p>
 <ul>
 <li>HTTPS obligatorio en producción + HSTS</li>
 <li>Autenticación multi-capa (JWT firmado + middleware de autorización por workspace)</li>
-<li>Row Level Security (RLS) en base de datos para aislamiento multi-tenant</li>
+<li>Row Level Security (RLS) activa en todas las tablas de la base, como segunda barrera tras la autorización del servidor</li>
 <li>Cifrado de datos en reposo (Supabase Postgres + Cloudflare R2)</li>
 <li>Validación de uploads en 4 capas (extension/MIME blocklist + MIME allowlist + magic-bytes)</li>
 <li>Backups diarios cifrados con retención 30 días</li>
@@ -507,6 +507,16 @@ el mismo defecto que esta versión viene a corregir.</p>
 <p>Estos documentos son fuente de verdad operativa y se actualizan con cada cambio en la infraestructura o procesadores.</p>
 <hr>
 <h2>Historial de versiones</h2>
+<h3>1.5 — 2026-09-19 · la base no aísla «multi-tenant»</h3>
+<p><strong>Hasta la 1.4, la sección 9 decía que RLS daba «aislamiento multi-tenant».</strong> No
+lo da, porque no hay varios inquilinos: el Kanban trabaja con <strong>una sola
+organización</strong>, por decisión. Lo que separa los espacios de trabajo —personal,
+interno y de cliente— es la <strong>autorización del servidor</strong>, que ya figuraba en la
+línea anterior. RLS está activa en todas las tablas como segunda barrera, pero en
+tarjetas, columnas y categorías filtra por organización, no por espacio.</p>
+<p><strong>No cambia ningún tratamiento ni ninguna medida</strong>: cambia cómo se describe una.
+Se sube de versión igualmente, porque es un texto publicado que afirmaba algo
+que no era.</p>
 <h3>1.4 — 2026-09-13 · Sentry, que estaba y no se decía</h3>
 <p><strong>Las versiones 1.0 a 1.3 decían que Sentry era «futuro»</strong> y prometían actualizar
 esta política <strong>antes</strong> de activarlo. <strong>Estaba activo desde mayo de 2026</strong>, y la

@@ -7,8 +7,8 @@
 > retention-policy, base-legal, breach-notification-procedure, subprocessors, DPIA).
 > Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).
 
-**Última actualización:** 2026-09-13
-**Versión:** 1.4
+**Última actualización:** 2026-09-19
+**Versión:** 1.5
 **Aplicable a:** https://kanban.aglaya.biz (y subdominios `*.kanban.aglaya.biz` futuros)
 
 ---
@@ -204,7 +204,7 @@ Aplicamos medidas técnicas y organizativas adecuadas (RGPD Art. 32). Detalle co
 
 - HTTPS obligatorio en producción + HSTS
 - Autenticación multi-capa (JWT firmado + middleware de autorización por workspace)
-- Row Level Security (RLS) en base de datos para aislamiento multi-tenant
+- Row Level Security (RLS) activa en todas las tablas de la base, como segunda barrera tras la autorización del servidor
 - Cifrado de datos en reposo (Supabase Postgres + Cloudflare R2)
 - Validación de uploads en 4 capas (extension/MIME blocklist + MIME allowlist + magic-bytes)
 - Backups diarios cifrados con retención 30 días
@@ -277,6 +277,19 @@ Estos documentos son fuente de verdad operativa y se actualizan con cada cambio 
 ---
 
 ## Historial de versiones
+
+### 1.5 — 2026-09-19 · la base no aísla «multi-tenant»
+
+**Hasta la 1.4, la sección 9 decía que RLS daba «aislamiento multi-tenant».** No
+lo da, porque no hay varios inquilinos: el Kanban trabaja con **una sola
+organización**, por decisión. Lo que separa los espacios de trabajo —personal,
+interno y de cliente— es la **autorización del servidor**, que ya figuraba en la
+línea anterior. RLS está activa en todas las tablas como segunda barrera, pero en
+tarjetas, columnas y categorías filtra por organización, no por espacio.
+
+**No cambia ningún tratamiento ni ninguna medida**: cambia cómo se describe una.
+Se sube de versión igualmente, porque es un texto publicado que afirmaba algo
+que no era.
 
 ### 1.4 — 2026-09-13 · Sentry, que estaba y no se decía
 

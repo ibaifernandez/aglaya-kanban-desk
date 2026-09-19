@@ -8,7 +8,7 @@
 
 **Tu trabajo personal y el de tu equipo, en el mismo sitio. Sin fricciones, sin cuentas separadas, sin perder el hilo.**
 
-Kanban multi-tenant para equipos que trabajan con clientes. Separa lo que es tuyo, lo que es del equipo y lo que es del cliente — y decide en cada momento quién ve qué. En producción en [kanban.aglaya.biz](https://kanban.aglaya.biz).
+Kanban para equipos que trabajan con clientes. Separa lo que es tuyo, lo que es del equipo y lo que es del cliente — y decide en cada momento quién ve qué. En producción en [kanban.aglaya.biz](https://kanban.aglaya.biz).
 
 ---
 
