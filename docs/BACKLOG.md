@@ -193,7 +193,7 @@ medido o la medida.
 
 ### Autenticación ✅
 - [x] Integrar Supabase Auth + cliente admin en servidor
-- [x] Endpoint `POST /api/auth/register` (con validación de dominio corporativo)
+- [x] Endpoint `POST /api/auth/register` (con validación de dominio corporativo) — **retirado el 24-sep-2026** (`6df9d529`): estaba abierto a internet. Las altas van por `admin/users/invite`.
 - [x] Endpoint `POST /api/auth/login`
 - [x] Endpoint `GET /api/auth/me`
 - [x] Middleware `requireAuth` (JWT) para rutas protegidas

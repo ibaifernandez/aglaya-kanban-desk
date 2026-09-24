@@ -46,65 +46,20 @@ function clearRefreshCookie(res) {
   res.clearCookie(REFRESH_COOKIE_NAME, { path: '/api/auth' });
 }
 
-// ── POST /api/auth/register ───────────────────────────────────────────────────
-router.post('/register', async (req, res) => {
-  const adminClient = createAdminClient();
-  const { email, password, name, organizationId, role = 'colaborador' } = req.body;
-
-  if (!email || !password || !name) {
-    return res.status(400).json({ error: 'email, password y name son requeridos' });
-  }
-
-  // 0. Domain validation (AGLAYA Corporate Policy)
-  const allowedDomains = ['aglaya.biz', 'ibaifernandez.com'];
-  const domain = email.split('@')[1];
-  if (!allowedDomains.includes(domain)) {
-    return res.status(403).json({ error: 'Dominio no autorizado para registro corporativo' });
-  }
-
-  // 1. Create user in Supabase Auth
-  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-  });
-
-  if (authError) {
-    return res.status(400).json({ error: authError.message });
-  }
-
-  const userId = authData.user.id;
-
-  // 2. Insert profile in public.users table
-  const { error: profileError } = await adminClient
-    .from('users')
-    .insert({ id: userId, email, name, role, organization_id: organizationId || null });
-
-  if (profileError) {
-    console.error('[auth] insert profile:', profileError.message);
-    return res.status(500).json({ error: 'Error interno del servidor' });
-  }
-
-  // 3. Auto-create personal workspace for non-guest users (if org is set)
-  if (organizationId && role !== 'guest' && role !== 'cliente') {
-    const { data: ws } = await adminClient
-      .from('workspaces')
-      .insert({ name: 'Personal', emoji: '🏠', type: 'personal', organization_id: organizationId, created_by: userId })
-      .select()
-      .single();
-    if (ws) {
-      await adminClient.from('workspace_members').insert({ workspace_id: ws.id, user_id: userId, role: 'owner', invited_by: userId });
-    }
-  }
-
-  // 4. Build JWTs (B-02 — access corto + refresh HttpOnly cookie)
-  const claims = { id: userId, email, name, role, organizationId: organizationId || null };
-  const accessToken = signAccessToken(claims);
-  const refreshToken = signRefreshToken(claims);
-  setRefreshCookie(res, refreshToken);
-
-  return res.status(201).json({ token: accessToken, user: { id: userId, email, name, role, avatarUrl: null } });
-});
+// ── POST /api/auth/register — RETIRADA el 24-sep-2026. Tarjeta `6df9d529`. ─────
+//
+// Estaba montada SIN sesión y aceptaba `role` del cuerpo: cualquiera desde
+// internet podía crearse un `superadmin`, con `email_confirm: true` —la cuenta
+// nacía con el correo dado por bueno sin comprobar que fuera suyo— y recibía los
+// tokens ya firmados. El único freno era una lista de dominios permitidos, y no
+// frena nada: no hay que recibir correo en ese dominio, basta escribirlo.
+//
+// NO se parchea, se retira: las altas van por `POST /api/admin/users/invite`, que
+// exige sesión y papel de admin. Esta nave solo autoriza tres cuentas (CLAUDE.md),
+// así que no existe el caso de uso de un alta pública.
+//
+// Lo vigila `server/tests/registro-cerrado.test.js`, que se pone rojo si vuelve a
+// haber una ruta de `/api/auth` sin sesión que no sea login, refresh o logout.
 
 // ── POST /api/auth/login ──────────────────────────────────────────────────────
 router.post('/login', async (req, res) => {

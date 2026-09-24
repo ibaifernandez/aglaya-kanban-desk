@@ -14,7 +14,7 @@
 - **Multi-layer auth:** middleware `requireAuth` valida JWT firmado HS256 con `JWT_SECRET`. Middleware `requireWorkspaceMember` valida membresía a workspace específico antes de acceder a datos.
 - **Aislamiento Supabase clients:** `createAdminClient()` y `createPublicClient()` se invocan fresh por request para evitar contaminación de session.
 - **Service role aislada:** `SUPABASE_SERVICE_ROLE_KEY` nunca expuesta al cliente. Solo Railway env vars (server-side).
-- **Domain guard registro:** `POST /api/auth/register` filtra dominios corporativos (`@aglaya.biz`, `@ibaifernandez.com`).
+- **Sin alta pública de cuentas:** no existe ruta de registro. Las altas van por `POST /api/admin/users/invite`, que exige sesión y papel de admin (`POST /api/auth/register` se retiró el 24-sep-2026: su filtro de dominios no protegía, porque el dominio basta con escribirlo).
 - **Internal route protegida:** `/api/internal/*` requiere header `x-task-secret`.
 
 ### Cifrado y transporte

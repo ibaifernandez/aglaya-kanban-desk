@@ -19,7 +19,7 @@ Estado real de seguridad y superficie de ataque. Este documento se sincroniza co
 |---|---|---|
 | Autenticación | ✅ | Supabase Auth + JWT firmado por servidor (HS256, `JWT_SECRET`) |
 | Autorización middleware | ✅ | `requireAuth` y `requireWorkspaceMember` aplicados en rutas de datos |
-| Restricción de dominio | ✅ | `POST /api/auth/register` filtra dominios corporativos |
+| Alta de cuentas | ✅ | **No hay alta pública.** Solo `POST /api/admin/users/invite`, con sesión y papel de admin. `POST /api/auth/register` se retiró el 24-sep-2026 (tarjeta `6df9d529`): estaba abierta, aceptaba `role` del cuerpo y su filtro de dominios no frenaba nada, porque el dominio solo hay que escribirlo. Lo vigila `server/tests/registro-cerrado.test.js` |
 | **JWT expiración + refresh** | ✅ RESUELTO (B-02) | Access token 15 min + refresh token en cookie HttpOnly (30d, secreto distinto). Interceptor de refresh en cliente. `dbb414f` |
 | **JWT claims re-validados** | ✅ RESUELTO (B-07) | Claims re-validados contra DB en cada request (cache TTL 30s). `fe8a090` |
 | **Persistencia de sesión** | ✅ | Access token en **`sessionStorage`** (`aglaya_session`); refresh en cookie HttpOnly. Migración suave desde localStorage legado. |
@@ -98,7 +98,7 @@ El riel MCP (`kanban-mcp/`, ver ADR-026 en `ARCHITECTURE.md`) usa además `SUPAB
 ### Flujo actual
 
 1. **Rate limiting** en `/api/auth/*` (20 req / 15 min por IP). Resto endpoints sin rate limit (B-06 abierto).
-2. **Domain guard** en `POST /api/auth/register` (`@aglaya.biz`, `@ibaifernandez.com`).
+2. **Sin alta pública**: las cuentas solo nacen por `POST /api/admin/users/invite` (sesión + papel de admin).
 3. **Sign-in** valida contra Supabase Auth (`signInWithPassword`).
 4. **JWT issuance** firmado por server (HS256, `JWT_SECRET`), `expiresIn: '7d'` con claims `{id, email, name, role, organizationId}`.
 5. **Clientes Supabase separados** (`createAdminClient` vs `createPublicClient`) por request.
@@ -109,7 +109,6 @@ El riel MCP (`kanban-mcp/`, ver ADR-026 en `ARCHITECTURE.md`) usa además `SUPAB
 #### Públicos sin auth 🔓
 
 - `POST /api/auth/login` — rate-limited
-- `POST /api/auth/register` — rate-limited + domain guard
 - `POST /api/auth/forgot-password` — rate-limited
 - `GET /api/health` — anónimo (superficial — D-16 abierto)
 - `GET /uploads/<filename>` — público sin auth (servidor express.static + proxy Netlify). **Mitigación XSS aplicada** en `POST /api/uploads` con fileFilter + magic-bytes (B-CRIT-01 resuelto)
