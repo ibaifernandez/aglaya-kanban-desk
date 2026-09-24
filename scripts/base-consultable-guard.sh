@@ -157,12 +157,16 @@ fi
 # `<!-- base-consultable:retractado -->` y su cierre NO se mira. La marca es
 # explícita a propósito: envolver una afirmación viva en ella para escapar del
 # guardián es un acto deliberado que se ve en la revisión.
+# Y en UNA SOLA LÍNEA. La frase que se colaba en `ARCHITECTURE.md` iba partida en
+# dos renglones («…está autenticado\n**contra otra organización**»), así que un
+# grep por líneas la dejaba pasar: el guardián daba verde con la negación puesta,
+# en la sección escrita para agentes. Lo encontró el vigilante, no yo.
 sin_retractado() {
   awk '
     index($0,"<!-- base-consultable:retractado -->"){dentro=1; next}
     index($0,"<!-- base-consultable:retractado-fin -->"){dentro=0; next}
     !dentro{print}
-  ' "$1"
+  ' "$1" | tr '\n' ' '
 }
 
 while IFS= read -r doc; do

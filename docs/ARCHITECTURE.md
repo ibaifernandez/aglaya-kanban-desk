@@ -92,13 +92,26 @@ ALTER TABLE public.boards ADD COLUMN workspace_id uuid REFERENCES public.workspa
 
 ## 🔎 5 bis. Cómo se le pregunta a la base sin que nadie ejecute nada
 
-**Para quien lee esto y no es una persona.** Ningún papel automático puede
-abrir la base del Kanban desde su máquina, y está bien que no pueda: `psql` en
-local topa con el enganche de permisos (`bloqueado por el enganche: leer o
-escribir un fichero de secretos`) y el MCP de Supabase de esta máquina está
-autenticado **contra otra organización**, no contra este proyecto.
+**Para quien lee esto y no es una persona.** `psql` en local topa con el enganche
+de permisos (`bloqueado por el enganche: leer o escribir un fichero de
+secretos`), y está bien que tope.
 
-**La vía existe y no relaja nada: se le pregunta desde dentro de GitHub.** Varios
+<!-- base-consultable:retractado -->
+**Aquí decía además que «el MCP de Supabase de esta máquina está autenticado
+contra otra organización, no contra este proyecto», y que por eso ningún papel
+automático podía abrir la base. Era falso**, y esta era la frase que más daño
+hacía de las dos que lo decían: está escrita **para agentes**, en la apertura de
+la sección que se lee cuando hace falta una lectura. Costó semanas de despachos
+de workflows para preguntas simples y lecturas pedidas a mano. Medido el
+24-sep-2026 (tarjeta `0c318033`) y repetido por el vigilante con otra sesión.
+<!-- base-consultable:retractado-fin -->
+
+**El conector de Supabase de esta máquina sí alcanza este proyecto**, y contesta
+consultas sueltas: está más abajo, en «Y una consulta suelta: el conector de
+Supabase», con la advertencia de que ejecuta también escrituras y DDL.
+
+**Y hay otra vía que no relaja nada, para lo que no quieras consultar a mano: se
+le pregunta desde dentro de GitHub.** Varios
 workflows ya llevan la credencial de la base en sus secretos y se pueden
 **disparar a mano**. El agente dispara, el workflow pregunta con la llave que ya
 vive allí, y la respuesta queda en el registro de la corrida. La credencial nunca

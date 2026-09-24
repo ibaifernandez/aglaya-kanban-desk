@@ -113,6 +113,13 @@ doc_con() {
       echo
       echo "Y el MCP de Supabase de esta máquina apunta a otra organización."
     fi
+    # PARTIDA EN DOS RENGLONES, que es como estaba de verdad en ARCHITECTURE.md
+    # y como se le escapó al guardián: un grep por líneas no la ve.
+    if [ "${NIEGA_PARTIDA:-}" = 1 ]; then
+      echo
+      echo "Ningún papel automático puede abrirla: el MCP de Supabase de esta"
+      echo "máquina está autenticado **contra otra organización**, no contra este."
+    fi
     if [ "${NIEGA_RETRACTADO:-}" = 1 ]; then
       echo
       echo '<!-- base-consultable:retractado -->'
@@ -224,6 +231,9 @@ corre "el documento ya no nombra la vía del conector" 1 "ya no nombra la vía d
   "$(SIN_CONECTOR=1 doc_con mide.yml tambien-mide.yml)"
 corre "el documento vuelve a negar que se pueda preguntar" 1 "vuelve a decir que no se puede" \
   "$(NIEGA=1 doc_con mide.yml tambien-mide.yml)"
+
+corre "la niega en una frase PARTIDA en dos líneas" 1 "vuelve a decir que no se puede" \
+  "$(NIEGA_PARTIDA=1 doc_con mide.yml tambien-mide.yml)"
 
 echo
 echo "Y tiene que CALLAR cuando la frase falsa se CITA para desmentirla:"
