@@ -99,38 +99,11 @@ beforeEach(() => {
   });
 });
 
-describe('POST /api/auth/register', () => {
-  it('rejects missing fields with 400', async () => {
-    const res = await request(app).post('/api/auth/register').send({});
-    expect(res.status).toBe(400);
-  });
-
-  it('rejects non-corporate domains with 403', async () => {
-    const res = await request(app).post('/api/auth/register').send({
-      email: 'user@gmail.com',
-      password: 'password123',
-      name: 'Test User',
-    });
-
-    expect(res.status).toBe(403);
-    expect(res.body.error).toMatch(/Dominio/i);
-  });
-
-  it('returns avatarUrl as null on successful registration', async () => {
-    const res = await request(app).post('/api/auth/register').send({
-      email: 'test@aglaya.biz',
-      password: 'password123',
-      name: 'Test User',
-      organizationId: 'org-1',
-    });
-
-    expect(res.status).toBe(201);
-    expect(res.body.user).toEqual(expect.objectContaining({
-      email: 'test@aglaya.biz',
-      avatarUrl: null,
-    }));
-  });
-});
+// Los tres casos de `POST /api/auth/register` se fueron con la ruta el 24-sep-2026
+// (tarjeta `6df9d529`): uno de ellos daba por bueno un 201 de un alta pública, y otro
+// fijaba el filtro de dominios como si protegiera algo. Lo que hay ahora está en
+// `registro-cerrado.test.js`, que exige que ninguna ruta de /api/auth sin sesión
+// pueda crear cuentas.
 
 describe('POST /api/auth/login', () => {
   it('rejects missing credentials with 400', async () => {
