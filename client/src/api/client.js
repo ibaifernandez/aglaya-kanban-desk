@@ -81,32 +81,33 @@ async function fetchWithAuth(path, options = {}, isRetry = false) {
   return res;
 }
 
-async function request(path, options = {}) {
+// `completo` entrega el sobre entero en vez de solo `data`. Existe por
+// `inviteUser`, que devuelve además un `message` que la pantalla de
+// administración **pinta en un aviso** (`AdminPage.jsx:190-193`): pasarla por
+// aquí sin esta salida se lo comería en silencio. Se comprobó quién lo usa
+// ANTES de tocarla, que era la parte que podía romperse sin verse.
+async function request(path, options = {}, { completo = false } = {}) {
   const res = await fetchWithAuth(path, options);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
-  return json.data;
+  return completo ? json : json.data;
 }
 
 export const api = {
   // Auth — B-02: credentials:'include' para que el refresh cookie HttpOnly
   // se setee en respuesta a login + se envíe en /auth/refresh + /auth/logout.
-  login:    (body) => fetch('/api/auth/login', {
+  // También por el envoltorio, aunque no necesiten reintento: `fetchWithAuth` ya
+  // excluye `/auth/login` y `/auth/refresh` de él. Pasan por aquí para que la
+  // regla sea una regla —nadie en este fichero llama a `fetch`— y no una lista
+  // de excepciones que hay que recordar.
+  login:    (body) => request('/auth/login', {
     method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-  }).then(async (r) => {
-    const json = await r.json();
-    if (!r.ok) throw new Error(json.error || `HTTP ${r.status}`);
-    return json;
-  }),
+  }, { completo: true }),
 
   // B-02: logout invalida refresh cookie en server. Access token muere en TTL.
-  logout: () => fetch('/api/auth/logout', {
-    method: 'POST',
-    credentials: 'include',
-  }).then(() => true).catch(() => true),  // best-effort, no fallar logout local
+  // Best-effort a propósito: si falla, la sesión local se cierra igual.
+  logout: () => request('/auth/logout', { method: 'POST' }).then(() => true).catch(() => true),
 
   // Boards
   getBoards:     ()         => request('/boards'),
@@ -148,12 +149,12 @@ export const api = {
   // acceso caduca a los 15 minutos: el adjunto no subía y el usuario veía un
   // error genérico, en una sesión que creía abierta.
   //
-  // ⚠️ AQUÍ DECÍA «era la ÚNICA del fichero que se saltaba el envoltorio», Y NO
-  // ERA CIERTO. Lo midió el vigilante: `uploadAvatar`, `uploadWorkspaceCover` e
-  // `inviteUser` siguen llamando a `fetch` a pelo, con el `Authorization` puesto
-  // a mano y **sin reintento** — el mismo defecto, con el mismo token caducado.
-  // La frase no era estilo: le decía al que viniera detrás que esta familia
-  // estaba cerrada, y hay tres que no lo están. Tienen su hallazgo aparte.
+  // ⚠️ AQUÍ DECÍA «era la ÚNICA del fichero que se saltaba el envoltorio», Y ERA
+  // FALSO: había cuatro. `uploadAvatar` y `uploadWorkspaceCover` las midió el
+  // vigilante; `inviteUser`, yo al comprobar las suyas. Las cuatro entran en
+  // esta obra por decisión del delineante, así que hoy **no queda ninguna**: la
+  // regla la fija `client.sin-fetch-suelto.test.js`, no este comentario — un
+  // conteo escrito a mano envejece, y éste envejeció en una tarde.
   uploadFile: (file) => {
     const form = new FormData();
     form.append('file', file);
@@ -182,50 +183,29 @@ export const api = {
 
   // Media uploads (Supabase Storage)
   uploadAvatar: (file) => {
-    const token = getToken();
-    const form  = new FormData();
+    const form = new FormData();
     form.append('file', file);
-    return fetch('/api/media/users/me/avatar', {
-      method:  'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body:    form,
-    }).then(async (r) => {
-      const json = await r.json();
-      if (!r.ok) throw new Error(json.error || `HTTP ${r.status}`);
-      return json.data?.avatarUrl;
-    });
+    return request('/media/users/me/avatar', { method: 'POST', body: form })
+      .then((data) => data?.avatarUrl);
   },
 
   uploadWorkspaceCover: (workspaceId, file) => {
-    const token = getToken();
-    const form  = new FormData();
+    const form = new FormData();
     form.append('file', file);
-    return fetch(`/api/media/workspaces/${workspaceId}/cover`, {
-      method:  'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body:    form,
-    }).then(async (r) => {
-      const json = await r.json();
-      if (!r.ok) throw new Error(json.error || `HTTP ${r.status}`);
-      return json.data?.coverUrl;
-    });
+    return request(`/media/workspaces/${workspaceId}/cover`, { method: 'POST', body: form })
+      .then((data) => data?.coverUrl);
   },
 
   // Admin — user management
   getAdminUsers:   ()               => request('/admin/users').then((data) => ({ data })),
   updateUserRole:  (id, role)       => request(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }).then((data) => ({ data })),
   deleteUser:      (id)             => request(`/admin/users/${id}`, { method: 'DELETE' }),
-  inviteUser:      (body)           => {
-    const token = getToken();
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    return fetch('/api/admin/users/invite', { method: 'POST', headers, body: JSON.stringify(body) })
-      .then(async (r) => {
-        const json = await r.json();
-        if (!r.ok) throw new Error(json.error || `HTTP ${r.status}`);
-        return { data: json.data, message: json.message };
-      });
-  },
+  // `completo`, porque la pantalla de administración pinta el `message` que
+  // devuelve esta ruta. Sin él, pasarla por el envoltorio se lo comería.
+  inviteUser:      (body)           => request('/admin/users/invite', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  }, { completo: true }).then((json) => ({ data: json.data, message: json.message })),
 
   reorderWorkspaces: (ids) =>
     request('/workspaces/reorder', { method: 'PATCH', body: JSON.stringify({ ids }) }),
