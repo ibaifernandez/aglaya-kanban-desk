@@ -111,7 +111,7 @@ El riel MCP (`kanban-mcp/`, ver ADR-026 en `ARCHITECTURE.md`) usa además `SUPAB
 - `POST /api/auth/login` — rate-limited
 - `POST /api/auth/forgot-password` — rate-limited
 - `GET /api/health` — anónimo (superficial — D-16 abierto)
-- `GET /uploads/<filename>` — público sin auth (servidor express.static + proxy Netlify). **Mitigación XSS aplicada** en `POST /api/uploads` con fileFilter + magic-bytes (B-CRIT-01 resuelto)
+- `GET /uploads/<filename>` — público sin auth (ruta del servidor que lee de Cloudflare R2, + proxy Netlify; ya **no** es `express.static`, tarjeta `4f4e6e2b`). **Mitigación XSS aplicada** en `POST /api/uploads` con fileFilter + magic-bytes (B-CRIT-01 resuelto). Un adjunto que no está contesta **410**, no 404: los de antes del 25-sep-2026 se perdieron y el enlace lo dice
 
 #### Protegidos por `requireAuth` 🛡️
 

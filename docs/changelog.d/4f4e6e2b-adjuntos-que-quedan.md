@@ -1,0 +1,9 @@
+Fixed
+
+- **Los adjuntos ya no se pierden en cada despliegue, y los que se perdieron lo dicen.** Tarjeta `4f4e6e2b`, hallazgo B-34 de la auditoría del 24-sep-2026.
+  - **No era prevención: la pérdida ya había ocurrido.** Los adjuntos se escribían en `server/uploads`, el disco del contenedor, y Railway no tiene volumen montado en este servicio (medido: `volumes: []`). Los **cinco** adjuntos que la base tenía registrados daban `404` en producción — tres capturas, el informe preliminar de la auditoría Ley 21.719 y una imagen más. No hay copia: `db-backup.yml` solo vuelca la base.
+  - **Ahora viven en Cloudflare R2**, que ya estaba en la casa para las copias. El bucket **no es público**: los sirve el servidor, que es lo que permite seguir aplicando las capas anti-XSS. Las credenciales las puso el Operador; el token es de lectura y escritura de objetos, acotado a ese bucket.
+  - **Y los cinco de antes dejan de fingir:** pedir un adjunto que no está devuelve **410 Gone** con la explicación, en vez de un `404` pelado que se confunde con una ruta mal escrita. Un fallo del almacén **no** se disfraza de «perdido»: decirle a alguien que su trabajo no está, cuando lo que pasa es que R2 no contesta, sería mentirle.
+  - ⚠️ **Los adjuntos siguen fuera de la copia diaria**, por decisión del Operador: R2 los hace sobrevivir a los despliegues, no los hace respaldados.
+  - **Dos defectos los destapó la propia prueba, no la revisión:** un fallo al subir dejaba un flujo de lectura abierto que estallaba **fuera** de la petición —y un `error` sin oyente en Node tumba el proceso—; y una comprobación mía de la cabecera `nosniff` medía a helmet, no a esta ruta. Las dos cosas están escritas donde ocurrieron.
+  - Corregidos `README.md` (decía que los adjuntos estaban en Supabase Storage), `RUNBOOK.md` (llamaba «carpeta persistente» a la que se borra) y `SECURITY.md`.

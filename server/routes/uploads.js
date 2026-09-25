@@ -1,11 +1,19 @@
 const path   = require('path');
+const os     = require('os');
 const fs     = require('fs');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const FileType = require('file-type');
+const { crearAlmacen } = require('../utils/almacen-adjuntos');
 
-const UPLOAD_DIR = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+// ⚠️ ESTE DIRECTORIO YA NO GUARDA NADA: es el paso intermedio entre multer y R2.
+// Los adjuntos vivían aquí —en el disco del contenedor, sin volumen montado— y
+// **se perdían en cada despliegue**; los cinco que había registrados daban 404
+// (tarjeta `4f4e6e2b`). El fichero se sube a R2 y se borra de aquí en el acto.
+const DIR_TEMPORAL = path.join(os.tmpdir(), 'akd-adjuntos');
+if (!fs.existsSync(DIR_TEMPORAL)) fs.mkdirSync(DIR_TEMPORAL, { recursive: true });
+
+const almacen = crearAlmacen();
 
 // ── Security: file-type allowlist + blocklist ──────────────────────────────
 //
@@ -39,7 +47,7 @@ const FORBIDDEN_MIME = new Set([
 const FORBIDDEN_EXT = /\.(svg|html?|xhtml|js|mjs|swf|exe|bat|cmd|sh|ps1|vbs)$/i;
 
 const storage = multer.diskStorage({
-  destination: UPLOAD_DIR,
+  destination: DIR_TEMPORAL,
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     cb(null, uuidv4() + ext);
@@ -89,6 +97,37 @@ const uploadFile = [
         }
       }
 
+      // Layer 5: a R2, que sobrevive al despliegue. Si esto falla, NO se contesta
+      // con una URL: una tarjeta con el nombre de un fichero que no está en
+      // ninguna parte es exactamente el defecto que esta tarjeta cierra.
+      if (!almacen.configurado()) {
+        return res.status(503).json({
+          error: 'ALMACEN_NO_CONFIGURADO',
+          message: 'El almacén de adjuntos no está configurado en este entorno. No se guarda nada a medias.',
+        });
+      }
+
+      // El flujo se cierra A MANO si la subida falla. `createReadStream` abre el
+      // fichero de forma perezosa: si el almacén rechaza antes de leerlo, el
+      // flujo se queda abierto, y cuando por fin intenta abrirlo el temporal ya
+      // no está — un ENOENT que estalla FUERA de la petición, sin dueño y sin
+      // nadie a quien contestar. Lo destapó la prueba del almacén que falla.
+      const flujo = fs.createReadStream(req.file.path);
+      // Y con oyente de error: `destroy()` sobre un flujo que aún no había
+      // abierto el fichero emite el ENOENT igualmente, y un 'error' sin oyente
+      // en Node **tumba el proceso**. Un fallo al subir no puede matar al
+      // servidor — y menos ahora, que morir es lo que hace bien (`3e2f6a84`).
+      flujo.on('error', () => { /* el fallo de la subida ya se contesta abajo */ });
+      try {
+        await almacen.guardar({
+          clave: req.file.filename,
+          cuerpo: flujo,
+          tipo: req.file.mimetype,
+        });
+      } finally {
+        flujo.destroy();
+      }
+
       res.json({
         data: {
           url:  `/uploads/${req.file.filename}`,
@@ -97,27 +136,66 @@ const uploadFile = [
         },
       });
     } catch (err) {
-      // Si el archivo quedó escrito a disco, borrarlo
+      next(err);
+    } finally {
+      // El fichero temporal se va SIEMPRE, salga bien o mal: si se quedara,
+      // volveríamos a acumular en el disco efímero que causó la pérdida.
       if (req.file && req.file.path && fs.existsSync(req.file.path)) {
         try { fs.unlinkSync(req.file.path); } catch (_) { /* ignore */ }
       }
-      next(err);
     }
   },
 ];
 
 // DELETE /api/uploads/:filename
-const deleteFile = (req, res) => {
+function nombreValido(filename) {
+  return Boolean(filename) && !filename.includes('/') && !filename.includes('..') && !filename.includes('\\');
+}
+
+// DELETE /api/uploads/:filename
+const deleteFile = async (req, res, next) => {
   const { filename } = req.params;
-  if (!filename || filename.includes('/') || filename.includes('..') || filename.includes('\\')) {
+  if (!nombreValido(filename)) {
     return res.status(400).json({ error: 'Nombre de archivo inválido' });
   }
-  const filepath = path.join(UPLOAD_DIR, filename);
   try {
-    fs.unlinkSync(filepath);
+    await almacen.borrar(filename);
     res.json({ data: { ok: true } });
-  } catch {
-    res.status(404).json({ error: 'Archivo no encontrado' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET /uploads/:filename — los sirve el servidor porque el bucket NO es público.
+//
+// Y aquí vive la parte honesta de la tarjeta: los cinco adjuntos subidos antes
+// del 25-sep-2026 **no están y no se recuperan**. Sus filas siguen en la base con
+// su nombre. Antes, pulsarlos daba un `404` pelado —indistinguible de una ruta
+// mal escrita—; ahora contestan **410 Gone** y dicen qué pasó. Un enlace que
+// finge funcionar es peor que uno que explica que el fichero ya no está.
+const serveFile = async (req, res, next) => {
+  const { filename } = req.params;
+  if (!nombreValido(filename)) return res.status(400).json({ error: 'Nombre de archivo inválido' });
+
+  try {
+    const objeto = await almacen.leer(filename);
+
+    if (!objeto) {
+      return res.status(410).json({
+        error: 'ADJUNTO_PERDIDO',
+        message: 'Este adjunto ya no existe. Los ficheros subidos antes del 25-sep-2026 se guardaban en el disco del contenedor y se perdieron en un despliegue; no hay copia. Los de ahora viven fuera y sobreviven.',
+      });
+    }
+
+    if (objeto.tipo)   res.set('Content-Type', objeto.tipo);
+    if (objeto.tamano) res.set('Content-Length', String(objeto.tamano));
+    // `X-Content-Type-Options: nosniff` NO se pone aquí: helmet ya lo pone en
+    // TODAS las respuestas (`app.js`). Llegué a escribirlo, y mi propia prueba
+    // lo daba por bueno sin que la línea existiera — o sea, medía helmet y no
+    // esta ruta. Una defensa duplicada que nadie mide es una creencia.
+    objeto.cuerpo.pipe(res);
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -127,6 +205,8 @@ module.exports = {
   deleteImage: deleteFile,
   uploadFile,
   deleteFile,
+  serveFile,
+  DIR_TEMPORAL,
   // Exportados para tests
   ALLOWED_MIME,
   FORBIDDEN_MIME,
