@@ -309,6 +309,49 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
     expect(md).toMatch(/1\.3 — 2026-09-13/);
   });
 
+  // Tarjeta `1f1eb472`. La política decía «UI disponible en tu perfil» para la
+  // portabilidad y la supresión, y esa interfaz no existía: quien viniera a
+  // ejercer un derecho se iba a buscar un botón inexistente.
+  //
+  // El caso NO es una lista de frases prohibidas: **deriva de las dos fuentes**.
+  // Si mañana alguien construye los botones, el cliente llamará a esas rutas y
+  // la política podrá prometerlas otra vez sin tocar esto. Lo que no puede pasar
+  // es prometerlas sin que existan.
+  it('no promete una interfaz que el cliente no tiene', () => {
+    const fs = require('fs');
+    const path = require('path');
+
+    const dirCliente = path.join(__dirname, '..', '..', 'client', 'src');
+    const ficheros = [];
+    (function recorrer(dir) {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) recorrer(p);
+        else if (/\.(js|jsx)$/.test(e.name)) ficheros.push(p);
+      }
+    })(dirCliente);
+    const codigoCliente = ficheros.map((f) => fs.readFileSync(f, 'utf8')).join('\n');
+
+    const clienteExporta = /me\/export/.test(codigoCliente);
+    const clienteBorraCuenta = /delete\(\s*['"`]\/auth\/me|auth\/me['"`]\s*,\s*\{\s*method:\s*['"`]DELETE/.test(codigoCliente);
+
+    const seccionDerechos = md.slice(md.indexOf('## 7. Tus Derechos'), md.indexOf('## 8.'));
+    const filaPortabilidad = seccionDerechos.split('\n').find((l) => /Portabilidad/.test(l)) || '';
+    const filaSupresion   = seccionDerechos.split('\n').find((l) => /Supresión/.test(l)) || '';
+
+    if (!clienteExporta) {
+      expect(filaPortabilidad).not.toMatch(/UI disponible/i);
+    }
+    if (!clienteBorraCuenta) {
+      expect(filaSupresion).not.toMatch(/UI disponible/i);
+    }
+    // Y que siga diciendo CÓMO se ejerce: quitar la promesa falsa sin poner la
+    // vía real dejaría a un titular sin saber qué hacer, que es peor.
+    expect(filaPortabilidad).toMatch(/info@aglaya\.biz/);
+    expect(filaSupresion).toMatch(/info@aglaya\.biz/);
+    expect(md).toMatch(/1\.6 — 2026-09-25/);
+  });
+
   it('tampoco anuncia Sentry como futuro, y lo declara como encargado', () => {
     expect(md).not.toMatch(/Sentry \(futuro\)/);
     const tabla = md.slice(md.indexOf('## 4. Encargados'), md.indexOf('Encargado cesado'));
