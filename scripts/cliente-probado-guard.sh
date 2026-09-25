@@ -25,8 +25,15 @@
 #       borra, el corredor sigue existiendo y NADIE lo ejecuta — que es
 #       exactamente la avería que esto cierra.
 #
-# LO QUE NO PUEDE HACER, dicho para que su verde no se lea de más: no ejecuta las
-# pruebas ni sabe si son buenas. Que una prueba mida algo de verdad se comprueba
+# LO QUE NO PUEDE HACER, dicho para que su verde no se lea de más:
+#
+#   · **No sabe qué jobs son OBLIGATORIOS para fusionar.** Eso lo custodia el
+#     *ruleset* de GitHub, no este repositorio, así que mover el paso a un job
+#     que nadie exige —o a uno con `if: false` a nivel de job— pasaría por aquí
+#     en verde. No se puede derivar del árbol y por eso se dice. Hoy el paso vive
+#     en `client-build`, que sí es exigido (medido por el vigilante, 25-sep-2026).
+#
+#   · Tampoco ejecuta las pruebas ni sabe si son buenas. Que una prueba mida algo de verdad se comprueba
 # rompiendo lo que vigila y exigiendo rojo, y eso es trabajo de quien revise.
 # Esto cierra el caso en que **no corrieron**.
 #
@@ -74,15 +81,34 @@ esac
 # Y en el MISMO paso: buscar las dos cosas sueltas por el fichero daría verde con
 # un `working-directory: ./client` de otro paso —el de `npm run build`, que ya
 # existe— y un `npm test` en el del servidor. Serían dos verdades que no se tocan.
+#
+# Y NO BASTA CON QUE EL PASO EXISTA: tiene que poder poner el job en rojo.
+# `continue-on-error: true` deja las pruebas corriendo y **sin gobernar nada**
+# —salen rojas y el job sigue verde—, y es el idioma que este mismo fichero usa
+# seis líneas más arriba para los guardianes: copiarlo aquí es un descuido de una
+# línea. `if:` es peor todavía, porque el paso ni se ejecuta. Las dos dejan el
+# rastro tranquilizador de que «la comprobación está ahí». Lo midió el vigilante:
+# con las dos, este guardián daba verde.
 invoca="$(awk '
-  /^[[:space:]]*-[[:space:]]*name:/ { enCliente=0 }            # empieza otro paso
+  function cerrar() {
+    if (enCliente && corre && !neutralizado) { print "si"; salir=1 }
+    enCliente=0; corre=0; neutralizado=0
+  }
+  /^[[:space:]]*-[[:space:]]*name:/ { cerrar(); if (salir) exit }
   /^[[:space:]]*working-directory:[[:space:]]*\.\/client[[:space:]]*$/ { enCliente=1 }
-  enCliente && /^[[:space:]]*run:[[:space:]]*npm( run)? test/ { print "si"; exit }
+  /^[[:space:]]*run:[[:space:]]*npm( run)? test/ { corre=1 }
+  # `--passWithNoTests` convierte «no encontré pruebas» en verde: el corredor se
+  # ejecuta, no mide nada, y el paso sale bien. Lo probó el vigilante (A5) y no
+  # lo puso como condición porque hay que escribirlo a mano; se cierra igual,
+  # porque aquí nada lo necesita.
+  /passWithNoTests/ { neutralizado=1 }
+  /^[[:space:]]*(if|continue-on-error):/ { neutralizado=1 }
+  END { cerrar() }
 ' "$CI")"
 
 if [ "$invoca" != "si" ]; then
   fallo=1
-  echo "::error file=$CI::«$CI» no invoca las pruebas del cliente (un paso con «working-directory: ./client» que ejecute «npm test»). El corredor existiría y no lo ejecutaría nadie: una comprobación ausente no se distingue de una que pasó."
+  echo "::error file=$CI::«$CI» no invoca las pruebas del cliente de forma que puedan poner el job en rojo. Hace falta un paso con «working-directory: ./client» que ejecute «npm test» y **sin `if:` ni `continue-on-error:`**. Sin el paso, el corredor existe y no lo ejecuta nadie; con el paso neutralizado, corre y no gobierna nada — y las dos dejan el rastro tranquilizador de que la comprobación está ahí."
 fi
 
 if [ "$fallo" -ne 0 ]; then

@@ -48,6 +48,37 @@ ci_de_mentira() {
       echo "        working-directory: ./client"
       echo "        run: npm test"
     fi
+    # Las cuatro formas de dejar el paso puesto y que no gobierne nada. Las tres
+    # primeras las midió el vigilante sobre el `ci.yml` de verdad, y las tres
+    # daban verde: el paso existía y el guardián lo daba por bueno.
+    #
+    # A2 es la que devolvió la PR, y no por retorcida sino por lo contrario:
+    # `continue-on-error: true` es el idioma que ese mismo fichero usa seis
+    # líneas más arriba para los guardianes. Copiarlo aquí es un descuido de una
+    # línea que deja las pruebas corriendo y sin poder poner nada en rojo.
+    if [ "$1" = si-falso ]; then
+      echo "      - name: Client tests"
+      echo "        working-directory: ./client"
+      echo "        if: false"
+      echo "        run: npm test"
+    fi
+    if [ "$1" = tolerado ]; then
+      echo "      - name: Client tests"
+      echo "        working-directory: ./client"
+      echo "        continue-on-error: true"
+      echo "        run: npm test"
+    fi
+    if [ "$1" = solo-por-reloj ]; then
+      echo "      - name: Client tests"
+      echo "        working-directory: ./client"
+      echo "        if: github.event_name == 'schedule'"
+      echo "        run: npm test"
+    fi
+    if [ "$1" = sin-pruebas-vale ]; then
+      echo "      - name: Client tests"
+      echo "        working-directory: ./client"
+      echo "        run: npm test -- --passWithNoTests src/no-existe"
+    fi
     if [ "$1" = separado ]; then
       # Las dos señales existen, pero en pasos DISTINTOS: el directorio del
       # cliente en el build, y un `npm test` en el job del servidor.
@@ -97,6 +128,17 @@ corre "las dos señales, pero en pasos DISTINTOS" 1 "no invoca las pruebas del c
   "$(cliente_de_mentira ok2 'vitest run' si)" "$(ci_de_mentira separado)"
 
 echo
+echo "Tiene que MORDER un paso PUESTO pero neutralizado — las cuatro formas:"
+corre "el paso lleva «if: false»"                 1 "no invoca las pruebas del cliente" \
+  "$(cliente_de_mentira n1 'vitest run' si)" "$(ci_de_mentira si-falso)"
+corre "el paso lleva «continue-on-error: true»"   1 "no invoca las pruebas del cliente" \
+  "$(cliente_de_mentira n2 'vitest run' si)" "$(ci_de_mentira tolerado)"
+corre "el paso solo corre por reloj"              1 "no invoca las pruebas del cliente" \
+  "$(cliente_de_mentira n3 'vitest run' si)" "$(ci_de_mentira solo-por-reloj)"
+corre "el paso acepta no encontrar pruebas"       1 "no invoca las pruebas del cliente" \
+  "$(cliente_de_mentira n4 'vitest run' si)" "$(ci_de_mentira sin-pruebas-vale)"
+
+echo
 echo "Tiene que ROMPERSE, no saltar en verde:"
 corre "no existe el directorio del cliente" 2 "no existe el directorio del cliente" \
   "$TMP/no-existe" "$(ci_de_mentira completo)"
@@ -121,4 +163,4 @@ fi
 echo
 echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
-echo "El guardián muerde en las tres averías y calla donde debe."
+echo "El guardián muerde en las averías que dice vigilar, incluido el paso neutralizado, y calla donde debe."
