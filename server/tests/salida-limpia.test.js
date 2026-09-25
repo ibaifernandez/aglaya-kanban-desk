@@ -54,29 +54,42 @@ describe('un proceso que ya no es de fiar se muere', () => {
 });
 
 describe('el aviso sale antes de morir', () => {
-  function espia() {
+  // ⚠️ EL `flush` DEL DOBLE TIENE QUE TARDAR, y ésta es la corrección que trae la
+  // tarjeta `ee4993fb`. Antes apuntaba «flush» **en cuanto lo llamaban** y
+  // resolvía en el acto, así que el orden salía igual con `await` y sin él:
+  // quitar la espera —el mutante que manda el aviso y se muere sin esperarlo—
+  // dejaba los 7 casos en verde. Lo midió el capataz.
+  //
+  // Con un envío que termina más tarde, la diferencia se ve:
+  //   con espera: ['captura', 'flush-terminado', 'salir']
+  //   sin espera: ['captura', 'salir', 'flush-terminado']  ← el aviso no llega
+  function espia({ tardaMs = 20 } = {}) {
     const orden = [];
     const proceso = { on(evento, fn) { (this.manejadores ||= {})[evento] = fn; } };
     const sentry = {
       captureException: jest.fn(() => orden.push('captura')),
-      flush: jest.fn(async () => { orden.push('flush'); }),
+      flush: jest.fn(() => new Promise((resolver) => {
+        setTimeout(() => { orden.push('flush-terminado'); resolver(true); }, tardaMs);
+      })),
     };
     const salir = jest.fn(() => orden.push('salir'));
-    registrarSalidaLimpia({ proceso, sentry, salir, registrar: () => {}, esperaMs: 50 });
+    registrarSalidaLimpia({ proceso, sentry, salir, registrar: () => {}, esperaMs: 200 });
     return { proceso, sentry, salir, orden };
   }
 
-  it('captura y espera al envío, y SOLO entonces sale con 1', async () => {
+  it('captura, ESPERA A QUE EL ENVÍO TERMINE, y solo entonces sale con 1', async () => {
     const { proceso, sentry, salir, orden } = espia();
 
     proceso.manejadores.uncaughtException(new Error('x'));
-    await new Promise((r) => setTimeout(r, 10));
+    await new Promise((r) => setTimeout(r, 80));
 
     expect(sentry.captureException).toHaveBeenCalledTimes(1);
-    expect(sentry.flush).toHaveBeenCalledWith(50);
+    expect(sentry.flush).toHaveBeenCalledWith(200);
     expect(salir).toHaveBeenCalledWith(1);
-    // El orden es el fondo del asunto: salir antes del envío pierde el aviso.
-    expect(orden).toEqual(['captura', 'flush', 'salir']);
+    // El fondo del asunto: morirse antes de que el envío termine pierde el
+    // aviso, y entonces el error no llega a Sentry — que es justo lo que este
+    // módulo existe para evitar.
+    expect(orden).toEqual(['captura', 'flush-terminado', 'salir']);
   });
 
   it('sin Sentry configurado no espera a nadie, y sale igual', async () => {
@@ -98,6 +111,28 @@ describe('el aviso sale antes de morir', () => {
     await new Promise((r) => setTimeout(r, 20));
 
     expect(salir).toHaveBeenCalledTimes(1);
+  });
+
+  // ── Y que el arranque lo ENCHUFE ────────────────────────────────────────
+  //
+  // Sin esto, el módulo entero se puede desenchufar de `index.js` sin que nada
+  // se ponga rojo —dos mutantes del capataz: quitar la llamada, y pasarle
+  // `sentry: null`—, y entonces los casos de arriba vigilarían código que ya no
+  // corre. Un manejador perfecto que nadie registra no salva ningún proceso.
+  //
+  // ⚠️ Mira el FUENTE de `index.js`, a propósito: importarlo levantaría el
+  // servidor de verdad. Lo que se fija es el cableado, no el arranque — y ésa
+  // es la frontera que pidió el delineante.
+  it('y el arranque lo registra, pasándole Sentry cuando está activo', () => {
+    const fs = require('fs');
+    const path = require('path');
+    const arranque = fs.readFileSync(path.join(__dirname, '..', 'index.js'), 'utf8')
+      .split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+
+    expect(arranque).toMatch(/registrarSalidaLimpia\s*\(/);
+    // Con Sentry apagado va `null`, y el módulo sale sin esperar a nadie; lo que
+    // no puede es no recibirlo nunca, porque entonces el aviso jamás se manda.
+    expect(arranque).toMatch(/sentry:\s*sentryEnabled\s*\?\s*Sentry\s*:\s*null/);
   });
 
   it('registra la avería aunque no haya Sentry: sin rastro no hay diagnóstico', () => {
