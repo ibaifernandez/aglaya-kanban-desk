@@ -69,10 +69,25 @@ roto() { echo "::error::cliente-probado-guard: $1"; exit 2; }
 #   · el guion `test` del cliente EMPIEZA por `vitest run` y no lleva `|`, `&`,
 #     `;`, `>` ni `--passWithNoTests`.
 #
+# ⚠️ EMPIEZA significa empieza: un prefijo —`npx vitest run …`, `cross-env CI=true
+# vitest run …`— se pone ROJO A PROPÓSITO, no por descuido. Son formas legítimas,
+# y hoy no se usan; el día que hagan falta, ensanchar esta regla es parte de ese
+# cambio y se verá en la revisión. Sin esta frase, el primero que se lo encuentre
+# pensará que el guardián está roto y lo rodeará.
+#
+# Y en el paso, lo mismo con las banderas: `npm test --silent` queda fuera. Es el
+# precio correcto — admitir banderas reabre `-- --passWithNoTests`.
+#
 # Idea del vigilante, y es mejor que otra lista: cierra también lo que ninguno de
 # los dos ha imaginado. El precio es que una forma legítima nueva —otro corredor,
 # un flag razonable— tendrá que pasar por aquí y explicarse. Es el precio
 # correcto: quien lo cambie tendrá que mirar qué está cambiando.
+#
+# ⚠️ Y UNA QUE PAGÓ ESTA MISMA PR: los dos controles de arriba se escribieron
+# como `printf '%s' "$x" | grep -qE …`, que es exactamente lo que `pipefail-guard`
+# prohíbe —una tubería hacia un lector que sale antes de tiempo— y puso el CI en
+# rojo. **La PR que enseña al CI a no tragarse veredictos se tragaba uno al
+# construirse.** Van con `<<<`, que no tiene ese problema.
 #
 # ── Tragarse el veredicto: un patrón, DOS sitios ─────────────────────────────
 #
@@ -104,10 +119,10 @@ guion_test="$(node -p "JSON.parse(require('fs').readFileSync('$PKG','utf8')).scr
 if [ -z "$guion_test" ]; then
   fallo=1
   echo "::error file=$PKG::el cliente no tiene guion «test». Sin él, el paso de CI no tiene qué invocar."
-elif ! printf '%s' "$guion_test" | grep -qE '^vitest run( |$)'; then
+elif ! grep -qE '^vitest run( |$)' <<< "$guion_test"; then
   fallo=1
   echo "::error file=$PKG::el guion «test» del cliente («$guion_test») no EMPIEZA por «vitest run». Nombrar a vitest en medio de otra cosa no basta: «vitest run … || echo ok» lo nombraba y salía con 0 con las pruebas en rojo."
-elif printf '%s' "$guion_test" | grep -qE '[|&;>]|--passWithNoTests'; then
+elif grep -qE '[|&;>]|--passWithNoTests' <<< "$guion_test"; then
   fallo=1
   echo "::error file=$PKG::el guion «test» del cliente («$guion_test») encadena algo más (una tubería, un «&», un «;» o una redirección) o acepta no encontrar pruebas. En una tubería el código de salida es el del ÚLTIMO mandato, así que «vitest run | tee salida.log» sale 0 con las pruebas en rojo: el corredor corre y no gobierna."
 fi
