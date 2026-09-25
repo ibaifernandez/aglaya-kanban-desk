@@ -81,8 +81,13 @@ export function useBoardData(boardId) {
       } else {
         setCards((prev) => prev.map((c) => (c.id === id ? card : c)));
       }
-    } catch {
+    } catch (err) {
+      // Se deshace el movimiento optimista Y SE VUELVE A LANZAR. Antes solo se
+      // deshacía: quien llamaba creía que había ido bien, cerraba el modal, y el
+      // usuario veía su tarjeta volver sola al sitio sin una palabra (tarjeta
+      // `507ba75b`). Deshacer sin avisar es la mitad del trabajo.
       load();
+      throw err;
     }
   }, [load, boardId]);
 

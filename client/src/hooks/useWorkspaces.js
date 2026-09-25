@@ -9,6 +9,10 @@ export function useWorkspaces() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
+      // Se limpia el error ANTES de volver a pedir: si no, un reintento con
+      // éxito dejaría el aviso de la vez anterior en pantalla, y el usuario
+      // vería sus espacios y un error al mismo tiempo.
+      setError(null);
       setWorkspaces(await api.getWorkspaces());
     } catch (e) {
       setError(e.message);
