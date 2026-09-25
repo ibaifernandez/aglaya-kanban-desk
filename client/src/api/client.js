@@ -51,7 +51,17 @@ async function refreshAccessToken() {
 
 async function fetchWithAuth(path, options = {}, isRetry = false) {
   const token = getToken();
-  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  // Con `FormData` NO se pone `Content-Type`: lo tiene que poner el navegador,
+  // porque lleva el `boundary` que separa las partes. Ponerlo a mano rompe la
+  // subida — y ésa era la razón por la que `uploadFile` se salía de este camino
+  // y llamaba a `fetch` directamente, quedándose sin el reintento con token
+  // renovado (tarjeta `48946335`). Se arregla aquí, que es donde estaba el
+  // motivo, en vez de duplicar el reintento allí.
+  const esFormulario = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const headers = {
+    ...(esFormulario ? {} : { 'Content-Type': 'application/json' }),
+    ...(options.headers || {}),
+  };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE}${path}`, {
@@ -132,15 +142,15 @@ export const api = {
   }),
 
   // Uploads
+  //
+  // Va por `request` como todas las demás. Antes llamaba a `fetch` a pelo: era
+  // la ÚNICA del fichero que se saltaba el envoltorio, así que era la única sin
+  // reintento cuando el token de acceso caduca a los 15 minutos. El adjunto no
+  // subía y el usuario veía un error genérico, en una sesión que creía abierta.
   uploadFile: (file) => {
-    const token = getToken();
     const form = new FormData();
     form.append('file', file);
-    const headers = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    return fetch('/api/uploads', { method: 'POST', body: form, headers })
-      .then((r) => r.json())
-      .then((j) => { if (!j.data) throw new Error(j.error); return j.data; });
+    return request('/uploads', { method: 'POST', body: form });
   },
   deleteFile: (filename) => request(`/uploads/${filename}`, { method: 'DELETE' }),
 
