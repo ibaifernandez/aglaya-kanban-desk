@@ -1,0 +1,7 @@
+Fixed
+
+- **Ante una excepción no capturada, el servidor se quedaba vivo y roto.** Tarjeta `3e2f6a84`, hallazgo D-21 de la auditoría del 24-sep-2026.
+  - `server/index.js` atrapaba `uncaughtException` y `unhandledRejection`, los registraba y **no salía**, con el comentario «dejamos que el sistema decida (Railway reinicia container automático)». **El comentario decía lo contrario de lo que hacía el código:** Railway reinicia cuando el proceso muere; si nadie sale, no hay nada que reiniciar. Node queda en el estado que su propia documentación llama indefinido, el servidor sigue aceptando peticiones y la comprobación de salud sigue diciendo que todo va bien.
+  - Ahora se registra, se avisa a Sentry, **se espera al envío con tope** y se sale con código 1. Si el envío se cuelga, se sale igual: un proceso que no muere porque no pudo avisar es la misma avería con otra cara.
+  - **Medido con procesos de verdad**, que es la única forma de ver morir a uno: un hijo deja un servidor escuchando —lo que antes lo mantenía vivo—, revienta, y tiene que salir con 1. El propio ensayo lleva su contraprueba: si nadie sale, el hijo imprime «SIGO-VIVO» y sale con 42.
+  - Cuatro mutaciones, cuatro rojas, cada una en su caso: no salir (el comportamiento de antes, que tarda 4 s en delatarse), salir antes de esperar el envío, quitar el tope del envío colgado, y quitar el candado que evita salir dos veces.

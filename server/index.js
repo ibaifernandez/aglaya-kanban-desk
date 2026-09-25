@@ -27,16 +27,20 @@ try {
 const app  = require('./app');
 const PORT = process.env.PORT || 3003;
 
-// Global error handlers — capturan errores fuera del Express middleware chain
-process.on('uncaughtException', (err) => {
-  console.error('[uncaughtException]', err);
-  if (sentryEnabled) Sentry.captureException(err);
-  // No exit — dejamos que el sistema decida (Railway reinicia container automático)
-});
+// Errores fuera de la cadena de middleware de Express: se registran, se avisa, y
+// el proceso SE MUERE para que la plataforma levante uno sano (tarjeta `3e2f6a84`).
+//
+// Aquí se atrapaban y NO se salía, con un comentario que decía que «Railway
+// reinicia el contenedor automáticamente». Railway lo reinicia cuando el proceso
+// muere; si nadie sale, no hay nada que reiniciar y el servidor sigue contestando
+// con la memoria en un estado que Node llama indefinido.
+//
+// El porqué de cada pieza —y por qué el aviso se espera con tope— está en
+// `utils/salida-limpia.js`.
+const { registrarSalidaLimpia } = require('./utils/salida-limpia');
 
-process.on('unhandledRejection', (reason) => {
-  console.error('[unhandledRejection]', reason);
-  if (sentryEnabled) Sentry.captureException(reason);
+registrarSalidaLimpia({
+  sentry: sentryEnabled ? Sentry : null,
 });
 
 app.listen(PORT, () => {
