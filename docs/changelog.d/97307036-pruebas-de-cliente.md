@@ -1,0 +1,8 @@
+Added
+
+- **El cliente ya se puede probar, y sus pruebas corren en CI.** Tarjeta `97307036`.
+  - Hasta hoy no había **ninguna**: `npm test` era solo `jest server/tests`, y en `client/` no había corredor, ni entorno con pantalla, ni un solo fichero de prueba. Tres tarjetas abiertas (`507ba75b`, `48946335`, `1f1eb472`) piden comprobar lo que ve el usuario y no se podía medir.
+  - **Lo mínimo y nada más:** `vitest` con `jsdom` y `@testing-library/react`, configuración propia (`client/vitest.config.js`, aparte del `vite.config.js` que construye producción) y un arranque que limpia el DOM entre pruebas — sin eso, una prueba hereda la pantalla de la anterior y pasa por el motivo equivocado. No se pide cobertura de nada.
+  - **Prueba piloto:** `ColumnPickerModal`, 4 casos que miran lo que el usuario ve. Cuatro mutaciones del componente, cada una tumba su caso.
+  - **Y un guardián nuevo, `cliente-probado-guard.sh`**, porque el riesgo cambia de sitio en cuanto el entorno existe: no es que falten pruebas, es que **dejen de correr sin que nadie lo note**. Exige que haya pruebas, que el guion `test` llame de verdad a vitest, y que CI lo invoque **en el mismo paso** que fija el directorio del cliente. Sello: 9 casos, incluido el de las dos señales sueltas en pasos distintos. Quitando el paso de CI, el guardián y su sello se ponen rojos.
+  - **Declarado, no escondido:** las dependencias nuevas suman 2 avisos moderados de `npm audit` respecto a `main` (9 frente a 7), y los dos cuelgan de la versión de `vite` que ya estaba. Con `vitest` 3 en vez de 2 no queda ninguno crítico.
