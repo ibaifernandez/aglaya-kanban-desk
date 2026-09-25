@@ -113,6 +113,34 @@ doc_con() {
       echo
       echo "Y el MCP de Supabase de esta máquina apunta a otra organización."
     fi
+    # Las CUATRO que se le escaparon al primer patrón, encontradas por el
+    # vigilante. Cada una en su caso: si se juntaran, arreglar una taparía a las
+    # otras tres en cuanto alguien toque la expresión.
+    #
+    # N2 es la peor, y no por el regex: **los propios documentos enseñan a
+    # llamarlo «conector»**, así que quien se equivoque mañana usará justo la
+    # palabra que el patrón viejo no miraba.
+    if [ "${NIEGA_CONECTOR:-}" = 1 ]; then
+      echo
+      echo "Y el conector de Supabase de esta máquina apunta a otra organización."
+    fi
+    if [ "${NIEGA_NO_LLEGA:-}" = 1 ]; then
+      echo
+      echo "El MCP de Supabase no llega a este proyecto."
+    fi
+    # N4: la creencia entera, sin mencionar la herramienta. Es la que costó las
+    # semanas; lo de la organización era el síntoma.
+    if [ "${NIEGA_CREENCIA:-}" = 1 ]; then
+      echo
+      echo "Desde esta máquina no se puede consultar la base de producción."
+    fi
+    # N5: la literal, pero con una subordinada que se pasaba de la ventana vieja.
+    if [ "${NIEGA_LARGA:-}" = 1 ]; then
+      echo
+      echo "El MCP de Supabase de esta máquina, que se registró para los proyectos"
+      echo "de otra casa y nunca se volvió a tocar desde entonces por falta de"
+      echo "tiempo, apunta a otra organización."
+    fi
     # PARTIDA EN DOS RENGLONES, que es como estaba de verdad en ARCHITECTURE.md
     # y como se le escapó al guardián: un grep por líneas no la ve.
     if [ "${NIEGA_PARTIDA:-}" = 1 ]; then
@@ -234,6 +262,15 @@ corre "el documento vuelve a negar que se pueda preguntar" 1 "vuelve a decir que
 
 corre "la niega en una frase PARTIDA en dos líneas" 1 "vuelve a decir que no se puede" \
   "$(NIEGA_PARTIDA=1 doc_con mide.yml tambien-mide.yml)"
+# Las cuatro del vigilante. Cada una sola: así, tocar el patrón no puede taparlas.
+corre "N2 · dice «conector» en vez de «MCP»"            1 "vuelve a decir que no se puede" \
+  "$(NIEGA_CONECTOR=1 doc_con mide.yml tambien-mide.yml)"
+corre "N3 · «no llega a este proyecto»"                 1 "vuelve a decir que no se puede" \
+  "$(NIEGA_NO_LLEGA=1 doc_con mide.yml tambien-mide.yml)"
+corre "N4 · la creencia entera, sin nombrar la herramienta" 1 "vuelve a decir que no se puede" \
+  "$(NIEGA_CREENCIA=1 doc_con mide.yml tambien-mide.yml)"
+corre "N5 · la literal con una subordinada larga de por medio" 1 "vuelve a decir que no se puede" \
+  "$(NIEGA_LARGA=1 doc_con mide.yml tambien-mide.yml)"
 
 echo
 echo "Y tiene que CALLAR cuando la frase falsa se CITA para desmentirla:"

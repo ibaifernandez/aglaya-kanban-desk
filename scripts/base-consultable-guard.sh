@@ -44,7 +44,9 @@
 # comprobar que siga funcionando**. Lo que sí fija es que el documento no vuelva
 # a decir lo contrario: hasta el 24-sep-2026, `CLAUDE.md` afirmaba que ese MCP
 # «apunta a otra organización», y esa frase costó semanas de lecturas pedidas a
-# mano y un cierre bloqueado. Si alguien la repone, esto se pone rojo.
+# mano y un cierre bloqueado. Si alguien repone esa frase —o una de las cinco
+# redacciones que enumera el sello—, esto se pone rojo. No promete cazar
+# cualquier forma de negarlo: el patrón lleva escrito su propio límite.
 #
 # LO QUE ESTE GUARDIÁN NO PUEDE HACER, dicho para que su verde no se lea de más:
 # comprueba que el documento nombra los workflows que hay, **no que explique
@@ -139,6 +141,33 @@ fi
 # no está en ningún fichero. Lo que se fija es lo que sí es texto — que el
 # documento lo nombre, y que ningún documento vigente afirme lo contrario.
 MARCA_CONECTOR='<!-- base-consultable:conector -->'
+
+# ── El patrón, y por qué tiene esta forma ────────────────────────────────────
+#
+# Dos familias, porque la creencia falsa se escribe de dos maneras:
+#
+#   1 · LA HERRAMIENTA NO SIRVE — «el MCP / el CONECTOR de Supabase de esta
+#       máquina apunta a otra organización / no llega / no alcanza / no está
+#       autenticado contra este proyecto». **«conector» va aquí porque es como
+#       estos documentos enseñan a llamarlo**: quien se equivoque mañana usará
+#       esa palabra, no «MCP». La primera versión solo miraba «MCP», así que le
+#       habría dado verde justo a la redacción más probable.
+#
+#   2 · LA CREENCIA ENTERA — «desde esta máquina no se puede consultar la base».
+#       Ésta es la que costó las semanas; el detalle de la organización era el
+#       síntoma. Un patrón que solo cazara el síntoma dejaría pasar la causa.
+#
+# La ventana entre sujeto y negación es ancha (200) porque la frase real iba
+# partida en dos renglones y con una subordinada de por medio.
+#
+# ⚠️ LO QUE ESTE PATRÓN NO ES: la prueba de que ningún documento pueda volver a
+# negar la vía. Ninguna expresión regular cubre todas las formas de decirlo en
+# castellano, y prometerlo sería peor que no tenerlo. Cubre las CINCO redacciones
+# que enumera el sello —las cuatro que se le escaparon al primer patrón, que
+# encontró el vigilante, más la partida en dos líneas—. Si mañana alguien lo
+# escribe de una sexta forma, esto da verde: la última defensa sigue siendo quien
+# revisa, y este guardián cierra el caso en que nadie miró.
+PATRON_NIEGA='(MCP|conector) de Supabase[^.]{0,200}(otra organizaci|no (llega|alcanza|apunta|funciona|responde|contesta|est[áa] autenticad))|apunta a \*\*otra organizaci|(base|producci[óo]n) es inconsultable|no se (puede|pueden) (consultar|preguntar|abrir|leer)[^.]{0,80}(base|producci[óo]n|Supabase)|(base|producci[óo]n)[^.]{0,80}no se (puede|pueden) (consultar|preguntar|abrir|leer)'
 NIEGAN="${BASE_CONSULTABLE_DOCS_NIEGAN:-$DOC:$RAIZ/CLAUDE.md}"
 
 if ! grep -qF "$MARCA_CONECTOR" "$DOC"; then
@@ -172,7 +201,7 @@ sin_retractado() {
 while IFS= read -r doc; do
   [ -z "$doc" ] && continue
   [ -f "$doc" ] || roto "no existe «$doc», que es uno de los documentos que no pueden negar la vía."
-  if sin_retractado "$doc" | grep -nEi 'MCP de Supabase[^.]{0,80}(otra organizaci|no alcanza|no apunta)|apunta a \*\*otra organizaci|(base|producci[óo]n) es inconsultable'; then
+  if sin_retractado "$doc" | grep -nEi "$PATRON_NIEGA"; then
     fallo=1
     echo "::error file=$doc::este documento vuelve a decir que no se puede preguntarle a la base desde aquí. Se midió que sí el 24-sep-2026 (tarjeta \`0c318033\`): si de verdad ha dejado de contestar, lo que se cambia es la sección del conector, con su medición y su fecha — no se repone la frase."
   fi
