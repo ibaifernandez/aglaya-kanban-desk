@@ -313,9 +313,11 @@ Reglas para cualquier hilo que trabaje aquí:
 
   El correo exacto de cada quien **lo custodia la tabla `users`**, que es quien ya
   custodiaba el hecho — este archivo solo custodiaba la decisión. Se consulta ahí, no
-  aquí. Si necesitas la dirección para clavar una tarjeta, la puerta ya la resuelve por
-  ti: `assignee` casa contra `users`, y `list_members` en el MCP `aglaya-kanban-desk`
-  las devuelve.
+  aquí. Y para clavar una tarjeta **no hace falta**: `assignee` acepta el `user_id`,
+  que es lo que devuelve `list_members` en el MCP `aglaya-kanban-desk`. Desde el
+  25-sep-2026 esa herramienta **ya no devuelve el correo** (tarjeta `ed8910e2`):
+  todo lo que pasa por el riel pasa por el modelo, y la dirección no hacía falta
+  para nada de lo que el riel hace.
 
   Lo ya publicado en la historia de git no lo arregla esta línea — eso tiene tarjeta
   propia. Lo que cierra aquí es que no vuelva a entrar por el árbol.

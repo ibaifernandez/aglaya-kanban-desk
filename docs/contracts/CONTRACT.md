@@ -1,8 +1,8 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 3.9.0
-- **Última modificación:** 2026-08-25
+- **Versión:** 4.0.0
+- **Última modificación:** 2026-09-25
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
 > Hasta hoy no existía: el registro de contratos del capitán describía la puerta
@@ -502,6 +502,24 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**4.0.0 — 2026-09-25. `list_members` deja de devolver el correo.** Cambio de
+forma de la Puerta 1, y **mayor porque rompe**: un consumidor que leyera
+`members[].email` deja de recibirlo. Devuelve `user_id`, `name` y `role`.
+
+**Por qué.** Todo lo que devuelve el riel pasa por el modelo de un tercero, y la
+dirección de una persona no hace falta para nada de lo que el riel hace:
+`assignee` acepta el `user_id`, que esa misma herramienta devuelve, y
+`_resolve_user` lo resuelve igual que un correo. El id es el único de los tres
+identificadores que no es un dato personal.
+
+**Qué hacer si dependías del correo:** pasa el `user_id` a `assignee`. Si de
+verdad necesitas la dirección de alguien, se consulta la tabla `users`, que es su
+custodio — no el riel.
+
+Tarjeta `ed8910e2`. Lo vigila `kanban-mcp/test_server.py`, que exige que no salga
+**ninguna** dirección, no solo que falte el campo: devolverla dentro de `name`
+sería el mismo dato con otro nombre.
 
 **Sin bump — 2026-09-13.** No cambia la forma de ninguna puerta, pero **sí lo que
 la Puerta 1 puede alcanzar**, y por eso va aquí aunque ningún fichero de la lista
