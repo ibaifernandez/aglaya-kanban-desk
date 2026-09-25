@@ -137,10 +137,27 @@ cuenta.
 
 ### ⚠️ Condición de reapertura
 
-**Si estas sesiones pasan a una suscripción de empresa** —Team, Enterprise o
+**1 · Si estas sesiones pasan a una suscripción de empresa** —Team, Enterprise o
 API—, la figura cambia: Anthropic **sí** sería encargado, con DPA incorporado y
 transferencia a EE. UU. que documentar. Ese día, esta sección se sustituye por
 una fila en la tabla de arriba y una entrada en `DPA-registry.md`.
+
+**2 · El día que se dé de alta la primera cuenta de cliente o colaborador** —hoy
+solo hay tres: el Operador, Món y el riel, medido en `public.users` el
+25-sep-2026—, **hay que decirlo en la política publicada**.
+
+Por qué no se dice ya, y es la parte que conviene entender antes de cambiarla:
+la política afirma «compartimos datos con los siguientes encargados» y lista
+seis, lo que **deja impresión de completitud**. Un titular que la lea no sabría
+que el contenido de sus tarjetas pasa por un modelo. Hoy eso **no engaña a
+ningún lector real**: los dos únicos titulares son el Operador y Món, y los dos
+saben que operan la nave con Claude, porque es como trabajan. Una frase pública
+dirigida a dos personas que ya lo saben no informa: adorna.
+
+Con una cuenta ajena delante, esa misma frase **sí** engaña. *(Es el mismo
+gatillo que llevan `ab86481d` y `0092a0c0` — «requisito previo a la primera
+cuenta de cliente»—, escrito igual a propósito: quien dé ese alta tiene que
+encontrar las tres.)*
 
 ---
 

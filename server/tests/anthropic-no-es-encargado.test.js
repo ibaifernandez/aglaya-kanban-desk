@@ -56,4 +56,15 @@ describe('el registro explica por qué Anthropic no figura como encargado', () =
     expect(seccion).toMatch(/suscripci[óo]n de empresa/i);
     expect(seccion).toMatch(/DPA-registry\.md/);
   });
+
+  // El segundo gatillo, y el que más fácil se pierde: hoy la política no engaña
+  // porque los dos únicos titulares son quienes tomaron la decisión. Con una
+  // cuenta ajena delante, la misma frase pasa a engañar — y quien dé ese alta
+  // tiene que tropezarse con esto.
+  it('y el gatillo de la primera cuenta ajena, escrito como el de las otras dos tarjetas', () => {
+    expect(seccion).toMatch(/primera cuenta de cliente o colaborador/i);
+    expect(seccion).toMatch(/pol[íi]tica publicada/i);
+    expect(seccion).toMatch(/ab86481d/);
+    expect(seccion).toMatch(/0092a0c0/);
+  });
 });
