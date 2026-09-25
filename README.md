@@ -35,7 +35,7 @@ Los clientes ven únicamente lo que les has asignado. El equipo ve todo lo inter
 | Backend         | Express + Node.js                               |
 | Base de datos   | Supabase (PostgreSQL + RLS)                     |
 | Auth            | Supabase Auth + JWT middleware + bcryptjs       |
-| Storage         | Supabase Storage (adjuntos, avatares, portadas) |
+| Storage         | Cloudflare R2 (adjuntos de tarjetas) · Supabase Storage (avatares, portadas) |
 | Seguridad       | Helmet + express-rate-limit + CORS por entorno  |
 | Tests           | Jest + Supertest                                |
 | Deploy cliente  | Netlify (auto-deploy en push a `main`)          |

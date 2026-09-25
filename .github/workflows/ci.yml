@@ -557,6 +557,18 @@ jobs:
         continue-on-error: true
         run: bash scripts/publicar-cifras.test.sh
 
+      # Las pruebas del cliente existen y CORREN en CI. Lo que cierra no es que
+      # falten: es que dejen de ejecutarse sin que nadie lo note.
+      - name: Sello — ¿el guardián de las pruebas de cliente muerde?
+        id: sello_cliente
+        continue-on-error: true
+        run: bash scripts/cliente-probado-guard.test.sh
+
+      - name: ¿Las pruebas del cliente corren en CI?
+        id: cliente
+        continue-on-error: true
+        run: bash scripts/cliente-probado-guard.sh
+
       - name: Verdicto — ¿pasó alguna en rojo?
         run: |
           bash scripts/ci-verdicto.sh \
@@ -590,7 +602,9 @@ jobs:
             "aviso de despliegue · sello|${{ steps.sello_despliegue.outcome }}" \
             "cableado del verdicto · sello|${{ steps.sello_cableado.outcome }}" \
             "cableado del verdicto · guardián|${{ steps.cableado.outcome }}" \
-            "cifras públicas · sello|${{ steps.sello_cifras.outcome }}"
+            "cifras públicas · sello|${{ steps.sello_cifras.outcome }}" \
+            "pruebas de cliente · sello|${{ steps.sello_cliente.outcome }}" \
+            "pruebas de cliente · guardián|${{ steps.cliente.outcome }}"
 
   client-build:
     name: Client build (vite)
@@ -610,6 +624,14 @@ jobs:
       - name: Install client dependencies
         working-directory: ./client
         run: npm ci
+
+      # Las pruebas del CLIENTE (vitest + jsdom). Tarjeta `97307036`.
+      # Van ANTES del build a propósito: si la pantalla está rota, no hace falta
+      # gastar el build para saberlo, y el rojo señala la causa y no el síntoma.
+      # Que este paso siga existiendo lo vigila `cliente-probado-guard.sh`.
+      - name: Client tests (vitest + jsdom)
+        working-directory: ./client
+        run: npm test
 
       - name: Build (incluye prebuild legal → privacidad.html via marked)
         working-directory: ./client

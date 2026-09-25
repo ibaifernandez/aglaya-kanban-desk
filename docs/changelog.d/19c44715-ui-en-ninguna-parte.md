@@ -1,0 +1,13 @@
+Fixed
+
+- **La prueba de la política ya no deja colar «UI disponible» en una fila que no nombre el derecho.** Tarjeta `19c44715`, hallazgo del vigilante al revisar `1f1eb472`.
+  - El caso troceaba la sección 7 por filas y miraba las de portabilidad y supresión. **Una fila-nota** —«los dos derechos anteriores tienen UI disponible en tu perfil»— **pasaba en verde**, porque ese trozo no nombra ninguno de los dos.
+  - **Regla que queda escrita: lo positivo, por fila; lo prohibido, por sección.** Exigir que cada fila diga cómo se ejerce su derecho necesita trocear; prohibir una frase, no — y trocear para prohibir es lo que abrió el agujero.
+  - **La prohibición se acota a la sección 7 a propósito:** la entrada 1.6 del historial **cita** la frase para desmentirla, y esa cita es lo que conserva la lección. Aplicarla al documento entero se la comería — mutación comprobada, roja.
+  - Medido: la fila-nota en el HTML → rojo; la línea equivalente en el markdown → rojo. Antes, las dos pasaban 35/35.
+  - **Devuelta por el vigilante, y su ataque era real, no hipotético:** reescribió **la fila de supresión** como «Puedes hacerlo también desde tu perfil» —sin usar «UI disponible»— en los dos ficheros, y la batería seguía en verde. Prohibir frases es una carrera que no se gana: quien lo reescriba mañana no usará nuestra jerga.
+  - **El arreglo le da la vuelta: afirmar en vez de prohibir.** Mientras el cliente no llame a esas rutas, cada fila tiene que **decir que no hay botón**. Si alguien la reescribe prometiendo interfaz, esa frase honesta desaparece y el caso cae **escriba lo que escriba**. *(Y no se prohíbe la palabra «botón»: la fila correcta la contiene.)*
+  - **Y la prohibición mira cada derecho por separado:** iba bajo un «y», así que en cuanto existiera **uno** de los dos botones la sección entera dejaba de vigilarse, incluido el derecho que sigue sin botón.
+  - **Más una vía estructural**, que no depende de la redacción: mientras no haya botones, esos dos derechos **no pueden volver a la tabla de «self-service»** — devolver la fila ahí es prometer interfaz por colocación, sin escribir ninguna frase.
+  - **Lo que sigue escapando, dicho:** una nota suelta en la sección con palabras nuevas («se ejercen desde tu perfil»). No hay expresión regular que cubra el castellano, y prohibir «tu perfil» rompería la fila de rectificación, que legítimamente manda editar el perfil. Lo que sí queda cerrado es el camino realista: reescribir la fila o moverla.
+  - **Nada estaba mal hoy:** la política publicada sirve la 1.6 y la frase solo aparece en el historial. Esto cierra la vía, no un defecto vivo. Se abre porque esta familia ya ha mordido tres veces en el documento público.

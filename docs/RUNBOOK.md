@@ -56,7 +56,7 @@ El despliegue se realiza mediante artefactos precompilados y contenedores, no se
 
 1. `.env`: Archivo de configuración confidencial.
 2. `docker-compose.yml`: Definición de los servicios (API + Client Nginx).
-3. `uploads/`: Carpeta persistente para archivos adjuntos.
+3. `uploads/`: **ya no se usa.** Los adjuntos viven en Cloudflare R2 desde el 25-sep-2026 (tarjeta `4f4e6e2b`). Esta línea decía «carpeta persistente» y era falsa: sin volumen montado, el disco del contenedor se borra en cada despliegue — y se llevó los cinco adjuntos que había.
 
 ### Variables de Entorno (`.env`)
 ```env

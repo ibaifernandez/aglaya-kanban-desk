@@ -1,0 +1,33 @@
+{
+  "started_at": "2026-09-24T17:44:10Z",
+  "mode": "report",
+  "commit_at_start": "a630a8495e41b6baaabb695a1a2387d8402316f6",
+  "previous_audit": "docs/audits/2026-05-27-mariana",
+  "operator_instructions": [
+    "No pedir OK entre fases: seguir A→E de corrido y entregar al final.",
+    "No commitear: el operador decide al final qué hacer con el directorio.",
+    "Interrumpir solo si aparece algo explotable ya.",
+    "Repo público: hallazgos de seguridad abiertos sin cargas de explotación."
+  ],
+  "fase_completed": [
+    "0",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "fase_in_progress": null,
+  "fase_in_progress_notes": null,
+  "findings_count_by_fase": {
+    "A": 24,
+    "B": 27,
+    "C": 15,
+    "D": 16
+  },
+  "critical_mitigated": [],
+  "resumed_at": "2026-09-24T18:30:00Z",
+  "notes": "Auditoría completa. notas-fase-A.md y notas-fase-B.md son borradores superados (un enganche impidió borrarlos). Directorio sin commitear: decide el operador.",
+  "finished_at": "2026-09-24T21:20:39Z",
+  "total_findings": 82
+}

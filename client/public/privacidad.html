@@ -119,8 +119,8 @@ Esta versión refleja la realidad operativa del sistema documentada en <code>doc
 retention-policy, base-legal, breach-notification-procedure, subprocessors, DPIA).
 Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).</p>
 </blockquote>
-<p><strong>Última actualización:</strong> 2026-09-19
-<strong>Versión:</strong> 1.5
+<p><strong>Última actualización:</strong> 2026-09-25
+<strong>Versión:</strong> 1.6
 <strong>Aplicable a:</strong> <a href="https://kanban.aglaya.biz">https://kanban.aglaya.biz</a> (y subdominios <code>*.kanban.aglaya.biz</code> futuros)</p>
 <hr>
 <h2>1. Responsable del Tratamiento</h2>
@@ -374,14 +374,6 @@ quien pregunte qué se hizo con los suyos entonces.</p>
 <td>Tu perfil en el menú de usuario muestra tus datos básicos</td>
 </tr>
 <tr>
-<td><strong>Portabilidad (Art. 20 RGPD)</strong></td>
-<td><code>GET /api/auth/me/export</code> — descarga JSON con todos tus datos. UI disponible en tu perfil</td>
-</tr>
-<tr>
-<td><strong>Supresión / &quot;derecho al olvido&quot; (Art. 17 RGPD)</strong></td>
-<td><code>DELETE /api/auth/me</code> — elimina tu cuenta. UI disponible en tu perfil. <strong>La supresión no alcanza retroactivamente a las copias de seguridad ya creadas</strong>: esos datos desaparecen con la rotación, a los 30 días como máximo</td>
-</tr>
-<tr>
 <td><strong>Oposición a comunicaciones (Art. 21 + Art. 6 LGPD)</strong></td>
 <td><strong>No hay comunicaciones a las que oponerse: esta aplicación no envía correo.</strong> Los avisos ocurren dentro de la aplicación, ligados al uso del servicio</td>
 </tr>
@@ -395,6 +387,14 @@ quien pregunte qué se hizo con los suyos entonces.</p>
 </tr>
 </thead>
 <tbody><tr>
+<td><strong>Portabilidad (Art. 20 RGPD)</strong></td>
+<td>Email a <code>info@aglaya.biz</code> con asunto <code>[RGPD] Portabilidad</code>. Se atiende con <code>GET /api/auth/me/export</code>, que devuelve tus datos en JSON. <strong>No hay botón en la aplicación</strong>: hasta la versión 1.5 esta tabla decía que sí lo había</td>
+</tr>
+<tr>
+<td><strong>Supresión / &quot;derecho al olvido&quot; (Art. 17 RGPD)</strong></td>
+<td>Email a <code>info@aglaya.biz</code> con asunto <code>[RGPD] Supresión</code>. Se atiende con <code>DELETE /api/auth/me</code>, que elimina la cuenta. <strong>Tampoco hay botón</strong>, y hasta la 1.5 esta tabla decía que sí. <strong>La supresión no alcanza retroactivamente a las copias de seguridad ya creadas</strong>: esos datos desaparecen con la rotación, a los 30 días como máximo</td>
+</tr>
+<tr>
 <td><strong>Rectificación (Art. 16 RGPD)</strong></td>
 <td>Edita tu perfil directamente. Si necesitas corregir datos no editables, contacta <code>info@aglaya.biz</code></td>
 </tr>
@@ -507,6 +507,18 @@ el mismo defecto que esta versión viene a corregir.</p>
 <p>Estos documentos son fuente de verdad operativa y se actualizan con cada cambio en la infraestructura o procesadores.</p>
 <hr>
 <h2>Historial de versiones</h2>
+<h3>1.6 — 2026-09-25 · los botones que no existen</h3>
+<p><strong>Hasta la 1.5, la sección 7.1 decía que la portabilidad y la supresión de la
+cuenta tenían «UI disponible en tu perfil».</strong> No la hay: no existe ningún botón
+en la aplicación que llame a <code>GET /api/auth/me/export</code> ni a <code>DELETE /api/auth/me</code>.
+Se comprobó buscando esas llamadas en todo el código del cliente: cero.</p>
+<p><strong>Las dos rutas del servidor sí existen y funcionan.</strong> Lo falso era <strong>cómo se
+llega a ellas</strong>, que es justo lo que necesita saber quien viene a ejercer un
+derecho: se le mandaba a buscar un botón que no iba a encontrar.</p>
+<p>Las dos pasan a la tabla de «derechos vía contacto directo», con la dirección y
+el asunto exactos, y diciendo que el botón no existe. <strong>Esto no recorta ningún
+derecho</strong>: se ejercen igual, por escrito, y se atienden con las mismas rutas.
+Si algún día existen los botones, volverán a la tabla de arriba — no al revés.</p>
 <h3>1.5 — 2026-09-19 · la base no aísla «multi-tenant»</h3>
 <p><strong>Hasta la 1.4, la sección 9 decía que RLS daba «aislamiento multi-tenant».</strong> No
 lo da, porque no hay varios inquilinos: el Kanban trabaja con <strong>una sola

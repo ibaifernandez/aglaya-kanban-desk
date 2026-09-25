@@ -28,7 +28,7 @@ const {
   getCardHistory,
 } = require('./routes/cards');
 const { getCategories, createCategory, updateCategory, deleteCategory } = require('./routes/categories');
-const { uploadImage, deleteImage } = require('./routes/uploads');
+const { uploadImage, deleteImage, serveFile } = require('./routes/uploads');
 const authRouter              = require('./routes/auth');
 const adminRouter             = require('./routes/admin');
 const workspacesRouter        = require('./routes/workspaces');
@@ -122,7 +122,10 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json({ limit: '2mb' }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Los adjuntos ya NO se sirven del disco: viven en R2 y los sirve la ruta, que
+// además distingue «no está» (410, con su explicación) de «ruta mal escrita».
+// Tarjeta `4f4e6e2b`.
+app.get('/uploads/:filename', serveFile);
 
 // ── Global rate limit baseline (B-06 audit Mariana) ────────
 // Aplica a TODAS las rutas /api/* salvo /api/health.

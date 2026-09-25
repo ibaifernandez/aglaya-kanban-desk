@@ -7,8 +7,8 @@
 > retention-policy, base-legal, breach-notification-procedure, subprocessors, DPIA).
 > Cambios sustanciales requieren nueva versión documentada en este mismo archivo (Sec. 12).
 
-**Última actualización:** 2026-09-19
-**Versión:** 1.5
+**Última actualización:** 2026-09-25
+**Versión:** 1.6
 **Aplicable a:** https://kanban.aglaya.biz (y subdominios `*.kanban.aglaya.biz` futuros)
 
 ---
@@ -157,14 +157,14 @@ Como titular de los datos, tienes derecho a:
 | Derecho | Mecanismo en la aplicación |
 |---|---|
 | **Acceso (Art. 15 RGPD)** | Tu perfil en el menú de usuario muestra tus datos básicos |
-| **Portabilidad (Art. 20 RGPD)** | `GET /api/auth/me/export` — descarga JSON con todos tus datos. UI disponible en tu perfil |
-| **Supresión / "derecho al olvido" (Art. 17 RGPD)** | `DELETE /api/auth/me` — elimina tu cuenta. UI disponible en tu perfil. **La supresión no alcanza retroactivamente a las copias de seguridad ya creadas**: esos datos desaparecen con la rotación, a los 30 días como máximo |
 | **Oposición a comunicaciones (Art. 21 + Art. 6 LGPD)** | **No hay comunicaciones a las que oponerse: esta aplicación no envía correo.** Los avisos ocurren dentro de la aplicación, ligados al uso del servicio |
 
 ### 7.2 Derechos vía contacto directo
 
 | Derecho | Cómo ejercerlo |
 |---|---|
+| **Portabilidad (Art. 20 RGPD)** | Email a `info@aglaya.biz` con asunto `[RGPD] Portabilidad`. Se atiende con `GET /api/auth/me/export`, que devuelve tus datos en JSON. **No hay botón en la aplicación**: hasta la versión 1.5 esta tabla decía que sí lo había |
+| **Supresión / "derecho al olvido" (Art. 17 RGPD)** | Email a `info@aglaya.biz` con asunto `[RGPD] Supresión`. Se atiende con `DELETE /api/auth/me`, que elimina la cuenta. **Tampoco hay botón**, y hasta la 1.5 esta tabla decía que sí. **La supresión no alcanza retroactivamente a las copias de seguridad ya creadas**: esos datos desaparecen con la rotación, a los 30 días como máximo |
 | **Rectificación (Art. 16 RGPD)** | Edita tu perfil directamente. Si necesitas corregir datos no editables, contacta `info@aglaya.biz` |
 | **Limitación del tratamiento (Art. 18 RGPD)** | Email a `info@aglaya.biz` con asunto `[RGPD] Limitación` + justificación |
 | **No estar sujeto a decisiones automatizadas (Art. 22 RGPD)** | N/A — AGLAYA Kanban Desk no toma decisiones automatizadas significativas |
@@ -277,6 +277,22 @@ Estos documentos son fuente de verdad operativa y se actualizan con cada cambio 
 ---
 
 ## Historial de versiones
+
+### 1.6 — 2026-09-25 · los botones que no existen
+
+**Hasta la 1.5, la sección 7.1 decía que la portabilidad y la supresión de la
+cuenta tenían «UI disponible en tu perfil».** No la hay: no existe ningún botón
+en la aplicación que llame a `GET /api/auth/me/export` ni a `DELETE /api/auth/me`.
+Se comprobó buscando esas llamadas en todo el código del cliente: cero.
+
+**Las dos rutas del servidor sí existen y funcionan.** Lo falso era **cómo se
+llega a ellas**, que es justo lo que necesita saber quien viene a ejercer un
+derecho: se le mandaba a buscar un botón que no iba a encontrar.
+
+Las dos pasan a la tabla de «derechos vía contacto directo», con la dirección y
+el asunto exactos, y diciendo que el botón no existe. **Esto no recorta ningún
+derecho**: se ejercen igual, por escrito, y se atienden con las mismas rutas.
+Si algún día existen los botones, volverán a la tabla de arriba — no al revés.
 
 ### 1.5 — 2026-09-19 · la base no aísla «multi-tenant»
 
