@@ -18,6 +18,21 @@ jest.mock('../utils/supabase', () => ({
   createPublicClient: jest.fn(),
 }));
 
+// Desde el 25-sep-2026 (tarjeta `4f4e6e2b`) la subida acaba en Cloudflare R2, no
+// en el disco. Este fichero mide las CAPAS DE SEGURIDAD —extensión, MIME, magic
+// bytes—, así que el almacén se sustituye por uno que solo dice «guardado»: si
+// aquí dependiéramos de la red, el día que R2 falle estos casos se pondrían
+// rojos y nadie sabría si lo roto es el filtro o el almacén.
+jest.mock('../utils/almacen-adjuntos', () => ({
+  configurado: () => true,
+  crearAlmacen: () => ({
+    configurado: () => true,
+    async guardar({ cuerpo }) { for await (const _ of cuerpo) { /* se consume */ } },
+    async leer() { return null; },
+    async borrar() {},
+  }),
+}));
+
 const app = require('../app');
 
 function makeToken(overrides = {}) {

@@ -309,6 +309,173 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
     expect(md).toMatch(/1\.3 — 2026-09-13/);
   });
 
+  // Tarjeta `1f1eb472`. La política decía «UI disponible en tu perfil» para la
+  // portabilidad y la supresión, y esa interfaz no existía: quien viniera a
+  // ejercer un derecho se iba a buscar un botón inexistente.
+  //
+  // DOS COSAS QUE ESTE CASO HACE MAL SI SE ESCRIBEN A LA LIGERA, y las dos las
+  // cometí en la primera versión; las encontró el vigilante:
+  //
+  //   1 · MIRAR SOLO EL MARKDOWN. Es el defecto de `16b8063a`, explicado dos
+  //       pantallas más arriba en este mismo fichero: **lo que la gente lee es
+  //       el HTML**, se versiona aparte, y la promesa falsa puesta solo ahí
+  //       pasaba con la batería entera en verde. Versión y fecha no lo tapan,
+  //       porque lo que cambia es el texto de una celda.
+  //
+  //   2 · CONTAR COMENTARIOS COMO LLAMADAS. Un `// pendiente: llamar a
+  //       me/export` en el cliente hacía creer al caso que el botón existe — y
+  //       es exactamente lo que escribiría quien empieza el botón y lo deja a
+  //       medias. Se quitan los comentarios antes de buscar, igual que
+  //       `base-consultable-guard` ignora lo retractado.
+  //
+  // El caso NO es una lista de frases prohibidas: **deriva de las dos fuentes**.
+  // Si mañana alguien construye los botones, el cliente llamará a esas rutas y
+  // la política podrá prometerlas otra vez sin tocar esto.
+  it('no promete —ni en el markdown ni en la página servida— una interfaz que el cliente no tiene', () => {
+    const fs = require('fs');
+    const path = require('path');
+
+    const dirCliente = path.join(__dirname, '..', '..', 'client', 'src');
+    const ficheros = [];
+    (function recorrer(dir) {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) recorrer(p);
+        else if (/\.(js|jsx)$/.test(e.name)) ficheros.push(p);
+      }
+    })(dirCliente);
+
+    const sinComentarios = (t) => t
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n');
+    const codigoCliente = sinComentarios(ficheros.map((f) => fs.readFileSync(f, 'utf8')).join('\n'));
+
+    const clienteExporta = /me\/export/.test(codigoCliente);
+    const clienteBorraCuenta = /delete\(\s*['"`]\/auth\/me|auth\/me['"`]\s*,\s*\{\s*method:\s*['"`]DELETE/.test(codigoCliente);
+
+    // Las dos filas, en los DOS ficheros: el fuente y el que se sirve.
+    //
+    // Se trocea por FILAS, no por líneas: en el markdown una fila es una línea,
+    // pero en el HTML son varias —una por celda—, y buscar «la línea que dice
+    // Portabilidad» devolvía solo el encabezado de la fila, sin el texto que hay
+    // que comprobar. Con eso, el caso se ponía rojo por el motivo equivocado.
+    const filas = (texto, corte1, corte2, esHtml) => {
+      const seccion = texto.slice(texto.indexOf(corte1), texto.indexOf(corte2));
+      const trozos = esHtml
+        ? seccion.split(/<tr[^>]*>/i).map((t) => t.replace(/\s+/g, ' '))
+        : seccion.split('\n');
+      return {
+        portabilidad: trozos.find((t) => /Portabilidad/.test(t)) || '',
+        supresion: trozos.find((t) => /Supresi[óo]n/.test(t)) || '',
+      };
+    };
+
+    const fuentes = {
+      'el markdown': filas(md, '## 7. Tus Derechos', '## 8.', false),
+      'la página servida': filas(leer(HTML), '<h2>7. Tus Derechos', '<h2>8.', true),
+    };
+
+    // ── Lo NEGATIVO se comprueba sobre la SECCIÓN ENTERA, sin trocear ────────
+    //
+    // Tarjeta `19c44715`. Trocear servía para exigir que cada fila diga cómo se
+    // ejerce su derecho; **para prohibir una frase, trocear abre un agujero**:
+    // una fila-nota —«los dos derechos anteriores tienen UI disponible en tu
+    // perfil»— no nombra ninguno de los dos, así que ningún trozo la contenía y
+    // pasaba en verde. Lo encontró el vigilante después de fusionar `1f1eb472`.
+    //
+    // Regla que queda: **lo positivo, por fila; lo prohibido, por sección.**
+    const secciones = {
+      'el markdown': md.slice(md.indexOf('## 7. Tus Derechos'), md.indexOf('## 8.')),
+      'la página servida': leer(HTML).slice(leer(HTML).indexOf('<h2>7. Tus Derechos'), leer(HTML).indexOf('<h2>8.')),
+    };
+
+    // Y POR DERECHO, no por los dos a la vez. Con `&&`, en cuanto existiera UNO
+    // de los dos botones la sección entera dejaba de vigilarse —incluido el
+    // derecho que sigue sin botón—. Lo vio el vigilante.
+    for (const [donde, seccion] of Object.entries(secciones)) {
+      if (!clienteExporta || !clienteBorraCuenta) {
+        expect(`${donde} → ${seccion}`).not.toMatch(/UI disponible/i);
+      }
+    }
+
+    // ⚠️ Y el historial NO entra en esa prohibición, a propósito: la entrada 1.6
+    // CITA la frase para desmentirla, y esa cita es lo que conserva la lección.
+    // Por eso la prohibición se acota a la sección 7 y no al documento entero.
+    expect(md).toMatch(/Hasta la 1\.5, la sección 7\.1 decía/);
+
+    for (const [donde, fila] of Object.entries(fuentes)) {
+      // El nombre de la fuente va DENTRO del valor comprobado, no como mensaje:
+      // `expect` de jest no acepta mensaje —eso es vitest—, y sin él un rojo no
+      // diría en cuál de los dos ficheros está la promesa falsa, que es justo lo
+      // que costó la devolución.
+      const conFuente = (texto) => `${donde} → ${texto}`;
+
+      expect(conFuente(fila.portabilidad)).not.toBe(conFuente(''));
+      expect(conFuente(fila.supresion)).not.toBe(conFuente(''));
+
+      if (!clienteExporta) {
+        expect(conFuente(fila.portabilidad)).not.toMatch(/UI disponible/i);
+      }
+      if (!clienteBorraCuenta) {
+        expect(conFuente(fila.supresion)).not.toMatch(/UI disponible/i);
+      }
+
+      // Y que siga diciendo CÓMO se ejerce, con el asunto exacto que la propia
+      // política le pide escribir al titular: quitar la promesa falsa sin dejar
+      // la vía real —o dejándola a medias— sería peor.
+      expect(conFuente(fila.portabilidad)).toMatch(/info@aglaya\.biz/);
+      expect(conFuente(fila.supresion)).toMatch(/info@aglaya\.biz/);
+      expect(conFuente(fila.portabilidad)).toMatch(/\[RGPD\]\s*Portabilidad/);
+      expect(conFuente(fila.supresion)).toMatch(/\[RGPD\]\s*Supresi[óo]n/);
+
+      // ── AFIRMAR, no prohibir. Ésta es la pieza que aguanta ───────────────
+      //
+      // Prohibir frases es una carrera que no se gana: el vigilante reescribió
+      // la fila real de supresión como «Puedes hacerlo también desde tu perfil»
+      // —sin usar «UI disponible»— y la batería seguía en verde. Quien lo
+      // reescriba mañana no usará nuestra jerga.
+      //
+      // Exigir la frase HONESTA le da la vuelta: si alguien SUSTITUYE «No hay
+      // botón» por una promesa de interfaz, el caso cae escriba lo que escriba.
+      //
+      // ⚠️ Y LO QUE ESTO **NO** GARANTIZA, que aquí llegó a afirmarse de más:
+      // decía «no se puede prometer un botón y decir a la vez que no lo hay», y
+      // sí se puede. El vigilante lo midió: «No hay botón en la aplicación (por
+      // ahora puedes usar el de tu perfil)» pasa los 35 casos en los dos
+      // ficheros. Quien SUSTITUYE la frase cae; quien AÑADE la promesa al lado,
+      // no — y ahí manda quien revisa. Una celda que se contradice a sí misma se
+      // ve a simple vista; un caso que prometiera cazarla mentiría.
+      //
+      // ⚠️ Y NO se prohíbe la palabra «botón»: la fila correcta la contiene.
+      if (!clienteExporta) {
+        expect(conFuente(fila.portabilidad)).toMatch(/(no|tampoco) hay bot[óo]n/i);
+      }
+      if (!clienteBorraCuenta) {
+        expect(conFuente(fila.supresion)).toMatch(/(no|tampoco) hay bot[óo]n/i);
+      }
+    }
+
+    // ── Y estructural: mientras no haya botones, esos dos derechos NO pueden
+    // estar en la tabla de «self-service» ────────────────────────────────────
+    //
+    // Es la vía que no depende de cómo se redacte: devolver la fila a 7.1 es
+    // prometer interfaz por colocación, sin escribir ninguna frase concreta.
+    const tabla71 = (texto, fin) => {
+      const i = texto.indexOf('7.1');
+      return texto.slice(i, texto.indexOf(fin, i));
+    };
+    if (!clienteExporta) {
+      expect(`markdown 7.1 → ${tabla71(md, '7.2')}`).not.toMatch(/Portabilidad/);
+      expect(`HTML 7.1 → ${tabla71(leer(HTML), '7.2')}`).not.toMatch(/Portabilidad/);
+    }
+    if (!clienteBorraCuenta) {
+      expect(`markdown 7.1 → ${tabla71(md, '7.2')}`).not.toMatch(/Supresi[óo]n/);
+      expect(`HTML 7.1 → ${tabla71(leer(HTML), '7.2')}`).not.toMatch(/Supresi[óo]n/);
+    }
+
+    expect(md).toMatch(/1\.6 — 2026-09-25/);
+  });
+
   it('tampoco anuncia Sentry como futuro, y lo declara como encargado', () => {
     expect(md).not.toMatch(/Sentry \(futuro\)/);
     const tabla = md.slice(md.indexOf('## 4. Encargados'), md.indexOf('Encargado cesado'));
