@@ -143,10 +143,17 @@ export const api = {
 
   // Uploads
   //
-  // Va por `request` como todas las demás. Antes llamaba a `fetch` a pelo: era
-  // la ÚNICA del fichero que se saltaba el envoltorio, así que era la única sin
-  // reintento cuando el token de acceso caduca a los 15 minutos. El adjunto no
-  // subía y el usuario veía un error genérico, en una sesión que creía abierta.
+  // Va por `request` como todas las demás llamadas de TARJETAS. Antes llamaba a
+  // `fetch` a pelo, así que se quedaba sin el reintento cuando el token de
+  // acceso caduca a los 15 minutos: el adjunto no subía y el usuario veía un
+  // error genérico, en una sesión que creía abierta.
+  //
+  // ⚠️ AQUÍ DECÍA «era la ÚNICA del fichero que se saltaba el envoltorio», Y NO
+  // ERA CIERTO. Lo midió el vigilante: `uploadAvatar`, `uploadWorkspaceCover` e
+  // `inviteUser` siguen llamando a `fetch` a pelo, con el `Authorization` puesto
+  // a mano y **sin reintento** — el mismo defecto, con el mismo token caducado.
+  // La frase no era estilo: le decía al que viniera detrás que esta familia
+  // estaba cerrada, y hay tres que no lo están. Tienen su hallazgo aparte.
   uploadFile: (file) => {
     const form = new FormData();
     form.append('file', file);
