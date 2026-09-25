@@ -563,7 +563,7 @@ function WorkspaceSection({ title, icon, workspaces, coverOverrides, onEnter, on
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, onOpenAdmin, onAvatarChange, onNotificationNavigate }) {
-  const { workspaces, loading, createWorkspace, updateWorkspace, deleteWorkspace, reordenarEspacios } = useWorkspaces();
+  const { workspaces, loading, error: errorCarga, createWorkspace, updateWorkspace, deleteWorkspace, reordenarEspacios, reload } = useWorkspaces();
   const [showNew,       setShowNew]       = useState(false);
   const [editTarget,    setEditTarget]    = useState(null);
   const [deleteTarget,  setDeleteTarget]  = useState(null);
@@ -697,6 +697,23 @@ export default function WorkspaceDashboard({ user, onEnterWorkspace, onLogout, o
           {/* Content */}
           {loading ? (
             <div className="flex justify-center py-24"><Spinner size={8} /></div>
+          ) : errorCarga ? (
+            /* «No se pudo mirar» NO es «no hay nada». Hasta hoy se veían igual:
+               un fallo de red pintaba el mismo estado vacío que una cuenta
+               recién creada, y quien lo viera concluiría que no tiene espacios
+               (tarjeta `507ba75b`; mismo defecto que ya se cerró en la búsqueda
+               del servidor, `1753729e`). */
+            <div role="alert" className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="text-5xl mb-4">⚠️</div>
+              <p className="text-[#8b92a5] text-sm">No se pudieron cargar tus espacios de trabajo.</p>
+              <p className="text-[#555b70] text-xs mt-1">{errorCarga}</p>
+              <button
+                onClick={reload}
+                className="mt-4 flex items-center gap-2 px-4 py-2 bg-[#252830] hover:bg-[#2e3140] text-[#c8cadd] text-sm font-medium rounded-lg transition-colors"
+              >
+                Reintentar
+              </button>
+            </div>
           ) : workspaces.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="text-5xl mb-4">📋</div>

@@ -30,6 +30,9 @@ export function Board({
   const [editingColId,   setEditingColId]   = useState(null);
   const [pendingDelete,  setPendingDelete]  = useState(null); // { kind: 'card'|'column', id, label }
   const [crossBoardMsg,  setCrossBoardMsg]  = useState(null); // string | null
+  // Un fallo al guardar, mover o borrar NO puede pasar en silencio: el trabajo
+  // se queda a la vista y el aviso lo dice (tarjeta `507ba75b`).
+  const [errorMsg,       setErrorMsg]       = useState(null); // string | null
 
   const { categories } = useCategoriesCtx();
   useEscapeKey(() => setPendingDelete(null), Boolean(pendingDelete));
@@ -97,6 +100,20 @@ export function Board({
   function closeModal()    { setModalState(null); }
 
   async function handleSave(formData) {
+    // TODO lo que sigue va dentro del try: si algo falla, el modal NO se cierra,
+    // lo escrito sigue en pantalla, y el usuario se entera. Antes, un fallo al
+    // mover se tragaba en el hook y el modal se cerraba igual —el trabajo
+    // desaparecía de la pantalla sin haber llegado al servidor—, y un fallo al
+    // actualizar rompía la promesa sin que nadie la escuchara.
+    try {
+      await guardar(formData);
+      closeModal();
+    } catch (err) {
+      setErrorMsg(`No se pudo guardar: ${err.message}. Lo que escribiste sigue aquí.`);
+    }
+  }
+
+  async function guardar(formData) {
     if (modalState?.card?.id) {
       const { columnId: newColId, boardId: newBoardId, targetBoardTitle, ...rest } = formData;
       const isCrossBoard   = newBoardId && newBoardId !== boardId;
@@ -118,7 +135,6 @@ export function Board({
     } else {
       await onCreateCard(formData);
     }
-    closeModal();
   }
 
   // ── Context menu ───────────────────────────────────────────
@@ -370,16 +386,41 @@ export function Board({
                 Cancelar
               </button>
               <button
-                onClick={() => {
-                  if (pendingDelete.kind === 'card') onDeleteCard(pendingDelete.id);
-                  else onDeleteColumn(pendingDelete.id);
+                onClick={async () => {
+                  const { kind, id } = pendingDelete;
                   setPendingDelete(null);
+                  try {
+                    // Se espera al servidor: borrar una columna con tarjetas
+                    // contesta 409, y sin esto la ventana se cerraba prometiendo
+                    // un borrado que no ocurría (tarjeta `507ba75b`).
+                    if (kind === 'card') await onDeleteCard(id);
+                    else await onDeleteColumn(id);
+                  } catch (err) {
+                    setErrorMsg(`No se pudo eliminar: ${err.message}`);
+                  }
                 }}
                 className="px-3 py-1.5 rounded-lg text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
               >
                 Eliminar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Aviso de error: NO se va solo. Un fallo que se desvanece a los tres
+          segundos es casi lo mismo que no avisar; este se cierra a mano. */}
+      {errorMsg && (
+        <div role="alert" className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999]">
+          <div className="flex items-center gap-3 bg-[#1e2028] border border-red-500/40 text-red-300 text-sm px-4 py-2.5 rounded-xl shadow-2xl">
+            <span>{errorMsg}</span>
+            <button
+              onClick={() => setErrorMsg(null)}
+              aria-label="Cerrar aviso"
+              className="text-red-300/70 hover:text-red-200 transition-colors"
+            >
+              <X size={14} />
+            </button>
           </div>
         </div>
       )}
