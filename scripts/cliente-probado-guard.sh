@@ -55,6 +55,25 @@ roto() { echo "::error::cliente-probado-guard: $1"; exit 2; }
 [ -d "$DIR_CLIENTE" ] || roto "no existe el directorio del cliente «$DIR_CLIENTE»."
 [ -f "$CI" ]          || roto "no existe «$CI». Si el workflow se movió, este guardián no puede saber a dónde: dilo aquí."
 
+# ── LA REGLA ESTÁ INVERTIDA, Y ES LO QUE HACE QUE ESTO VALGA ─────────────────
+#
+# Las tres primeras versiones de este guardián perseguían FORMAS de neutralizar
+# el paso: primero `if:` y `continue-on-error:`, luego `|| true` y `|| echo`,
+# luego tuberías. Cada vuelta el vigilante traía una nueva —`| tee` sale 0 porque
+# en una tubería manda el último mandato; `&` sale 0 en el acto—, y esa carrera
+# no se gana: depende de que alguien imagine la siguiente.
+#
+# Así que se dice **lo único que vale**, y todo lo demás cae solo:
+#
+#   · el paso ejecuta EXACTAMENTE `npm test` o `npm run test`;
+#   · el guion `test` del cliente EMPIEZA por `vitest run` y no lleva `|`, `&`,
+#     `;`, `>` ni `--passWithNoTests`.
+#
+# Idea del vigilante, y es mejor que otra lista: cierra también lo que ninguno de
+# los dos ha imaginado. El precio es que una forma legítima nueva —otro corredor,
+# un flag razonable— tendrá que pasar por aquí y explicarse. Es el precio
+# correcto: quien lo cambie tendrá que mirar qué está cambiando.
+#
 # ── Tragarse el veredicto: un patrón, DOS sitios ─────────────────────────────
 #
 # `npm test || true` en el paso, y `vitest run || echo ok` en el guion del
@@ -82,16 +101,16 @@ PKG="$DIR_CLIENTE/package.json"
 [ -f "$PKG" ] || roto "no existe «$PKG»."
 guion_test="$(node -p "JSON.parse(require('fs').readFileSync('$PKG','utf8')).scripts?.test ?? ''" 2>/dev/null)" \
   || roto "no pude leer los guiones de «$PKG»."
-case "$guion_test" in
-  *vitest*)
-    if printf '%s' "$guion_test" | grep -qE "$SE_TRAGA_EL_VEREDICTO"; then
-      fallo=1
-      echo "::error file=$PKG::el guion «test» del cliente («$guion_test») se traga el veredicto de vitest: las pruebas corren, salen rojas, y el guion sale con 0. Llamar a vitest no basta; hay que respetar lo que conteste."
-    fi
-    ;;
-  '')  fallo=1; echo "::error file=$PKG::el cliente no tiene guion «test». Sin él, el paso de CI no tiene qué invocar." ;;
-  *)   fallo=1; echo "::error file=$PKG::el guion «test» del cliente («$guion_test») no llama a vitest. Un guion que sale con 0 sin correr nada es un verde que no mide." ;;
-esac
+if [ -z "$guion_test" ]; then
+  fallo=1
+  echo "::error file=$PKG::el cliente no tiene guion «test». Sin él, el paso de CI no tiene qué invocar."
+elif ! printf '%s' "$guion_test" | grep -qE '^vitest run( |$)'; then
+  fallo=1
+  echo "::error file=$PKG::el guion «test» del cliente («$guion_test») no EMPIEZA por «vitest run». Nombrar a vitest en medio de otra cosa no basta: «vitest run … || echo ok» lo nombraba y salía con 0 con las pruebas en rojo."
+elif printf '%s' "$guion_test" | grep -qE '[|&;>]|--passWithNoTests'; then
+  fallo=1
+  echo "::error file=$PKG::el guion «test» del cliente («$guion_test») encadena algo más (una tubería, un «&», un «;» o una redirección) o acepta no encontrar pruebas. En una tubería el código de salida es el del ÚLTIMO mandato, así que «vitest run | tee salida.log» sale 0 con las pruebas en rojo: el corredor corre y no gobierna."
+fi
 
 # ── 3 · que CI lo invoque ────────────────────────────────────────────────────
 # Se busca la invocación, no el nombre del paso: renombrar un paso es cosmético,
@@ -114,14 +133,10 @@ invoca="$(awk '
   }
   /^[[:space:]]*-[[:space:]]*name:/ { cerrar(); if (salir) exit }
   /^[[:space:]]*working-directory:[[:space:]]*\.\/client[[:space:]]*$/ { enCliente=1 }
-  /^[[:space:]]*run:[[:space:]]*npm( run)? test/ { corre=1 }
-  # `--passWithNoTests` convierte «no encontré pruebas» en verde: el corredor se
-  # ejecuta, no mide nada, y el paso sale bien. Lo probó el vigilante (A5) y no
-  # lo puso como condición porque hay que escribirlo a mano; se cierra igual,
-  # porque aquí nada lo necesita.
-  /passWithNoTests/ { neutralizado=1 }
-  # `npm test || true` deja el paso en verde pase lo que pase.
-  /^[[:space:]]*run:.*(\|\||;|&&)[[:space:]]*(true|:|exit[[:space:]]+0|echo)/ { neutralizado=1 }
+  # EXACTAMENTE `npm test` o `npm run test`, sin nada detrás. Cualquier cosa
+  # encadenada —`|| true`, `| tee`, `&`, `--passWithNoTests`— deja de casar y el
+  # paso no cuenta como invocación que gobierne.
+  /^[[:space:]]*run:[[:space:]]*npm( run)? test[[:space:]]*$/ { corre=1 }
   /^[[:space:]]*(if|continue-on-error):/ { neutralizado=1 }
   END { cerrar() }
 ' "$CI")"

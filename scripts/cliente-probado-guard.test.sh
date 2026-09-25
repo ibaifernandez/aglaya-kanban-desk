@@ -76,6 +76,28 @@ ci_de_mentira() {
     fi
     # E1 del vigilante: el paso intacto, y el veredicto tragado en el propio
     # `run:`. No depende del ruleset: está escrito en el workflow.
+    # Formas LEGÍTIMAS que tienen que seguir pasando. Sin ellas, la regla
+    # invertida se podría «cumplir» prohibiéndolo todo, y un guardián que no deja
+    # trabajar se desactiva a la primera. Lo pidió el vigilante.
+    if [ "$1" = legitimo-npm-run ]; then
+      echo "      - name: Client tests"
+      echo "        working-directory: ./client"
+      echo "        run: npm run test"
+    fi
+    # Las tuberías y el segundo plano: el vigilante los midió con la pantalla
+    # rota a propósito. `| tee` sale 0 porque en una tubería manda el último
+    # mandato —y se escribe sin mala intención, para guardar el registro—; `&`
+    # sale 0 en el acto, antes de que las pruebas terminen.
+    if [ "$1" = tuberia ]; then
+      echo "      - name: Client tests"
+      echo "        working-directory: ./client"
+      echo "        run: npm test | tee salida.log"
+    fi
+    if [ "$1" = segundo-plano ]; then
+      echo "      - name: Client tests"
+      echo "        working-directory: ./client"
+      echo "        run: npm test &"
+    fi
     if [ "$1" = traga-veredicto ]; then
       echo "      - name: Client tests"
       echo "        working-directory: ./client"
@@ -125,7 +147,7 @@ echo
 echo "Tiene que MORDER:"
 corre "no queda ninguna prueba de cliente" 1 "no queda ni una prueba de cliente" \
   "$(cliente_de_mentira vacio 'vitest run' no)" "$(ci_de_mentira completo)"
-corre "el guion «test» no llama a vitest" 1 "no llama a vitest" \
+corre "el guion «test» no llama a vitest" 1 "no EMPIEZA por" \
   "$(cliente_de_mentira falso 'echo ok' si)" "$(ci_de_mentira completo)"
 corre "el guion «test» no existe" 1 "no tiene guion «test»" \
   "$(cliente_de_mentira singuion '' si)" "$(ci_de_mentira completo)"
@@ -151,10 +173,23 @@ echo "Tiene que MORDER que alguien se trague el veredicto — en los DOS sitios:
 # abierto, que es la lección de esta tarjeta en pequeño.
 corre "E1 · el paso hace «npm test || true»"      1 "no invoca las pruebas del cliente" \
   "$(cliente_de_mentira e1 'vitest run' si)" "$(ci_de_mentira traga-veredicto)"
-corre "E2 · el guion hace «vitest run || echo ok»" 1 "se traga el veredicto" \
+corre "E2 · el guion hace «vitest run || echo ok»" 1 "encadena algo más" \
   "$(cliente_de_mentira e2 'vitest run || echo ok' si)" "$(ci_de_mentira completo)"
-corre "E2 bis · «vitest run; true»"                1 "se traga el veredicto" \
+corre "E2 bis · «vitest run; true»"                1 "no EMPIEZA por" \
   "$(cliente_de_mentira e3 'vitest run; true' si)" "$(ci_de_mentira completo)"
+
+echo
+echo "Y como la regla está INVERTIDA, caen también las que nadie enumeró:"
+corre "F1 · el paso entuba la salida («| tee»)"    1 "no invoca las pruebas del cliente" \
+  "$(cliente_de_mentira f1 'vitest run' si)" "$(ci_de_mentira tuberia)"
+corre "F2 · el paso lanza en segundo plano («&»)"  1 "no invoca las pruebas del cliente" \
+  "$(cliente_de_mentira f2 'vitest run' si)" "$(ci_de_mentira segundo-plano)"
+corre "F3 · el guion entuba la salida"             1 "encadena algo más" \
+  "$(cliente_de_mentira f3 'vitest run | tee salida.log' si)" "$(ci_de_mentira completo)"
+corre "F4 · el guion acepta no encontrar pruebas"  1 "encadena algo más" \
+  "$(cliente_de_mentira f4 'vitest run --passWithNoTests src/no' si)" "$(ci_de_mentira completo)"
+corre "F5 · el guion nombra vitest EN MEDIO"       1 "no EMPIEZA por" \
+  "$(cliente_de_mentira f5 'echo hola && vitest run' si)" "$(ci_de_mentira completo)"
 
 echo
 echo "Tiene que ROMPERSE, no saltar en verde:"
@@ -164,9 +199,13 @@ corre "no existe el workflow" 2 "no existe" \
   "$(cliente_de_mentira ok3 'vitest run' si)" "$TMP/no-existe.yml"
 
 echo
-echo "Tiene que CALLAR:"
+echo "Tiene que CALLAR — y con formas LEGÍTIMAS, no solo con la exacta de hoy:"
 corre "pruebas, guion con vitest, y CI que las corre" 0 "OK" \
   "$(cliente_de_mentira ok4 'vitest run' si)" "$(ci_de_mentira completo)"
+corre "el paso usa «npm run test»"                   0 "OK" \
+  "$(cliente_de_mentira ok5 'vitest run' si)" "$(ci_de_mentira legitimo-npm-run)"
+corre "el guion pasa flags a vitest"                 0 "OK" \
+  "$(cliente_de_mentira ok6 'vitest run --config vitest.config.js --reporter dot' si)" "$(ci_de_mentira completo)"
 
 echo
 echo "Y sobre el cliente y el workflow de VERDAD:"
