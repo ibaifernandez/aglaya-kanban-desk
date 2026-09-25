@@ -145,14 +145,14 @@ jobs:
         run: |
           set -euo pipefail
           ENDPOINT="https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com"
-          KEY="prueba-de-borrado-${GITHUB_RUN_ID}.txt"
+          KEY="prueba-de-borrado-MUTANTE.txt"
 
           echo "sonda de la corrida ${GITHUB_RUN_ID}" > /tmp/sonda.txt
           aws s3 cp /tmp/sonda.txt "s3://${R2_BUCKET}/${KEY}" \
             --endpoint-url "$ENDPOINT" --region auto --content-type text/plain
 
           aws s3api delete-object \
-            --bucket "${R2_BUCKET}" --key "$KEY" \
+            --bucket "${R2_BUCKET}" --key "${KEY}.QUE-NO-EXISTE" \
             --endpoint-url "$ENDPOINT" --region auto
 
           # Y que de verdad NO está: un `delete-object` que sale con 0 sobre un
