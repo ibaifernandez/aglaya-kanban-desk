@@ -145,7 +145,7 @@ jobs:
         run: |
           set -euo pipefail
           ENDPOINT="https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com"
-          KEY="prueba-de-borrado-MUTANTE.txt"
+          KEY="prueba-de-borrado-${GITHUB_RUN_ID}.txt"
 
           echo "sonda de la corrida ${GITHUB_RUN_ID}" > /tmp/sonda.txt
           aws s3 cp /tmp/sonda.txt "s3://${R2_BUCKET}/${KEY}" \
