@@ -313,11 +313,25 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
   // portabilidad y la supresión, y esa interfaz no existía: quien viniera a
   // ejercer un derecho se iba a buscar un botón inexistente.
   //
+  // DOS COSAS QUE ESTE CASO HACE MAL SI SE ESCRIBEN A LA LIGERA, y las dos las
+  // cometí en la primera versión; las encontró el vigilante:
+  //
+  //   1 · MIRAR SOLO EL MARKDOWN. Es el defecto de `16b8063a`, explicado dos
+  //       pantallas más arriba en este mismo fichero: **lo que la gente lee es
+  //       el HTML**, se versiona aparte, y la promesa falsa puesta solo ahí
+  //       pasaba con la batería entera en verde. Versión y fecha no lo tapan,
+  //       porque lo que cambia es el texto de una celda.
+  //
+  //   2 · CONTAR COMENTARIOS COMO LLAMADAS. Un `// pendiente: llamar a
+  //       me/export` en el cliente hacía creer al caso que el botón existe — y
+  //       es exactamente lo que escribiría quien empieza el botón y lo deja a
+  //       medias. Se quitan los comentarios antes de buscar, igual que
+  //       `base-consultable-guard` ignora lo retractado.
+  //
   // El caso NO es una lista de frases prohibidas: **deriva de las dos fuentes**.
   // Si mañana alguien construye los botones, el cliente llamará a esas rutas y
-  // la política podrá prometerlas otra vez sin tocar esto. Lo que no puede pasar
-  // es prometerlas sin que existan.
-  it('no promete una interfaz que el cliente no tiene', () => {
+  // la política podrá prometerlas otra vez sin tocar esto.
+  it('no promete —ni en el markdown ni en la página servida— una interfaz que el cliente no tiene', () => {
     const fs = require('fs');
     const path = require('path');
 
@@ -330,25 +344,63 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
         else if (/\.(js|jsx)$/.test(e.name)) ficheros.push(p);
       }
     })(dirCliente);
-    const codigoCliente = ficheros.map((f) => fs.readFileSync(f, 'utf8')).join('\n');
+
+    const sinComentarios = (t) => t
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n');
+    const codigoCliente = sinComentarios(ficheros.map((f) => fs.readFileSync(f, 'utf8')).join('\n'));
 
     const clienteExporta = /me\/export/.test(codigoCliente);
     const clienteBorraCuenta = /delete\(\s*['"`]\/auth\/me|auth\/me['"`]\s*,\s*\{\s*method:\s*['"`]DELETE/.test(codigoCliente);
 
-    const seccionDerechos = md.slice(md.indexOf('## 7. Tus Derechos'), md.indexOf('## 8.'));
-    const filaPortabilidad = seccionDerechos.split('\n').find((l) => /Portabilidad/.test(l)) || '';
-    const filaSupresion   = seccionDerechos.split('\n').find((l) => /Supresión/.test(l)) || '';
+    // Las dos filas, en los DOS ficheros: el fuente y el que se sirve.
+    //
+    // Se trocea por FILAS, no por líneas: en el markdown una fila es una línea,
+    // pero en el HTML son varias —una por celda—, y buscar «la línea que dice
+    // Portabilidad» devolvía solo el encabezado de la fila, sin el texto que hay
+    // que comprobar. Con eso, el caso se ponía rojo por el motivo equivocado.
+    const filas = (texto, corte1, corte2, esHtml) => {
+      const seccion = texto.slice(texto.indexOf(corte1), texto.indexOf(corte2));
+      const trozos = esHtml
+        ? seccion.split(/<tr[^>]*>/i).map((t) => t.replace(/\s+/g, ' '))
+        : seccion.split('\n');
+      return {
+        portabilidad: trozos.find((t) => /Portabilidad/.test(t)) || '',
+        supresion: trozos.find((t) => /Supresi[óo]n/.test(t)) || '',
+      };
+    };
 
-    if (!clienteExporta) {
-      expect(filaPortabilidad).not.toMatch(/UI disponible/i);
+    const fuentes = {
+      'el markdown': filas(md, '## 7. Tus Derechos', '## 8.', false),
+      'la página servida': filas(leer(HTML), '<h2>7. Tus Derechos', '<h2>8.', true),
+    };
+
+    for (const [donde, fila] of Object.entries(fuentes)) {
+      // El nombre de la fuente va DENTRO del valor comprobado, no como mensaje:
+      // `expect` de jest no acepta mensaje —eso es vitest—, y sin él un rojo no
+      // diría en cuál de los dos ficheros está la promesa falsa, que es justo lo
+      // que costó la devolución.
+      const conFuente = (texto) => `${donde} → ${texto}`;
+
+      expect(conFuente(fila.portabilidad)).not.toBe(conFuente(''));
+      expect(conFuente(fila.supresion)).not.toBe(conFuente(''));
+
+      if (!clienteExporta) {
+        expect(conFuente(fila.portabilidad)).not.toMatch(/UI disponible/i);
+      }
+      if (!clienteBorraCuenta) {
+        expect(conFuente(fila.supresion)).not.toMatch(/UI disponible/i);
+      }
+
+      // Y que siga diciendo CÓMO se ejerce, con el asunto exacto que la propia
+      // política le pide escribir al titular: quitar la promesa falsa sin dejar
+      // la vía real —o dejándola a medias— sería peor.
+      expect(conFuente(fila.portabilidad)).toMatch(/info@aglaya\.biz/);
+      expect(conFuente(fila.supresion)).toMatch(/info@aglaya\.biz/);
+      expect(conFuente(fila.portabilidad)).toMatch(/\[RGPD\]\s*Portabilidad/);
+      expect(conFuente(fila.supresion)).toMatch(/\[RGPD\]\s*Supresi[óo]n/);
     }
-    if (!clienteBorraCuenta) {
-      expect(filaSupresion).not.toMatch(/UI disponible/i);
-    }
-    // Y que siga diciendo CÓMO se ejerce: quitar la promesa falsa sin poner la
-    // vía real dejaría a un titular sin saber qué hacer, que es peor.
-    expect(filaPortabilidad).toMatch(/info@aglaya\.biz/);
-    expect(filaSupresion).toMatch(/info@aglaya\.biz/);
+
     expect(md).toMatch(/1\.6 — 2026-09-25/);
   });
 
