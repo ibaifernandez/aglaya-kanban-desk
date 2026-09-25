@@ -389,8 +389,11 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
       'la página servida': leer(HTML).slice(leer(HTML).indexOf('<h2>7. Tus Derechos'), leer(HTML).indexOf('<h2>8.')),
     };
 
+    // Y POR DERECHO, no por los dos a la vez. Con `&&`, en cuanto existiera UNO
+    // de los dos botones la sección entera dejaba de vigilarse —incluido el
+    // derecho que sigue sin botón—. Lo vio el vigilante.
     for (const [donde, seccion] of Object.entries(secciones)) {
-      if (!clienteExporta && !clienteBorraCuenta) {
+      if (!clienteExporta || !clienteBorraCuenta) {
         expect(`${donde} → ${seccion}`).not.toMatch(/UI disponible/i);
       }
     }
@@ -424,6 +427,44 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
       expect(conFuente(fila.supresion)).toMatch(/info@aglaya\.biz/);
       expect(conFuente(fila.portabilidad)).toMatch(/\[RGPD\]\s*Portabilidad/);
       expect(conFuente(fila.supresion)).toMatch(/\[RGPD\]\s*Supresi[óo]n/);
+
+      // ── AFIRMAR, no prohibir. Ésta es la pieza que aguanta ───────────────
+      //
+      // Prohibir frases es una carrera que no se gana: el vigilante reescribió
+      // la fila real de supresión como «Puedes hacerlo también desde tu perfil»
+      // —sin usar «UI disponible»— y la batería seguía en verde. Quien lo
+      // reescriba mañana no usará nuestra jerga.
+      //
+      // Exigir la frase HONESTA le da la vuelta: si alguien reescribe la fila
+      // para prometer interfaz, «No hay botón» desaparece y el caso cae **escriba
+      // lo que escriba**. No se puede prometer un botón y decir a la vez que no
+      // lo hay.
+      //
+      // ⚠️ Y NO se prohíbe la palabra «botón»: la fila correcta la contiene.
+      if (!clienteExporta) {
+        expect(conFuente(fila.portabilidad)).toMatch(/(no|tampoco) hay bot[óo]n/i);
+      }
+      if (!clienteBorraCuenta) {
+        expect(conFuente(fila.supresion)).toMatch(/(no|tampoco) hay bot[óo]n/i);
+      }
+    }
+
+    // ── Y estructural: mientras no haya botones, esos dos derechos NO pueden
+    // estar en la tabla de «self-service» ────────────────────────────────────
+    //
+    // Es la vía que no depende de cómo se redacte: devolver la fila a 7.1 es
+    // prometer interfaz por colocación, sin escribir ninguna frase concreta.
+    const tabla71 = (texto, fin) => {
+      const i = texto.indexOf('7.1');
+      return texto.slice(i, texto.indexOf(fin, i));
+    };
+    if (!clienteExporta) {
+      expect(`markdown 7.1 → ${tabla71(md, '7.2')}`).not.toMatch(/Portabilidad/);
+      expect(`HTML 7.1 → ${tabla71(leer(HTML), '7.2')}`).not.toMatch(/Portabilidad/);
+    }
+    if (!clienteBorraCuenta) {
+      expect(`markdown 7.1 → ${tabla71(md, '7.2')}`).not.toMatch(/Supresi[óo]n/);
+      expect(`HTML 7.1 → ${tabla71(leer(HTML), '7.2')}`).not.toMatch(/Supresi[óo]n/);
     }
 
     expect(md).toMatch(/1\.6 — 2026-09-25/);
