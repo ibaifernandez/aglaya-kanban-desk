@@ -85,8 +85,12 @@ jobs:
         run: npx jest
 YML
 
-doc_con() {  # $1… = nombres de workflow que el documento nombrará
-  local f="$TMP/doc.md"
+# $1… = nombres de workflow. Variables de entorno del propio sello:
+#   SIN_CONECTOR=1  → el documento no lleva la marca de la vía del conector
+#   NIEGA=1         → el documento niega la vía, a pelo
+#   NIEGA_RETRACTADO=1 → la niega CITÁNDOLA para desmentirla, entre marcas
+doc_con() {
+  local f="$TMP/doc-$$-$RANDOM.md"
   {
     echo "# Documento de mentira"
     echo
@@ -99,6 +103,58 @@ doc_con() {  # $1… = nombres de workflow que el documento nombrará
     echo '<!-- base-consultable:fin -->'
     echo
     echo "Y texto de después, con \`ni-este.yml\` suelto."
+    if [ "${SIN_CONECTOR:-}" != 1 ]; then
+      echo
+      echo '<!-- base-consultable:conector -->'
+      echo "El conector de Supabase contesta consultas sueltas."
+      echo '<!-- base-consultable:conector-fin -->'
+    fi
+    if [ "${NIEGA:-}" = 1 ]; then
+      echo
+      echo "Y el MCP de Supabase de esta máquina apunta a otra organización."
+    fi
+    # Las CUATRO que se le escaparon al primer patrón, encontradas por el
+    # vigilante. Cada una en su caso: si se juntaran, arreglar una taparía a las
+    # otras tres en cuanto alguien toque la expresión.
+    #
+    # N2 es la peor, y no por el regex: **los propios documentos enseñan a
+    # llamarlo «conector»**, así que quien se equivoque mañana usará justo la
+    # palabra que el patrón viejo no miraba.
+    if [ "${NIEGA_CONECTOR:-}" = 1 ]; then
+      echo
+      echo "Y el conector de Supabase de esta máquina apunta a otra organización."
+    fi
+    if [ "${NIEGA_NO_LLEGA:-}" = 1 ]; then
+      echo
+      echo "El MCP de Supabase no llega a este proyecto."
+    fi
+    # N4: la creencia entera, sin mencionar la herramienta. Es la que costó las
+    # semanas; lo de la organización era el síntoma.
+    if [ "${NIEGA_CREENCIA:-}" = 1 ]; then
+      echo
+      echo "Desde esta máquina no se puede consultar la base de producción."
+    fi
+    # N5: la literal, pero con una subordinada que se pasaba de la ventana vieja.
+    if [ "${NIEGA_LARGA:-}" = 1 ]; then
+      echo
+      echo "El MCP de Supabase de esta máquina, que se registró para los proyectos"
+      echo "de otra casa y nunca se volvió a tocar desde entonces por falta de"
+      echo "tiempo, apunta a otra organización."
+    fi
+    # PARTIDA EN DOS RENGLONES, que es como estaba de verdad en ARCHITECTURE.md
+    # y como se le escapó al guardián: un grep por líneas no la ve.
+    if [ "${NIEGA_PARTIDA:-}" = 1 ]; then
+      echo
+      echo "Ningún papel automático puede abrirla: el MCP de Supabase de esta"
+      echo "máquina está autenticado **contra otra organización**, no contra este."
+    fi
+    if [ "${NIEGA_RETRACTADO:-}" = 1 ]; then
+      echo
+      echo '<!-- base-consultable:retractado -->'
+      echo "Aquí decía que el MCP de Supabase de esta máquina apunta a otra"
+      echo "organización. Era falso, y se midió que no el 24-sep-2026."
+      echo '<!-- base-consultable:retractado-fin -->'
+    fi
   } > "$f"
   printf '%s' "$f"
 }
@@ -107,7 +163,7 @@ doc_con() {  # $1… = nombres de workflow que el documento nombrará
 corre() {
   local que="$1" esperado="$2" espera_msg="$3" doc="$4"
   local salida code
-  salida="$(BASE_CONSULTABLE_WORKFLOWS="$WF" BASE_CONSULTABLE_DOC="$doc" bash "$GUARD" 2>&1)"
+  salida="$(BASE_CONSULTABLE_WORKFLOWS="$WF" BASE_CONSULTABLE_DOC="$doc" BASE_CONSULTABLE_DOCS_NIEGAN="$doc" bash "$GUARD" 2>&1)"
   code=$?
   if [ -n "$espera_msg" ] && ! grep -qF "$espera_msg" <<< "$salida"; then
     FAIL=$((FAIL + 1))
@@ -198,6 +254,33 @@ corre "y da igual el orden"                              0 "OK" \
   "$(doc_con tambien-mide.yml mide.yml)"
 
 echo
+echo "Tiene que MORDER — dirección 3: la vía del conector, que no se deriva:"
+corre "el documento ya no nombra la vía del conector" 1 "ya no nombra la vía del conector" \
+  "$(SIN_CONECTOR=1 doc_con mide.yml tambien-mide.yml)"
+corre "el documento vuelve a negar que se pueda preguntar" 1 "vuelve a decir que no se puede" \
+  "$(NIEGA=1 doc_con mide.yml tambien-mide.yml)"
+
+corre "la niega en una frase PARTIDA en dos líneas" 1 "vuelve a decir que no se puede" \
+  "$(NIEGA_PARTIDA=1 doc_con mide.yml tambien-mide.yml)"
+# Las cuatro del vigilante. Cada una sola: así, tocar el patrón no puede taparlas.
+corre "N2 · dice «conector» en vez de «MCP»"            1 "vuelve a decir que no se puede" \
+  "$(NIEGA_CONECTOR=1 doc_con mide.yml tambien-mide.yml)"
+corre "N3 · «no llega a este proyecto»"                 1 "vuelve a decir que no se puede" \
+  "$(NIEGA_NO_LLEGA=1 doc_con mide.yml tambien-mide.yml)"
+corre "N4 · la creencia entera, sin nombrar la herramienta" 1 "vuelve a decir que no se puede" \
+  "$(NIEGA_CREENCIA=1 doc_con mide.yml tambien-mide.yml)"
+corre "N5 · la literal con una subordinada larga de por medio" 1 "vuelve a decir que no se puede" \
+  "$(NIEGA_LARGA=1 doc_con mide.yml tambien-mide.yml)"
+
+echo
+echo "Y tiene que CALLAR cuando la frase falsa se CITA para desmentirla:"
+# Sin esto, un documento no podría conservar la lección: citar la frase vieja
+# sería indistinguible de reponerla. Es el caso que puso roja a la primera
+# versión de este control, contra su propio texto.
+corre "la niega entre marcas de retractado → verde" 0 "OK" \
+  "$(NIEGA_RETRACTADO=1 doc_con mide.yml tambien-mide.yml)"
+
+echo
 echo "Y sobre el árbol y el documento de VERDAD:"
 salida="$(bash "$GUARD" 2>&1)"; code=$?
 if [ "$code" -eq 0 ]; then
@@ -210,4 +293,4 @@ fi
 echo
 echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
-echo "El guardián muerde en las dos direcciones y calla donde debe."
+echo "El guardián muerde en las tres direcciones y calla donde debe."

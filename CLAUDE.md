@@ -185,10 +185,28 @@ Reglas:
 
 ## Sí se le puede preguntar a la base, y no hace falta que Ibai esté delante
 
-`psql` en local topa con el enganche de secretos, y el MCP de Supabase de esta
-máquina apunta a **otra organización**. Las dos cosas están bien y no se tocan.
+`psql` en local topa con el enganche de secretos, y eso está bien y no se toca.
 
-**Pero eso no significa que la base sea inconsultable.** Varios workflows ya
+<!-- base-consultable:retractado -->
+**Aquí decía además que «el MCP de Supabase de esta máquina apunta a otra
+organización». Era falso**, y esa frase mandó a la cuadrilla por caminos caros
+durante semanas: despachos de workflows para preguntas simples, lecturas pedidas
+al capataz, y un cierre entero bloqueado por «nadie puede leer la base».
+<!-- base-consultable:retractado-fin -->
+
+**El conector de Supabase de esta máquina alcanza el proyecto de producción.**
+`list_projects` devuelve «AGLAYA Kanban Desk» (`jowtasxhnluqqcgkeoll`), y
+`execute_sql` contesta consultas sobre esa base — también las que ningún workflow
+sabe hacer: políticas RLS, recuentos de filas, el contenido de una fila.
+
+⚠️ **`execute_sql` ejecuta cualquier SQL, también escrituras y DDL. No es una
+herramienta de lectura.** Para mirar, `SELECT` y nada más. **Para cambiar algo,
+sigue mandando el camino de siempre**: migración en `docs/schema/`, aplicada por
+el Operador y declarada después. Un `UPDATE` o un `DROP` por aquí deja la base
+sin migración que lo explique, que es exactamente el estado que esta casa
+persigue.
+
+**Y la base tampoco es inconsultable sin el conector.** Varios workflows ya
 llevan la credencial en los secretos del repo y **se disparan a mano**: el agente
 dispara, el workflow pregunta con la llave que ya vive allí, y la respuesta queda
 en el registro de la corrida. La credencial nunca entra en el contexto de nadie.

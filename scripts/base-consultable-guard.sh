@@ -36,6 +36,18 @@
 # valores falsos de Supabase para las pruebas y el secreto real; por eso se
 # busca `secrets.DATABASE_URL` y no la palabra suelta.
 #
+# Y UNA TERCERA COSA, QUE NO SE DERIVA Y SE DICE: el conector MCP de Supabase de
+# esta máquina alcanza el proyecto de producción y contesta consultas sueltas
+# —políticas RLS, recuentos, el contenido de una fila—, cosa que ningún workflow
+# hace. Eso NO está en ningún fichero de este repositorio: vive en la
+# configuración de MCP de la máquina, así que este guardián **no puede
+# comprobar que siga funcionando**. Lo que sí fija es que el documento no vuelva
+# a decir lo contrario: hasta el 24-sep-2026, `CLAUDE.md` afirmaba que ese MCP
+# «apunta a otra organización», y esa frase costó semanas de lecturas pedidas a
+# mano y un cierre bloqueado. Si alguien repone esa frase —o una de las cinco
+# redacciones que enumera el sello—, esto se pone rojo. No promete cazar
+# cualquier forma de negarlo: el patrón lleva escrito su propio límite.
+#
 # LO QUE ESTE GUARDIÁN NO PUEDE HACER, dicho para que su verde no se lea de más:
 # comprueba que el documento nombra los workflows que hay, **no que explique
 # bien qué contesta cada uno**. Que el texto describa la medición sigue siendo
@@ -44,6 +56,7 @@
 # Uso:
 #   bash scripts/base-consultable-guard.sh
 #   BASE_CONSULTABLE_WORKFLOWS=<dir> BASE_CONSULTABLE_DOC=<fichero> bash …
+#   BASE_CONSULTABLE_DOCS_NIEGAN=<fichero[:fichero…]> bash …   (los que no pueden negar)
 #
 # Exit 0 = coinciden. 1 = divergen. 2 = no se pudo medir.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -122,5 +135,84 @@ if [ "$fallo" -ne 0 ]; then
   exit 1
 fi
 
+# ── Tercera dirección: que no se vuelva a negar la vía del conector ──────────
+#
+# Esto NO se deriva del árbol, y por eso se dice aquí: la existencia del conector
+# no está en ningún fichero. Lo que se fija es lo que sí es texto — que el
+# documento lo nombre, y que ningún documento vigente afirme lo contrario.
+MARCA_CONECTOR='<!-- base-consultable:conector -->'
+
+# ── El patrón, y por qué tiene esta forma ────────────────────────────────────
+#
+# Dos familias, porque la creencia falsa se escribe de dos maneras:
+#
+#   1 · LA HERRAMIENTA NO SIRVE — «el MCP / el CONECTOR de Supabase de esta
+#       máquina apunta a otra organización / no llega / no alcanza / no está
+#       autenticado contra este proyecto». **«conector» va aquí porque es como
+#       estos documentos enseñan a llamarlo**: quien se equivoque mañana usará
+#       esa palabra, no «MCP». La primera versión solo miraba «MCP», así que le
+#       habría dado verde justo a la redacción más probable.
+#
+#   2 · LA CREENCIA ENTERA — «desde esta máquina no se puede consultar la base».
+#       Ésta es la que costó las semanas; el detalle de la organización era el
+#       síntoma. Un patrón que solo cazara el síntoma dejaría pasar la causa.
+#
+# La ventana entre sujeto y negación es ancha (200) porque la frase real iba
+# partida en dos renglones y con una subordinada de por medio.
+#
+# ⚠️ LO QUE ESTE PATRÓN NO ES: la prueba de que ningún documento pueda volver a
+# negar la vía. Ninguna expresión regular cubre todas las formas de decirlo en
+# castellano, y prometerlo sería peor que no tenerlo. Cubre las CINCO redacciones
+# que enumera el sello —las cuatro que se le escaparon al primer patrón, que
+# encontró el vigilante, más la partida en dos líneas—. Si mañana alguien lo
+# escribe de una sexta forma, esto da verde: la última defensa sigue siendo quien
+# revisa, y este guardián cierra el caso en que nadie miró.
+PATRON_NIEGA='(MCP|conector) de Supabase[^.]{0,200}(otra organizaci|no (llega|alcanza|apunta|funciona|responde|contesta|est[áa] autenticad))|apunta a \*\*otra organizaci|(base|producci[óo]n) es inconsultable|no se (puede|pueden) (consultar|preguntar|abrir|leer)[^.]{0,80}(base|producci[óo]n|Supabase)|(base|producci[óo]n)[^.]{0,80}no se (puede|pueden) (consultar|preguntar|abrir|leer)'
+NIEGAN="${BASE_CONSULTABLE_DOCS_NIEGAN:-$DOC:$RAIZ/CLAUDE.md}"
+
+if ! grep -qF "$MARCA_CONECTOR" "$DOC"; then
+  fallo=1
+  echo "::error::el documento ya no nombra la vía del conector de Supabase (marca «$MARCA_CONECTOR»). Sin ella, quien lo lea concluirá que una consulta suelta no se puede hacer — que es la creencia falsa que costó semanas."
+fi
+
+# Las frases que costaron la jornada, y sus parientes: negar la vía o atribuir
+# el conector a otra organización.
+#
+# ⚠️ SIN MIRAR LO RETRACTADO. Un documento que corrige una frase falsa tiene que
+# poder CITARLA para desmentirla —así se escribe aquí, y es lo que conserva la
+# lección—, y el párrafo que prohíbe negar la vía contiene, por fuerza, la
+# negación. La primera versión de este control se puso roja contra su propio
+# texto y contra la retractación de `CLAUDE.md`. Así que lo que va entre
+# `<!-- base-consultable:retractado -->` y su cierre NO se mira. La marca es
+# explícita a propósito: envolver una afirmación viva en ella para escapar del
+# guardián es un acto deliberado que se ve en la revisión.
+# Y en UNA SOLA LÍNEA. La frase que se colaba en `ARCHITECTURE.md` iba partida en
+# dos renglones («…está autenticado\n**contra otra organización**»), así que un
+# grep por líneas la dejaba pasar: el guardián daba verde con la negación puesta,
+# en la sección escrita para agentes. Lo encontró el vigilante, no yo.
+sin_retractado() {
+  awk '
+    index($0,"<!-- base-consultable:retractado -->"){dentro=1; next}
+    index($0,"<!-- base-consultable:retractado-fin -->"){dentro=0; next}
+    !dentro{print}
+  ' "$1" | tr '\n' ' '
+}
+
+while IFS= read -r doc; do
+  [ -z "$doc" ] && continue
+  [ -f "$doc" ] || roto "no existe «$doc», que es uno de los documentos que no pueden negar la vía."
+  if sin_retractado "$doc" | grep -nEi "$PATRON_NIEGA"; then
+    fallo=1
+    echo "::error file=$doc::este documento vuelve a decir que no se puede preguntarle a la base desde aquí. Se midió que sí el 24-sep-2026 (tarjeta \`0c318033\`): si de verdad ha dejado de contestar, lo que se cambia es la sección del conector, con su medición y su fecha — no se repone la frase."
+  fi
+done <<< "$(printf '%s\n' "$NIEGAN" | tr ':' '\n')"
+
+if [ "$fallo" -ne 0 ]; then
+  echo
+  echo "base-consultable-guard: el documento que enseña a preguntarle a la base"
+  echo "ya no describe lo que la base puede contestar."
+  exit 1
+fi
+
 n=$(printf '%s\n' "$en_arbol" | grep -c .)
-echo "base-consultable-guard: $n vía(s) de preguntar a la base, y el documento nombra exactamente esas — OK."
+echo "base-consultable-guard: $n vía(s) de preguntar a la base, el documento nombra exactamente esas, y sigue diciendo que el conector contesta consultas sueltas — OK."

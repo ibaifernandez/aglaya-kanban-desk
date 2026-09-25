@@ -92,13 +92,26 @@ ALTER TABLE public.boards ADD COLUMN workspace_id uuid REFERENCES public.workspa
 
 ## 🔎 5 bis. Cómo se le pregunta a la base sin que nadie ejecute nada
 
-**Para quien lee esto y no es una persona.** Ningún papel automático puede
-abrir la base del Kanban desde su máquina, y está bien que no pueda: `psql` en
-local topa con el enganche de permisos (`bloqueado por el enganche: leer o
-escribir un fichero de secretos`) y el MCP de Supabase de esta máquina está
-autenticado **contra otra organización**, no contra este proyecto.
+**Para quien lee esto y no es una persona.** `psql` en local topa con el enganche
+de permisos (`bloqueado por el enganche: leer o escribir un fichero de
+secretos`), y está bien que tope.
 
-**La vía existe y no relaja nada: se le pregunta desde dentro de GitHub.** Varios
+<!-- base-consultable:retractado -->
+**Aquí decía además que «el MCP de Supabase de esta máquina está autenticado
+contra otra organización, no contra este proyecto», y que por eso ningún papel
+automático podía abrir la base. Era falso**, y esta era la frase que más daño
+hacía de las dos que lo decían: está escrita **para agentes**, en la apertura de
+la sección que se lee cuando hace falta una lectura. Costó semanas de despachos
+de workflows para preguntas simples y lecturas pedidas a mano. Medido el
+24-sep-2026 (tarjeta `0c318033`) y repetido por el vigilante con otra sesión.
+<!-- base-consultable:retractado-fin -->
+
+**El conector de Supabase de esta máquina sí alcanza este proyecto**, y contesta
+consultas sueltas: está más abajo, en «Y una consulta suelta: el conector de
+Supabase», con la advertencia de que ejecuta también escrituras y DDL.
+
+**Y hay otra vía que no relaja nada, para lo que no quieras consultar a mano: se
+le pregunta desde dentro de GitHub.** Varios
 workflows ya llevan la credencial de la base en sus secretos y se pueden
 **disparar a mano**. El agente dispara, el workflow pregunta con la llave que ya
 vive allí, y la respuesta queda en el registro de la corrida. La credencial nunca
@@ -159,9 +172,10 @@ identificador de la corrida** — «lo comprobé» sin eso no dice cuándo.
 - **Sirve para MIRAR, no para cambiar.** Aplicar una migración sigue siendo
   **acción del Operador**, y ampliar esto a ejecutar SQL arbitrario desde un
   workflow es una decisión de seguridad distinta que **no está tomada**.
-- **No hay forma de lanzar una consulta suelta.** Solo se pueden hacer las
-  preguntas que algún workflow ya sabe hacer. Una pregunta nueva **no se
-  improvisa aquí**: necesita su guardián, con su sello, y eso es una tarjeta.
+- **Una consulta suelta no la contesta ningún workflow.** Solo saben las
+  preguntas que alguien les enseñó; una pregunta nueva por esta vía necesita su
+  guardián, con su sello, y eso es una tarjeta. **Para preguntas sueltas está el
+  conector, más abajo.**
 - **Preguntas frecuentes que hoy no contesta ninguno**, dichas para que su
   ausencia no se lea como que no hacen falta:
   - **¿Cuántas filas tiene una tabla, o qué hay dentro de una fila concreta?**
@@ -171,15 +185,48 @@ identificador de la corrida** — «lo comprobé» sin eso no dice cuándo.
     comprueba: miden forma, no datos. Hoy se contesta indirectamente o no se
     contesta.
   - **¿Qué políticas RLS hay puestas?** `ci.yml` mira privilegios de tabla, que
-    es otra capa.
+    es otra capa. **Esto sí lo contesta el conector** (ver más abajo).
 - **`gh workflow run` necesita permiso de escritura en Actions.** Quien no lo
   tenga recibirá un error de la propia herramienta; ése sí se lee claro.
 - **El guardián de esta tabla comprueba que los NOMBRES coincidan, no que lo
-  escrito al lado sea cierto.** Si alguien describe mal qué pregunta contesta un
+  escrito al lado sea cierto.** Ni comprueba que el conector siga alcanzando la
+  base: eso no está en ningún fichero de este repositorio. Lo único que fija de
+  él es que **este documento no vuelva a decir que no se puede**. Si alguien describe mal qué pregunta contesta un
   workflow, o le atribuye una que no hace, **el guardián sigue verde**: el
   significado no se deriva de un fichero YAML, y prometer que sí lo haría sería
   peor que no tenerlo. Cierra el caso en que **nadie miró**; que el texto
   describa la medición sigue siendo trabajo de quien revise.
+
+### Y una consulta suelta: el conector de Supabase
+
+<!-- base-consultable:conector -->
+
+**El conector MCP de Supabase de esta máquina alcanza el proyecto de producción**
+(`AGLAYA Kanban Desk`, `jowtasxhnluqqcgkeoll`). `list_projects` lo confirma y
+`execute_sql` contesta cualquier consulta sobre esa base, incluidas las que
+ningún workflow sabe hacer: **políticas RLS**, recuentos de filas, el contenido
+de una fila concreta. Medido así el 24-sep-2026 en las tarjetas `6df9d529`,
+`22ecfa81` y `4f4e6e2b`.
+
+⚠️ **`execute_sql` ejecuta cualquier SQL, también escrituras y DDL.** No es una
+herramienta de lectura con permisos recortados: es la puerta entera. Para mirar,
+`SELECT`. **Para cambiar, el camino de siempre**: migración en `docs/schema/`,
+aplicada por el Operador, declarada después. Un cambio por aquí deja la base sin
+migración que lo explique.
+
+**Cítalo como lo que es**: una respuesta con su fecha, no una propiedad del
+commit — igual que los workflows de arriba.
+
+<!-- base-consultable:retractado -->
+**Y lo que no arregla:** que el conector conteste **no** está declarado en ningún
+fichero de este repositorio; vive en la configuración de MCP de la máquina. Si
+mañana deja de alcanzar el proyecto, ningún guardián de aquí lo va a notar. Lo
+que sí está fijado es que este documento —y `CLAUDE.md`— no vuelvan a afirmar que
+la base es inconsultable desde aquí: eso lo mide
+[`scripts/base-consultable-guard.sh`](../scripts/base-consultable-guard.sh).
+<!-- base-consultable:retractado-fin -->
+
+<!-- base-consultable:conector-fin -->
 
 ---
 
