@@ -16,6 +16,7 @@
     "testTimeout": 15000
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1140.0",
     "@sentry/node": "^10.54.0",
     "@supabase/supabase-js": "^2.99.2",
     "cookie-parser": "^1.4.7",
