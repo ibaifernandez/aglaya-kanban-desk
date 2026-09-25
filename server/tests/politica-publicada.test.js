@@ -375,6 +375,34 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
       'la página servida': filas(leer(HTML), '<h2>7. Tus Derechos', '<h2>8.', true),
     };
 
+    // ── Lo NEGATIVO se comprueba sobre la SECCIÓN ENTERA, sin trocear ────────
+    //
+    // Tarjeta `19c44715`. Trocear servía para exigir que cada fila diga cómo se
+    // ejerce su derecho; **para prohibir una frase, trocear abre un agujero**:
+    // una fila-nota —«los dos derechos anteriores tienen UI disponible en tu
+    // perfil»— no nombra ninguno de los dos, así que ningún trozo la contenía y
+    // pasaba en verde. Lo encontró el vigilante después de fusionar `1f1eb472`.
+    //
+    // Regla que queda: **lo positivo, por fila; lo prohibido, por sección.**
+    const secciones = {
+      'el markdown': md.slice(md.indexOf('## 7. Tus Derechos'), md.indexOf('## 8.')),
+      'la página servida': leer(HTML).slice(leer(HTML).indexOf('<h2>7. Tus Derechos'), leer(HTML).indexOf('<h2>8.')),
+    };
+
+    // Y POR DERECHO, no por los dos a la vez. Con `&&`, en cuanto existiera UNO
+    // de los dos botones la sección entera dejaba de vigilarse —incluido el
+    // derecho que sigue sin botón—. Lo vio el vigilante.
+    for (const [donde, seccion] of Object.entries(secciones)) {
+      if (!clienteExporta || !clienteBorraCuenta) {
+        expect(`${donde} → ${seccion}`).not.toMatch(/UI disponible/i);
+      }
+    }
+
+    // ⚠️ Y el historial NO entra en esa prohibición, a propósito: la entrada 1.6
+    // CITA la frase para desmentirla, y esa cita es lo que conserva la lección.
+    // Por eso la prohibición se acota a la sección 7 y no al documento entero.
+    expect(md).toMatch(/Hasta la 1\.5, la sección 7\.1 decía/);
+
     for (const [donde, fila] of Object.entries(fuentes)) {
       // El nombre de la fuente va DENTRO del valor comprobado, no como mensaje:
       // `expect` de jest no acepta mensaje —eso es vitest—, y sin él un rojo no
@@ -399,6 +427,44 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
       expect(conFuente(fila.supresion)).toMatch(/info@aglaya\.biz/);
       expect(conFuente(fila.portabilidad)).toMatch(/\[RGPD\]\s*Portabilidad/);
       expect(conFuente(fila.supresion)).toMatch(/\[RGPD\]\s*Supresi[óo]n/);
+
+      // ── AFIRMAR, no prohibir. Ésta es la pieza que aguanta ───────────────
+      //
+      // Prohibir frases es una carrera que no se gana: el vigilante reescribió
+      // la fila real de supresión como «Puedes hacerlo también desde tu perfil»
+      // —sin usar «UI disponible»— y la batería seguía en verde. Quien lo
+      // reescriba mañana no usará nuestra jerga.
+      //
+      // Exigir la frase HONESTA le da la vuelta: si alguien reescribe la fila
+      // para prometer interfaz, «No hay botón» desaparece y el caso cae **escriba
+      // lo que escriba**. No se puede prometer un botón y decir a la vez que no
+      // lo hay.
+      //
+      // ⚠️ Y NO se prohíbe la palabra «botón»: la fila correcta la contiene.
+      if (!clienteExporta) {
+        expect(conFuente(fila.portabilidad)).toMatch(/(no|tampoco) hay bot[óo]n/i);
+      }
+      if (!clienteBorraCuenta) {
+        expect(conFuente(fila.supresion)).toMatch(/(no|tampoco) hay bot[óo]n/i);
+      }
+    }
+
+    // ── Y estructural: mientras no haya botones, esos dos derechos NO pueden
+    // estar en la tabla de «self-service» ────────────────────────────────────
+    //
+    // Es la vía que no depende de cómo se redacte: devolver la fila a 7.1 es
+    // prometer interfaz por colocación, sin escribir ninguna frase concreta.
+    const tabla71 = (texto, fin) => {
+      const i = texto.indexOf('7.1');
+      return texto.slice(i, texto.indexOf(fin, i));
+    };
+    if (!clienteExporta) {
+      expect(`markdown 7.1 → ${tabla71(md, '7.2')}`).not.toMatch(/Portabilidad/);
+      expect(`HTML 7.1 → ${tabla71(leer(HTML), '7.2')}`).not.toMatch(/Portabilidad/);
+    }
+    if (!clienteBorraCuenta) {
+      expect(`markdown 7.1 → ${tabla71(md, '7.2')}`).not.toMatch(/Supresi[óo]n/);
+      expect(`HTML 7.1 → ${tabla71(leer(HTML), '7.2')}`).not.toMatch(/Supresi[óo]n/);
     }
 
     expect(md).toMatch(/1\.6 — 2026-09-25/);
