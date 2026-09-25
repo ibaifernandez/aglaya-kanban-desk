@@ -123,6 +123,18 @@ describe('el aviso sale antes de morir', () => {
   // ⚠️ Mira el FUENTE de `index.js`, a propósito: importarlo levantaría el
   // servidor de verdad. Lo que se fija es el cableado, no el arranque — y ésa
   // es la frontera que pidió el delineante.
+  //
+  // ⚠️ Y leer el fuente tiene su precio, que va escrito para que quien lo pague
+  // sepa que DECIDE y no que arregla: hay dos reescrituras correctas que lo
+  // ponen ROJO a propósito —lo midió el vigilante y se ha vuelto a medir aquí—.
+  //
+  //   · alias en la llamada:   const { registrarSalidaLimpia: reg } = …; reg({…})
+  //   · sentry a una variable: const s = sentryEnabled ? Sentry : null; sentry: s
+  //
+  // El módulo en variable (`salida.registrarSalidaLimpia({…})`) sí pasa. Si
+  // reescribes así y esto se pone rojo, el cableado sigue bien: relaja la
+  // expresión de abajo, no la borres — sin ella el módulo se desenchufa sin que
+  // nada se entere, que es el defecto que este caso existe para ver.
   it('y el arranque lo registra, pasándole Sentry cuando está activo', () => {
     const fs = require('fs');
     const path = require('path');
