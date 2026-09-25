@@ -1,8 +1,26 @@
 -- Migration: retirar las dos políticas RLS que dicen sí a todo
 -- Tarjeta: «Dos políticas RLS `WITH CHECK (true)` anulan a las restrictivas» (22ecfa81)
 -- Created: 2026-09-24
--- ⏳ PENDIENTE DE APLICAR por el Operador. Hasta que se aplique, esta declaración NO
---    se mergea: el esquema documentado diría una cosa y la base otra.
+-- ✅ APLICADA el 2026-09-25 por Ibai desde el SQL Editor de Supabase, proyecto
+--    «AGLAYA Kanban Desk» (`main`, PRODUCTION). La transacción devolvió «Success.
+--    No rows returned», y las dos comprobaciones del final, transcritas de su
+--    pantalla:
+--
+--      1 · políticas con `with_check = true` en esas dos tablas → 0 filas
+--      2 · políticas de INSERT que quedan → 2 filas:
+--            workspace_members  «Insertar miembros si admin/owner»
+--              (get_workspace_role(workspace_id) = ANY (ARRAY['owner','admin']))
+--            workspaces         «Crear workspaces en mi org»
+--              (organization_id = get_my_org_id())
+--
+--    Repetido por mí con el conector, y ensanchando la pregunta a TODO `public`:
+--    **cero** políticas con `with_check = true` en el esquema entero, y el total
+--    baja de 32 a **30** — las dos que se retiraron, ni una más. Ese 32 lo había
+--    publicado `cifras-publicas` horas antes contra producción, así que dos
+--    instrumentos distintos cuadran.
+--
+--    El esquema documentado (`supabase-schema.sql`) lo declara desde el commit que
+--    trajo esta migración; se mergea ahora que la base coincide.
 --
 -- ─────────────────────────────────────────────────────────────────────────────
 -- QUÉ DEFECTO CIERRA
