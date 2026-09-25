@@ -471,13 +471,17 @@ CREATE POLICY "Los usuarios ven su propio perfil" ON public.users
 CREATE POLICY "Admins ven usuarios de su org" ON public.users
   FOR SELECT USING (get_my_role() = ANY (ARRAY['admin','superadmin']) OR id = auth.uid());
 
+-- RETIRADAS el 24-sep-2026 (tarjeta `22ecfa81`, `migration-rls-sin-permisivas.sql`):
+-- «Permitir crear workspaces a usuarios autenticados» en `workspaces` y «Permitir
+-- unirse a workspaces creados» en `workspace_members`, las dos `WITH CHECK (true)`.
+-- Las políticas permisivas se combinan con OR: cada una ANULABA a la restrictiva de
+-- al lado, y en `workspace_members` eso convertía a cualquier autenticado en miembro
+-- de cualquier espacio. Medido en Postgres real: `docs/schema/pruebas/rls-sin-permisivas.sh`.
 -- workspaces
 CREATE POLICY "Ver workspaces propios" ON public.workspaces
   FOR SELECT USING (is_workspace_member(id));
 CREATE POLICY "Crear workspaces en mi org" ON public.workspaces
   FOR INSERT WITH CHECK (organization_id = get_my_org_id());
-CREATE POLICY "Permitir crear workspaces a usuarios autenticados" ON public.workspaces
-  FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "Editar workspace si admin/owner" ON public.workspaces
   FOR UPDATE USING (get_workspace_role(id) = ANY (ARRAY['owner','admin']));
 CREATE POLICY "Eliminar workspace si owner" ON public.workspaces
@@ -488,8 +492,6 @@ CREATE POLICY "Ver miembros de mis workspaces" ON public.workspace_members
   FOR SELECT USING (is_workspace_member(workspace_id));
 CREATE POLICY "Insertar miembros si admin/owner" ON public.workspace_members
   FOR INSERT WITH CHECK (get_workspace_role(workspace_id) = ANY (ARRAY['owner','admin']));
-CREATE POLICY "Permitir unirse a workspaces creados" ON public.workspace_members
-  FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "Actualizar miembros si admin/owner" ON public.workspace_members
   FOR UPDATE USING (get_workspace_role(workspace_id) = ANY (ARRAY['owner','admin']));
 CREATE POLICY "Eliminar miembros si admin/owner" ON public.workspace_members
