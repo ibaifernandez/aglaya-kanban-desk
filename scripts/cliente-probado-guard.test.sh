@@ -74,6 +74,13 @@ ci_de_mentira() {
       echo "        if: github.event_name == 'schedule'"
       echo "        run: npm test"
     fi
+    # E1 del vigilante: el paso intacto, y el veredicto tragado en el propio
+    # `run:`. No depende del ruleset: está escrito en el workflow.
+    if [ "$1" = traga-veredicto ]; then
+      echo "      - name: Client tests"
+      echo "        working-directory: ./client"
+      echo "        run: npm test || true"
+    fi
     if [ "$1" = sin-pruebas-vale ]; then
       echo "      - name: Client tests"
       echo "        working-directory: ./client"
@@ -137,6 +144,17 @@ corre "el paso solo corre por reloj"              1 "no invoca las pruebas del c
   "$(cliente_de_mentira n3 'vitest run' si)" "$(ci_de_mentira solo-por-reloj)"
 corre "el paso acepta no encontrar pruebas"       1 "no invoca las pruebas del cliente" \
   "$(cliente_de_mentira n4 'vitest run' si)" "$(ci_de_mentira sin-pruebas-vale)"
+
+echo
+echo "Tiene que MORDER que alguien se trague el veredicto — en los DOS sitios:"
+# Uno en el workflow y otro en el guion del cliente. Fijar solo uno deja el otro
+# abierto, que es la lección de esta tarjeta en pequeño.
+corre "E1 · el paso hace «npm test || true»"      1 "no invoca las pruebas del cliente" \
+  "$(cliente_de_mentira e1 'vitest run' si)" "$(ci_de_mentira traga-veredicto)"
+corre "E2 · el guion hace «vitest run || echo ok»" 1 "se traga el veredicto" \
+  "$(cliente_de_mentira e2 'vitest run || echo ok' si)" "$(ci_de_mentira completo)"
+corre "E2 bis · «vitest run; true»"                1 "se traga el veredicto" \
+  "$(cliente_de_mentira e3 'vitest run; true' si)" "$(ci_de_mentira completo)"
 
 echo
 echo "Tiene que ROMPERSE, no saltar en verde:"

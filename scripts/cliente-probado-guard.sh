@@ -55,6 +55,19 @@ roto() { echo "::error::cliente-probado-guard: $1"; exit 2; }
 [ -d "$DIR_CLIENTE" ] || roto "no existe el directorio del cliente «$DIR_CLIENTE»."
 [ -f "$CI" ]          || roto "no existe «$CI». Si el workflow se movió, este guardián no puede saber a dónde: dilo aquí."
 
+# ── Tragarse el veredicto: un patrón, DOS sitios ─────────────────────────────
+#
+# `npm test || true` en el paso, y `vitest run || echo ok` en el guion del
+# cliente, hacen lo mismo: las pruebas corren, salen rojas, y el proceso sale
+# con 0. El control 2 existía exactamente para esto —su comentario decía que un
+# guion que imprime «ok» y sale con 0 es el falso verde perfecto— y aun así se le
+# escapaba, porque miraba que el guion NOMBRARA a vitest, no que respetara su
+# veredicto. Lo encontró el vigilante (E1 y E2).
+#
+# Se mira en los dos sitios a la vez, y con el mismo patrón: fijar solo uno deja
+# el otro abierto, que es la lección de esta tarjeta repetida en pequeño.
+SE_TRAGA_EL_VEREDICTO='(\|\||;|&&)[[:space:]]*(true|:|exit[[:space:]]+0|echo)'
+
 fallo=0
 
 # ── 1 · que haya pruebas ─────────────────────────────────────────────────────
@@ -70,7 +83,12 @@ PKG="$DIR_CLIENTE/package.json"
 guion_test="$(node -p "JSON.parse(require('fs').readFileSync('$PKG','utf8')).scripts?.test ?? ''" 2>/dev/null)" \
   || roto "no pude leer los guiones de «$PKG»."
 case "$guion_test" in
-  *vitest*) ;;
+  *vitest*)
+    if printf '%s' "$guion_test" | grep -qE "$SE_TRAGA_EL_VEREDICTO"; then
+      fallo=1
+      echo "::error file=$PKG::el guion «test» del cliente («$guion_test») se traga el veredicto de vitest: las pruebas corren, salen rojas, y el guion sale con 0. Llamar a vitest no basta; hay que respetar lo que conteste."
+    fi
+    ;;
   '')  fallo=1; echo "::error file=$PKG::el cliente no tiene guion «test». Sin él, el paso de CI no tiene qué invocar." ;;
   *)   fallo=1; echo "::error file=$PKG::el guion «test» del cliente («$guion_test») no llama a vitest. Un guion que sale con 0 sin correr nada es un verde que no mide." ;;
 esac
@@ -102,6 +120,8 @@ invoca="$(awk '
   # lo puso como condición porque hay que escribirlo a mano; se cierra igual,
   # porque aquí nada lo necesita.
   /passWithNoTests/ { neutralizado=1 }
+  # `npm test || true` deja el paso en verde pase lo que pase.
+  /^[[:space:]]*run:.*(\|\||;|&&)[[:space:]]*(true|:|exit[[:space:]]+0|echo)/ { neutralizado=1 }
   /^[[:space:]]*(if|continue-on-error):/ { neutralizado=1 }
   END { cerrar() }
 ' "$CI")"
