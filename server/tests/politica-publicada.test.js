@@ -435,10 +435,16 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
       // —sin usar «UI disponible»— y la batería seguía en verde. Quien lo
       // reescriba mañana no usará nuestra jerga.
       //
-      // Exigir la frase HONESTA le da la vuelta: si alguien reescribe la fila
-      // para prometer interfaz, «No hay botón» desaparece y el caso cae **escriba
-      // lo que escriba**. No se puede prometer un botón y decir a la vez que no
-      // lo hay.
+      // Exigir la frase HONESTA le da la vuelta: si alguien SUSTITUYE «No hay
+      // botón» por una promesa de interfaz, el caso cae escriba lo que escriba.
+      //
+      // ⚠️ Y LO QUE ESTO **NO** GARANTIZA, que aquí llegó a afirmarse de más:
+      // decía «no se puede prometer un botón y decir a la vez que no lo hay», y
+      // sí se puede. El vigilante lo midió: «No hay botón en la aplicación (por
+      // ahora puedes usar el de tu perfil)» pasa los 35 casos en los dos
+      // ficheros. Quien SUSTITUYE la frase cae; quien AÑADE la promesa al lado,
+      // no — y ahí manda quien revisa. Una celda que se contradice a sí misma se
+      // ve a simple vista; un caso que prometiera cazarla mentiría.
       //
       // ⚠️ Y NO se prohíbe la palabra «botón»: la fila correcta la contiene.
       if (!clienteExporta) {
