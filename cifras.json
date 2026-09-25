@@ -2,9 +2,9 @@
   "contrato": "cifras-publicas",
   "version": 1,
   "nave": "aglaya-kanban-desk",
-  "commit": "3ee4694ebab2c384621061b1f7a0aca38ebe18ac",
-  "medido_el": "2026-09-25T08:51:25Z",
-  "ejecucion": "https://github.com/ibaifernandez/aglaya-kanban-desk/actions/runs/36115086495",
+  "commit": "6a6ae9c20e19545e691050cb1769bb9bc687d750",
+  "medido_el": "2026-09-25T09:13:33Z",
+  "ejecucion": "https://github.com/ibaifernandez/aglaya-kanban-desk/actions/runs/36117122001",
   "cifras": {
     "version": {
       "valor": "1.4.0",
@@ -21,7 +21,7 @@
       "fuente": "catálogo de Postgres: tablas de public con relrowsecurity"
     },
     "policies_rls": {
-      "valor": 32,
+      "valor": 30,
       "unidad": "políticas",
       "fuente": "catálogo de Postgres: recuento de pg_policies en public (recuento, no verificación)"
     },
