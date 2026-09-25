@@ -1,0 +1,3279 @@
+{
+  "schema_version": "3.0",
+  "audit_id": "aglaya-kanban-desk-2026-09-24-mariana",
+  "started_at": "2026-09-24T17:44:10Z",
+  "finished_at": "2026-09-24T21:20:39Z",
+  "auditor": "mariana-audit skill v3 (Claude Opus 5.5)",
+  "mode": "report",
+  "repo": {
+    "path": "/Users/AGLAYA/Local Sites/aglaya-kanban-desk",
+    "remote": "https://github.com/ibaifernandez/aglaya-kanban-desk",
+    "visibility": "PUBLIC",
+    "commit_at_start": "a630a8495e41b6baaabb695a1a2387d8402316f6",
+    "commit_at_end": "a630a8495e41b6baaabb695a1a2387d8402316f6",
+    "production_server_commit": "a630a84 (Railway, 2026-09-19)",
+    "production_client_bundle": "index-DsBmdg9A.js (= build local de a630a84)"
+  },
+  "tooling_survey": {
+    "present": [
+      "npm",
+      "pip-audit",
+      "gh",
+      "psql (bloqueado por el enganche de secretos; no se usó)"
+    ],
+    "absent": [
+      "axe",
+      "radon",
+      "eslint",
+      "semgrep",
+      "trivy",
+      "lighthouse"
+    ],
+    "note": "Nada se instaló. Herramientas ausentes → UNVERIFIABLE / NV_TOOL donde aplicaba."
+  },
+  "scope": {
+    "stack_archetype": "internal-tool (SPA React + API Express + Supabase + MCP Python)",
+    "dimensions": {
+      "A_producto": {
+        "applicable": true,
+        "reason": "rendimiento y SEO parciales"
+      },
+      "B_backend": {
+        "applicable": true,
+        "reason": ""
+      },
+      "C_legal": {
+        "applicable": true,
+        "reason": "reducido: herramienta interna, pero trata datos personales y publica política"
+      },
+      "D_ops": {
+        "applicable": true,
+        "reason": ""
+      }
+    }
+  },
+  "fases_completed": [
+    "0",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E"
+  ],
+  "summary": {
+    "total": 82,
+    "proven": 75,
+    "unverifiable": 7,
+    "critical_total": 9,
+    "critical_mitigated_during_audit": 0,
+    "critical_open": 9,
+    "high": 13,
+    "medium": 28,
+    "low": 24,
+    "info": 1,
+    "no_verificable": 7,
+    "by_priority": {
+      "P0": 11,
+      "P1": 12,
+      "P2": 28,
+      "P3": 24
+    },
+    "confidence_breakdown": {
+      "proven": 75,
+      "unverifiable": 7,
+      "dropped_no_evidence": 0
+    },
+    "by_fase": {
+      "A": 24,
+      "B": 27,
+      "C": 15,
+      "D": 16
+    }
+  },
+  "regression_delta": {
+    "previous_audit_id": "aglaya-kanban-desk-2026-05-27-mariana",
+    "previous_findings_total": 80,
+    "previous_findings_status_today": {
+      "A-01": "REGRESSED",
+      "A-02": "FIXED",
+      "A-03": "REGRESSED",
+      "A-04": "REGRESSED",
+      "A-05": "FIXED",
+      "A-06": "FIXED",
+      "A-07": "UNCHANGED",
+      "A-08": "UNCHANGED",
+      "A-09": "FIXED",
+      "A-10": "DEESCALATED",
+      "A-11": "INFORMATIVE",
+      "A-12": "UNCHANGED",
+      "A-13": "UNCHANGED",
+      "A-14": "INFORMATIVE",
+      "A-15": "UNCHANGED",
+      "A-16": "FIXED",
+      "A-17": "REGRESSED (fundido en A-03)",
+      "A-18": "FIXED",
+      "A-19": "FIXED",
+      "A-20": "FIXED",
+      "A-21": "UNCHANGED",
+      "A-22": "REGRESSED",
+      "A-23": "FIXED",
+      "A-24": "UNCHANGED",
+      "A-25": "UNCHANGED",
+      "B-CRIT-01": "FIXED",
+      "B-CRIT-02": "FIXED",
+      "B-02": "FIXED",
+      "B-03": "UNCHANGED",
+      "B-04": "FIXED",
+      "B-05": "FIXED",
+      "B-06": "FIXED",
+      "B-07": "FIXED",
+      "B-08": "UNCHANGED",
+      "B-09": "FIXED",
+      "B-10": "FIXED",
+      "B-11": "FIXED",
+      "B-12": "UNCHANGED",
+      "B-14": "UNCHANGED",
+      "B-15": "OBSOLETE",
+      "B-16": "UNCHANGED",
+      "B-17": "FIXED",
+      "B-18": "CROSS-REF (A-10)",
+      "B-19": "INFORMATIVE",
+      "C-01": "FIXED",
+      "C-02": "FIXED",
+      "C-03": "FIXED",
+      "C-04": "FIXED",
+      "C-05": "FIXED",
+      "C-06": "FIXED",
+      "C-07": "FIXED",
+      "C-08": "FIXED",
+      "C-09": "UNCHANGED",
+      "C-10": "DEESCALATED",
+      "C-11": "UNCHANGED",
+      "C-12": "FIXED",
+      "C-13": "FIXED",
+      "C-14": "FIXED",
+      "C-15": "FIXED",
+      "C-16": "UNCHANGED",
+      "C-17": "FIXED",
+      "C-18": "INFORMATIVE",
+      "D-01": "FIXED",
+      "D-02": "DEESCALATED",
+      "D-03": "FIXED",
+      "D-04": "DEESCALATED",
+      "D-05": "FIXED",
+      "D-06": "FIXED",
+      "D-07": "DEESCALATED",
+      "D-08": "FIXED",
+      "D-09": "DEESCALATED",
+      "D-10": "FIXED",
+      "D-11": "UNCHANGED",
+      "D-12": "FIXED",
+      "D-13": "UNCHANGED",
+      "D-14": "FIXED",
+      "D-15": "FIXED",
+      "D-16": "UNCHANGED",
+      "D-17": "REGRESSED",
+      "D-18": "FIXED"
+    },
+    "previous_counts": {
+      "REGRESSED": 6,
+      "FIXED": 43,
+      "UNCHANGED": 19,
+      "DEESCALATED": 6,
+      "INFORMATIVE": 4,
+      "OBSOLETE": 1,
+      "CROSS-REF": 1
+    },
+    "current_findings_by_status": {
+      "NEW": 52,
+      "REGRESSED": 5,
+      "UNCHANGED": 19,
+      "DEESCALATED": 6
+    },
+    "new": 52,
+    "fixed": 43,
+    "regressed": 5,
+    "unchanged": 19,
+    "escalated": 0,
+    "deescalated": 6
+  },
+  "findings": [
+    {
+      "id": "A-26",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "Sin ratón no se puede abrir una tarjeta ni editar partes de ella",
+      "severity": "CRITICAL",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "2.1.1 Teclado",
+        "level": "A",
+        "users": "solo teclado"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/Card/Card.jsx",
+          "lines": "37-50"
+        },
+        {
+          "type": "code-read",
+          "file": "client/node_modules/@dnd-kit/core/dist/core.esm.js",
+          "lines": "1098-1101,1357-1367"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/CardModal/CardModal.jsx",
+          "lines": "311-313,316,577-608,829-837"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/UI/ContextMenu.jsx",
+          "lines": "58-67"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 8,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P0",
+      "sprint": "Sprint 1",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-27",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "Barra lateral: tablero no seleccionable y acciones inalcanzables sin ratón",
+      "severity": "CRITICAL",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "2.1.1 Teclado",
+        "level": "A"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/Sidebar/Sidebar.jsx",
+          "lines": "35-38,97-118"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/App.jsx",
+          "lines": "201-216"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 4,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P0",
+      "sprint": "Sprint 1",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-01",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "29 controles de formulario visibles sin etiqueta programática (13 sin nombre alguno)",
+      "severity": "CRITICAL",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "1.3.1 / 3.3.2 / 4.1.2",
+        "level": "A",
+        "note": "cierre parcial de mayo (a9437ec) declarado completo"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/CardModal/CardModal.jsx",
+          "lines": "131,139"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Column/Column.jsx",
+          "lines": "49"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Sidebar/Sidebar.jsx",
+          "lines": "56"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Toolbar/CategorySettings.jsx",
+          "lines": "64"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Toolbar/Toolbar.jsx",
+          "lines": "194,206,219,233"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/UI/AvatarCropModal.jsx",
+          "lines": "76"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Workspace/WorkspaceMembers.jsx",
+          "lines": "208,363"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/pages/AdminPage.jsx",
+          "lines": "279"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 3,
+        "status": "OPEN"
+      },
+      "regression_status": "REGRESSED",
+      "previous_id": "A-01",
+      "priority": "P0",
+      "sprint": "Sprint 1",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-03",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "6 superposiciones modales sin semántica de diálogo ni trampa de foco (absorbe A-17)",
+      "severity": "CRITICAL",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "4.1.2 / 2.4.3",
+        "level": "A"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/Board/Board.jsx",
+          "lines": "349-385"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Sidebar/Sidebar.jsx",
+          "lines": "318-347"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/UI/AvatarCropModal.jsx",
+          "lines": "52-53"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/pages/WorkspaceDashboard.jsx",
+          "lines": "326-327,467-468"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/CardModal/CardModal.jsx",
+          "lines": "935-954"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 3,
+        "status": "OPEN"
+      },
+      "regression_status": "REGRESSED",
+      "previous_id": "A-03, A-17",
+      "priority": "P0",
+      "sprint": "Sprint 1",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-04",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "2 botones de solo icono sin nombre accesible",
+      "severity": "CRITICAL",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "4.1.2",
+        "level": "A"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/CardModal/CardModal.jsx",
+          "lines": "121-128,915-917"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "REGRESSED",
+      "previous_id": "A-04",
+      "priority": "P0",
+      "sprint": "Sprint 1",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-28",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "Estado de alternancias y desplegables no expuesto (aria-pressed / aria-expanded)",
+      "severity": "CRITICAL",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "4.1.2",
+        "level": "A"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/pages/LoginPage.jsx",
+          "lines": "94"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Toolbar/Toolbar.jsx",
+          "lines": "246-256"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/pages/WorkspaceDashboard.jsx",
+          "lines": "337-347,404-419"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Workspace/WorkspaceSettings.jsx",
+          "lines": "101-116,188-203"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Toolbar/CategorySettings.jsx",
+          "lines": "9-27"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/UI/NotificationBell.jsx",
+          "lines": "76-91"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/User/UserMenu.jsx",
+          "lines": "134-149"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/CardModal/CardModal.jsx",
+          "lines": "163-185"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 3,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P0",
+      "sprint": "Sprint 1",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-15",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "Contraste de texto 1,61–2,80:1 (mínimo 4,5:1) en 155 usos",
+      "severity": "HIGH",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "1.4.3",
+        "level": "AA"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/tailwind.config.js",
+          "lines": "21-22"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Card/Card.jsx",
+          "lines": "73"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/pages/LoginPage.jsx",
+          "lines": "146"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 3,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "A-15",
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-29",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "10 controles enfocables invisibles al recibir foco",
+      "severity": "HIGH",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "2.4.7",
+        "level": "AA"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/CardModal/CardModal.jsx",
+          "lines": "166-170,262,271,856,877,882"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Toolbar/CategorySettings.jsx",
+          "lines": "84"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/pages/WorkspaceDashboard.jsx",
+          "lines": "248"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-21",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "Avisos y contador de campana no anunciados a lector de pantalla",
+      "severity": "HIGH",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "4.1.3",
+        "level": "AA"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/Board/Board.jsx",
+          "lines": "388-395"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Workspace/WorkspaceMembers.jsx",
+          "lines": "413-417"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/pages/AdminPage.jsx",
+          "lines": "328-335"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Sidebar/Sidebar.jsx",
+          "lines": "294-300"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/UI/NotificationBell.jsx",
+          "lines": "86-90"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 2,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "A-21",
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-22",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "Errores de 4 formularios sin anunciar ni asociar al campo",
+      "severity": "HIGH",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "4.1.3",
+        "level": "AA",
+        "note": "mayo lo clasificó CRITICO; aquí 3.3.1 se cumple visualmente"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/pages/WorkspaceDashboard.jsx",
+          "lines": "432,473"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Workspace/WorkspaceMembers.jsx",
+          "lines": "221"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/pages/ResetPasswordPage.jsx",
+          "lines": "111-115"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1.5,
+        "status": "OPEN"
+      },
+      "regression_status": "REGRESSED",
+      "previous_id": "A-22",
+      "priority": "P0",
+      "sprint": "Sprint 1",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-25",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "Diseño fijo: a 320 px quedan 80 px de contenido y la cabecera se recorta",
+      "severity": "HIGH",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "1.4.10 Reflow",
+        "level": "AA"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/Sidebar/Sidebar.jsx",
+          "lines": "220"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Toolbar/Toolbar.jsx",
+          "lines": "93,127"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/App.jsx",
+          "lines": "335"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 8,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "A-25",
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-07",
+      "fase": "A",
+      "dimension": "performance",
+      "title": "Bundle único de 724,66 kB (206,73 kB gzip), sin división de código",
+      "severity": "HIGH",
+      "severity_score": null,
+      "severity_metadata": {
+        "note": "severidad heredada; sin criterio en la rúbrica"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "tool-external",
+      "evidence": [
+        {
+          "type": "tool-external",
+          "detail": "npx vite build (vite 5.4.21) → index-DsBmdg9A.js 724.66 kB / gzip 206.73 kB; 1815 módulos; 0 lazy()"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 3,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "A-07",
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-24",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "Objetivos de pulsación de 10–21 px",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "2.5.5 (AAA); 2.5.8 AA en WCAG 2.2",
+        "level": "AAA"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/CardModal/CardModal.jsx",
+          "lines": "259-275,901-903"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/UI/IconButton.jsx",
+          "lines": "7"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Sidebar/Sidebar.jsx",
+          "lines": "97-117"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Column/Column.jsx",
+          "lines": "101-108"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 2,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "A-24",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-08",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "prefers-reduced-motion ignorado en la app",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "2.3.3",
+        "level": "AAA"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/index.css",
+          "lines": "36-44"
+        },
+        {
+          "type": "code-read",
+          "detail": "0 coincidencias de prefers-reduced-motion / motion-reduce en client/src"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "A-08",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-30",
+      "fase": "A",
+      "dimension": "ux",
+      "title": "Fallos de carga y de guardado sin aviso; la vista cae a un estado vacío que miente",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "note": "sin criterio WCAG; severidad por impacto"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/hooks/useWorkspaces.js",
+          "lines": "14"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/pages/WorkspaceDashboard.jsx",
+          "lines": "566,700-703"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Board/Board.jsx",
+          "lines": "99-122,363,373-377"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/CardModal/CardModal.jsx",
+          "lines": "429-431,439"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/columns.js",
+          "lines": "202-209"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 4,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-31",
+      "fase": "A",
+      "dimension": "ux",
+      "title": "Subidas e invitación no renuevan la sesión: fallan a los 15 min, y en tarjetas sin avisar",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "note": "sin criterio WCAG; severidad por impacto"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/api/client.js",
+          "lines": "52-72,135-144,167-211"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/auth.js",
+          "lines": "17"
+        },
+        {
+          "type": "code-read",
+          "file": "server/middleware/auth.js",
+          "lines": "73-77"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-10",
+      "fase": "A",
+      "dimension": "ux",
+      "title": "Densidad: CardModal.jsx 957 LOC, WorkspaceDashboard.jsx 802 LOC",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "rubric": "arquitectura: componentes > 700 LOC"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "detail": "wc -l: client/src/components/CardModal/CardModal.jsx 957; client/src/pages/WorkspaceDashboard.jsx 802"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 8,
+        "status": "OPEN"
+      },
+      "regression_status": "DEESCALATED",
+      "previous_id": "A-10",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-12",
+      "fase": "A",
+      "dimension": "seo",
+      "title": "index.html sin description, OG, theme-color ni canonical",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "note": "severidad heredada"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/index.html",
+          "lines": "1-13"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "A-12",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-13",
+      "fase": "A",
+      "dimension": "seo",
+      "title": "No hay robots.txt: /robots.txt y /sitemap.xml devuelven la SPA con 200",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "manual-verification",
+      "evidence": [
+        {
+          "type": "manual-verification",
+          "detail": "curl https://kanban.aglaya.biz/robots.txt y /sitemap.xml (2026-09-24) → 200 text/html"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.25,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "A-13",
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-32",
+      "fase": "A",
+      "dimension": "ux",
+      "title": "confirm() nativo en 2 borrados, contra ADR-018",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/Workspace/WorkspaceMembers.jsx",
+          "lines": "285"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/pages/AdminPage.jsx",
+          "lines": "177"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-33",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "Salto de h1 a h3 en la vista de tablero",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "1.3.1 (buena práctica)"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/Toolbar/Toolbar.jsx",
+          "lines": "112"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/Column/Column.jsx",
+          "lines": "77"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.25,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-34",
+      "fase": "A",
+      "dimension": "a11y",
+      "title": "El título del documento no cambia entre vistas",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "wcag": "2.4.2 (buena práctica en SPA)"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/index.html",
+          "lines": "7"
+        },
+        {
+          "type": "code-read",
+          "detail": "0 usos de document.title en client/src"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "A-35",
+      "fase": "A",
+      "dimension": "ux",
+      "title": "El pie de la barra lateral dice «AGLAYA v1.2 · Phase 1»; la versión es 1.4.0",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/Sidebar/Sidebar.jsx",
+          "lines": "305"
+        },
+        {
+          "type": "code-read",
+          "file": "package.json",
+          "lines": "3"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.25,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "B-20",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Alta de cuentas pública: sin sesión, con el rol y la organización que manda el cliente, y correo dado por confirmado",
+      "severity": "CRITICAL",
+      "severity_score": 9.8,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        "cvss_3_1_score": 9.8,
+        "owasp_2021": "A01, A07",
+        "attacker_level": "None",
+        "impact": {
+          "C": "High",
+          "I": "High",
+          "A": "High"
+        }
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/auth.js",
+          "lines": "50-107"
+        },
+        {
+          "type": "code-read",
+          "file": "server/app.js",
+          "lines": "133"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/schema/supabase-schema.sql",
+          "lines": "110"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/SECURITY.md",
+          "lines": "22,101,112"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/legal/TOMs.md",
+          "lines": "17"
+        },
+        {
+          "type": "code-read",
+          "file": "server/tests/auth.test.js",
+          "lines": "102-131"
+        },
+        {
+          "type": "code-read",
+          "detail": "gh api deployments: Railway production = a630a84 (2026-09-19)"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P0",
+      "sprint": "Sprint 1",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-34",
+      "fase": "B",
+      "dimension": "database",
+      "title": "Los adjuntos se guardan en disco efímero, sin volumen, y la copia diaria no los incluye",
+      "severity": "CRITICAL",
+      "severity_score": null,
+      "severity_metadata": {
+        "rubric": "BD/Ops: pérdida de datos sin copia; regla transversal 4 (datos de producción)"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "tool-external",
+      "evidence": [
+        {
+          "type": "tool-external",
+          "detail": "Railway describe-service (2026-09-24): \"volumes\": []"
+        },
+        {
+          "type": "tool-external",
+          "file": "server/routes/uploads.js",
+          "lines": "7,41-47"
+        },
+        {
+          "type": "tool-external",
+          "file": ".github/workflows/db-backup.yml",
+          "lines": "58-68"
+        },
+        {
+          "type": "tool-external",
+          "file": "docs/RUNBOOK.md",
+          "lines": "59"
+        },
+        {
+          "type": "tool-external",
+          "file": "docs/legal/TOMs.md",
+          "lines": "129"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 4,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P0",
+      "sprint": "Sprint 1",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-21",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Dos políticas RLS de INSERT con WITH CHECK (true) anulan las restrictivas en workspaces y workspace_members",
+      "severity": "HIGH",
+      "severity_score": 8.8,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+        "cvss_3_1_score": 8.8,
+        "owasp_2021": "A01",
+        "attacker_level": "Authenticated User",
+        "impact": {
+          "C": "High",
+          "I": "High",
+          "A": "High"
+        }
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "docs/schema/supabase-schema.sql",
+          "lines": "477-480,489-492,392-404"
+        },
+        {
+          "type": "code-read",
+          "file": "server/middleware/workspace.js",
+          "lines": "148-163"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/ARCHITECTURE.md",
+          "lines": "173-174"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-27",
+      "fase": "B",
+      "dimension": "security",
+      "title": "La sesión no se puede revocar: refresh de 30 días que se renueva solo; cerrar sesión solo borra la cookie",
+      "severity": "HIGH",
+      "severity_score": 7.4,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
+        "cvss_3_1_score": 7.4,
+        "owasp_2021": "A07",
+        "attacker_level": "None (con token obtenido por otra vía)",
+        "impact": {
+          "C": "High",
+          "I": "High",
+          "A": "None"
+        }
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/auth.js",
+          "lines": "17-23,35-43,356-420"
+        },
+        {
+          "type": "code-read",
+          "file": "server/middleware/auth.js",
+          "lines": "72-81"
+        },
+        {
+          "type": "code-read",
+          "file": "server/utils/config.js",
+          "lines": "15"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 4,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-03",
+      "fase": "B",
+      "dimension": "security",
+      "title": "La API sigue expuesta en el dominio por defecto de Railway; el dominio propio no existe",
+      "severity": "HIGH",
+      "severity_score": null,
+      "severity_metadata": {
+        "rule": "checklist: dominio de plataforma expuesto → HIGH",
+        "owasp_2021": "A05"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "tool-external",
+      "evidence": [
+        {
+          "type": "tool-external",
+          "detail": "Railway describe-service: customDomains [] ; serviceDomains web-production-099a0.up.railway.app"
+        },
+        {
+          "type": "tool-external",
+          "file": "netlify.toml",
+          "lines": "9,16"
+        },
+        {
+          "type": "tool-external",
+          "file": "server/middleware/hostMonitor.js",
+          "lines": "10-20"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 2,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "B-03",
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-12",
+      "fase": "B",
+      "dimension": "database",
+      "title": "RLS de tarjetas, columnas, categorías e historial filtra por organización, no por espacio",
+      "severity": "MEDIUM",
+      "severity_score": 8.1,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N",
+        "cvss_3_1_score": 8.1,
+        "owasp_2021": "A01",
+        "severity_reduction": "regla 3: deuda preexistente documentada (INCIDENTS DOC-05) → techo MEDIUM"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "docs/schema/supabase-schema.sql",
+          "lines": "511-570"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/INCIDENTS.md",
+          "lines": "62-66"
+        },
+        {
+          "type": "code-read",
+          "file": "server/middleware/workspace.js",
+          "lines": "170-173"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 6,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "B-12",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-08",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Dependencias del servidor con avisos HIGH (multer) y moderados, alcanzables solo con sesión",
+      "severity": "MEDIUM",
+      "severity_score": 6.5,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+        "cvss_3_1_score": 6.5,
+        "owasp_2021": "A06",
+        "advisories": [
+          "GHSA-wc9g-mqfw-jrwm",
+          "GHSA-qfvm-cv95-jqjf",
+          "GHSA-535w-7cp7-47q4",
+          "GHSA-5v7r-6r5c-r473",
+          "GHSA-mwp4-54f8-5fhr",
+          "GHSA-4mjr-xmp4-gh2g",
+          "GHSA-w5hq-g745-h8pq"
+        ]
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "tool-external",
+      "evidence": [
+        {
+          "type": "tool-external",
+          "detail": "npm audit --omit=dev (2026-09-24): 2 high, 5 moderate — multer 2.2.0, ip-address 10.2.0, file-type 16.5.4, express 4.22.2/body-parser/qs, uuid 9.0.1"
+        },
+        {
+          "type": "tool-external",
+          "file": "server/app.js",
+          "lines": "171"
+        },
+        {
+          "type": "tool-external",
+          "file": "server/routes/media.js",
+          "lines": "29,67"
+        },
+        {
+          "type": "tool-external",
+          "file": ".github/workflows/npm-audit.yml",
+          "lines": "41,54"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "B-08",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-23",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Categorías: la API solo exige sesión y organización, no pertenencia al espacio del tablero",
+      "severity": "MEDIUM",
+      "severity_score": 5.4,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:N",
+        "cvss_3_1_score": 5.4,
+        "owasp_2021": "A01",
+        "attacker_level": "Authenticated User"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/app.js",
+          "lines": "175-178"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/categories.js",
+          "lines": "15,35,59,72"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-24",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Las URL de adjuntos se guardan sin validar y el cliente las usa como enlace e imagen",
+      "severity": "MEDIUM",
+      "severity_score": 5.4,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:L/PR:L/UI:R/S:C/C:L/I:L/A:N",
+        "cvss_3_1_score": 5.4,
+        "owasp_2021": "A03",
+        "attacker_level": "Authenticated User"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/cards.js",
+          "lines": "161,462"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/CardModal/CardModal.jsx",
+          "lines": "855,873-874"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-40",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Dos reglas de PERMISSIONS.md que el servidor no aplica (cambio de tipo por colaborador; lista de usuarios de la organización)",
+      "severity": "MEDIUM",
+      "severity_score": 5.4,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:N",
+        "cvss_3_1_score": 5.4,
+        "owasp_2021": "A01"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/workspaces.js",
+          "lines": "239-245,332-338,414-446"
+        },
+        {
+          "type": "code-read",
+          "detail": "docs/PERMISSIONS.md"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-25",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Subidas: extensión del nombre del cliente, tipos de texto sin control de contenido, servido en línea desde el origen de la app y sin sesión",
+      "severity": "MEDIUM",
+      "severity_score": 4.4,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:H/PR:L/UI:R/S:C/C:L/I:L/A:N",
+        "cvss_3_1_score": 4.4,
+        "owasp_2021": "A04"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/uploads.js",
+          "lines": "39,44-45,80-81"
+        },
+        {
+          "type": "code-read",
+          "file": "server/app.js",
+          "lines": "125"
+        },
+        {
+          "type": "code-read",
+          "file": "netlify.toml",
+          "lines": "14-18"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 3,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-26",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Borrar un adjunto solo exige sesión: no comprueba a quién pertenece",
+      "severity": "MEDIUM",
+      "severity_score": 4.2,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:H/PR:L/UI:N/S:U/C:N/I:L/A:L",
+        "cvss_3_1_score": 4.2,
+        "owasp_2021": "A01"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/uploads.js",
+          "lines": "110-122"
+        },
+        {
+          "type": "code-read",
+          "file": "server/app.js",
+          "lines": "172"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-16",
+      "fase": "B",
+      "dimension": "architecture",
+      "title": "Rutas con lógica de negocio y acceso directo a la base, sin capa de servicio",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "rubric": "arquitectura (heredada)"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/cards.js",
+          "lines": "1"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/boards.js",
+          "lines": "1"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/columns.js",
+          "lines": "1"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/workspaces.js",
+          "lines": "3"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/categories.js",
+          "lines": "1"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 16,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "B-16",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-28",
+      "fase": "B",
+      "dimension": "security",
+      "title": "El secreto de la puerta interna se compara con !== y no en tiempo constante",
+      "severity": "LOW",
+      "severity_score": 3.7,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+        "cvss_3_1_score": 3.7,
+        "owasp_2021": "A07"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/internalRoute.js",
+          "lines": "13"
+        },
+        {
+          "type": "code-read",
+          "file": "server/app.js",
+          "lines": "105-111"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.25,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-29",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Puerta interna: llega a espacios personales y ilike no escapa comodines (deuda declarada)",
+      "severity": "LOW",
+      "severity_score": 3.8,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:L/A:N",
+        "cvss_3_1_score": 3.8,
+        "owasp_2021": "A01"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/internalRoute.js",
+          "lines": "36-37,57-78,359-369,414-437,494-498"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 2,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-39",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Cuatro respuestas devuelven detalles internos",
+      "severity": "LOW",
+      "severity_score": 2.7,
+      "severity_metadata": {
+        "cvss_3_1_vector": "AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:N/A:N",
+        "cvss_3_1_score": 2.7,
+        "owasp_2021": "A05"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/auth.js",
+          "lines": "73"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/admin.js",
+          "lines": "162,239-241,260"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-38",
+      "fase": "B",
+      "dimension": "security",
+      "title": "CSP con unsafe-inline en script-src sin nada que lo necesite; Referrer-Policy laxa",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "owasp_2021": "A05",
+        "note": "endurecimiento, sin CVSS"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "netlify.toml",
+          "lines": "38,41"
+        },
+        {
+          "type": "code-read",
+          "detail": "client/public/privacidad.html (0 <script>)"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-33",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Credenciales de servicios retirados siguen en el entorno de producción",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "owasp_2021": "A05",
+        "note": "higiene de secretos"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "tool-external",
+      "evidence": [
+        {
+          "type": "tool-external",
+          "detail": "Railway describe-service variableNames: RESEND_API_KEY, SMTP_FROM, DIGEST_CRON_SECRET, DIGEST_HOUR, DIGEST_MINUTE, DIGEST_TO, USER_DIGEST_HOUR, USER_DIGEST_MINUTE"
+        },
+        {
+          "type": "tool-external",
+          "file": "docs/ARCHITECTURE.md",
+          "lines": "320"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-31",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Entorno local del riel MCP con dos avisos (cryptography, pip)",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "owasp_2021": "A06",
+        "advisories": [
+          "PYSEC-2026-3552",
+          "PYSEC-2026-3721"
+        ]
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "tool-external",
+      "evidence": [
+        {
+          "type": "tool-external",
+          "detail": "pip-audit --path kanban-mcp/.venv/lib/python3.14/site-packages (2026-09-24): cryptography 49.0.0, pip 26.1.2"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.25,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-35",
+      "fase": "B",
+      "dimension": "database",
+      "title": "cards.priority sin CHECK, y crear tarjeta no valida la prioridad",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "rubric": "BD higiene"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "docs/schema/supabase-schema.sql",
+          "lines": "248"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/cards.js",
+          "lines": "156,229-231"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-36",
+      "fase": "B",
+      "dimension": "database",
+      "title": "Borrar un espacio encadena seis borrados sin transacción ni comprobación intermedia",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "rubric": "BD integridad"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/workspaces.js",
+          "lines": "360-386"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 2,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-37",
+      "fase": "B",
+      "dimension": "architecture",
+      "title": "El riel MCP guarda service_role en la máquina del operador y opera como superadmin (ADR-026)",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "note": "mínimo privilegio; decisión documentada"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "kanban-mcp/server.py",
+          "lines": "14-19,128-137"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/ARCHITECTURE.md",
+          "lines": "308-313"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 3,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-41",
+      "fase": "B",
+      "dimension": "database",
+      "title": "El guardián de GRANT no ve MAINTAIN (ya documentado)",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "rubric": "BD",
+        "deadline": "Supabase GRANT explícitos 2026-10-30"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "detail": "CLAUDE.md (sección GRANTs)"
+        },
+        {
+          "type": "code-read",
+          "detail": "scripts/grants-guard.sh"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/schema/supabase-schema.sql",
+          "lines": "445-448"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-32",
+      "fase": "B",
+      "dimension": "security",
+      "title": "Clave de Resend en el historial público, revocada el 2026-08-07",
+      "severity": "INFO",
+      "severity_score": null,
+      "severity_metadata": {
+        "note": "secret scanning resuelto"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "tool-external",
+      "evidence": [
+        {
+          "type": "tool-external",
+          "detail": "gh api secret-scanning/alerts: #1 Resend API Key, publicly_leaked, resolution revoked 2026-08-07 (b40944b:docs/DECISIONS.md:147)"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "C-19",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "Claude (Anthropic) trata contenido de tarjetas, nombres y correos a través del MCP del riel sin estar declarado como encargado",
+      "severity": "CRITICAL",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD; LGPD; Ley 21.719",
+        "article": "RGPD 13(1)(e), 28(1)-(3), 30(1)(d), cap. V; LGPD 9, 33",
+        "data_subjects_affected": "todas las cuentas y personas nombradas en tarjetas",
+        "fine_exposure": "RGPD 83(4) hasta 10 M€/2 %; 83(5) hasta 20 M€/4 %"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "kanban-mcp/server.py",
+          "lines": "222-262,618-640,687-693"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/ARCHITECTURE.md",
+          "lines": "308-313"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/legal/privacy-policy-kanban.md",
+          "lines": "92-103"
+        },
+        {
+          "type": "code-read",
+          "detail": "grep anthropic|claude|IA|agente en docs/legal → 0"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 3,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P0",
+      "sprint": "Sprint 1",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-20",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "La política promete botones de exportar y eliminar cuenta que la app no tiene",
+      "severity": "HIGH",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD",
+        "article": "12(1)-(2), 13, 5(1)(a)",
+        "fine_exposure": "RGPD 83(5)"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "docs/legal/privacy-policy-kanban.md",
+          "lines": "160-161"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/components/User/UserMenu.jsx",
+          "lines": "100-114"
+        },
+        {
+          "type": "code-read",
+          "detail": "0 usos de /auth/me en client/src"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 3,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-21",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "Borrar la cuenta deja los espacios creados por la persona con su contenido y el avatar público; la respuesta dice lo contrario",
+      "severity": "HIGH",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD; LGPD",
+        "article": "RGPD 17(1), 5(1)(e), 12(3); LGPD 18(VI)",
+        "fine_exposure": "RGPD 83(5)"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/auth.js",
+          "lines": "89-98,305-350"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/schema/supabase-schema.sql",
+          "lines": "130,184-185"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/media.js",
+          "lines": "33,44-46"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/legal/retention-policy.md",
+          "lines": "65"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 4,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-09",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "La DPIA sigue siendo una plantilla sin rellenar",
+      "severity": "HIGH",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD",
+        "article": "35",
+        "fine_exposure": "RGPD 83(4)"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "docs/legal/DPIA-template.md",
+          "lines": "5,7,19"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 6,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "C-09",
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-22",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "Exportación sin notificaciones (columna inexistente), sin tarjetas asignadas ni historial propio",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD",
+        "article": "15, 20"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/auth.js",
+          "lines": "208-218,278"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/schema/supabase-schema.sql",
+          "lines": "308,331-338"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/legal/privacy-policy-kanban.md",
+          "lines": "160"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 2,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-23",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "Cloudflare figura solo como DNS y R2, pero hace de proxy de todo el tráfico y recoge informes NEL",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD",
+        "article": "13(1)(e)-(f), 28, 44"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "manual-verification",
+      "evidence": [
+        {
+          "type": "manual-verification",
+          "detail": "curl -I https://kanban.aglaya.biz/ (2026-09-24 21:10Z): server: cloudflare, cf-ray, report-to/nel → a.nel.cloudflare.com"
+        },
+        {
+          "type": "manual-verification",
+          "file": "docs/legal/privacy-policy-kanban.md",
+          "lines": "101,123"
+        },
+        {
+          "type": "manual-verification",
+          "file": "docs/legal/subprocessors.md",
+          "lines": "19"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-11",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "El token de acceso lleva correo y nombre",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD",
+        "article": "5(1)(c), 25"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/auth.js",
+          "lines": "101,139-145,388-394"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "C-11",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-16",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "No hay programa de gobernanza de privacidad LGPD",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "LGPD",
+        "article": "50"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "detail": "grep gobernanza|Art. 50 en docs/legal → 0"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 4,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "C-16",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-10",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "Sección de cookies inexacta: claves de localStorage que no se usan; calla la cookie aglaya_refresh",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD; ePrivacy",
+        "article": "RGPD 13; ePrivacy 5(3)"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "docs/legal/privacy-policy-kanban.md",
+          "lines": "188-193"
+        },
+        {
+          "type": "code-read",
+          "file": "client/src/utils/session.js",
+          "lines": "1-4,41,87"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/auth.js",
+          "lines": "19,35-43"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "DEESCALATED",
+      "previous_id": "C-10",
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-25",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "GitHub figura como «trigger por reloj» y el volcado completo se hace en su runner",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD",
+        "article": "13(1)(e), 30"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": ".github/workflows/db-backup.yml",
+          "lines": "58-68"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/legal/subprocessors.md",
+          "lines": "25"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/legal/privacy-policy-kanban.md",
+          "lines": "102"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.25,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-26",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "«Las prioridades las asignan humanos»: agentes crean tarjetas con prioridad y responsable",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD",
+        "article": "13 (exactitud); 22 no aplica"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "docs/legal/privacy-policy-kanban.md",
+          "lines": "88"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/legal/base-legal.md",
+          "lines": "116"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/internalRoute.js",
+          "lines": "202-214"
+        },
+        {
+          "type": "code-read",
+          "file": "kanban-mcp/server.py",
+          "lines": "352-384"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.25,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-27",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "Los registros del servidor guardan correos",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD",
+        "article": "5(1)(c), 5(1)(e)"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/routes/auth.js",
+          "lines": "321,337"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/admin.js",
+          "lines": "185-189,238"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-28",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "Las TOMs describen como control el domain guard del registro y los adjuntos como auth-walled",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {
+        "regulation": "RGPD",
+        "article": "32 (documentación)"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "docs/legal/TOMs.md",
+          "lines": "17,129"
+        },
+        {
+          "type": "code-read",
+          "file": "docs/SECURITY.md",
+          "lines": "22,101,112"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "D-19",
+      "fase": "D",
+      "dimension": "ops",
+      "title": "Producción no espera a CI: main exige PR pero no checks en verde, y Railway despliega sin mirarlos",
+      "severity": "HIGH",
+      "severity_score": null,
+      "severity_metadata": {
+        "rubric": "DevOps: despliegue con alto riesgo de error humano"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "tool-external",
+      "evidence": [
+        {
+          "type": "tool-external",
+          "detail": "gh api rulesets/23694681: deletion, non_fast_forward, pull_request (0 aprobaciones); sin required_status_checks"
+        },
+        {
+          "type": "tool-external",
+          "detail": "Railway describe-service: source.checkSuites false"
+        },
+        {
+          "type": "tool-external",
+          "file": ".github/workflows/ci.yml",
+          "lines": "36"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P1",
+      "sprint": "Sprint 2",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-23",
+      "fase": "D",
+      "dimension": "docs",
+      "title": "La UI dice que el Invitado es de solo lectura; la matriz y el servidor le dejan crear, editar y mover tarjetas",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/src/components/Workspace/WorkspaceMembers.jsx",
+          "lines": "215,392-393"
+        },
+        {
+          "type": "code-read",
+          "detail": "docs/PERMISSIONS.md"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/cards.js",
+          "lines": "132-199,219-501,503-566"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-24",
+      "fase": "D",
+      "dimension": "process",
+      "title": "El registro de la auditoría de mayo cerró como MITIGATED arreglos parciales",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "detail": "docs/audits/2026-05-27-mariana/findings.json (A-01, A-03, A-04, A-22)"
+        },
+        {
+          "type": "code-read",
+          "detail": "git a9437ec: «cierra A-01 + A-22 100%»"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-20",
+      "fase": "D",
+      "dimension": "observability",
+      "title": "El cliente no registra errores en ningún sitio",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "client/package.json",
+          "lines": "13-24"
+        },
+        {
+          "type": "code-read",
+          "file": "netlify.toml",
+          "lines": "41"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 2,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-21",
+      "fase": "D",
+      "dimension": "reliability",
+      "title": "Ante una excepción no capturada el proceso no sale y Railway no lo reinicia",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/index.js",
+          "lines": "31-35"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-02",
+      "fase": "D",
+      "dimension": "observability",
+      "title": "Registros en texto libre, sin estructura",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "rubric": "DevOps: sin logs estructurados = MEDIUM"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/app.js",
+          "lines": "114-122"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 3,
+        "status": "OPEN"
+      },
+      "regression_status": "DEESCALATED",
+      "previous_id": "D-02",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-04",
+      "fase": "D",
+      "dimension": "maintainability",
+      "title": "Sin linter, formateador ni tipos",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "rubric": "DevOps: sin linter/tipos = MEDIUM"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "package.json",
+          "lines": "6-13"
+        },
+        {
+          "type": "code-read",
+          "file": "client/package.json",
+          "lines": "6-12"
+        },
+        {
+          "type": "code-read",
+          "detail": "0 ficheros de configuración de lint/format/tipos"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 4,
+        "status": "OPEN"
+      },
+      "regression_status": "DEESCALATED",
+      "previous_id": "D-04",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-07",
+      "fase": "D",
+      "dimension": "observability",
+      "title": "Ningún monitor de disponibilidad documentado",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {
+        "rubric": "DevOps: sin uptime = MEDIUM"
+      },
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/app.js",
+          "lines": "93-94"
+        },
+        {
+          "type": "code-read",
+          "detail": "0 coincidencias en docs/ y README.md"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "DEESCALATED",
+      "previous_id": "D-07",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-11",
+      "fase": "D",
+      "dimension": "dependencies",
+      "title": "Actualizaciones de seguridad de Dependabot desactivadas y sin dependabot.yml",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "tool-external",
+      "evidence": [
+        {
+          "type": "tool-external",
+          "detail": "gh api repos/…: dependabot_security_updates disabled"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.5,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "D-11",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-13",
+      "fase": "D",
+      "dimension": "docs",
+      "title": "ADR-001 a 010 sin ficha; ADR-005 dice que el repositorio es privado",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "docs/ARCHITECTURE.md",
+          "lines": "202,322"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 2,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "D-13",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-16",
+      "fase": "D",
+      "dimension": "observability",
+      "title": "/api/health responde ok sin comprobar nada",
+      "severity": "MEDIUM",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "server/app.js",
+          "lines": "185-187"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "D-16",
+      "priority": "P2",
+      "sprint": "Sprint 3-4",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-09",
+      "fase": "D",
+      "dimension": "ops",
+      "title": "Falta el runbook de marcha atrás de un despliegue",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "detail": "docs/runbooks/ (db-restore, key-rotation, railway-custom-domain)"
+        },
+        {
+          "type": "code-read",
+          "detail": "docs/RUNBOOK.md"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "DEESCALATED",
+      "previous_id": "D-09",
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-17",
+      "fase": "D",
+      "dimension": "docs",
+      "title": "INCIDENTS.md no recoge los incidentes de agosto y septiembre",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "docs/INCIDENTS.md",
+          "lines": "9,32"
+        },
+        {
+          "type": "code-read",
+          "file": "server/routes/cards.js",
+          "lines": "244,331,353"
+        },
+        {
+          "type": "code-read",
+          "file": "server/middleware/hostMonitor.js",
+          "lines": "21-24"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 1,
+        "status": "OPEN"
+      },
+      "regression_status": "REGRESSED",
+      "previous_id": "D-17",
+      "priority": "P0",
+      "sprint": "Sprint 1",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-25",
+      "fase": "D",
+      "dimension": "docs",
+      "title": "package.json presenta la app como multi-tenant (contra ADR-020)",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "package.json",
+          "lines": "4"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "D-26",
+      "fase": "D",
+      "dimension": "docs",
+      "title": "El README muestra licencia MIT y no hay fichero LICENSE",
+      "severity": "LOW",
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "PROVEN",
+      "evidence_source": "code-read",
+      "evidence": [
+        {
+          "type": "code-read",
+          "file": "README.md",
+          "lines": "7"
+        },
+        {
+          "type": "code-read",
+          "detail": "git ls-files: 0 LICENSE"
+        }
+      ],
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0.1,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": "P3",
+      "sprint": "Backlog",
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    },
+    {
+      "id": "A-NV-01",
+      "fase": "A",
+      "dimension": "performance",
+      "title": "Core Web Vitals (LCP, INP, CLS)",
+      "severity": null,
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "UNVERIFIABLE",
+      "not_verifiable_subtype": "NV_RUNTIME",
+      "evidence_source": null,
+      "evidence": [],
+      "recommended_external_action": "PageSpeed Insights / Lighthouse sobre / sin sesión, y DevTools → Performance con sesión.",
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": null,
+      "sprint": null,
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-A.md"
+    },
+    {
+      "id": "B-14",
+      "fase": "B",
+      "dimension": "database",
+      "title": "¿Faltan índices en cards.column_id y cards.assignee_id?",
+      "severity": null,
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "UNVERIFIABLE",
+      "not_verifiable_subtype": "NV_CREDENTIALS",
+      "evidence_source": null,
+      "evidence": [],
+      "recommended_external_action": "EXPLAIN ANALYZE de las consultas por column_id (server/routes/cards.js:141,547,549; columns.js:198) con tabla de tamaño real.",
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0,
+        "status": "OPEN"
+      },
+      "regression_status": "UNCHANGED",
+      "previous_id": "B-14",
+      "priority": null,
+      "sprint": null,
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-NV-01",
+      "fase": "B",
+      "dimension": "security",
+      "title": "¿Ve el limitador por IP la IP real tras Cloudflare → Netlify → Railway (trust proxy 1)?",
+      "severity": null,
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "UNVERIFIABLE",
+      "not_verifiable_subtype": "NV_RUNTIME",
+      "evidence_source": null,
+      "evidence": [],
+      "recommended_external_action": "Registrar temporalmente req.ip y X-Forwarded-For en una petición real.",
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": null,
+      "sprint": null,
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "B-NV-02",
+      "fase": "B",
+      "dimension": "database",
+      "title": "Plan de Supabase, PITR y copias nativas",
+      "severity": null,
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "UNVERIFIABLE",
+      "not_verifiable_subtype": "NV_DASHBOARD",
+      "evidence_source": null,
+      "evidence": [],
+      "recommended_external_action": "Panel de Supabase → Database → Backups.",
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": null,
+      "sprint": null,
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-B.md"
+    },
+    {
+      "id": "C-NV-01",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "Contrato que cubre el uso de Claude (condiciones comerciales con DPA o plan de consumo)",
+      "severity": null,
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "UNVERIFIABLE",
+      "not_verifiable_subtype": "NV_DASHBOARD",
+      "evidence_source": null,
+      "evidence": [],
+      "recommended_external_action": "Consola de Anthropic / condiciones del plan; archivar el DPA en DPA-registry.md.",
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": null,
+      "sprint": null,
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "C-NV-02",
+      "fase": "C",
+      "dimension": "legal",
+      "title": "Retención real de los registros de Railway y región real de Supabase",
+      "severity": null,
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "UNVERIFIABLE",
+      "not_verifiable_subtype": "NV_DASHBOARD",
+      "evidence_source": null,
+      "evidence": [],
+      "recommended_external_action": "Panel de Railway (retención de logs) y de Supabase (región).",
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": null,
+      "sprint": null,
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-C.md"
+    },
+    {
+      "id": "D-NV-01",
+      "fase": "D",
+      "dimension": "observability",
+      "title": "Reglas de alerta de Sentry, destinatarios, y si Netlify espera a CI",
+      "severity": null,
+      "severity_score": null,
+      "severity_metadata": {},
+      "confidence_tier": "UNVERIFIABLE",
+      "not_verifiable_subtype": "NV_DASHBOARD",
+      "evidence_source": null,
+      "evidence": [],
+      "recommended_external_action": "Sentry → Alerts; Netlify → Build & deploy.",
+      "remediation": {
+        "playbook": null,
+        "effort_hours": 0,
+        "status": "OPEN"
+      },
+      "regression_status": "NEW",
+      "previous_id": null,
+      "priority": null,
+      "sprint": null,
+      "detail_doc": "docs/audits/2026-09-24-mariana/audit-D.md"
+    }
+  ],
+  "external_resources_required": [
+    {
+      "type": "legal",
+      "description": "Revisión de C-19 (encargado no declarado) y C-09 (DPIA) antes del primer cliente externo"
+    },
+    {
+      "type": "tooling",
+      "description": "axe-core + lector de pantalla para confirmar A-26/A-27/A-28 en ejecución",
+      "estimated_cost_eur": 0
+    }
+  ],
+  "working_drafts_superseded": [
+    "notas-fase-A.md",
+    "notas-fase-B.md (cortada a mitad de frase en la sesión anterior)"
+  ]
+}
