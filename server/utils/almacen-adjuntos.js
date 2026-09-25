@@ -91,8 +91,19 @@ function crearAlmacen({ cliente = null, bucket = process.env.R2_BUCKET } = {}) {
         return { cuerpo: r.Body, tipo: r.ContentType, tamano: r.ContentLength };
       } catch (err) {
         const codigo = err?.name || err?.Code;
-        const estado = err?.$metadata?.httpStatusCode;
-        if (codigo === 'NoSuchKey' || codigo === 'NotFound' || estado === 404) return null;
+
+        // SOLO el objeto ausente se traduce a «no está». **`NoSuchBucket` también
+        // es un 404**, y tratarlo como ausencia invierte el defecto de esta
+        // tarjeta con el signo cambiado: una errata en `R2_BUCKET` haría que
+        // TODOS los adjuntos —intactos— contestaran «esto se perdió y no vuelve»,
+        // y encima callaría el diagnóstico, porque la aplicación ya habría dado
+        // una explicación convincente. Lo encontró el vigilante.
+        //
+        // La asimetría es deliberada: equivocarse hacia el 500 cuesta un susto y
+        // un vistazo a los registros; equivocarse hacia el 410 hace creer a
+        // alguien que su trabajo desapareció. Por eso NO se mira el código de
+        // estado: se miran los dos nombres que significan «esa clave no existe».
+        if (codigo === 'NoSuchKey' || codigo === 'NotFound') return null;
         throw err;
       }
     },

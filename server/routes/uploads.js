@@ -153,6 +153,12 @@ function nombreValido(filename) {
 }
 
 // DELETE /api/uploads/:filename
+//
+// ⚠️ CAMBIO DE COMPORTAMIENTO, dicho para que nadie lo descubra por sorpresa:
+// antes, con el disco, borrar un fichero que no existía daba **404**. R2 contesta
+// éxito al borrar una clave ausente, así que ahora da **200**. El borrado es
+// idempotente. Lo señaló el vigilante al revisar `4f4e6e2b`; lo fija
+// `server/tests/almacen-adjuntos.test.js`.
 const deleteFile = async (req, res, next) => {
   const { filename } = req.params;
   if (!nombreValido(filename)) {
