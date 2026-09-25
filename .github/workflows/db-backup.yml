@@ -9,6 +9,13 @@ on:
   schedule:
     - cron: '17 3 * * *'   # 03:17 UTC daily (off-peak Madrid/Santiago)
   workflow_dispatch:        # trigger manual desde Actions UI
+    inputs:
+      probar_borrado:
+        description: >-
+          Comprobar que la llave puede BORRAR (sube un objeto de prueba y lo
+          borra). Apagado por defecto. Se enciende al rotar la credencial.
+        type: boolean
+        default: false
 
 # Sin cancelación: aquí no hay corrida obsoleta que tirar — hay una tarea que o
 # se hace o no se hace. El grupo solo evita que dos se pisen.
@@ -106,6 +113,59 @@ jobs:
       #
       # ⚠️ Los dos `CHECKSUM` no son adorno: las versiones recientes de la CLI v2
       # mandan checksums que R2 rechaza. Aviso del CRM, que se lo encontró antes.
+      # ⚠️ EL BORRADO ES EL PRIVILEGIO QUE NADIE COMPRUEBA, y por un motivo
+      # estructural: la retención solo llama a `delete-object` cuando hay algo
+      # de más de 30 días. Un cubo joven —o recién rotada la credencial— da
+      # `Pruned 0 object(s)` y la corrida sale VERDE sin haber borrado nada.
+      #
+      # Pasó tal cual: la corrida 36176195894, la que sirvió de evidencia para
+      # adoptar la llave acotada, dijo «Pruned 0» — subió, confirmó con
+      # `head-object` y listó, pero `delete-object` no se ejecutó ni una vez.
+      # Con eso en verde se iba a retirar la llave Admin.
+      #
+      # Qué pasa si la llave no puede borrar: la retención falla en silencio
+      # durante 30 días —no hay nada que borrar todavía—, y a partir de ahí las
+      # copias se acumulan hasta llenar los 10 GB del plan gratuito. Entonces
+      # empiezan a fallar las SUBIDAS, y el día que haga falta restaurar no hay
+      # copia de hoy. La avería no se parece a su causa.
+      #
+      # Por eso esto existe y no se ejercita en la copia diaria: apagado por
+      # defecto, se enciende a mano al rotar la credencial. El objeto de prueba
+      # lleva su propio nombre y NO cuadra con `kanban_*`, así que ni lo toca la
+      # retención ni se confunde con una copia.
+      - name: Comprobar que la llave puede BORRAR (solo a mano)
+        if: inputs.probar_borrado
+        env:
+          AWS_ACCESS_KEY_ID:                 ${{ secrets.R2_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY:             ${{ secrets.R2_S3_SECRET_ACCESS_KEY }}
+          AWS_REQUEST_CHECKSUM_CALCULATION:  when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION:  when_required
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          R2_BUCKET:     ${{ secrets.R2_BUCKET }}
+        run: |
+          set -euo pipefail
+          ENDPOINT="https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          KEY="prueba-de-borrado-${GITHUB_RUN_ID}.txt"
+
+          echo "sonda de la corrida ${GITHUB_RUN_ID}" > /tmp/sonda.txt
+          aws s3 cp /tmp/sonda.txt "s3://${R2_BUCKET}/${KEY}" \
+            --endpoint-url "$ENDPOINT" --region auto --content-type text/plain
+
+          aws s3api delete-object \
+            --bucket "${R2_BUCKET}" --key "$KEY" \
+            --endpoint-url "$ENDPOINT" --region auto
+
+          # Y que de verdad NO está: un `delete-object` que sale con 0 sobre un
+          # objeto que sigue ahí es exactamente el verde que este paso viene a
+          # desmontar. Se exige que `head-object` FALLE.
+          if aws s3api head-object \
+               --bucket "${R2_BUCKET}" --key "$KEY" \
+               --endpoint-url "$ENDPOINT" --region auto 2>/dev/null; then
+            echo "::error::El objeto de prueba SIGUE en el cubo tras borrarlo: la llave no borra."
+            exit 1
+          fi
+          echo "Borrado comprobado: ${KEY} subido, borrado y ya no responde."
+
       - name: Subir a Cloudflare R2 (API S3, llave acotada)
         env:
           AWS_ACCESS_KEY_ID:                 ${{ secrets.R2_S3_ACCESS_KEY_ID }}
