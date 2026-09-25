@@ -10,7 +10,8 @@
 
 | Clave | Vive en | Próxima rotación | Quién la usa |
 |---|---|---|---|
-| `aglaya-kanban-r2-bootstrap` (Cloudflare User API Token) | `.env` local + GitHub Secret `R2_ACCESS_KEY_ID` | ✅ extendido a **May 2027** (deadline Jun 2 2026 resuelto) | Workflow `db-backup.yml` |
+| **Llave S3 de R2 del bucket de copias** (`Object Read & Write`, acotada) | GitHub Secrets `R2_S3_ACCESS_KEY_ID` + `R2_S3_SECRET_ACCESS_KEY` | Anual o ad-hoc | Workflow `db-backup.yml` |
+| **Llave S3 de R2 del bucket de adjuntos** (`Object Read & Write`, acotada) | Variables de Railway del servicio `web` | Anual o ad-hoc | El servidor, para guardar y servir adjuntos (tarjeta `4f4e6e2b`) |
 | `JWT_SECRET` | Railway env vars + `.env` local | Anual (próxima ~2027-05) | Server JWT signing/verifying |
 | `SUPABASE_SERVICE_ROLE_KEY` | Railway env vars + `.env` local | Anual o ad-hoc | Server admin operations |
 | `SUPABASE_DATABASE_PASSWORD` | Railway env vars + `.env` local + GitHub Secret `DATABASE_URL` | Anual o ad-hoc | Server DDL via psql, GH backup workflow |
@@ -76,11 +77,24 @@
    ```
 7. Una vez verde, borrar token viejo en dashboard.
 
-### Opción C — Migrar a S3-compat token (long-term)
+### ✅ Opción C — La llave S3 acotada, que es la que se usa hoy
 
-Cloudflare R2 también ofrece tokens compatibles con S3 SDK (32-char access key + 64-char secret). Sin embargo, durante audit Mariana descubrimos que **los tokens generados por R2 Dashboard ("Account API Tokens" y "User API Tokens") usan formato `cfut_*`/`cfat_*` incompatible con S3 SDKs** que esperan 32-char keys. Si querés migrar a S3-compat, requiere coordinación con Cloudflare support o un patrón distinto (no documentado aquí — fuera de scope quick-win audit).
+⚠️ **Aquí decía que esto no se podía** —«requiere coordinación con Cloudflare support o un patrón distinto»—, porque los tokens del panel salen con formato `cfut_`/`cfat_`. **Era falso, y mandó a esta casa por el camino caro.** R2 **sí** emite credenciales de tipo S3, y **se pueden acotar a un solo bucket**: se crean en *R2 → Manage R2 API Tokens*, que es otro sitio del panel. Medido el 25-sep-2026: el servidor sirve los adjuntos con una de ellas.
 
-Por ahora, mantener native R2 API (cfut_ Bearer auth) en workflow `db-backup.yml`.
+**Por qué importa más que un detalle de formato.** La API REST de Cloudflare **rechaza las llaves acotadas** (403, medido por el CRM), así que mientras las copias fueran por ahí hacía falta una llave **Admin sobre todos los buckets** — con poder para **borrar buckets enteros**. Por la vía S3, la copia tiene exactamente el permiso que necesita y ni uno más (tarjeta `612d2b83`).
+
+**Cómo se crea y se rota:**
+
+1. Panel de Cloudflare → **R2** → **Manage R2 API Tokens** → crear una nueva.
+2. Permiso **Object Read & Write**, y en *Specify bucket(s)* **solo el bucket que toque** — el de copias para el workflow, el de adjuntos para el servidor. **No** uses *Admin Read & Write*: alcanza todos los buckets y permite borrarlos.
+3. El panel enseña **dos piezas** (identificador y clave), y solo una vez.
+4. Guárdalas en los dos ajustes del repositorio: `R2_S3_ACCESS_KEY_ID` y `R2_S3_SECRET_ACCESS_KEY`, con `gh secret set`.
+5. Verifica con una corrida de verdad que llegue **hasta el borrado de las viejas**:
+   ```bash
+   gh workflow run db-backup.yml --ref main -R ibaifernandez/aglaya-kanban-desk
+   gh run watch --exit-status
+   ```
+6. **Solo entonces** borra la llave vieja en el panel. Mientras no haya una copia nueva arriba, la vieja se queda: la copia es la única red que hay bajo esta nave.
 
 ---
 

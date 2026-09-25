@@ -55,11 +55,11 @@ jobs:
           echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
           /usr/lib/postgresql/17/bin/pg_dump --version
 
+      # Este paso NO toca R2: llevaba las tres credenciales del almacén sin
+      # usarlas. Un secreto en el entorno de un paso que no lo necesita es
+      # superficie regalada.
       - name: pg_dump
         env:
-          CF_API_TOKEN:  ${{ secrets.R2_ACCESS_KEY_ID }}
-          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          R2_BUCKET:     ${{ secrets.R2_BUCKET }}
           DATABASE_URL:  ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
@@ -91,62 +91,74 @@ jobs:
       - name: Comprobar que el volcado tiene contenido, ANTES de subirlo
         run: bash scripts/verificar-volcado.sh "${DUMP_FILE}"
 
-      - name: Subir a Cloudflare R2
+      # ── Por qué esto va por la API S3 y no por la de Cloudflare ─────────────
+      #
+      # Iba por la API REST de Cloudflare (`api.cloudflare.com/…/r2/buckets/…`),
+      # que **rechaza las llaves acotadas**: con un token `Object Read & Write`
+      # acotado a un bucket contesta 403 (medido por el CRM, corrida 36119100607),
+      # así que la llave que hacía falta era **Admin Read & Write sobre TODOS los
+      # buckets** — incluido el de adjuntos, y Admin permite **borrar buckets
+      # enteros**. Una copia de seguridad no necesita ese poder (tarjeta `612d2b83`).
+      #
+      # La API S3 de R2 sí acepta la llave acotada, y las tres operaciones que
+      # este workflow necesita —subir, listar y borrar objetos viejos— caben en
+      # `Object Read & Write` sobre un solo bucket.
+      #
+      # ⚠️ Los dos `CHECKSUM` no son adorno: las versiones recientes de la CLI v2
+      # mandan checksums que R2 rechaza. Aviso del CRM, que se lo encontró antes.
+      - name: Subir a Cloudflare R2 (API S3, llave acotada)
         env:
-          CF_API_TOKEN:  ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_ACCESS_KEY_ID:                 ${{ secrets.R2_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY:             ${{ secrets.R2_S3_SECRET_ACCESS_KEY }}
+          AWS_REQUEST_CHECKSUM_CALCULATION:  when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION:  when_required
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           R2_BUCKET:     ${{ secrets.R2_BUCKET }}
         run: |
           set -euo pipefail
-          # Upload via R2 native API (NOT S3-compatible). Token type: cfut_/cfat_.
-          HTTP_CODE=$(curl -sS -o /tmp/upload_resp.txt -w "%{http_code}" \
-            -X PUT \
-            -H "Authorization: Bearer ${CF_API_TOKEN}" \
-            -H "Content-Type: application/gzip" \
-            --data-binary "@${DUMP_FILE}" \
-            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/r2/buckets/${R2_BUCKET}/objects/${DUMP_FILE}")
-          echo "HTTP $HTTP_CODE"
-          cat /tmp/upload_resp.txt
-          echo ""
-          [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ] || exit 1
+          aws s3 cp "${DUMP_FILE}" "s3://${R2_BUCKET}/${DUMP_FILE}" \
+            --endpoint-url "https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com" \
+            --region auto \
+            --content-type application/gzip
+
+          # Que el objeto está ARRIBA, preguntándoselo al almacén — no dando por
+          # bueno que el mandato anterior saliera con 0. Es la misma regla que el
+          # paso de «comprobar que el volcado tiene contenido» de más arriba.
+          aws s3api head-object \
+            --bucket "${R2_BUCKET}" --key "${DUMP_FILE}" \
+            --endpoint-url "https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com" \
+            --region auto
 
       - name: Retention — keep last 30 days
         env:
-          CF_API_TOKEN:  ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_ACCESS_KEY_ID:                 ${{ secrets.R2_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY:             ${{ secrets.R2_S3_SECRET_ACCESS_KEY }}
+          AWS_REQUEST_CHECKSUM_CALCULATION:  when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION:  when_required
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           R2_BUCKET:     ${{ secrets.R2_BUCKET }}
         run: |
           set -euo pipefail
-          # List + prune objects older than 30 days via R2 native API
-          CUTOFF=$(date -u -d "30 days ago" +%s)
-          NEXT_CURSOR=""
+          ENDPOINT="https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          CUTOFF=$(date -u -d "30 days ago" +%Y-%m-%dT%H:%M:%SZ)
+
+          # El paginado lo hace la propia CLI; la comparación de fechas, el
+          # servidor. La versión anterior paginaba a mano y comparaba en python.
+          aws s3api list-objects-v2 \
+            --bucket "${R2_BUCKET}" \
+            --endpoint-url "$ENDPOINT" --region auto \
+            --query "Contents[?LastModified<='${CUTOFF}'].Key" --output text \
+            | tr '\t' '\n' | sed '/^None$/d;/^$/d' > /tmp/to_prune.txt
+
           deleted=0
-          while true; do
-            URL="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/r2/buckets/${R2_BUCKET}/objects?per_page=1000"
-            [ -n "$NEXT_CURSOR" ] && URL="${URL}&cursor=${NEXT_CURSOR}"
-            RESP=$(curl -sS -H "Authorization: Bearer ${CF_API_TOKEN}" "$URL")
-            echo "$RESP" | python3 -c "
-          import json, sys, datetime
-          d = json.load(sys.stdin)
-          cutoff = $CUTOFF
-          for o in d.get('result', []):
-              # last_modified format: 2026-05-27T20:24:11.760Z
-              ts = datetime.datetime.fromisoformat(o['last_modified'].replace('Z','+00:00')).timestamp()
-              if ts < cutoff:
-                  print(o['key'])
-          " > /tmp/to_prune.txt
-            while IFS= read -r KEY; do
-              [ -z "$KEY" ] && continue
-              echo "Pruning $KEY"
-              curl -sS -X DELETE \
-                -H "Authorization: Bearer ${CF_API_TOKEN}" \
-                "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/r2/buckets/${R2_BUCKET}/objects/${KEY}" \
-                >/dev/null
-              deleted=$((deleted+1))
-            done < /tmp/to_prune.txt
-            NEXT_CURSOR=$(echo "$RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('result_info',{}).get('cursor') or '')")
-            [ -z "$NEXT_CURSOR" ] && break
-          done
+          while IFS= read -r KEY; do
+            [ -z "$KEY" ] && continue
+            echo "Pruning $KEY"
+            aws s3api delete-object \
+              --bucket "${R2_BUCKET}" --key "$KEY" \
+              --endpoint-url "$ENDPOINT" --region auto >/dev/null
+            deleted=$((deleted+1))
+          done < /tmp/to_prune.txt
           echo "Pruned $deleted object(s) older than 30 days"
 
       # El aviso de fallo era un `::error::` en el log y un TODO. O sea que la
@@ -155,7 +167,8 @@ jobs:
       #
       # POR QUÉ UNA INCIDENCIA Y NO UN CORREO O UNA TARJETA. Medido: los secretos
       # de este repo son CF_ACCOUNT_ID, DATABASE_URL, DIGEST_CRON_SECRET,
-      # R2_ACCESS_KEY_ID, R2_BUCKET y RAILWAY_SERVER_URL. **No hay TASK_SECRET ni
+      # R2_S3_ACCESS_KEY_ID, R2_S3_SECRET_ACCESS_KEY, R2_BUCKET y
+      # RAILWAY_SERVER_URL. **No hay TASK_SECRET ni
       # RESEND_API_KEY**, así que ni se puede clavar una tarjeta en el riel ni
       # mandar correo. `GITHUB_TOKEN` sí está siempre, y una incidencia es lo
       # único durable que se puede abrir sin pedir un secreto nuevo.
@@ -198,8 +211,10 @@ jobs:
             "1. El log de la corrida — el paso que falló lo dice." \
             "2. Si falló al **verificar el volcado**: la copia se abortó a propósito antes" \
             "   de subir un fichero vacío. El problema está en la base o en pg_dump, no en R2." \
-            "3. Si falló al **subir**: mira el token de Cloudflare (R2_ACCESS_KEY_ID), que" \
-            "   tiene fecha de caducidad. El procedimiento vive en docs/runbooks/key-rotation.md." \
+            "3. Si falló al **subir**: mira la llave S3 de R2 (R2_S3_ACCESS_KEY_ID y" \
+            "   R2_S3_SECRET_ACCESS_KEY), que tiene fecha de caducidad. El procedimiento vive" \
+            "   en docs/runbooks/key-rotation.md. Es una llave ACOTADA al bucket de copias:" \
+            "   si el fallo dice que no puede crear o borrar buckets, eso es correcto." \
             "" \
             "Cierra esta incidencia cuando haya una copia correcta. Si vuelve a fallar sin" \
             "cerrarla, se añade un comentario aquí en vez de abrir otra: una racha tiene que" \
