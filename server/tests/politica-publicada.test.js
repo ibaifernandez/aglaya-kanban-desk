@@ -375,6 +375,31 @@ describe('el markdown fuente dice lo mismo que el HTML', () => {
       'la página servida': filas(leer(HTML), '<h2>7. Tus Derechos', '<h2>8.', true),
     };
 
+    // ── Lo NEGATIVO se comprueba sobre la SECCIÓN ENTERA, sin trocear ────────
+    //
+    // Tarjeta `19c44715`. Trocear servía para exigir que cada fila diga cómo se
+    // ejerce su derecho; **para prohibir una frase, trocear abre un agujero**:
+    // una fila-nota —«los dos derechos anteriores tienen UI disponible en tu
+    // perfil»— no nombra ninguno de los dos, así que ningún trozo la contenía y
+    // pasaba en verde. Lo encontró el vigilante después de fusionar `1f1eb472`.
+    //
+    // Regla que queda: **lo positivo, por fila; lo prohibido, por sección.**
+    const secciones = {
+      'el markdown': md.slice(md.indexOf('## 7. Tus Derechos'), md.indexOf('## 8.')),
+      'la página servida': leer(HTML).slice(leer(HTML).indexOf('<h2>7. Tus Derechos'), leer(HTML).indexOf('<h2>8.')),
+    };
+
+    for (const [donde, seccion] of Object.entries(secciones)) {
+      if (!clienteExporta && !clienteBorraCuenta) {
+        expect(`${donde} → ${seccion}`).not.toMatch(/UI disponible/i);
+      }
+    }
+
+    // ⚠️ Y el historial NO entra en esa prohibición, a propósito: la entrada 1.6
+    // CITA la frase para desmentirla, y esa cita es lo que conserva la lección.
+    // Por eso la prohibición se acota a la sección 7 y no al documento entero.
+    expect(md).toMatch(/Hasta la 1\.5, la sección 7\.1 decía/);
+
     for (const [donde, fila] of Object.entries(fuentes)) {
       // El nombre de la fuente va DENTRO del valor comprobado, no como mensaje:
       // `expect` de jest no acepta mensaje —eso es vitest—, y sin él un rojo no
