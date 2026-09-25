@@ -407,5 +407,39 @@ class AnadirALaDescripcion(RielTestCase):
         self.assertEqual(self.writes, [])
 
 
+class MiembrosSinCorreo(RielTestCase):
+    """Tarjeta `ed8910e2`. Todo lo que devuelve el riel pasa por el modelo.
+
+    El correo de una persona no hace falta para nada de lo que el riel hace
+    —`assignee` acepta el `user_id`, que esta misma herramienta devuelve—, así
+    que se deja de mandar. Lo que se fija aquí no es que el campo no exista, sino
+    que **la dirección no salga por ninguna parte**: devolverla dentro de `name`,
+    o en una clave nueva, sería el mismo dato con otro nombre.
+    """
+
+    def _fake_request(self, method, path, json=None, **_kw):
+        self.calls.append((method, path, json))
+        if method == "GET" and path.endswith("/members"):
+            return [
+                {"role": "owner",  "user": {"id": "u-1", "name": "Alguien", "email": "alguien@aglaya.biz"}},
+                {"role": "member", "user": {"id": "u-2", "name": "Otra",    "email": "otra@aglaya.biz"}},
+            ]
+        return super()._fake_request(method, path, json, **_kw)
+
+    def test_devuelve_id_nombre_y_papel(self):
+        out = server.list_members(workspace_id="ws-1")
+        self.assertEqual(out["count"], 2)
+        self.assertEqual(
+            sorted(out["members"][0].keys()),
+            ["name", "role", "user_id"],
+        )
+        self.assertEqual(out["members"][0]["user_id"], "u-1")
+        self.assertEqual(out["members"][0]["role"], "owner")
+
+    def test_ninguna_direccion_sale_por_ninguna_parte(self):
+        out = server.list_members(workspace_id="ws-1")
+        self.assertNotIn("@", repr(out))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

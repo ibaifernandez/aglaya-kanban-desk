@@ -686,10 +686,20 @@ def update_workspace(
 # ---------------------------------------------------------------------------
 @mcp.tool()
 def list_members(workspace_id: str) -> dict[str, Any]:
-    """List members of a workspace. Each: user_id, name, email, role."""
+    """List members of a workspace. Each: user_id, name, role.
+
+    NO devuelve el correo, y es deliberado (tarjeta `ed8910e2`): todo lo que pasa
+    por aquí pasa por el modelo, y la dirección de una persona no hace falta para
+    nada de lo que el riel hace. `assignee` acepta el `user_id` que esta misma
+    herramienta devuelve, así que asignar sigue funcionando igual.
+
+    Medido antes de quitarlo: `_resolve_user` acepta email, nombre o id, y el id
+    es el único de los tres que no es un dato personal. Lo vigila
+    `test_server.py`.
+    """
     rows = _request("GET", f"/workspaces/{workspace_id}/members") or []
     items = [{"user_id": (m.get("user") or {}).get("id"), "name": (m.get("user") or {}).get("name"),
-              "email": (m.get("user") or {}).get("email"), "role": m.get("role")} for m in rows]
+              "role": m.get("role")} for m in rows]
     return {"workspace_id": workspace_id, "count": len(items), "members": items}
 
 

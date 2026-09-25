@@ -1,7 +1,7 @@
 # Sub-procesadores activos
 
 **Marco legal:** RGPD Art. 28(2) — el encargado del tratamiento no podrá contratar a otro encargado sin autorización del responsable + obligación de informar sub-procesadores
-**Última actualización:** 2026-09-13 (v1.2 — se declara Sentry, activo desde mayo sin declarar)
+**Última actualización:** 2026-09-25 (v1.3 — se razona por qué Anthropic **no** figura como encargado)
 
 > Esta lista debe mantenerse actualizada y sincronizada con la política privacidad kanban. Cambios requieren notificación al titular según contrato.
 
@@ -95,6 +95,69 @@ Política aglaya.biz menciona los siguientes, pero kanban NO los usa:
 - **MailerLite** — marketing emails aglaya.biz only
 - **hCaptcha** — anti-bot aglaya.biz forms only
 - **CRM AGLAYA** — sistema interno separado, sin sync con kanban
+
+---
+
+## Anthropic: por qué NO figura como encargado
+
+**No es un olvido, y por eso se escribe.** El riel de comandas (`kanban-mcp`) lo
+operan sesiones de Claude, así que **contenido de tarjetas pasa por el modelo de
+Anthropic** cada vez que una sesión opera el kanban. La pregunta legítima —y la
+que levantó la tarjeta `ed8910e2`— es por qué no está en la tabla de arriba, al
+lado de Supabase o Sentry.
+
+**Porque la figura depende de quién contrata qué, y aquí no hay contrato de
+AGLAYA.** Esas sesiones corren bajo la **suscripción personal del Operador**, no
+bajo un acuerdo comercial de la empresa. Y las dos condiciones de Anthropic dicen
+cosas opuestas:
+
+| | **Commercial Terms** (API, Team, Enterprise) | **Consumer Terms** — *las que aplican aquí* |
+|---|---|---|
+| Papel de Anthropic | encargado; el DPA se incorpora por referencia: *«Data submitted through the Services will be processed in accordance with the Anthropic Data Processing Addendum ("DPA"), which is incorporated into these Terms by reference»* | trata para fines propios; **no hay relación encargado-responsable con AGLAYA** |
+| Entrenamiento | *«Anthropic may not train models on Customer Content from Services»* | *«We may use Materials to … develop other products and services, including training our models, unless you opt out of training through your account settings»* |
+
+Fuentes: [Commercial Terms](https://www.anthropic.com/legal/commercial-terms) ·
+[Consumer Terms](https://www.anthropic.com/legal/consumer-terms) · leídas el
+25-sep-2026.
+
+**Consecuencia, dicha sin adornos:** no hay encargado que declarar, no hay DPA
+que registrar y no hay transferencia internacional que documentar por esta vía
+—**y tampoco hay garantías contractuales de AGLAYA sobre ese tratamiento**. Lo
+que hay es una decisión de herramienta del Operador, tomada sobre su propia
+cuenta.
+
+**Dos hechos con fecha, que son los que cambian el riesgo:**
+
+- **El ajuste de entrenamiento estaba activado, y el Operador lo desactivó el
+  25-sep-2026.** Lo anterior a esa fecha ya ocurrió: no se persigue, se dice.
+- **Desde el 25-sep-2026 el riel no manda direcciones de correo** al modelo:
+  `list_members` devuelve `user_id`, `name` y `role` (tarjeta `ed8910e2`,
+  contrato del riel 4.0.0). Lo que sigue pasando es el **contenido de las
+  tarjetas**: títulos, descripciones y comentarios.
+
+### ⚠️ Condición de reapertura
+
+**1 · Si estas sesiones pasan a una suscripción de empresa** —Team, Enterprise o
+API—, la figura cambia: Anthropic **sí** sería encargado, con DPA incorporado y
+transferencia a EE. UU. que documentar. Ese día, esta sección se sustituye por
+una fila en la tabla de arriba y una entrada en `DPA-registry.md`.
+
+**2 · El día que se dé de alta la primera cuenta de cliente o colaborador** —hoy
+solo hay tres: el Operador, Món y el riel, medido en `public.users` el
+25-sep-2026—, **hay que decirlo en la política publicada**.
+
+Por qué no se dice ya, y es la parte que conviene entender antes de cambiarla:
+la política afirma «compartimos datos con los siguientes encargados» y lista
+seis, lo que **deja impresión de completitud**. Un titular que la lea no sabría
+que el contenido de sus tarjetas pasa por un modelo. Hoy eso **no engaña a
+ningún lector real**: los dos únicos titulares son el Operador y Món, y los dos
+saben que operan la nave con Claude, porque es como trabajan. Una frase pública
+dirigida a dos personas que ya lo saben no informa: adorna.
+
+Con una cuenta ajena delante, esa misma frase **sí** engaña. *(Es el mismo
+gatillo que llevan `ab86481d` y `0092a0c0` — «requisito previo a la primera
+cuenta de cliente»—, escrito igual a propósito: quien dé ese alta tiene que
+encontrar las tres.)*
 
 ---
 

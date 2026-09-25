@@ -94,7 +94,8 @@ def missing_assignee_error(assignee):
             "No hay default por diseño — una tarjeta sin responsable no la coge "
             "nadie, y no falla: envejece pareciendo trabajo pendiente.\n"
             "Acepta email, nombre exacto o id. Los usuarios vivos los da "
-            "list_members en este mismo MCP."
+            "list_members en este mismo MCP, que devuelve el id — no el correo, "
+            "y a propósito: el id basta para asignar y no es un dato personal."
         )
     }
 
