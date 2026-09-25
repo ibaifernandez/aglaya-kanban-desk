@@ -1,0 +1,6 @@
+Fixed
+
+- **La copia podía adoptar una llave incapaz de borrar y salir verde igual.** Tarjeta `612d2b83`, lateral medido al cerrarla.
+  - La retención solo llama a `delete-object` cuando hay algo de más de **30 días**. Con el cubo joven, la corrida dice `Pruned 0 object(s)` y **sale verde sin haber borrado nada**. Pasó tal cual: la corrida `36176195894` —la evidencia con la que se iba a retirar la llave Admin— subió, confirmó con `head-object` y listó, pero **`delete-object` no se ejecutó ni una vez**.
+  - **Y la avería no se parece a su causa.** Una llave que no borra deja la retención fallando en silencio 30 días —no hay nada que borrar todavía—; luego las copias se acumulan hasta llenar los 10 GB del plan gratuito, y lo que empieza a fallar son las **subidas**. El día que haga falta restaurar, no hay copia de hoy.
+  - Entra un paso que lo comprueba de frente: sube un objeto de prueba, lo borra, **y exige que `head-object` falle** — un borrado que sale con 0 sobre un objeto que sigue ahí es justo el verde que esto desmonta. Va **apagado por defecto** (`workflow_dispatch` con `probar_borrado`), porque la copia diaria no tiene por qué escribir sondas: se enciende al rotar la credencial, que es cuando la pregunta existe. El nombre de la sonda no cuadra con `kanban_*`, así que ni la toca la retención ni se confunde con una copia.
