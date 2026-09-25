@@ -152,7 +152,7 @@ jobs:
             --endpoint-url "$ENDPOINT" --region auto --content-type text/plain
 
           aws s3api delete-object \
-            --bucket "${R2_BUCKET}" --key "${KEY}.QUE-NO-EXISTE" \
+            --bucket "${R2_BUCKET}" --key "$KEY" \
             --endpoint-url "$ENDPOINT" --region auto
 
           # Y que de verdad NO está: un `delete-object` que sale con 0 sobre un
