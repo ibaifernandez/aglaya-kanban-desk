@@ -160,6 +160,40 @@ medido o la medida.
 
 ---
 
+## Retención automática de datos — esperando su disparador *(2026-09-12 · decidido · NO se construye todavía)*
+
+> **Esto no está en cola, y es a propósito.** Es lo que hay que leer **el día que entre
+> el primer tercero**, para no volver a derivarlo ni —peor— construirlo antes de tiempo.
+
+**De dónde viene.** El 12-sep-2026 el Operador decidió que la política publicada
+**dejara de prometer** supresión automática y declarara la verdad: la supresión es **a
+petición**. La promesa anterior —tarjetas archivadas a 24 meses, notificaciones leídas a
+90 días— **no tenía mecanismo detrás y nunca ocurrió** (tarjeta `0779da47`). Lo que se
+decidió no fue «esto no se hace»: fue «esto no se hace **todavía**, y mientras no se haga
+**no se promete**». La decisión la custodia la tarjeta `9167d685`; aquí vive para que se
+encuentre sin abrirla.
+
+**El disparador, y es el único.** El día que esta nave se ofrezca a un tercero —cliente,
+prueba piloto, o cualquier uso en que **el titular de los datos no sea AGLAYA**—. Ese día
+«retención automática configurable» deja de ser sobreconstrucción y pasa a requisito: es
+lo que pregunta un cliente y lo que una auditoría pide enseñar. Hoy no se ha disparado.
+
+**Las cuatro piezas**, enumeradas para que quien llegue no las vuelva a derivar:
+
+- [ ] **Campo de fecha de archivado** en el modelo. Hoy no existe
+- [ ] **Tarea periódica de supresión**. Hoy no existe
+- [ ] **Prueba que se ponga ROJA si deja de borrar.** Sin ella, un borrado que se apaga en
+      silencio es **peor que no tenerlo**: la política promete y nadie mira
+- [ ] **Volver a poner la promesa en la política**, esa vez con el mecanismo detrás — y en
+      ese orden, que es justo el que se invirtió la primera vez
+
+⚠️ **El cuidado, escrito antes de que haga falta: borrar de verdad es irreversible.** La
+primera versión de la tarea conviene que **solo informe de qué borraría**, y que se pruebe
+contra datos de prueba antes de tocar producción. Esta nave tiene diez espacios reales con
+trabajo dentro.
+
+---
+
 ## Phase 0 — Limpieza y preparación *(Completada)*
 
 - [x] Backup de `tasks.json` original → `tasks.personal-backup.json`
