@@ -170,8 +170,10 @@ medido o la medida.
 petición**. La promesa anterior —tarjetas archivadas a 24 meses, notificaciones leídas a
 90 días— **no tenía mecanismo detrás y nunca ocurrió** (tarjeta `0779da47`). Lo que se
 decidió no fue «esto no se hace»: fue «esto no se hace **todavía**, y mientras no se haga
-**no se promete**». La decisión la custodia la tarjeta `9167d685`; aquí vive para que se
-encuentre sin abrirla.
+**no se promete**». **La decisión la custodia esta entrada**; `9167d685` es la tarjeta
+donde se tomó, y se nombra por eso: para saber de dónde viene, no para ir a leerla. Esa
+tarjeta ya lleva «ARCHIVAR · » delante y sale de su columna en cuanto se archive — remitir
+a ella sería mandar a quien lea esto a un sitio del que la decisión ya se mudó.
 
 **El disparador, y es el único.** El día que esta nave se ofrezca a un tercero —cliente,
 prueba piloto, o cualquier uso en que **el titular de los datos no sea AGLAYA**—. Ese día
