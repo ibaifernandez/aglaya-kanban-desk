@@ -176,12 +176,18 @@ encuentre sin abrirla.
 **El disparador, y es el único.** El día que esta nave se ofrezca a un tercero —cliente,
 prueba piloto, o cualquier uso en que **el titular de los datos no sea AGLAYA**—. Ese día
 «retención automática configurable» deja de ser sobreconstrucción y pasa a requisito: es
-lo que pregunta un cliente y lo que una auditoría pide enseñar. Hoy no se ha disparado.
+lo que pregunta un cliente y lo que una auditoría pide enseñar.
 
-**Las cuatro piezas**, enumeradas para que quien llegue no las vuelva a derivar:
+**Si ya se disparó o no, esta página no lo sabe y no lo finge:** lo contesta quién usa la
+nave, no un documento. Lo que esta entrada custodia es **qué hacer cuando se dispare**.
 
-- [ ] **Campo de fecha de archivado** en el modelo. Hoy no existe
-- [ ] **Tarea periódica de supresión**. Hoy no existe
+**Las cuatro piezas**, enumeradas para que quien llegue no las vuelva a derivar. Ninguna
+existía cuando se decidió esto, y **si existen hoy se comprueba en su fuente** —el esquema
+en [`docs/schema/supabase-schema.sql`](schema/supabase-schema.sql), las tareas periódicas
+en `.github/workflows/`—, no aquí:
+
+- [ ] **Campo de fecha de archivado** en el modelo
+- [ ] **Tarea periódica de supresión**
 - [ ] **Prueba que se ponga ROJA si deja de borrar.** Sin ella, un borrado que se apaga en
       silencio es **peor que no tenerlo**: la política promete y nadie mira
 - [ ] **Volver a poner la promesa en la política**, esa vez con el mecanismo detrás — y en
@@ -189,8 +195,9 @@ lo que pregunta un cliente y lo que una auditoría pide enseñar. Hoy no se ha d
 
 ⚠️ **El cuidado, escrito antes de que haga falta: borrar de verdad es irreversible.** La
 primera versión de la tarea conviene que **solo informe de qué borraría**, y que se pruebe
-contra datos de prueba antes de tocar producción. Esta nave tiene diez espacios reales con
-trabajo dentro.
+contra datos de prueba antes de tocar producción: lo que hay en producción son **espacios
+reales con trabajo dentro** —cuántos lo custodia la tabla `workspaces`, no esta página; la
+decisión se tomó con diez—.
 
 ---
 
