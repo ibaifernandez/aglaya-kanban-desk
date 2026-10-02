@@ -248,6 +248,75 @@ describe('no se guarda ruido', () => {
   //
   // Lo que la prueba quería fijar sigue vivo y se conserva: **no se guarda ruido**.
   // Cambiar el título no escribe una fila de DESCRIPCIÓN.
+  // ── Y de la descripción, SOLO lo añadido (`fc38e47f`) ─────────────────────
+  //
+  // Lo de arriba fija que se guarda el valor anterior. Esto fija QUÉ se guarda
+  // cuando la edición anterior también fue un añadido: el trozo, no el acta
+  // entera. Es la diferencia entre 43 MB y 18 en el historial de esta nave.
+  it('si la versión anterior es un prefijo, guarda SOLO lo añadido', async () => {
+    __state.historyRows = [{
+      id: 'h-ancla', card_id: 'card-1', field: 'description',
+      old_value: '# Brief original\n', es_sufijo: false, base_id: null,
+      changed_by: 'user-1', changed_at: '2026-08-06T10:00:00Z',
+    }];
+
+    await put({ description: ORIGINAL + '\n\nY un bloque más.' });
+
+    const fila = __state.insertedHistory.find((f) => f.field === 'description');
+    expect(fila.es_sufijo).toBe(true);
+    expect(fila.base_id).toBe('h-ancla');
+    // Lo añadido respecto del ancla, no el acta entera.
+    expect(fila.old_value).toBe(ORIGINAL.slice('# Brief original\n'.length));
+    expect(fila.old_value.length).toBeLessThan(ORIGINAL.length);
+  });
+
+  it('y si NO es un prefijo, guarda el texto entero y no se cuelga de nada', async () => {
+    // La contraprueba. Sin ella, «guardar siempre el sufijo» pasaría el caso de
+    // arriba y corrompería el historial de toda edición que no sea un añadido.
+    __state.historyRows = [{
+      id: 'h-otro', card_id: 'card-1', field: 'description',
+      old_value: 'un texto que no tiene nada que ver', es_sufijo: false, base_id: null,
+      changed_by: 'user-1', changed_at: '2026-08-06T10:00:00Z',
+    }];
+
+    await put({ description: ORIGINAL + ' y algo' });
+
+    const fila = __state.insertedHistory.find((f) => f.field === 'description');
+    expect(fila.es_sufijo).toBe(false);
+    expect(fila.base_id).toBeNull();
+    expect(fila.old_value).toBe(ORIGINAL);
+  });
+
+  it('el historial de OTRA tarjeta no sirve de base: se ancla', async () => {
+    // Si la consulta de la fila previa perdiera su `.eq('card_id', …)`, una
+    // tarjeta colgaría su versión de la de otra — y al reconstruir saldría texto
+    // ajeno dentro de un acta. Peor que perderlo: contenido de otro sitio.
+    __state.historyRows = [{
+      id: 'h-ajena', card_id: 'card-9', field: 'description',
+      old_value: '# Brief original\n', es_sufijo: false, base_id: null,
+      changed_by: 'user-1', changed_at: '2026-08-06T10:00:00Z',
+    }];
+
+    await put({ description: ORIGINAL + '\n\nmás' });
+
+    const fila = __state.insertedHistory.find((f) => f.field === 'description');
+    expect(fila.es_sufijo).toBe(false);
+    expect(fila.base_id).toBeNull();
+  });
+
+  it('un campo que NO es la descripción nunca se encadena', async () => {
+    // Los demás campos son cortos —una prioridad, una fecha—: encadenarlos daría
+    // una cadena frágil a cambio de nada.
+    __state.historyRows = [];
+
+    await put({ title: 'Otro título', priority: 'high' });
+
+    for (const f of __state.insertedHistory.filter((x) => x.field !== 'description')) {
+      expect(f.es_sufijo).toBeUndefined();
+      expect(f.base_id).toBeUndefined();
+    }
+  });
+
   it('cambiar el título no escribe una fila de descripción', async () => {
     await put({ title: 'Otro título' });
     const deDescripcion = __state.insertedHistory.filter((f) => f.field === 'description');
@@ -331,6 +400,44 @@ describe('GET /api/cards/:id/history — el historial se puede leer', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(res.body.data[0].oldValue).toBe('high');
+    expect(res.body.data[0].description).toBeNull();
+  });
+
+  // ── La lectura devuelve la versión ENTERA, no el trozo (`fc38e47f`) ───────
+  it('una fila guardada como trozo se lee con el texto completo', async () => {
+    // Quien deshace pega de vuelta lo que lee. Si esto devolviera ' y lo añadido'
+    // en vez del acta entera, deshacer **borraría el acta** y dejaría tres
+    // palabras: pérdida total con cara de éxito.
+    __state.historyRows = [
+      { id: 'h-1', card_id: 'card-1', field: 'description', old_value: '# Acta', es_sufijo: false, base_id: null,
+        changed_by: null, changed_at: '2026-10-01T10:00:00Z' },
+      { id: 'h-2', card_id: 'card-1', field: 'description', old_value: ' y lo añadido', es_sufijo: true, base_id: 'h-1',
+        changed_by: null, changed_at: '2026-10-01T11:00:00Z' },
+    ];
+
+    const res = await request(app)
+      .get('/api/cards/card-1/history')
+      .set('Authorization', `Bearer ${token}`);
+
+    const h2 = res.body.data.find((v) => v.id === 'h-2');
+    expect(h2.oldValue).toBe('# Acta y lo añadido');
+    // Y por el nombre que usa el riel, lo mismo: el contrato no cambia de forma.
+    expect(h2.description).toBe('# Acta y lo añadido');
+  });
+
+  it('y si la cadena está rota, dice NULL en vez de servir el trozo suelto', async () => {
+    // Un historial que falta se ve. Uno que miente, no — y lo que se pegaría de
+    // vuelta sería basura con apariencia de versión.
+    __state.historyRows = [
+      { id: 'h-2', card_id: 'card-1', field: 'description', old_value: ' y lo añadido', es_sufijo: true, base_id: 'h-borrada',
+        changed_by: null, changed_at: '2026-10-01T11:00:00Z' },
+    ];
+
+    const res = await request(app)
+      .get('/api/cards/card-1/history')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.body.data[0].oldValue).toBeNull();
     expect(res.body.data[0].description).toBeNull();
   });
 
