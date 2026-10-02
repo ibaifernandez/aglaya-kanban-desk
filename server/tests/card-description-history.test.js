@@ -186,8 +186,14 @@ describe('sobrescribir una descripción deja rastro', () => {
 
     expect(res.status).toBe(200);
     expect(__state.insertedHistory).toHaveLength(1);
-    expect(__state.insertedHistory[0].description).toBe(ORIGINAL);
-    expect(__state.insertedHistory[0].description).not.toBe('texto nuevo que pisa el anterior');
+    expect(__state.insertedHistory[0].old_value).toBe(ORIGINAL);
+    expect(__state.insertedHistory[0].old_value).not.toBe('texto nuevo que pisa el anterior');
+    // ⚠️ Y UNA SOLA VEZ. Esto miraba `description`, que guardaba el MISMO texto
+    // en paralelo a `old_value`: 43 MB duplicados de los 86 del historial
+    // (`b00cc025`), y el doble de bytes escritos en cada edición. La propiedad
+    // que importa —el texto anterior queda guardado— no cambia; lo que se
+    // prohíbe es pagarla dos veces.
+    expect(__state.insertedHistory[0].description).toBeUndefined();
   });
 
   it('la fila cuelga de la tarjeta y dice quién la sustituyó', async () => {
@@ -253,8 +259,9 @@ describe('no se guarda ruido', () => {
     const deTitulo = __state.insertedHistory.filter((f) => f.field === 'title');
     expect(deTitulo).toHaveLength(1);
     expect(deTitulo[0].old_value).toBe('Tarea');
-    // La columna vieja se queda en `null`: solo la traen las filas de descripción.
-    expect(deTitulo[0].description).toBeNull();
+    // La columna vieja no se escribe para NINGÚN campo desde `b00cc025` — antes
+    // se quedaba en `null` aquí y duplicaba el texto en las de descripción.
+    expect(deTitulo[0].description).toBeUndefined();
   });
 
   it('si antes no había texto, no hay nada que perder y no hay fila', async () => {
@@ -284,6 +291,47 @@ describe('GET /api/cards/:id/history — el historial se puede leer', () => {
     expect(res.body.data[0].description).toBe('penúltima');
     expect(res.body.data[0].changedBy).toBe('Kanban Rail');
     expect(res.body.data[0].changedAt).toBe('2026-08-06T10:00:00Z');
+  });
+
+  // ── Lo que sostiene que dejar de duplicar NO rompe a nadie (`b00cc025`) ─────
+  //
+  // Desde que `description` no se escribe, las filas nuevas llegan de la base con
+  // esa columna a `null` y el texto solo en `old_value`. El riel —`card_history`
+  // del MCP— expone las filas tal cual y la nombra por `description`: si la ruta
+  // no la derivara, el historial se vería VACÍO para quien deshace, con la fila
+  // presente y su fecha correcta. Peor que un error: un hueco con buena pinta.
+  it('una fila nueva, con la columna vieja vacía, se lee igual que siempre', async () => {
+    __state.historyRows = [
+      { id: 'h-3', card_id: 'card-1', field: 'description', old_value: 'lo que había', description: null,
+        changed_by: 'user-1', changed_at: '2026-10-02T10:00:00Z' },
+    ];
+    __state.users = [{ id: 'user-1', name: 'Kanban Rail' }];
+
+    const res = await request(app)
+      .get('/api/cards/card-1/history')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data[0].oldValue).toBe('lo que había');
+    // La que importa: la respuesta es la de siempre aunque la columna esté vacía.
+    expect(res.body.data[0].description).toBe('lo que había');
+  });
+
+  it('y un campo que no es la descripción NO se inventa una', async () => {
+    // La otra dirección. Derivar de más convertiría el historial de un cambio de
+    // prioridad en una «descripción anterior» que nunca existió, y deshacer desde
+    // ahí machacaría el texto de la tarjeta con la palabra «high».
+    __state.historyRows = [
+      { id: 'h-4', card_id: 'card-1', field: 'priority', old_value: 'high', description: null,
+        changed_by: null, changed_at: '2026-10-02T11:00:00Z' },
+    ];
+
+    const res = await request(app)
+      .get('/api/cards/card-1/history')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.body.data[0].oldValue).toBe('high');
+    expect(res.body.data[0].description).toBeNull();
   });
 
   it('una versión cuyo autor ya no existe conserva el texto', async () => {

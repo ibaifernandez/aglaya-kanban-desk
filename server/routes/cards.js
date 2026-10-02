@@ -406,10 +406,22 @@ const updateCard = async (req, res) => {
   // toca uno o dos. Esa distinción es lo que evita que el historial crezca diez
   // veces más rápido de lo que nadie midió (`244c554e`).
   //
-  // `description` se sigue escribiendo en su columna vieja ADEMÁS de en
-  // `old_value`, y solo para las filas de descripción. No es duplicación por
-  // pereza: `card_history` la lee, y quitarla sería un cambio incompatible que
-  // merece su propia decisión.
+  // ⚠️ `description` YA NO SE ESCRIBE, y aquí decía por qué se escribía: que
+  // `card_history` la lee y quitarla sería incompatible. La decisión llegó, y la
+  // trajo una factura (`b00cc025`).
+  //
+  // **Guardaba el mismo texto dos veces.** Medido sobre producción el 2-oct-2026:
+  // 43 MB en `description` y 43 MB en `old_value`, con 3.976 de 4.000 filas
+  // IDÉNTICAS entre las dos columnas. La mitad de un historial de 54 MB —el 70 %
+  // de una base de 77 MB— era una copia literal de la otra mitad, en un proyecto
+  // al que Supabase avisó de que se le acababa el presupuesto de disco.
+  //
+  // Y lo que de verdad pesaba no era el espacio: **cada edición escribía el texto
+  // entero dos veces**, y es la escritura lo que gasta el presupuesto de E/S.
+  //
+  // No se pierde nada ni se rompe nadie: el valor sigue entero en `old_value`, y
+  // `getCardHistory` sirve `description` desde ahí. La respuesta de la API es
+  // byte a byte la de antes — lo único que cambia es lo que se guarda.
   const cambios = [];
   if (prevCard) {
     for (const campo of CAMPOS_CON_HISTORIAL) {
@@ -426,9 +438,6 @@ const updateCard = async (req, res) => {
         card_id:     req.params.id,
         field:       campo.field,
         old_value:   antes,
-        // La columna vieja solo se rellena para la descripción, que es la única
-        // que `card_history` expone hoy por ese nombre.
-        description: campo.field === 'description' ? antes : null,
         changed_by:  req.user.id,
       });
     }
@@ -759,10 +768,18 @@ const getCardHistory = async (req, res) => {
       // las filas anteriores a `cfeccbc4` cae a `description`, que es donde
       // estaba: una fila vieja no deja de poder leerse porque el esquema creciera.
       oldValue:    r.old_value ?? r.description ?? null,
-      // ⚠️ SE CONSERVA, y a partir de ahora puede venir `null`: solo las filas de
-      // descripción la traen. Quien deshaga una descripción puede seguir usándola;
-      // quien lea el historial de otro campo tiene que mirar `oldValue`.
-      description: r.description,
+      // ⚠️ SE CONSERVA, y desde `b00cc025` SE DERIVA en vez de leerse: la columna
+      // guardaba una copia literal de `old_value` —43 MB de los 86 del historial—
+      // y dejó de escribirse. Las filas nuevas la traen a `null` en la base, así
+      // que para las de descripción se sirve desde `old_value`.
+      //
+      // Se calcula aquí, y no se deja que el consumidor caiga a `oldValue`, por
+      // lo mismo que se conservó en su día: `card_history` del riel la expone por
+      // este nombre. **La respuesta no cambia**; lo que cambia es que ya no hace
+      // falta guardar el texto dos veces para producirla.
+      description: r.field === 'description' || r.field == null
+        ? (r.description ?? r.old_value ?? null)
+        : r.description,
       changedAt:   r.changed_at,
       changedById: r.changed_by,
       // `null` cuando la cuenta que la sustituyó ya no existe: se pierde el

@@ -254,7 +254,9 @@ describe('añadir deja el MISMO rastro que sustituir', () => {
     expect(__state.insertedHistory).toHaveLength(1);
     expect(__state.insertedHistory[0].field).toBe('description');
     expect(__state.insertedHistory[0].old_value).toBe(ORIGINAL);
-    expect(__state.insertedHistory[0].description).toBe(ORIGINAL);
+    // Una sola copia: `description` guardaba el mismo texto en paralelo y dejó
+    // de escribirse (`b00cc025`). Añadir sigue dejando rastro; cuesta la mitad.
+    expect(__state.insertedHistory[0].description).toBeUndefined();
     expect(__state.insertedHistory[0].card_id).toBe('card-1');
     expect(__state.insertedHistory[0].changed_by).toBe('user-1');
   });
