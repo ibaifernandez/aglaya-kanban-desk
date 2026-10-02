@@ -10,7 +10,16 @@
  * pie de un acta de decenas de miles de caracteres—, así que cada añadido
  * reescribía todo lo anterior. 2.650 de 3.211 ediciones consecutivas, medido.
  *
- * Guardar solo el trozo nuevo lleva el texto del historial de 43 MB a 18.
+ * Guardar solo el trozo nuevo lleva el texto del historial de 43 MB a **9,6**.
+ *
+ * ⚠️ Ese número fue antes «18 MB», y la corrección importa porque enseña a medir:
+ * la primera estimación comparó prefijos con `old_value LIKE prev || '%'`, y en
+ * `LIKE` la barra invertida es un escape — las actas de esta casa llevan rutas y
+ * fragmentos de código, así que 465 pares que SÍ eran prefijos literales se
+ * contaron como si no lo fueran. El predicado honesto es `left(old_value,
+ * length(prev)) = prev`, que es lo que hace `startsWith` aquí abajo: **el código
+ * siempre estuvo bien; lo que estaba mal era el número que lo acompañaba**, y
+ * por debajo. Lo cazó el vigilante midiendo por su cuenta.
  *
  * ─────────────────────────────────────────────────────────────────────────────
  * POR QUÉ HAY ANCLAS, Y POR QUÉ CADA 10
