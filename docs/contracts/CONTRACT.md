@@ -503,6 +503,26 @@ y cuesta un renglón.
 
 ### Historial de versiones
 
+**4.0.0 — 2026-10-02. SIN cambio de forma: el historial deja de guardar la
+descripción dos veces.** `server/routes/cards.js` cambia, y `card_history`
+—Puerta 1— **devuelve exactamente lo mismo que antes, campo por campo**. Por eso
+no sube la versión: este renglón es el aviso que pide la sección de arriba, no
+una versión nueva.
+
+**Qué cambió por dentro.** La tabla guardaba el valor anterior de una descripción
+en dos columnas a la vez, `old_value` y `description`, con el mismo texto: 43 MB
+en cada una, 3.976 de 4.000 filas idénticas, la mitad de una base de 77 MB a la
+que Supabase avisó de que se le acaba el disco. Ahora se escribe una vez, y la
+ruta de lectura **deriva** `description` desde `old_value`.
+
+**Qué hacer si consumes `card_history`: nada.** Los campos `description` y
+`oldValue` siguen llegando con el mismo contenido. Si alguna vez `description`
+llegara vacía en una fila de descripción, eso sería un defecto de esta nave y no
+un cambio de contrato — hay un caso que lo vigila en
+`server/tests/card-description-history.test.js`.
+
+Tarjeta `b00cc025`.
+
 **4.0.0 — 2026-09-25. `list_members` deja de devolver el correo.** Cambio de
 forma de la Puerta 1, y **mayor porque rompe**: un consumidor que leyera
 `members[].email` deja de recibirlo. Devuelve `user_id`, `name` y `role`.
