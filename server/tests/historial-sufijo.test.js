@@ -112,6 +112,55 @@ describe('qué se guarda en cada edición', () => {
   });
 });
 
+// ── Los bordes que pidió el vigilante, uno por uno ──────────────────────────
+describe('el borde del tope, contado sobre una cadena de verdad', () => {
+  // Lo de arriba fija la decisión con una `profundidad` dada a mano. Esto la
+  // cuenta recorriendo la cadena, que es lo que hace el código en producción: si
+  // `previaDesdeFilas` contara uno de más o de menos, los casos anteriores
+  // seguirían verdes y el tope real sería 9 u 11 sin que nadie lo viera.
+  function cadenaDe(n) {
+    const filas = [{
+      id: 'f0', old_value: 'base', es_sufijo: false, base_id: null,
+      changed_at: '2026-10-01T00:00:00Z',
+    }];
+    for (let i = 1; i <= n; i += 1) {
+      filas.push({
+        id: `f${i}`, old_value: `+${i}`, es_sufijo: true, base_id: `f${i - 1}`,
+        changed_at: `2026-10-01T${String(i).padStart(2, '0')}:00:00Z`,
+      });
+    }
+    return filas;
+  }
+
+  it(`con ${MAX_CADENA - 1} sufijos encadenados, la siguiente TODAVÍA es sufijo`, () => {
+    const previa = previaDesdeFilas(cadenaDe(MAX_CADENA - 2));
+    expect(previa.profundidad).toBe(MAX_CADENA - 2);
+
+    expect(calcularFila(previa.texto + ' más', previa).es_sufijo).toBe(true);
+  });
+
+  it(`y en la ${MAX_CADENA}ª ancla: ni una antes, ni una después`, () => {
+    const previa = previaDesdeFilas(cadenaDe(MAX_CADENA - 1));
+    expect(previa.profundidad).toBe(MAX_CADENA - 1);
+
+    const fila = calcularFila(previa.texto + ' más', previa);
+    expect(fila.es_sufijo).toBe(false);
+    expect(fila.old_value).toBe(previa.texto + ' más');
+  });
+
+  it('una edición POR EL MEDIO ancla aunque la cadena solo vaya por 2', () => {
+    // El tope no es la única razón para anclar, y confundirlas rompería el
+    // historial: lo que no se reconstruye concatenando no puede ir como trozo,
+    // esté la cadena donde esté.
+    const previa = previaDesdeFilas(cadenaDe(2));
+    expect(previa.profundidad).toBe(2);
+
+    const fila = calcularFila('texto completamente distinto', previa);
+    expect(fila.es_sufijo).toBe(false);
+    expect(fila.base_id).toBeNull();
+  });
+});
+
 describe('reconstruir el texto de cualquier versión', () => {
   const cadena = [
     { id: 'a', old_value: 'uno',    es_sufijo: false, base_id: null, changed_at: '2026-10-01T10:00:00Z' },
