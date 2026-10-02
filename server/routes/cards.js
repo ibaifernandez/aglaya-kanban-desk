@@ -1,6 +1,9 @@
 const { supabaseAdmin } = require('../utils/supabase');
 const { createAssigneeNotification } = require('../utils/assigneeNotification');
 const { isValidPriority, priorityList } = require('../constants/priorities');
+const {
+  calcularFila, reconstruirTextos, previaDesdeFilas, MAX_CADENA,
+} = require('../utils/historial-sufijo');
 
 // ── Checklist notification helper ─────────────────────────────────────────────
 
@@ -443,6 +446,39 @@ const updateCard = async (req, res) => {
     }
   }
 
+  // ── Y de la descripción, solo lo AÑADIDO (`fc38e47f`) ─────────────────────
+  //
+  // El 82,5 % de las ediciones de esta casa pegan un bloque al pie de un acta de
+  // decenas de miles de caracteres, y hasta aquí cada añadido reescribía todo lo
+  // anterior. Guardar el trozo lleva el texto del historial de 43 MB a 18.
+  //
+  // ⚠️ SOLO LA DESCRIPCIÓN. Los demás campos son cortos —una prioridad, una
+  // fecha— y encadenarlos daría una cadena frágil a cambio de nada.
+  //
+  // Si algo falla al calcularlo, se guarda el texto entero: el historial de hoy
+  // vale más que el ahorro de mañana.
+  const filaDesc = cambios.find((c) => c.field === 'description');
+  if (filaDesc) {
+    try {
+      // Las últimas de ESE campo, que es lo que el índice
+      // `idx_card_description_history_card_field` sirve. `MAX_CADENA + 2` porque
+      // reconstruir la más reciente necesita su cadena entera, y el tope la
+      // acota: nunca hay que remontar más que eso.
+      const { data: previas } = await supabaseAdmin
+        .from('card_description_history')
+        .select('id, old_value, es_sufijo, base_id, changed_at')
+        .eq('card_id', req.params.id)
+        .eq('field', 'description')
+        .order('changed_at', { ascending: false })
+        .limit(MAX_CADENA + 2);
+
+      const calculada = calcularFila(filaDesc.old_value, previaDesdeFilas(previas || []));
+      Object.assign(filaDesc, calculada);
+    } catch (fallo) {
+      console.error('[cards] historial: no se pudo calcular el trozo, se guarda entero:', fallo.message);
+    }
+  }
+
   if (cambios.length > 0) {
     const { error: histError } = await supabaseAdmin
       .from('card_description_history')
@@ -734,7 +770,7 @@ const searchCards = async (req, res) => {
 const getCardHistory = async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from('card_description_history')
-    .select('id, field, old_value, description, changed_by, changed_at')
+    .select('id, field, old_value, description, es_sufijo, base_id, changed_by, changed_at')
     .eq('card_id', req.params.id)
     .order('changed_at', { ascending: false });
 
@@ -744,6 +780,27 @@ const getCardHistory = async (req, res) => {
   }
 
   const rows = data || [];
+
+  // ── El texto entero de cada versión, reconstruido (`fc38e47f`) ────────────
+  //
+  // Desde que la descripción se guarda como trozo, `old_value` de una fila puede
+  // ser SOLO lo añadido. Quien lee el historial quiere la versión entera —es lo
+  // que pega de vuelta para deshacer—, así que se reconstruye aquí siguiendo la
+  // cadena. **La respuesta no cambia de forma**: sigue trayendo el texto completo,
+  // igual que cuando se guardaba entero.
+  //
+  // ⚠️ Se reconstruye con TODAS las filas de la tarjeta, no solo las de
+  // descripción, porque el ancla de una cadena puede quedar fuera de cualquier
+  // recorte y entonces lo que se sirve sería un trozo suelto presentado como
+  // texto completo. Esta consulta no lleva `limit` — y ésa es la razón.
+  const textos = reconstruirTextos(rows);
+  const completo = (r) => {
+    if (!r.es_sufijo) return r.old_value ?? r.description ?? null;
+    // `null` cuando la cadena está rota: mejor que falte a que mienta. El riel
+    // puede distinguirlo, y un trozo suelto servido como versión entera se
+    // pegaría de vuelta en la tarjeta destruyendo el resto del acta.
+    return textos.get(r.id) ?? null;
+  };
 
   // Se devuelve el nombre además del id, por el mismo motivo que el acuse de la
   // puerta interna devuelve los destinos resueltos: un id suelto obliga a otra
@@ -767,7 +824,7 @@ const getCardHistory = async (req, res) => {
       // `oldValue` es el valor anterior de ESE campo, siempre como texto. Para
       // las filas anteriores a `cfeccbc4` cae a `description`, que es donde
       // estaba: una fila vieja no deja de poder leerse porque el esquema creciera.
-      oldValue:    r.old_value ?? r.description ?? null,
+      oldValue:    completo(r),
       // ⚠️ SE CONSERVA, y desde `b00cc025` SE DERIVA en vez de leerse: la columna
       // guardaba una copia literal de `old_value` —43 MB de los 86 del historial—
       // y dejó de escribirse. Las filas nuevas la traen a `null` en la base, así
@@ -778,7 +835,7 @@ const getCardHistory = async (req, res) => {
       // este nombre. **La respuesta no cambia**; lo que cambia es que ya no hace
       // falta guardar el texto dos veces para producirla.
       description: r.field === 'description' || r.field == null
-        ? (r.description ?? r.old_value ?? null)
+        ? (r.description ?? completo(r) ?? null)
         : r.description,
       changedAt:   r.changed_at,
       changedById: r.changed_by,

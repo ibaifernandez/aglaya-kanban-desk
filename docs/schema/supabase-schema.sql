@@ -304,7 +304,19 @@ CREATE TABLE IF NOT EXISTS public.card_description_history (
   old_value       TEXT,
   -- Se conserva por compatibilidad con `card_history`, que todavía la lee.
   -- Dejó de ser NOT NULL: una fila de `priority` no tiene descripción que poner.
+  -- Desde `b00cc025` YA NO SE ESCRIBE: guardaba una copia literal de `old_value`
+  -- —43 MB de los 86 del historial— y la lectura la deriva.
   description     TEXT,                 -- como estaba ANTES del cambio
+  -- `fc38e47f`: la descripción se guarda como TROZO cuando la edición solo añade
+  -- al final, que es el 82,5 % de las de esta casa. 43 MB de texto pasan a 18.
+  --   es_sufijo = false -> `old_value` es el texto completo (ANCLA)
+  --   es_sufijo = true  -> `old_value` es solo lo añadido respecto de `base_id`
+  es_sufijo       BOOLEAN NOT NULL DEFAULT false,
+  -- ⚠️ `ON DELETE SET NULL`, NUNCA cascada: con cascada, borrar un ancla se
+  -- llevaría su cadena entera — justo las versiones que una poda quiere
+  -- CONSERVAR. Así, perder el ancla deja la fila huérfana y visible, y la
+  -- lectura devuelve `null` en vez de servir un trozo como si fuera la versión.
+  base_id         UUID REFERENCES public.card_description_history(id) ON DELETE SET NULL,
   changed_by      UUID REFERENCES public.users(id) ON DELETE SET NULL,
   changed_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -352,6 +364,14 @@ CREATE INDEX IF NOT EXISTS idx_card_description_history_card
 -- sirviendo para «todo el historial de la tarjeta» y por eso no se sustituye.
 CREATE INDEX IF NOT EXISTS idx_card_description_history_card_field
   ON public.card_description_history(card_id, field, changed_at DESC);
+
+-- Reconstruir una versión es seguir la cadena hacia atrás por `base_id`. Y,
+-- menos obvio y más caro: `ON DELETE SET NULL` obliga a buscar quién apunta a la
+-- fila que se borra — sin índice, cada borrado recorrería la tabla entera, y la
+-- poda borra miles de golpe.
+CREATE INDEX IF NOT EXISTS idx_card_description_history_base
+  ON public.card_description_history(base_id)
+  WHERE base_id IS NOT NULL;
 
 
 -- ── 9. GRANTs ───────────────────────────────────────────────
