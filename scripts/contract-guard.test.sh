@@ -225,6 +225,88 @@ else
   printf '%s\n' "$salida_bv" | sed 's/^/          /'
 fi
 
+# ── Que el contrato no se contradiga a sí mismo (`6b1655ae`) ───────────────
+#
+# El 2-oct-2026 la cabecera decía `4.0.0 · 2026-09-25` y el historial `4.1.0 ·
+# 2026-10-02`. Este guardián estaba VERDE: comprobaba que alguien tocara el
+# fichero, no que lo dejara coherente. Lo cazó una persona comparando dos
+# cabezas a mano.
+#
+# Se prueba en las dos direcciones, y la fecha aparte de la versión: el día del
+# incidente la versión COINCIDÍA y lo que mentía era la fecha.
+
+contrato_con() {   # $1 = versión cabecera, $2 = fecha cabecera, $3 = línea de historial
+  local dir; dir="$(mktemp -d)"
+  mkdir -p "$dir/docs/contracts" "$dir/server/routes"
+  # La puerta declarada tiene que EXISTIR: este guardián también comprueba eso,
+  # y sin el fichero el caso saldría rojo por el otro motivo.
+  : > "$dir/server/routes/cards.js"
+  {
+    printf '# Contrato\n\n- **Versión:** %s\n- **Última modificación:** %s\n\n' "$1" "$2"
+    printf '<!-- contract-guard:puertas:inicio -->\n- `server/routes/cards.js`\n<!-- contract-guard:puertas:fin -->\n\n'
+    printf '### Historial de versiones\n\n%s\n' "$3"
+  } > "$dir/docs/contracts/CONTRACT.md"
+  printf '%s' "$dir"
+}
+
+COHERENTE="$(contrato_con '4.1.0' '2026-10-02' '**4.1.0 — 2026-10-02. Lo que cambió.**')"
+salida_ok="$(CONTRACT_GUARD_ROOT="$COHERENTE" CONTRACT_GUARD_CHANGED="docs/contracts/CONTRACT.md" bash "$GUARD" 2>&1)"
+code_ok=$?
+if [ "$code_ok" -eq 0 ]; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "con cabecera e historial de acuerdo, calla"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s\n' "coherente tendría que pasar" "$code_ok"
+  printf '%s\n' "$salida_ok" | sed 's/^/          /'
+fi
+
+# El caso REAL del incidente: la versión coincide y lo que miente es la fecha.
+SOLO_FECHA="$(contrato_con '4.0.0' '2026-09-25' '**4.0.0 — 2026-10-02. Lo que cambió.**')"
+salida_sf="$(CONTRACT_GUARD_ROOT="$SOLO_FECHA" CONTRACT_GUARD_CHANGED="docs/contracts/CONTRACT.md" bash "$GUARD" 2>&1)"
+code_sf=$?
+if [ "$code_sf" -eq 1 ] && grep -qF "se contradice a sí mismo" <<< "$salida_sf"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "la fecha desalineada sola ya es roja — es el caso que pasó"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s; sin esto, comparar solo la versión dejaría pasar el incidente real\n' "fecha desalineada" "$code_sf"
+  printf '%s\n' "$salida_sf" | sed 's/^/          /'
+fi
+
+DESALINEADO="$(contrato_con '4.0.0' '2026-10-02' '**4.1.0 — 2026-10-02. Lo que cambió.**')"
+salida_des="$(CONTRACT_GUARD_ROOT="$DESALINEADO" CONTRACT_GUARD_CHANGED="docs/contracts/CONTRACT.md" bash "$GUARD" 2>&1)"
+code_des=$?
+if [ "$code_des" -eq 1 ] && grep -qF "4.0.0" <<< "$salida_des" && grep -qF "4.1.0" <<< "$salida_des"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "la versión desalineada es roja, y el mensaje enseña las dos"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s, y tiene que decir cuál es cuál\n' "versión desalineada" "$code_des"
+  printf '%s\n' "$salida_des" | sed 's/^/          /'
+fi
+
+# Corre AUNQUE no se haya tocado ninguna puerta: una cabecera que miente no deja
+# de mentir los días que nadie toca el código.
+salida_sp="$(CONTRACT_GUARD_ROOT="$DESALINEADO" CONTRACT_GUARD_CHANGED="README.md" bash "$GUARD" 2>&1)"
+code_sp=$?
+if [ "$code_sp" -eq 1 ]; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "muerde aunque el cambio no toque ninguna puerta"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s; si solo mirase al tocar puertas, la incoherencia viviría entre obras\n' "sin puerta tocada" "$code_sp"
+fi
+
+# Borrar la cabecera no puede ser la forma de callarlo.
+SIN_CABECERA="$(mktemp -d)"
+mkdir -p "$SIN_CABECERA/docs/contracts" "$SIN_CABECERA/server/routes"
+: > "$SIN_CABECERA/server/routes/cards.js"
+printf '# Contrato\n\n<!-- contract-guard:puertas:inicio -->\n- `server/routes/cards.js`\n<!-- contract-guard:puertas:fin -->\n\n### Historial de versiones\n\n**4.1.0 — 2026-10-02. Lo que cambió.**\n' \
+  > "$SIN_CABECERA/docs/contracts/CONTRACT.md"
+salida_sc="$(CONTRACT_GUARD_ROOT="$SIN_CABECERA" CONTRACT_GUARD_CHANGED="docs/contracts/CONTRACT.md" bash "$GUARD" 2>&1)"
+code_sc=$?
+if [ "$code_sc" -eq 1 ] && grep -qF "la mitad que permite comprobarlo" <<< "$salida_sc"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "quitar la cabecera no lo silencia"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s; si esto pasara, vaciar la cabecera sería la forma de saltárselo\n' "sin cabecera" "$code_sc"
+  printf '%s\n' "$salida_sc" | sed 's/^/          /'
+fi
+
+rm -rf "$COHERENTE" "$SOLO_FECHA" "$DESALINEADO" "$SIN_CABECERA"
+
 echo
 echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1

@@ -50,6 +50,72 @@ CONTRATO="docs/contracts/CONTRACT.md"
 RAIZ="${CONTRACT_GUARD_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
 # ---------------------------------------------------------------------------
+# QUE EL CONTRATO NO SE CONTRADIGA A SÍ MISMO (`6b1655ae`)
+#
+# Esto corre SIEMPRE, se haya tocado una puerta o no, y por eso va antes que
+# todo lo demás: una cabecera que miente no deja de mentir los días que nadie
+# toca el código.
+#
+# LA FACTURA. El 2-oct-2026 este fichero llevaba `Versión: 4.0.0` y
+# `Última modificación: 2026-09-25` en la cabecera mientras su propio historial
+# declaraba `4.1.0 — 2026-10-02`. **Este guardián estuvo verde todo el rato**, y
+# con razón: lo de abajo comprueba que alguien TOCÓ el contrato, no que lo
+# dejara coherente. Lo cazó el vigilante comparando dos cabezas a mano, que es
+# justo la red que esto existe para no necesitar.
+#
+# POR QUÉ NO ES COSMÉTICO: el capitán sirve este fichero EN VIVO. `contrato(…)`
+# entregaba las dos cifras a la vez, y una nave que construya contra la que no
+# manda hace trabajo que hay que rehacer.
+#
+# ⚠️ LO QUE NO HACE, Y NO DEBE: no juzga si la versión es la correcta ni si el
+# cambio merecía subirla. Eso es criterio humano. Pedírselo convertiría una
+# comprobación de dos campos en una promesa que no puede cumplir — y es el mismo
+# motivo por el que este guardián nunca exigió un bump (ver cabecera).
+#
+# Compara VERSIÓN y FECHA. La fecha, porque es la mitad que falló de verdad: el
+# día del incidente la versión coincidía y lo que mentía era el `2026-09-25`.
+cabecera_version=$(grep -m1 -E '^- \*\*Versión:\*\*' "$RAIZ/$CONTRATO" | sed -E 's/.*\*\*Versión:\*\* *//; s/ *$//')
+cabecera_fecha=$(grep -m1 -E '^- \*\*Última modificación:\*\*' "$RAIZ/$CONTRATO" | sed -E 's/.*\*\*Última modificación:\*\* *//; s/ *$//')
+historial_linea=$(grep -m1 -E '^\*\*[0-9]+\.[0-9]+\.[0-9]+ — [0-9]{4}-[0-9]{2}-[0-9]{2}' "$RAIZ/$CONTRATO")
+historial_version=$(sed -E 's/^\*\*([0-9]+\.[0-9]+\.[0-9]+) — .*/\1/' <<< "$historial_linea")
+historial_fecha=$(sed -E 's/^\*\*[0-9]+\.[0-9]+\.[0-9]+ — ([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\1/' <<< "$historial_linea")
+
+# Si NO hay ninguna de las dos, no hay nada que comparar y no es asunto de esta
+# comprobación — es el caso de los contratos mínimos que usa el sello para probar
+# otras cosas. Pero si hay UNA y falta la otra, eso sí es un problema: significa
+# que alguien borró la mitad que lo delataba, y ahí no se calla.
+if [ -n "$cabecera_version$historial_linea" ] && { [ -z "$cabecera_version" ] || [ -z "$historial_linea" ]; }; then
+  echo "::error file=$CONTRATO::contract-guard: al contrato le falta la mitad que permite comprobarlo."
+  echo ""
+  echo "Falta una de las dos, y la otra está. Se esperan estas formas, que son las"
+  echo "que el documento ha usado siempre:"
+  echo "  cabecera:  - **Versión:** 4.1.0"
+  echo "  historial: **4.1.0 — 2026-10-02. Lo que cambió.**"
+  echo ""
+  echo "Si el formato cambió a propósito, actualiza este guardián en el mismo cambio:"
+  echo "un guardián que no sabe leer su fichero no protege, y además calla."
+  echo ""
+  echo "Y si lo que pasó es que se borró la cabecera: eso es justo lo que esta"
+  echo "comprobación existe para no dejar pasar en silencio."
+  exit 1
+fi
+
+if [ "$cabecera_version" != "$historial_version" ] || [ "$cabecera_fecha" != "$historial_fecha" ]; then
+  echo "::error file=$CONTRATO::contract-guard: el contrato se contradice a sí mismo."
+  echo ""
+  echo "  cabecera:  $cabecera_version  ·  $cabecera_fecha"
+  echo "  historial: $historial_version  ·  $historial_fecha"
+  echo ""
+  echo "El capitán sirve este fichero EN VIVO a toda la flota, así que ahora mismo"
+  echo "entrega las dos cosas a la vez y quien lo lea tiene que adivinar cuál manda."
+  echo "Una nave que construya contra la que no manda hace trabajo que hay que rehacer."
+  echo ""
+  echo "Casi siempre es esto: se añadió la entrada al historial al final de la obra"
+  echo "y la cabecera se quedó como estaba. Son dos campos, arriba del todo."
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
 # DE DÓNDE SALEN LAS PUERTAS, y por qué ya no salen de aquí
 #
 # Estaban escritas en este fichero, y el 8-ago-2026 se midió lo que costaba:
