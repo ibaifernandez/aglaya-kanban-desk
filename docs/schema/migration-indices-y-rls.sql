@@ -38,12 +38,56 @@
 --
 -- Idempotente: se puede aplicar dos veces sin efecto.
 
--- ── 1 · Las doce claves foráneas sin índice ─────────────────────────────────
+-- ─────────────────────────────────────────────────────────────────────────────
+-- LO QUE UN ÍNDICE CUESTA, Y POR QUÉ `cards.column_id` SE QUEDA FUERA
+--
+-- Un índice no es gratis: **se paga en cada escritura que toca su columna**.
+-- Postgres puede actualizar una fila sin tocar índices —actualización HOT— solo
+-- mientras ninguna columna indexada cambie. Medido sobre producción:
+--
+--     cards ... 11.086 actualizaciones ... 9.681 HOT (87,3 %)
+--
+-- De las claves foráneas de `cards`, `organization_id` no cambia nunca y
+-- `category` casi nunca, así que indexarlas no quita HOT a nadie. `assignee_id`
+-- cambia poco —45 veces en todo el historial, 0,4 % de las actualizaciones— y se
+-- indexa: el coste es despreciable.
+--
+-- **`column_id` es otra cosa, y por eso NO se indexa aquí.** Es la columna que
+-- cambia en cada movimiento de tarjeta, que es la escritura más repetida del
+-- riel: el historial registra `description` 4.022, `priority` 259, `title` 206 y
+-- `assignee_id` 45, pero **ningún `column_id`** —moverla no pasa por ahí—, y sin
+-- embargo `cards` acumula 11.086 actualizaciones. Las ~6.500 que no tienen
+-- reflejo en el historial son sobre todo movimientos, **hoy HOT precisamente
+-- porque `column_id` no está indexado**.
+--
+-- Indexarla convertiría en no-HOT la escritura más frecuente de esta nave,
+-- **dentro de un aviso de Supabase por presupuesto de E/S de escritura**. Sería
+-- gastar más de lo escaso para ahorrar de lo que sobra.
+--
+-- ⚠️ Y NO es que el índice no sirviera para nada: serviría. Medido, la consulta
+-- que pinta una columna del tablero hace hoy un recorrido completo —
+--
+--     Seq Scan on cards ... Buffers: shared hit=71 ... Rows Removed by Filter: 831
+--     Execution Time: 51.793 ms
+--
+-- — y con índice sería inmediata. **Pero esos 71 bloques salen de memoria, no de
+-- disco** (2 bloques leídos de disco en toda la base contra 2.630.119 de
+-- memoria): cuesta CPU, que es justo lo que no está racionado.
+--
+-- **Cuándo se invierte esta decisión**, para que quien venga no tenga que volver
+-- a derivarlo: cuando `cards` crezca lo bastante para que ese recorrido toque
+-- disco de verdad, o cuando el aviso de E/S se haya cerrado. Entonces el índice
+-- de `column_id` pasa a ser lo correcto.
+--
+-- **Consecuencia declarada: tras esta migración seguirá habiendo UNA clave
+-- foránea sin índice en `public`** —`cards.column_id`—, y es a propósito. Un
+-- recuento a cero ahí sería la forma equivocada de comprobar esta tarjeta.
+--
+-- ── 1 · Once de las doce claves foráneas sin índice ─────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_boards_organization_id   ON public.boards(organization_id);
 CREATE INDEX IF NOT EXISTS idx_boards_owner_id          ON public.boards(owner_id);
 CREATE INDEX IF NOT EXISTS idx_cards_assignee_id        ON public.cards(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_cards_category           ON public.cards(category);
-CREATE INDEX IF NOT EXISTS idx_cards_column_id          ON public.cards(column_id);
 CREATE INDEX IF NOT EXISTS idx_cards_organization_id    ON public.cards(organization_id);
 CREATE INDEX IF NOT EXISTS idx_categories_board_id      ON public.categories(board_id);
 CREATE INDEX IF NOT EXISTS idx_categories_organization_id ON public.categories(organization_id);

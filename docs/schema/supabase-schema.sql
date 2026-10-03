@@ -367,7 +367,14 @@ CREATE INDEX IF NOT EXISTS idx_boards_organization_id      ON public.boards(orga
 CREATE INDEX IF NOT EXISTS idx_boards_owner_id             ON public.boards(owner_id);
 CREATE INDEX IF NOT EXISTS idx_cards_assignee_id           ON public.cards(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_cards_category              ON public.cards(category);
-CREATE INDEX IF NOT EXISTS idx_cards_column_id             ON public.cards(column_id);
+-- ⚠️ `cards.column_id` NO SE INDEXA, y es la única FK de `public` que se queda
+-- sin índice. Un índice se paga en cada escritura que toca su columna: `cards`
+-- lleva 11.086 actualizaciones con **87,3 % HOT**, y las HOT dejan de serlo en
+-- cuanto cambia una columna indexada. `column_id` es la que cambia al mover una
+-- tarjeta —la escritura más repetida del riel—, así que indexarla gastaría más
+-- del recurso racionado (escritura) para ahorrar del que sobra (memoria).
+-- Se invierte cuando `cards` crezca lo bastante o cuando el aviso de E/S cierre.
+-- El razonamiento entero, con las cifras, en `migration-indices-y-rls.sql`.
 CREATE INDEX IF NOT EXISTS idx_cards_organization_id       ON public.cards(organization_id);
 CREATE INDEX IF NOT EXISTS idx_categories_board_id         ON public.categories(board_id);
 CREATE INDEX IF NOT EXISTS idx_categories_organization_id  ON public.categories(organization_id);
