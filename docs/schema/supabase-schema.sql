@@ -353,6 +353,29 @@ CREATE INDEX IF NOT EXISTS idx_card_description_history_card
 CREATE INDEX IF NOT EXISTS idx_card_description_history_card_field
   ON public.card_description_history(card_id, field, changed_at DESC);
 
+-- ── Las doce claves foráneas que no tenían índice (`6869ebc7`) ──────────────
+--
+-- ⚠️ NO están aquí para bajar el aviso de E/S de Supabase, y conviene que quede
+-- dicho: la base entera cabe en memoria —2 bloques leídos de disco contra
+-- 2.630.119 servidos de memoria—, así que las lecturas no gastan ese presupuesto.
+--
+-- Están por lo que un índice de clave foránea hace de verdad: evitar que borrar o
+-- actualizar una fila PADRE tenga que recorrer la tabla HIJA entera buscando
+-- quién la referencia, y sostener los joins el día que estas tablas dejen de
+-- caber en memoria.
+CREATE INDEX IF NOT EXISTS idx_boards_organization_id      ON public.boards(organization_id);
+CREATE INDEX IF NOT EXISTS idx_boards_owner_id             ON public.boards(owner_id);
+CREATE INDEX IF NOT EXISTS idx_cards_assignee_id           ON public.cards(assignee_id);
+CREATE INDEX IF NOT EXISTS idx_cards_category              ON public.cards(category);
+CREATE INDEX IF NOT EXISTS idx_cards_column_id             ON public.cards(column_id);
+CREATE INDEX IF NOT EXISTS idx_cards_organization_id       ON public.cards(organization_id);
+CREATE INDEX IF NOT EXISTS idx_categories_board_id         ON public.categories(board_id);
+CREATE INDEX IF NOT EXISTS idx_categories_organization_id  ON public.categories(organization_id);
+CREATE INDEX IF NOT EXISTS idx_cdh_changed_by              ON public.card_description_history(changed_by);
+CREATE INDEX IF NOT EXISTS idx_workspace_members_invited_by ON public.workspace_members(invited_by);
+CREATE INDEX IF NOT EXISTS idx_workspaces_created_by       ON public.workspaces(created_by);
+CREATE INDEX IF NOT EXISTS idx_workspaces_organization_id  ON public.workspaces(organization_id);
+
 
 -- ── 9. GRANTs ───────────────────────────────────────────────
 -- ESTADO REAL, verificado contra la base el 2026-08-06 con `aclexplode`:
@@ -462,14 +485,20 @@ ALTER TABLE public.notifications     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.card_description_history ENABLE ROW LEVEL SECURITY;
 
 -- organizations
+-- `(SELECT auth.uid())` y no `auth.uid()` a secas: suelto se reevalúa en CADA
+-- fila examinada; envuelto, Postgres lo trata como constante de la consulta. No
+-- cambia a quién deja pasar — el valor es el mismo en todas las filas (`6869ebc7`).
 CREATE POLICY "Users see their own organization" ON public.organizations
-  FOR SELECT USING (id IN (SELECT organization_id FROM public.users WHERE id = auth.uid()));
+  FOR SELECT USING (id IN (SELECT organization_id FROM public.users WHERE id = (SELECT auth.uid())));
 
 -- users
-CREATE POLICY "Los usuarios ven su propio perfil" ON public.users
-  FOR SELECT USING (auth.uid() = id);
+-- ⚠️ AQUÍ HUBO UNA SEGUNDA POLÍTICA, «Los usuarios ven su propio perfil»
+-- (`auth.uid() = id`), RETIRADA en `6869ebc7` por redundante: su condición es
+-- literalmente el segundo término de la de abajo, y las permisivas se combinan
+-- con OR, así que `A OR B = A`. Quitarla no puede quitarle acceso a nadie.
+-- Comprobado sobre las filas reales de los tres usuarios: 3 y 3.
 CREATE POLICY "Admins ven usuarios de su org" ON public.users
-  FOR SELECT USING (get_my_role() = ANY (ARRAY['admin','superadmin']) OR id = auth.uid());
+  FOR SELECT USING (get_my_role() = ANY (ARRAY['admin','superadmin']) OR id = (SELECT auth.uid()));
 
 -- RETIRADAS el 24-sep-2026 (tarjeta `22ecfa81`, `migration-rls-sin-permisivas.sql`):
 -- «Permitir crear workspaces a usuarios autenticados» en `workspaces` y «Permitir
@@ -507,7 +536,7 @@ CREATE POLICY "Editar tableros de mis workspaces" ON public.boards
 CREATE POLICY "Borrar tableros de mis workspaces" ON public.boards
   FOR DELETE USING (EXISTS (
     SELECT 1 FROM public.workspace_members wm
-    WHERE wm.workspace_id = boards.workspace_id AND wm.user_id = auth.uid()
+    WHERE wm.workspace_id = boards.workspace_id AND wm.user_id = (SELECT auth.uid())
       AND wm.role = ANY (ARRAY['owner','admin'])));
 
 -- columns (⚠️ scope: ORGANIZACIÓN, no workspace — ver NOTAS DE MODELO / DOC-05)
@@ -515,10 +544,12 @@ CREATE POLICY "Usuarios ven columnas de su org" ON public.columns
   FOR SELECT USING (EXISTS (
     SELECT 1 FROM public.boards b
     WHERE b.id = columns.board_id AND b.organization_id = get_my_org_id()));
-CREATE POLICY "Usuarios ven columnas de sus tableros" ON public.columns
-  FOR SELECT USING (board_id IN (
-    SELECT b.id FROM public.boards b JOIN public.users u ON u.organization_id = b.organization_id
-    WHERE u.id = auth.uid()));
+-- ⚠️ AQUÍ HUBO UNA SEGUNDA POLÍTICA DE LECTURA, «Usuarios ven columnas de sus
+-- tableros», RETIRADA en `6869ebc7`: decía lo mismo que la de arriba por otro
+-- camino. `get_my_org_id()` ES `SELECT organization_id FROM users WHERE id =
+-- auth.uid()`, o sea que aquélla era ésta escrita como join. Se conservó la de la
+-- función porque es `STABLE` —una evaluación por consulta, no por fila—.
+-- Comprobado sobre las filas reales: 264 columnas por un camino, 264 por el otro.
 CREATE POLICY "Usuarios crean columnas en su org" ON public.columns
   FOR INSERT WITH CHECK (EXISTS (
     SELECT 1 FROM public.boards b
@@ -573,7 +604,7 @@ CREATE POLICY "Usuarios borran categorías de su org" ON public.categories
 
 -- notifications (owner-only, todas las operaciones)
 CREATE POLICY "notifications_owner" ON public.notifications
-  FOR ALL USING (user_id = auth.uid());
+  FOR ALL USING (user_id = (SELECT auth.uid()));
 
 
 
