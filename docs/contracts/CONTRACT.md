@@ -2,7 +2,7 @@
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
 - **Versión:** 4.0.0
-- **Última modificación:** 2026-09-25
+- **Última modificación:** 2026-10-02
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
 > Hasta hoy no existía: el registro de contratos del capitán describía la puerta
