@@ -165,6 +165,29 @@ aproximado aterriza en el sitio equivocado devolviendo `201`.
 - `SUPABASE_DATABASE_PASSWORD` — password del rol `postgres`. Habilita `psql`.
 - `SUPABASE_PAT` — Personal Access Token. Habilita `supabase` CLI.
 
+### ⚠️ La vía directa exige IPv6, y falla con un error que no lo dice
+
+**Antes de copiar el patrón de abajo.** El host directo `db.<ref>.supabase.co`
+publica **solo IPv6**: tiene `AAAA` y **ningún registro `A`**. Desde una red sin
+ruta IPv6, el cliente falla con
+
+```text
+could not translate host name "db.<ref>.supabase.co" … nodename nor servname provided
+```
+
+que **parece un error de resolución de nombre y no lo es**: el nombre resuelve
+perfectamente. Lo que falta es por dónde llegar.
+
+Pasó el 04-oct-2026 y costó una vuelta entera. Y por el camino se dijo que «el
+host ya no resuelve», que es **falso** — alguien que lo lea así concluirá que
+Supabase retiró el host y se irá a buscar por qué. **Quien lo compruebe, que lo
+mida**: aquel día dos mediciones se contradijeron y ganó la que se podía repetir.
+
+```bash
+host db.<ref>.supabase.co       # ¿tiene registro A, o solo AAAA?
+route -n get -inet6 default     # «not in table» = esta máquina no sale por IPv6
+```
+
 Patrón para aplicar DDL/migraciones:
 
 ```bash
@@ -176,6 +199,39 @@ psql "postgresql://postgres@$PGHOST:5432/postgres" -f docs/schema/migration-<nom
 ```
 
 Para queries puntuales: `psql ... -c "SELECT ..."`.
+
+### Si no hay IPv6: el *pooler*, que sí publica IPv4
+
+**No se renuncia al cliente: se cambia de host.** El pooler de Supabase sí tiene
+registro `A`. Hacen falta dos cuidados, los dos dentro del ejemplo: el **modo
+sesión** —el otro modo no sirve para migraciones— y un usuario que lleve detrás
+la referencia del proyecto.
+
+```bash
+# La REGIÓN se consulta, no se teclea: `get_project` del conector de Supabase, o
+# el panel. Es el único dato de aquí que cambia por proyecto y no vive en .env.
+PGHOST="aws-0-<región>.pooler.supabase.com"
+REF=$(echo "$SUPABASE_URL" | sed -E 's#https?://([^.]+)\..*#\1#')
+
+# El usuario es `postgres.$REF`, no `postgres` a secas: el pooler lo necesita
+# para saber a qué proyecto conectar. Y va por el modo SESIÓN, que es el único
+# que admite DDL — el pooler ofrece otro modo, de transacción, que NO sirve para
+# migraciones y escucha aparte.
+#   postgresql://postgres.$REF@$PGHOST:5432/postgres
+```
+
+⚠️ **Qué está medido aquí y qué no**, para que nadie lo tome por más de lo que
+es. **Medido:** que el pooler resuelve por IPv4. **No medido:** una conexión real
+por esta vía — el enganche de secretos impide usar la contraseña desde una sesión
+de Claude, y eso está bien y no se toca. Si al usarlo falla, **el fallo es nuevo
+y se mide**; no se da por hecho que funcione porque lo diga este documento.
+
+### Y la vía que no depende de la red: el editor SQL del panel
+
+Pegar la migración en **SQL Editor** del proyecto. Es lo que funcionó el
+04-oct-2026 cuando la directa falló, y lo que se usa para las órdenes que ejecuta
+el Operador: no necesita cliente instalado, ni una red concreta, ni que la
+contraseña pase por ningún sitio.
 
 Reglas:
 
