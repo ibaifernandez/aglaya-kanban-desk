@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 4.0.0
+- **Versión:** 4.1.0
 - **Última modificación:** 2026-10-02
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -502,6 +502,31 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**4.1.0 — 2026-10-02. `card_history` puede devolver `null` en una versión que no
+se puede reconstruir.** Sube **menor, no mayor**: no se quita ni se renombra
+nada, y en todo historial sano la respuesta es idéntica. Lo que se añade es un
+estado que antes no existía.
+
+**Qué cambió por dentro.** La descripción se guarda ahora como **trozo** cuando
+la edición solo añade al final —el 82,5 % de las de esta casa—, con anclas de
+texto completo cada diez. Al leer, la nave reconstruye la versión entera: quien
+consuma `card_history` **sigue recibiendo el texto completo**, igual que antes.
+
+**Cuándo aparece el `null`, y qué hacer.** Si la fila de la que colgaba un trozo
+ha sido borrada —una poda de historial—, esa versión ya no se puede reconstruir.
+La nave **dice `null`** en `oldValue` y en `description`, con la fila, su fecha y
+su autor en su sitio.
+
+⚠️ **Lo que un consumidor NO debe hacer: pegar ese `null` de vuelta en la
+tarjeta.** Deshacer con una versión que falta **borraría la descripción entera**.
+Si lees `null`, esa versión no está disponible; coge otra. La alternativa —
+servir el trozo suelto como si fuera la versión completa— se descartó por eso
+mismo: dejaría tres palabras donde había un acta, y con cara de éxito.
+
+Tarjeta `fc38e47f`. Lo vigila `server/tests/card-description-history.test.js`,
+con un caso que exige el `null` y otro que exige el texto entero cuando la cadena
+está sana.
 
 **4.0.0 — 2026-10-02. SIN cambio de forma: el historial deja de guardar la
 descripción dos veces.** `server/routes/cards.js` cambia, y `card_history`
