@@ -576,7 +576,17 @@ CREATE POLICY "Usuarios ven columnas de su org" ON public.columns
 -- camino. `get_my_org_id()` ES `SELECT organization_id FROM users WHERE id =
 -- auth.uid()`, o sea que aquélla era ésta escrita como join. Se conservó la de la
 -- función porque es `STABLE` —una evaluación por consulta, no por fila—.
--- Comprobado sobre las filas reales: 264 columnas por un camino, 264 por el otro.
+-- Equivalencia comprobada comparando los dos predicados entre sí, cero filas de
+-- diferencia con `EXCEPT` en las dos direcciones.
+-- ⚠️ CÓMO SE MIDIÓ ESA EQUIVALENCIA, porque la primera vez se midió mal y el
+-- número publicado no era el de nadie. Se comparó cada predicado contra el otro
+-- **con `service_role`**, o sea con la RLS APAGADA: eso compara los predicados
+-- entre sí —y esa parte se sostiene— pero da «264 columnas» como si fuera lo que
+-- ve un usuario, y no lo ve nadie. Corriendo de verdad como cada quien
+-- (`SET LOCAL ROLE authenticated` + `request.jwt.claims`) salen **186, 226 y
+-- 254**: la política de `columns` consulta `boards`, y **la RLS de `boards`
+-- también aplica dentro de la política**. Lo levantó el vigilante y lo confirmé.
+-- Un predicado copiado a mano y corrido como superusuario no mide RLS.
 CREATE POLICY "Usuarios crean columnas en su org" ON public.columns
   FOR INSERT WITH CHECK (EXISTS (
     SELECT 1 FROM public.boards b

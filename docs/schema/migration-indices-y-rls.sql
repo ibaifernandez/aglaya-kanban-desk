@@ -122,7 +122,7 @@ CREATE INDEX IF NOT EXISTS idx_workspaces_organization_id  ON public.workspaces(
 -- «Admins ven usuarios de su org» es `get_my_role() IN (admin,superadmin) OR id = auth.uid()`.
 -- El segundo término de la segunda ES la primera, así que `A OR B = A`:
 -- quitar B no puede quitar acceso a nadie. Comprobado además sobre las filas
--- reales, para los tres usuarios de la base: A = 3 filas, A∪B = 3 filas.
+-- predicados, comparados entre sí: `A` y `A∪B` devuelven el mismo conjunto.
 DROP POLICY IF EXISTS "Los usuarios ven su propio perfil" ON public.users;
 
 -- `columns`: las dos dicen lo mismo por caminos distintos.
@@ -132,7 +132,17 @@ DROP POLICY IF EXISTS "Los usuarios ven su propio perfil" ON public.users;
 -- Y `get_my_org_id()` es, literalmente,
 --   SELECT organization_id FROM users WHERE id = auth.uid()
 -- así que la segunda es la primera escrita como join. Comprobado sobre las filas
--- reales, para los tres usuarios: 264 columnas por un camino, 264 por el otro.
+-- predicados, comparados entre sí: cero filas de diferencia con `EXCEPT` en las
+-- dos direcciones.
+-- ⚠️ CÓMO SE MIDIÓ ESA EQUIVALENCIA, porque la primera vez se midió mal y el
+-- número publicado no era el de nadie. Se comparó cada predicado contra el otro
+-- **con `service_role`**, o sea con la RLS APAGADA: eso compara los predicados
+-- entre sí —y esa parte se sostiene— pero da «264 columnas» como si fuera lo que
+-- ve un usuario, y no lo ve nadie. Corriendo de verdad como cada quien
+-- (`SET LOCAL ROLE authenticated` + `request.jwt.claims`) salen **186, 226 y
+-- 254**: la política de `columns` consulta `boards`, y **la RLS de `boards`
+-- también aplica dentro de la política**. Lo levantó el vigilante y lo confirmé.
+-- Un predicado copiado a mano y corrido como superusuario no mide RLS.
 --
 -- Se conserva la de `get_my_org_id()` y no al revés **a propósito**: esa función
 -- es `STABLE`, así que se evalúa una vez por consulta en vez de por fila — y de

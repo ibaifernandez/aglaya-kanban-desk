@@ -1,0 +1,8 @@
+Changed
+
+- **La receta de acceso directo a la base de `CLAUDE.md` dice ahora qué exige, y da dos vías que funcionan sin ello.** Tarjeta `7612a250`.
+  - El host directo publica **solo IPv6** —tiene `AAAA` y ningún registro `A`—, así que desde una red sin ruta IPv6 falla con `could not translate host name …`: **un error que parece de resolución de nombre y no lo es.** El nombre resuelve; lo que falta es por dónde llegar. Costó una vuelta entera el 04-oct-2026.
+  - **Y por el camino se dijo que «el host ya no resuelve», que es falso.** Esa frase manda al siguiente a buscar por qué Supabase retiró el host. Dos mediciones se contradijeron aquel día —una decía que había salida IPv6 y no la había, y era la mía— y ganó la que se podía repetir: por eso lo que entra son **los dos comandos para comprobarlo**, no la conclusión de nadie.
+  - **El remedio no es renunciar al cliente: es cambiar de host.** El *pooler* sí publica IPv4, con el modo sesión y un usuario que lleva la referencia del proyecto. La **región se consulta** (`get_project` o el panel), no se teclea — es el único dato de esa sección que cambia por proyecto y no está en la configuración local.
+  - Y la tercera vía, la que no depende de la red: **pegar en el editor SQL del panel**, que es lo que funcionó de hecho y lo que usan las órdenes del Operador.
+  - ⚠️ **Queda declarado qué está medido y qué no:** medido, que el pooler resuelve por IPv4. **No medido**, una conexión real por ahí — el enganche de esta casa impide que una sesión de Claude use esa credencial, y eso está bien y no se toca. Si falla al usarlo, el fallo es nuevo y se mide.
