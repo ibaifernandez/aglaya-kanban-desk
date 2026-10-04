@@ -36,6 +36,19 @@
 --
 -- Idempotente: se puede aplicar dos veces sin efecto.
 
+-- ─────────────────────────────────────────────────────────────────────────────
+-- TODO O NADA
+--
+-- `BEGIN`/`COMMIT` explícitos. Aquí el riesgo es menor que en
+-- `migration-indices-y-rls.sql` —todo lo de abajo es aditivo e idempotente, y
+-- re-ejecutarlo completaría lo que faltara—, pero se envuelve igual por una
+-- razón concreta: **el código que escribe sufijos necesita las DOS columnas y la
+-- restricción**. Una aplicación a medias dejaría la base en un estado que el
+-- servidor no sabe leer, y «vuelve a ejecutarlo» no es un plan: es acordarse.
+--
+-- Con `psql -f`, sin esto, cada sentencia va en su propia transacción.
+BEGIN;
+
 ALTER TABLE public.card_description_history
   ADD COLUMN IF NOT EXISTS es_sufijo BOOLEAN NOT NULL DEFAULT false;
 
@@ -74,3 +87,5 @@ COMMENT ON COLUMN public.card_description_history.es_sufijo IS
   'true = old_value guarda SOLO lo añadido al final respecto de base_id. false = texto completo (ancla).';
 COMMENT ON COLUMN public.card_description_history.base_id IS
   'Fila sobre la que se calculó el sufijo. NULL en las anclas. ON DELETE SET NULL: perder el ancla deja la fila huérfana, visible, nunca borrada en cascada.';
+
+COMMIT;
