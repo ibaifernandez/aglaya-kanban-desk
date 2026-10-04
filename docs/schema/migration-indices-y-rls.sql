@@ -83,6 +83,18 @@
 -- foránea sin índice en `public`** —`cards.column_id`—, y es a propósito. Un
 -- recuento a cero ahí sería la forma equivocada de comprobar esta tarjeta.
 --
+-- ─────────────────────────────────────────────────────────────────────────────
+-- TODO O NADA
+--
+-- `BEGIN`/`COMMIT` explícitos: si algo falla a mitad, no queda una base con
+-- índices a medias y políticas retiradas sin su sustituta. Postgres hace DDL
+-- transaccional, así que esto es real y no un adorno.
+--
+-- Funciona porque los índices van SIN `CONCURRENTLY` —ver arriba—: ésa es la
+-- única forma de DDL de este fichero que no podría ir dentro de una transacción.
+-- Las dos decisiones se sostienen la una a la otra.
+BEGIN;
+
 -- ── 1 · Once de las doce claves foráneas sin índice ─────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_boards_organization_id   ON public.boards(organization_id);
 CREATE INDEX IF NOT EXISTS idx_boards_owner_id          ON public.boards(owner_id);
@@ -134,8 +146,17 @@ DROP POLICY IF EXISTS "Usuarios ven columnas de sus tableros" ON public.columns;
 -- recomienda Supabase, y **no cambia a quién dejan pasar**: el valor es el mismo
 -- en todas las filas; lo único que cambia es cuántas veces se calcula.
 --
--- Cada `DROP`+`CREATE` va junto a propósito: entre los dos, la tabla queda sin
--- esa política. Por eso la migración se aplica de una vez, no a trozos.
+-- ⚠️ ENTRE EL `DROP` Y EL `CREATE` LA TABLA QUEDA SIN ESA POLÍTICA, y una de
+-- ellas —`notifications_owner`— es `FOR ALL`: en esa ventana, una tabla con RLS
+-- activada y sin política que la ampare no deja pasar a nadie por PostgREST.
+--
+-- Aquí decía «por eso la migración se aplica de una vez, no a trozos», **y el
+-- fichero no lo cumplía**: con `psql -f` cada sentencia va en su propia
+-- transacción, así que la ventana existía de verdad. Lo midió el vigilante.
+--
+-- Ahora lo cumple el fichero y no quien lo teclea: el `BEGIN` de abajo. Poner
+-- `-1` en la orden del Operador protegía **esta** vez; no la próxima mano ni el
+-- próximo camino. La atomicidad no puede depender de que alguien se acuerde.
 
 DROP POLICY IF EXISTS "notifications_owner" ON public.notifications;
 CREATE POLICY "notifications_owner" ON public.notifications
@@ -156,3 +177,5 @@ CREATE POLICY "Borrar tableros de mis workspaces" ON public.boards
      WHERE workspace_members.workspace_id = boards.workspace_id
        AND workspace_members.user_id = (SELECT auth.uid())
        AND workspace_members.role = ANY (ARRAY['owner','admin'])));
+
+COMMIT;
