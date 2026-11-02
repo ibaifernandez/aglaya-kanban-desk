@@ -1,0 +1,10 @@
+Fixed
+
+- **Pasar `description` y `description_md` a la vez descartaba uno de los dos en silencio, con `201`.** Avería `6837c853`.
+  - El 02-nov-2026 dos tarjetas nacieron con **solo un resumen** —260 y 228 caracteres— mientras su cuerpo entero, que llevaba la condición de cierre, la contraprueba y el mutante, se tiraba. La llamada devolvió **éxito con el id de la tarjeta**.
+  - La causa: `resolve_brief` devuelve el primer valor con contenido recorriendo `(description, description_md)`, así que **gana el primero y el otro se pierde sin aviso**. Y el docstring empujaba justo al error: llama «alias» a `description` —el que gana— y manda el brief a `description_md` —el que se descarta—.
+  - **Por qué es avería y no torpeza de quien llamó:** una tarjeta que aterriza mal se nota tarde; **una que nace sin cuerpo no se nota nunca**. Tiene título, prioridad y responsable, así que parece trabajo bien formado. Quien la coja no encontrará el criterio, y o pregunta o se lo inventa.
+  - Ahora **los dos con texto distinto es un error que no escribe nada**, en las dos puertas —crear y actualizar—, y el mensaje dice **cuántos caracteres traía cada uno**, que es lo que hace obvio cuál se estaba perdiendo. Textos **idénticos no son conflicto**: quien manda lo mismo por los dos nombres no pierde nada, y rechazarlo sería ruido que empujaría a buscarle la vuelta.
+  - **Y la precedencia de `resolve_brief` se deja intacta a propósito.** Cambiarla habría movido el problema de sitio sin quitarlo: el perdedor seguiría perdiéndose callando, solo que el otro.
+  - Las pruebas viven donde **no hace falta red**, que es lo que la factura anterior de esta misma función dejó escrito: aquel arreglo vivía dentro de `create_card`, que necesita red, **y por eso nadie lo comprobaba nunca**.
+  - ⚠️ **Una condición de la tarjeta ya estaba cumplida antes de empezar, y se dice en vez de apuntársela:** pedía que invertir la precedencia pusiera roja una prueba, afirmando que hoy no la había. Medido: **invertirla ya pone rojas dos**. Lo que faltaba —y es lo que entra— es que muerda el arreglo nuevo: cinco mutantes, cinco rojos.

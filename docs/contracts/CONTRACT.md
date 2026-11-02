@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 4.2.0
+- **Versión:** 5.0.0
 - **Última modificación:** 2026-11-02
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -506,6 +506,33 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**5.0.0 — 2026-11-02. Mandar el brief por los dos nombres a la vez, con textos
+distintos, pasa a ser un error.** Sube **mayor, y es deliberado aunque suene
+exagerado**: una llamada que antes recibía `201` ahora recibe un error y **no
+escribe nada**. Eso rompe a quien lo estuviera haciendo — y romperlo es el punto.
+
+**Qué pasaba.** `description` y `description_md` son dos nombres del mismo campo.
+Mandando los dos, la nave se quedaba con el primero **y descartaba el otro sin
+decirlo**, devolviendo éxito con el id de la tarjeta. El 02-nov-2026 nacieron así
+dos tarjetas con solo un resumen, perdiendo el cuerpo entero.
+
+**Qué hacer como consumidor: manda el brief por UNO de los dos.** Si de verdad
+quieres un resumen y un cuerpo, van juntos en el mismo campo — una tarjeta no
+tiene dos. **Mandar el mismo texto por los dos nombres sigue valiendo**: no hay
+nada que perder ahí, y rechazarlo sería ruido.
+
+**Por qué mayor y no menor.** El comportamiento observable cambia de forma
+incompatible, y la regla de esta casa es que la versión la decide lo que le pasa
+a quien consume, no lo buena que sea la intención. Un `201` que miente es peor
+que un error, pero el que lo recibía seguía siendo un consumidor.
+
+Aplica a las dos puertas de escritura de la Puerta 1 —crear y actualizar—, y el
+error llega **antes de tocar nada**: la tarjeta no queda a medias.
+
+Avería `6837c853`. Lo vigilan `kanban-mcp/test_validation.py` —sin red, que es
+donde la factura anterior dejó escrito que tenía que vivir— y
+`kanban-mcp/test_server.py`, que exige que la puerta **no escriba**.
 
 **4.2.0 — 2026-11-02. El riel deja de tener la llave que se salta RLS.** Sube
 **menor**: es aditivo —dos rutas nuevas— y **ninguna puerta existente cambia de
