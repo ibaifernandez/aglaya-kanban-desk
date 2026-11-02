@@ -2,9 +2,9 @@
   "contrato": "cifras-publicas",
   "version": 1,
   "nave": "aglaya-kanban-desk",
-  "commit": "b99c5c8da6a65f6683497a0b81cebbe0a836240c",
-  "medido_el": "2026-11-02T11:03:25Z",
-  "ejecucion": "https://github.com/ibaifernandez/aglaya-kanban-desk/actions/runs/41433463612",
+  "commit": "a91ce6e4122f82e76c98409bef7b180b88598e1a",
+  "medido_el": "2026-11-02T11:34:04Z",
+  "ejecucion": "https://github.com/ibaifernandez/aglaya-kanban-desk/actions/runs/41437714540",
   "cifras": {
     "version": {
       "valor": "1.4.0",
