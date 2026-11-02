@@ -1,8 +1,8 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 4.1.0
-- **Última modificación:** 2026-10-02
+- **Versión:** 4.2.0
+- **Última modificación:** 2026-11-02
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
 > Hasta hoy no existía: el registro de contratos del capitán describía la puerta
@@ -441,6 +441,10 @@ que quede dentro de ese cierre exige tocar este documento cuando cambia.
 <!-- contract-guard:puertas:inicio -->
 - `server/routes/internalRoute.js` — la Puerta 2 entera: payload, códigos, acuse.
 - `kanban-mcp/server.py` — las tools de la Puerta 1 y sus compuertas.
+- `server/routes/columns.js` — `GET /api/columns/:id`, que el riel usa para
+  resolver tablero y espacio de una columna *(v4.2.0)*. **Está en esta lista
+  porque sirve una puerta**: si no estuviera, se podría cambiar su forma sin que
+  `contract-guard` dijera nada y el documento se desalinearía en verde.
 - `server/routes/cards.js` — tres cláusulas vivas se sirven desde aquí: el `500`
   que aborta el update si el historial no se puede guardar *(v2.1.0)*, el `409`
   de sobrescritura ciega *(v3.3.0)* y los campos `field`/`oldValue` de
@@ -502,6 +506,39 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**4.2.0 — 2026-11-02. El riel deja de tener la llave que se salta RLS.** Sube
+**menor**: es aditivo —dos rutas nuevas— y **ninguna puerta existente cambia de
+forma**. Quien consuma la Puerta 1 o la 2 no tiene que hacer nada.
+
+**Qué cambia en lo que esta nave garantiza.** Hasta hoy, tres lecturas del
+servidor MCP —el tablero de una columna, el espacio de ese tablero y el
+`checklist` de una tarjeta— no iban por la API: iban directas a PostgREST con la
+llave `service_role`, **que se salta RLS entera**. O sea que quien ejecutara el
+riel tenía la base completa aunque la API le contestara `403`, y eso no se podía
+apagar por configuración: la lectura de credenciales cae al fichero de secretos
+cuando la variable está vacía.
+
+Ahora esas tres lecturas van por `GET /api/columns/:id` y `GET /api/cards/:id`,
+**autenticadas y detrás de la comprobación de membresía como todo lo demás**. El
+aislamiento lo da la misma puerta que lo declara.
+
+⚠️ **Y la consecuencia que un consumidor debe conocer: el riel ve exactamente lo
+que ve la cuenta con la que se arranca.** Antes, para esas tres lecturas, veía
+todo. Si una sesión arranca el riel con una cuenta que solo es miembro de un
+espacio, `create_card` contra otro espacio **falla con 403**, que es lo que se
+quería. Un `superadmin` sigue saltándose la comprobación de membresía
+(`server/middleware/workspace.js`), así que **la cuenta del riel no debe serlo**
+si lo que se busca es alcance reducido.
+
+`GET /api/columns/:id` devuelve `{ id, boardId, workspaceId }` en una sola
+llamada a propósito: con eso `create_card` hace **una** lectura donde antes hacía
+dos, así que el camino sin llave maestra es más barato que el que tenía.
+
+Tarjeta `34ff4d48`. Lo vigilan
+`server/tests/lecturas-por-id-con-membresia.test.js` —un no-miembro recibe 403 y
+**ni un byte del recurso**— y `kanban-mcp/test_server.py`, cuyo doble de red pasó
+de dos caminos a uno.
 
 **4.1.0 — 2026-10-02. `card_history` puede devolver `null` en una versión que no
 se puede reconstruir.** Sube **menor, no mayor**: no se quita ni se renombra

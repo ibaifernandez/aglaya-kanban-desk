@@ -16,8 +16,10 @@ require('dotenv').config();
 const isProd = process.env.NODE_ENV === 'production';
 
 const { getBoards, createBoard, updateBoard, deleteBoard, reorderBoards } = require('./routes/boards');
-const { getColumns, createColumn, updateColumn, deleteColumn } = require('./routes/columns');
+const { getColumns,
+  getColumn, createColumn, updateColumn, deleteColumn } = require('./routes/columns');
 const {
+  getCard,
   getCardsByBoard,
   getCardsByColumn,
   createCard,
@@ -157,6 +159,7 @@ app.delete('/api/boards/:id',   requireAuth, requireWorkspaceMember, deleteBoard
 // ── Columns ───────────────────────────────────────────────
 app.get('/api/boards/:boardId/columns',  requireAuth, requireWorkspaceMember, getColumns);
 app.post('/api/boards/:boardId/columns', requireAuth, requireWorkspaceMember, createColumn);
+app.get('/api/columns/:id',              requireAuth, requireWorkspaceMember, getColumn);
 app.put('/api/columns/:id',              requireAuth, requireWorkspaceMember, updateColumn);
 app.delete('/api/columns/:id',           requireAuth, requireWorkspaceMember, deleteColumn);
 
@@ -164,6 +167,9 @@ app.delete('/api/columns/:id',           requireAuth, requireWorkspaceMember, de
 app.get('/api/cards/search',              requireAuth, searchCards);   // must come before /:id routes
 app.get('/api/cards/:id/history',         requireAuth, requireWorkspaceMember, getCardHistory);
 app.get('/api/boards/:boardId/cards',     requireAuth, requireWorkspaceMember, getCardsByBoard);
+// `/search` y `/:id/history` van ARRIBA a propósito: Express resuelve por orden
+// de registro, y `/:id` se tragaría «search» como si fuera un identificador.
+app.get('/api/cards/:id',                 requireAuth, requireWorkspaceMember, getCard);
 app.get('/api/columns/:columnId/cards',   requireAuth, requireWorkspaceMember, getCardsByColumn);
 app.post('/api/cards',                    requireAuth, requireWorkspaceMember, createCard);
 app.put('/api/cards/:id/move',            requireAuth, requireWorkspaceMember, moveCard);      // must come before /:id

@@ -230,4 +230,49 @@ const deleteColumn = async (req, res) => {
   res.json({ success: true });
 };
 
-module.exports = { getColumns, createColumn, updateColumn, deleteColumn };
+// ── GET /api/columns/:id ──────────────────────────────────────────────────────
+// Una columna por su id, con el tablero Y el espacio al que pertenece.
+//
+// POR QUÉ EXISTE (`34ff4d48`). El servidor MCP necesitaba saber a qué tablero y a
+// qué espacio pertenece una columna antes de crear una tarjeta, y la API no lo
+// exponía: solo había listas por padre. Así que lo leía por su cuenta contra
+// PostgREST **con la llave `service_role`**, que se salta RLS entera. Resultado:
+// quien ejecutara ese servidor tenía la base completa aunque la API le
+// contestara 403, y eso bloqueaba dar el riel a una segunda sesión con alcance
+// reducido.
+//
+// Ahora el aislamiento lo da la misma puerta que lo declara: esta ruta va detrás
+// de `requireAuth` + `requireWorkspaceMember`, así que un usuario que no sea
+// miembro del espacio de la columna recibe 403 **aquí**, igual que en el resto.
+//
+// ⚠️ DEVUELVE `workspaceId` A PROPÓSITO, y no es un extra de cortesía: con él,
+// `create_card` resuelve tablero y espacio en UNA llamada donde antes hacía dos
+// lecturas. La tool queda más barata que cuando tenía la llave maestra, no más
+// cara — que es lo que hace que nadie tenga la tentación de devolvérsela.
+const getColumn = async (req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('columns')
+    .select('id, board_id, boards!inner(workspace_id)')
+    .eq('id', req.params.id)
+    .single();
+
+  if (error || !data) {
+    // ⚠️ EN LA PRÁCTICA ESTO CASI NUNCA SE ALCANZA, y conviene saberlo antes de
+    // confiar en ello: `requireWorkspaceMember` resuelve el espacio de la columna
+    // ANTES, así que una columna inexistente ya se cortó arriba con 400. Medido
+    // con un mutante: cambiar este 404 por un 500 no ponía roja ninguna prueba.
+    //
+    // Se queda como red para la ventana entre la comprobación y esta lectura.
+    return res.status(404).json({ error: 'Columna no encontrada' });
+  }
+
+  res.json({
+    data: {
+      id:          data.id,
+      boardId:     data.board_id,
+      workspaceId: data.boards?.workspace_id ?? null,
+    },
+  });
+};
+
+module.exports = { getColumns, getColumn, createColumn, updateColumn, deleteColumn };

@@ -1,0 +1,10 @@
+Security
+
+- **El riel MCP deja de llevar la llave que se salta RLS entera.** Tarjeta `34ff4d48`.
+  - Tres lecturas auxiliares del servidor MCP —el tablero de una columna, el espacio de ese tablero y el `checklist` de una tarjeta— no iban por la API: iban directas a PostgREST con `service_role`. **Quien ejecutara el riel tenía la base completa aunque la API le contestara `403`.**
+  - **Y no se tapaba con configuración**, que es lo que lo hacía bloqueante: la lectura de credenciales cae al fichero de secretos cuando la variable está **vacía**, así que la llave no se podía apagar poniéndola a nada. Eso impedía dar el riel a una segunda sesión con alcance reducido.
+  - Entran dos rutas, autenticadas y detrás de la comprobación de membresía: **`GET /api/columns/:id`** —que devuelve `{ id, boardId, workspaceId }`— y **`GET /api/cards/:id`**. El aislamiento pasa a darlo la misma puerta que lo declara.
+  - **Y queda más barato que antes, no más caro:** devolver el espacio junto al tablero colapsa en **una** llamada las dos lecturas que `create_card` hacía. Un camino seguro que cuesta más es un camino que alguien acaba revirtiendo.
+  - Lo vigila un banco nuevo cuyo caso central no es que las rutas respondan, sino que **un no-miembro reciba 403 y ni un byte del recurso** — una ruta que devolviera el dato con un código de error sería la misma fuga con mejor educación. Y deja escrito que **un `superadmin` sí pasa**, que es la razón por la que la cuenta del riel no puede serlo.
+  - **El banco del riel pasó de dos dobles de red a uno**, y eso es el síntoma medible de lo que se arregló: dos caminos de salida eran dos superficies que aislar. Si alguien vuelve a abrir una vía directa a la base, las pruebas dejarán de taparla y saldrá a la red de verdad.
+  - Contrato a **4.2.0** (aditivo), con `server/routes/columns.js` añadido a la lista de ficheros que vigila `contract-guard`: ahora sirve una puerta, y sin estar en esa lista se podría cambiar su forma con el documento desalineándose en verde.

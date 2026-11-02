@@ -79,25 +79,21 @@ class RielTestCase(unittest.TestCase):
     def setUp(self):
         self.calls: list[tuple[str, str, dict | None]] = []
         self._real_request = server._request
-        self._real_pg_get = server._pg_get
         server._request = self._fake_request
-        server._pg_get = self._fake_pg_get
 
     def tearDown(self):
         server._request = self._real_request
-        server._pg_get = self._real_pg_get
 
-    # El envoltorio sale a la red por DOS caminos, no uno: `_request` habla con la
-    # API con JWT, y `_pg_get` va directo a PostgREST. Taparlos por separado no es
-    # detalle del doble — lo descubrió este banco de pruebas al escribirse, y es
-    # exactamente la clase de cosa que no se ve leyendo el fichero de arriba abajo.
-    def _fake_pg_get(self, table, query):
-        self.calls.append(("PG", f"{table}?{query}", None))
-        if table == "columns":
-            return [{"board_id": "board-1"}]
-        if table == "boards":
-            return [{"workspace_id": "ws-1"}]
-        return []
+    # UN SOLO CAMINO, y esto es el cambio de `34ff4d48`. Aquí había un segundo
+    # doble, `_fake_pg_get`, porque el envoltorio salía a la red por dos sitios:
+    # `_request` contra la API con JWT, y `_pg_get` directo a PostgREST con la
+    # llave `service_role`. Esa segunda vía **se saltaba RLS entera**.
+    #
+    # Que el banco de pruebas necesitara dos dobles era el síntoma visible del
+    # problema: dos caminos de salida son dos superficies que aislar. Ahora hay
+    # uno, y por eso este doble basta. **Si alguien vuelve a añadir una vía
+    # directa a la base, estas pruebas dejarán de taparla y saldrá a la red de
+    # verdad** — que es mejor aviso que un comentario.
 
     # Respuestas por defecto: un tablero, una columna, un espacio, un usuario.
     def _fake_request(self, method, path, json=None, **_kw):
@@ -108,10 +104,19 @@ class RielTestCase(unittest.TestCase):
             return []
         if method == "GET" and path.startswith("/boards/") and path.endswith("/cards"):
             return []
+        # ⚠️ Devuelve `workspaceId` ADEMÁS del tablero, porque es lo que devuelve
+        # la ruta de verdad desde `34ff4d48`: con eso, `create_card` resuelve las
+        # dos preguntas en una llamada donde antes hacía dos lecturas con la llave
+        # que saltaba RLS. Un doble que se quedara en `boardId` dejaría pasar un
+        # servidor incapaz de comprobar el destino.
         if method == "GET" and path.startswith("/columns/"):
-            return {"id": "col-1", "boardId": "board-1"}
+            return {"id": "col-1", "boardId": "board-1", "workspaceId": "ws-1"}
         if method == "GET" and path.startswith("/boards/"):
             return {"id": "board-1", "workspaceId": "ws-1"}
+        # El checklist de UNA tarjeta. Antes lo leía `_pg_get` contra PostgREST;
+        # ahora es `GET /api/cards/:id`, autenticado como todo lo demás.
+        if method == "GET" and path.startswith("/cards/"):
+            return {"id": "card-1", "checklist": [{"text": "primero", "done": False}]}
         if method == "POST" and path == "/cards":
             return {"id": "card-1", "title": (json or {}).get("title"), "priority": (json or {}).get("priority")}
         return {}

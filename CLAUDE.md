@@ -354,12 +354,29 @@ Reglas para cualquier hilo que trabaje aquí:
 
 - **Antes de un cambio estructural** (schema de cards, tools del MCP `aglaya-kanban-desk`, workspaces/boards), pregunta el contrato con `contrato(nombre)` en el MCP `aglaya-atlas`: el capitán inyecta cards por ese contrato y un cambio unilateral lo rompe.
 - **Si el capitán toca docs de este repo**, debería estar registrado en commits debidamente identificados y todos los cambios deberían quedar registrados en `docs/CHANGELOG.md`.
-- **Solo estas tres cuentas están autorizadas**, mientras no cambie el paradigma de uso
-  de esta aplicación: **Ibai**, **Món** y **Kanban Rail** (`kanban-rail@aglaya.biz`, que
-  no es una persona sino la cuenta de servicio del riel). No dar de alta a nadie sin OK
+- **Solo estas cuatro cuentas están autorizadas**, mientras no cambie el paradigma de uso
+  de esta aplicación: **Ibai**, **Món**, **Kanban Rail** (`kanban-rail@aglaya.biz`, que
+  no es una persona sino la cuenta de servicio del riel) y **la cuenta de servicio de la
+  sesión personal**, autorizada por Ibai el 02-nov-2026. No dar de alta a nadie sin OK
   de Ibai. Esto es una **decisión**, no un informe: dice quién *puede* existir. Quién
   existe de hecho lo custodia la tabla `users` — si no coinciden, el hallazgo es que hay
   que reconciliarlas, no que este archivo esté desactualizado.
+
+  **La cuarta no es como las otras tres, y la diferencia es lo que hay que proteger.**
+  Las tres primeras son `superadmin` o `admin`. La cuarta es **`colaborador`**, con
+  **una sola membresía** —el espacio personal de Ibai— y ninguna corporativa: existe
+  para que una sesión aparte lleve ese espacio sin ver el resto.
+
+  ⚠️ **Su rol NO se sube, y esto no es estilo.** `server/middleware/workspace.js` —el
+  bloque marcado `GOD MODE`, hoy sobre la línea 134; búscalo por el marcador, que el
+  número caduca cuando alguien edita arriba— hace que un `superadmin`
+  **se salte entera la comprobación de membresía**. Subirle el
+  rol «para que funcione como el riel» **borra el aislamiento sin dar ningún error**:
+  todo empezaría a funcionar, que es justo lo que haría creer que estuvo bien. Si esa
+  cuenta recibe un `403`, el `403` es el producto — no el fallo.
+
+  Y por lo mismo **no se la añade a workspaces nuevos «por comodidad»**: lo que la hace
+  segura es exactamente lo que no ve.
 
   **Las direcciones de las dos personas no se escriben aquí, y es deliberado.** Este
   repositorio es **público** desde el 6-ago-2026, y una dirección personal en un

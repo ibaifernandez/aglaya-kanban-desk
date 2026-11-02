@@ -121,6 +121,35 @@ const getCardsByBoard = async (req, res) => {
   res.json({ data: (data || []).map(toCard) });
 };
 
+// ── GET /api/cards/:id ────────────────────────────────────────────────────────
+// Una tarjeta por su id.
+//
+// POR QUÉ EXISTE (`34ff4d48`). `assign_checklist_item` del riel MCP necesitaba
+// leer el `checklist` de una tarjeta y la API no daba forma de pedir UNA: solo
+// listas por tablero o por columna. Lo resolvía contra PostgREST **con la llave
+// `service_role`**, que se salta RLS — o sea que para esa lectura el riel veía
+// toda la base, no su espacio.
+//
+// Detrás de `requireAuth` + `requireWorkspaceMember`, como el resto: quien no
+// sea miembro del espacio de la tarjeta recibe 403 antes de llegar aquí.
+//
+// Devuelve la tarjeta entera y no solo el `checklist` a propósito: una ruta que
+// devolviera un campo suelto tendría que crecer cada vez que alguien necesite
+// otro, y acabaría siendo la misma lectura sin control con otro nombre.
+const getCard = async (req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('cards')
+    .select('*')
+    .eq('id', req.params.id)
+    .single();
+
+  if (error || !data) {
+    return res.status(404).json({ error: 'Tarjeta no encontrada' });
+  }
+
+  res.json({ data: toCard(data) });
+};
+
 const getCardsByColumn = async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from('cards')
@@ -847,6 +876,7 @@ const getCardHistory = async (req, res) => {
 };
 
 module.exports = {
+  getCard,
   getCardsByBoard,
   getCardsByColumn,
   createCard,
