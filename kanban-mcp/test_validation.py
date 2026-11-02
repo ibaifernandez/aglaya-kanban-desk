@@ -28,7 +28,8 @@ import unittest
 from validation import (SIN_TOCAR, VALID_PRIORITIES, cards_listing_plan,
                         empty_brief_notice,
                         missing_assignee_error, missing_workspace_error,
-                        priority_error, resolve_brief, resolve_brief_update,
+                        priority_error, brief_conflict_error,
+                        resolve_brief, resolve_brief_update,
                         row_cap_notice,
                         workspace_mismatch_error)
 
@@ -387,6 +388,69 @@ class ResolveBriefUpdate(unittest.TestCase):
                      ("   ", "documentado")]:
             self.assertEqual(resolve_brief_update(d, m), resolve_brief(d, m),
                              f"divergen con description={d!r} description_md={m!r}")
+
+
+class LosDosNombresALaVez(unittest.TestCase):
+    """Pasar `description` y `description_md` con textos distintos NO se resuelve
+    en silencio. Avería `6837c853`.
+
+    LO QUE PASÓ. Dos tarjetas nacieron con solo un resumen —260 y 228
+    caracteres— mientras su cuerpo entero, que llevaba la condición de cierre,
+    se descartaba. `create_card` devolvió `201` con el id. El cuerpo nunca llegó
+    a la base y nadie se enteró hasta que alguien fue a buscarlo.
+
+    POR QUÉ ESTO VIVE AQUÍ Y NO EN EL BANCO DEL RIEL. La factura anterior de
+    esta misma función lo dejó escrito: el alias se arregló DENTRO de
+    `create_card`, que necesita red, **y por eso nadie lo comprobaba nunca**.
+    Estas pruebas no tocan red: corren con `python3 -m unittest` y no hace falta
+    que el servidor exista.
+    """
+
+    CUERPO = "## Contexto\n\nTodo el cuerpo de la tarjeta, con su criterio.\n"
+    RESUMEN = "Un resumen corto."
+
+    def test_los_dos_con_texto_distinto_es_error(self):
+        err = brief_conflict_error(self.RESUMEN, self.CUERPO)
+
+        self.assertIsNotNone(err, "pasarlos los dos no puede resolverse callando")
+        self.assertIn("error", err)
+
+    def test_el_error_dice_los_tamanos_para_que_se_vea_cual_se_perdia(self):
+        # Sin esto, quien lo reciba no sabe si perdió un matiz o el cuerpo
+        # entero. El número es lo que hace obvio cuál de los dos importaba.
+        err = brief_conflict_error(self.RESUMEN, self.CUERPO)
+
+        self.assertIn(str(len(self.RESUMEN)), err["error"])
+        self.assertIn(str(len(self.CUERPO.strip())), err["error"])
+
+    # ── LA CONTRAPRUEBA: romper los dos casos buenos no es arreglar nada ──────
+    def test_solo_el_documentado_sigue_funcionando(self):
+        self.assertIsNone(brief_conflict_error(None, self.CUERPO))
+        self.assertEqual(resolve_brief(None, self.CUERPO), self.CUERPO)
+
+    def test_solo_el_alias_sigue_funcionando(self):
+        self.assertIsNone(brief_conflict_error(self.CUERPO, None))
+        self.assertEqual(resolve_brief(self.CUERPO, None), self.CUERPO)
+
+    def test_el_mismo_texto_por_los_dos_nombres_NO_es_conflicto(self):
+        # Quien manda lo mismo por los dos —por compatibilidad, o porque no sabe
+        # cuál lee el otro lado— no pierde nada. Rechazarlo sería ruido sin daño
+        # que evitar, y empujaría a la gente a buscarle la vuelta.
+        self.assertIsNone(brief_conflict_error(self.CUERPO, self.CUERPO))
+
+    def test_uno_vacio_no_es_conflicto(self):
+        # Un campo vacío no compite con uno lleno: no hay nada que perder.
+        for vacio in ("", "   ", None):
+            self.assertIsNone(brief_conflict_error(vacio, self.CUERPO),
+                              f"{vacio!r} no debería entrar en conflicto")
+            self.assertIsNone(brief_conflict_error(self.CUERPO, vacio),
+                              f"{vacio!r} no debería entrar en conflicto")
+
+    def test_difieren_solo_en_espacios_tampoco_es_conflicto(self):
+        # El mismo texto con un salto de línea de más es el mismo texto. Tratarlo
+        # como conflicto haría fallar llamadas legítimas por una diferencia que
+        # no cambia lo que se guarda.
+        self.assertIsNone(brief_conflict_error(self.CUERPO, "\n" + self.CUERPO + "  "))
 
 
 if __name__ == "__main__":

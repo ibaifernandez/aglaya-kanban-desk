@@ -175,6 +175,47 @@ def missing_workspace_error(workspace_id):
     }
 
 
+def brief_conflict_error(description, description_md):
+    """Los dos nombres del brief, con contenido DISTINTO, es un error y no una
+    preferencia silenciosa.
+
+    LA FACTURA, y es de las que no se ven. Dos tarjetas nacieron el 02-nov-2026
+    con **solo el resumen corto**: quien las creó pasó ese resumen por
+    `description` y el cuerpo entero —condición de cierre, contraprueba y
+    mutante— por `description_md`. Cuánto se perdió exactamente lo cuenta la
+    avería `6837c853`; aquí basta con que fue el cuerpo entero. `resolve_brief` devuelve el primero con
+    contenido recorriendo `(description, description_md)`, así que **ganó el
+    corto y el largo se descartó sin aviso**, con `201` y el id de la tarjeta.
+
+    Y el docstring de la tool empujaba justo a eso: dice que el brief va en
+    `description_md` y llama a `description` «alias» — o sea que nombra como
+    secundario al que gana.
+
+    POR QUÉ ES ERROR Y NO «ELEGIR UNO BIEN». Una tarjeta que aterriza mal se
+    nota tarde; **una que nace sin cuerpo no se nota nunca**: tiene título,
+    prioridad y responsable, así que parece trabajo pendiente bien formado.
+    Quien la coja no encontrará el criterio y o pregunta o se lo inventa. El
+    `201` tapa el hueco. Un `400` que avisa es mejor que un `201` que miente.
+
+    IGUALES NO ES CONFLICTO, a propósito: alguien que mande el mismo texto por
+    los dos nombres —por compatibilidad, o porque no sabe cuál lee el otro
+    lado— no está perdiendo nada, y rechazarlo sería ruido sin daño que evitar.
+    """
+    uno = (description or "").strip()
+    otro = (description_md or "").strip()
+    if not uno or not otro or uno == otro:
+        return None
+    return {
+        "error": (
+            "Llegaron `description` y `description_md` con textos DISTINTOS, y "
+            "solo uno se guardaría. No clavo la tarjeta eligiendo por ti.\n"
+            f"`description` tiene {len(uno)} caracteres; `description_md`, {len(otro)}.\n"
+            "Manda el brief por UNO de los dos. Si querías un resumen y un "
+            "cuerpo, van juntos en el mismo campo: la tarjeta no tiene dos."
+        )
+    }
+
+
 def resolve_brief(description, description_md):
     """El texto que va dentro de la tarjeta, venga por el nombre que venga.
 
@@ -187,6 +228,12 @@ def resolve_brief(description, description_md):
     el hueco. El alias se añadió después — pero vivía dentro de `create_card`,
     que necesita red, así que NADIE lo comprobaba. Un arreglo sin test es un
     arreglo que dura hasta el próximo refactor.
+
+    ⚠️ LA PRECEDENCIA SIGUE SIENDO LA MISMA, y eso NO es lo que arregla el caso
+    de los dos a la vez: lo corta antes `brief_conflict_error`, arriba. Aquí se
+    deja intacta a propósito — cambiarla habría movido el problema de sitio sin
+    quitarlo, porque el perdedor seguiría perdiéndose en silencio, solo que el
+    otro.
 
     Devuelve el primer valor con contenido. Antes la precedencia era por
     `is not None`, y eso dejaba que un `description=""` explícito tapara un

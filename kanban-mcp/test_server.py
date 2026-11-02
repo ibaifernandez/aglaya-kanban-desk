@@ -127,6 +127,45 @@ class RielTestCase(unittest.TestCase):
         return [c for c in self.calls if c[0] in ("POST", "PUT", "PATCH", "DELETE")]
 
 
+class LosDosNombresNoEscribenNada(RielTestCase):
+    """Que el conflicto corte ANTES de la red, no después. Avería `6837c853`.
+
+    `test_validation.py` fija que la función detecta el conflicto. Esto fija lo
+    que de verdad importaba: que **la puerta no escriba**. Un error devuelto
+    después de crear la tarjeta llegaría tarde — la tarjeta ya existiría, a
+    medias, y el aviso solo serviría para explicar el destrozo.
+    """
+
+    BASE = dict(column_id="col-1", title="Tarea", workspace_id="ws-1",
+                priority="medium", assignee="rail@aglaya.biz")
+
+    def test_los_dos_con_texto_distinto_no_escribe_nada(self):
+        out = server.create_card(**self.BASE,
+                                 description="Un resumen corto.",
+                                 description_md="## Cuerpo entero\n\nCon su criterio.")
+
+        self.assertIn("error", out)
+        self.assertEqual(self.writes, [], "rechazó, pero algo salió a la red")
+
+    def test_y_tampoco_al_ACTUALIZAR(self):
+        # La otra puerta. Aquí es peor: además de perder uno de los dos, pisa lo
+        # que la tarjeta ya tenía.
+        out = server.update_card("card-1",
+                                 description="Un resumen corto.",
+                                 description_md="## Cuerpo entero\n\nCon su criterio.")
+
+        self.assertIn("error", out)
+        self.assertEqual(self.writes, [], "rechazó, pero algo salió a la red")
+
+    def test_la_contraprueba_con_uno_solo_SI_escribe(self):
+        # Sin esto, «rechazar siempre» pasaría los dos casos de arriba y habría
+        # roto la tool entera sin que nada se pusiera rojo.
+        out = server.create_card(**self.BASE, description_md="## Cuerpo\n\nSolo uno.")
+
+        self.assertNotIn("error", out)
+        self.assertEqual(len(self.writes), 1, "debería haber escrito la tarjeta")
+
+
 class CrearTarjeta(RielTestCase):
     BASE = dict(column_id="col-1", title="Tarea", board_id="board-1",
                 workspace_id="ws-1", priority="medium", assignee="rail@aglaya.biz")

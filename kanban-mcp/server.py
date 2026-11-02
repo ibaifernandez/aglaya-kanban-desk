@@ -41,7 +41,8 @@ from mcp.server.fastmcp import FastMCP
 
 from validation import (SIN_TOCAR, VALID_PRIORITIES, cards_listing_plan,
                         empty_brief_notice, missing_assignee_error, missing_workspace_error,
-                        priority_error, resolve_brief, resolve_brief_update,
+                        priority_error, brief_conflict_error,
+                        resolve_brief, resolve_brief_update,
                         row_cap_notice,
                         workspace_mismatch_error)
 
@@ -378,8 +379,16 @@ def create_card(
     just ages in the backlog looking like pending work. The contract is the
     custodian of when and why (`docs/contracts/CONTRACT.md`).
 
-    `board_id` is OPTIONAL — derived from `column_id` if omitted. The BRIEF goes
-    in `description_md` (markdown); `description` is an alias for the same field.
+    `board_id` is OPTIONAL — derived from `column_id` if omitted.
+
+    THE BRIEF: `description_md` (markdown) or `description` — two names for ONE
+    field. **Send the body in exactly one of them.** Sending both with DIFFERENT
+    text is rejected (400-style error, nothing is written): only one would be
+    kept, and the other would vanish with a `201` on top. That happened on
+    2026-11-02 — two cards were born holding a 260-character summary while their
+    whole body was silently dropped. Identical text in both is fine. If you
+    meant a summary AND a body, they go together in the same field: a card does
+    not have two.
     priority ∈ urgent|high|medium|low|none. `checklist` = list of item texts.
     `due_date` = ISO (YYYY-MM-DD). `assignee` = email/name/id → owner AND notified."""
     # Todo lo que se puede juzgar sin red se juzga antes de tocarla. El destino se
@@ -388,7 +397,11 @@ def create_card(
     # default que mandaba cards al espacio personal devolviendo 201.
     for err in (priority_error(priority),
                 missing_assignee_error(assignee),
-                missing_workspace_error(workspace_id)):
+                missing_workspace_error(workspace_id),
+                # Va con las demás porque es de la misma clase: se juzga SIN red
+                # y aborta antes de escribir. Si pasara después, la tarjeta ya
+                # existiría a medias y el aviso llegaría tarde (`6837c853`).
+                brief_conflict_error(description, description_md)):
         if err:
             return err
     # Una sola lectura para las dos preguntas: a qué tablero pertenece la columna
@@ -564,6 +577,12 @@ def update_card(
     # no puedan divergir en qué valores aceptan.
     if priority is not None and str(priority).strip() not in VALID_PRIORITIES:
         return {"error": f"priority must be {'|'.join(VALID_PRIORITIES)}"}
+    # El mismo conflicto por la otra puerta: actualizar con los dos nombres y
+    # textos distintos pisaría la descripción con uno de ellos, y el otro se
+    # perdería igual de callado. Peor aquí, porque ADEMÁS borra lo que había.
+    err = brief_conflict_error(description, description_md)
+    if err:
+        return err
     brief = resolve_brief_update(description, description_md)
 
     body: dict[str, Any] = {}
