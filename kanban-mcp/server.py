@@ -10,13 +10,15 @@ DESIGN (auth = option A, JWT service account):
   validation, role checks, RLS AND its notification side-effects. "God Mode" is
   ROLE-based (server/middleware/workspace.js:77 → role === 'superadmin').
 
-  A few READS the API doesn't expose (column→board derivation, a card's checklist)
-  go through Supabase PostgREST with the service_role key. Writes never do.
+  EVERYTHING goes through the API, reads included. There used to be a second
+  path: three reads the API didn't expose went straight to PostgREST with the
+  service_role key, which bypasses RLS entirely — so whoever ran this server had
+  the whole database even where the API answered 403. `GET /api/columns/:id` and
+  `GET /api/cards/:id` closed that (card `34ff4d48`), and the key is gone.
 
 CREDENTIALS (server-side; the captain never sees them). Resolved from env vars OR
 the secret file ~/.config/aglaya/kanban-rail.env (chmod 600):
   KANBAN_API_URL, KANBAN_RAIL_EMAIL, KANBAN_RAIL_PASSWORD  (API login)
-  KANBAN_SUPABASE_URL, KANBAN_SERVICE_ROLE_KEY             (PostgREST reads)
 
 NOTIFICATIONS: assigning an owner goes through the API's updateCard (PUT), which
 fires the EXISTING in-app notifications (table `notifications`, types
@@ -125,32 +127,30 @@ def _request(method: str, path: str, json: dict | None = None, _retry: bool = Tr
 
 
 # ---------------------------------------------------------------------------
-# PostgREST reads (service_role) — only for what the API doesn't expose
+# Lecturas auxiliares — por la API, con la sesión de quien ejecuta
 # ---------------------------------------------------------------------------
-def _pg_get(table: str, query: str) -> list[dict[str, Any]]:
-    base, key = _cfg("KANBAN_SUPABASE_URL"), _cfg("KANBAN_SERVICE_ROLE_KEY")
-    if not base or not key:
-        raise RuntimeError("Missing KANBAN_SUPABASE_URL / KANBAN_SERVICE_ROLE_KEY for reads.")
-    url = f"{base.rstrip('/')}/rest/v1/{table}?{query}"
-    with httpx.Client(timeout=_TIMEOUT) as c:
-        r = c.get(url, headers={"apikey": key, "Authorization": f"Bearer {key}"})
-    if r.status_code >= 400:
-        raise RuntimeError(f"pg_get {table} → {r.status_code}: {r.text[:200]}")
-    return r.json()
+# AQUÍ VIVÍA `_pg_get`, que iba directo a PostgREST con `KANBAN_SERVICE_ROLE_KEY`
+# para tres lecturas que la API no exponía. Esa llave **se salta RLS entera**:
+# quien ejecutara este servidor tenía la base completa aunque la API le
+# contestara 403, y la configuración no lo tapaba — `_cfg` cae al fichero de
+# secretos cuando la variable está VACÍA, así que no se podía apagar poniéndola
+# a nada. Tarjeta `34ff4d48`.
+#
+# Ahora las tres van por `_request`, o sea con la sesión del usuario que arranca
+# el servidor, y el aislamiento lo da la misma puerta que lo declara.
 
 
-def _board_of_column(column_id: str) -> str:
-    rows = _pg_get("columns", f"id=eq.{column_id}&select=board_id")
-    if not rows:
+def _column_info(column_id: str) -> dict[str, Any]:
+    """Tablero y espacio de una columna, en UNA llamada.
+
+    Antes eran dos lecturas (`columns→board_id`, luego `boards→workspace_id`).
+    `GET /api/columns/:id` devuelve las dos cosas a propósito, así que esto es
+    más barato que cuando tenía la llave maestra, no más caro.
+    """
+    info = _request("GET", f"/columns/{column_id}")
+    if not info:
         raise RuntimeError(f"column {column_id} not found (cannot derive board_id)")
-    return rows[0]["board_id"]
-
-
-def _workspace_of_board(board_id: str) -> str | None:
-    """Espacio real al que pertenece un tablero. `None` si no se puede leer —
-    el llamante NO debe dar por bueno un destino que no se pudo comprobar."""
-    rows = _pg_get("boards", f"id=eq.{board_id}&select=workspace_id")
-    return rows[0]["workspace_id"] if rows else None
+    return info
 
 
 def _resolve_user(user: str) -> str:
@@ -391,9 +391,17 @@ def create_card(
                 missing_workspace_error(workspace_id)):
         if err:
             return err
+    # Una sola lectura para las dos preguntas: a qué tablero pertenece la columna
+    # y a qué espacio. Antes eran dos, y con la llave que saltaba RLS.
+    info = _column_info(column_id)
     if not board_id:
-        board_id = _board_of_column(column_id)
-    err = workspace_mismatch_error(workspace_id, _workspace_of_board(board_id), column_id)
+        board_id = info.get("boardId")
+    # ⚠️ El espacio se compara con el de la COLUMNA, que es donde la tarjeta
+    # aterriza — y es lo que esta tool promete en su docstring. Antes se comparaba
+    # con el del tablero, que es lo mismo salvo cuando alguien pasa un `board_id`
+    # de otro sitio: ahí el aviso salía sobre un tablero que no iba a recibir
+    # nada. Manda el destino real.
+    err = workspace_mismatch_error(workspace_id, info.get("workspaceId"), column_id)
     if err:
         return err
 
@@ -460,10 +468,10 @@ def assign_checklist_item(card_id: str, item: str, user: str) -> dict[str, Any]:
     string, e.g. "0") or a substring of its text. `user` = email/name/id, or
     "all" for every member. Fires the in-app `checklist_mention` notification."""
     uid = "__all__" if user.strip().lower() in ("all", "todos", "__all__") else _resolve_user(user)
-    card = _pg_get("cards", f"id=eq.{card_id}&select=checklist")
+    card = _request("GET", f"/cards/{card_id}")
     if not card:
         return {"error": f"card {card_id} not found"}
-    checklist = card[0].get("checklist") or []
+    checklist = card.get("checklist") or []
     if not checklist:
         return {"error": "card has no checklist items"}
 
