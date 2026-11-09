@@ -175,6 +175,17 @@ RULE_V2_PATTERN='(tests-[0-9]+|[0-9]+[[:space:]]*(tests?|suites?|pruebas?)\b|[0-
 # Y UN COSTE ACEPTADO: «3 cafés» o «4 sofás» dejarían de morder. Son sustantivos
 # plurales legítimos con tilde aguda. En este repo no aparecen, y perder ese caso
 # vale mucho menos que recuperar las ocho frases de cada día.
+# ⚠️ LO QUE NO SE EXCUSA NUNCA, y esto cierra un agujero que abrió la excepción
+# de arriba. **Un conteo entre 1900 y 2099 empieza igual que un año**, así que
+# `2000 tests en verde`, `1999 pruebas pasaron` y `2026 suites corrieron`
+# quedaban excusados — y ésa es la forma CENTRAL de la regla, la explícita, la
+# que existía desde el principio. Lo midió el vigilante al revisar el arreglo.
+#
+# No es perder un borde: es que la excusa se tragara el caso que la regla vino a
+# cazar. Por eso la excepción **no se aplica** cuando la coincidencia es un
+# conteo explícito. Sigue sin haber catálogo: lo que se nombra aquí son las
+# mismas tres palabras que la propia regla ya nombraba.
+RULE_V2_NUNCA='(tests-[0-9]+|[0-9]+[[:space:]]*(tests?|suites?|pruebas?)\b|[0-9]+[[:space:]]+en[[:space:]]+verde)'
 RULE_V2_EXCEPT='(^(19|20)[0-9]{2}[[:space:]]|[áéíóú]s$)'
 RULE_V2_CUSTODIAN='quien produce la cifra (el runner, la DB, el código, Railway)'
 RULE_V2_WHY='conteo o medida escrita a mano'
@@ -537,7 +548,7 @@ fi
 
 # report <fichero> <regex> <custodio> <por qué>
 report() {
-  local file="$1" pattern="$2" custodian="$3" why="$4" except="${5:-}"
+  local file="$1" pattern="$2" custodian="$3" why="$4" except="${5:-}" nunca="${6:-}"
   local hits
   hits="$(grep -nE "$pattern" "$file" 2>/dev/null || true)"
   [ -z "$hits" ] && return 0
@@ -558,7 +569,14 @@ report() {
       queda=0
       while IFS= read -r m; do
         [ -n "$m" ] || continue
-        grep -qE "$except" <<<"$m" || queda=1
+        # Una coincidencia se excusa si casa la excepción Y NO casa `nunca`.
+        # `nunca` existe porque una excusa puede tragarse el caso central: ver
+        # el comentario de `RULE_V2_NUNCA`.
+        if grep -qE "$except" <<<"$m" && { [ -z "$nunca" ] || ! grep -qE "$nunca" <<<"$m"; }; then
+          :
+        else
+          queda=1
+        fi
       done < <(grep -oE "$pattern" <<<"$texto")
       [ "$queda" = "1" ] && filtradas+="${lineno}:${texto}"$'\n'
     done <<<"$hits"
@@ -584,8 +602,8 @@ for f in "${FILES[@]}"; do
   while IFS= read -r id; do
     [ -n "$id" ] || continue
     p="RULE_${id}_PATTERN"; c="RULE_${id}_CUSTODIAN"; w="RULE_${id}_WHY"
-    e="RULE_${id}_EXCEPT"
-    report "$f" "${!p}" "${!c}" "${!w}" "${!e:-}"
+    e="RULE_${id}_EXCEPT"; n="RULE_${id}_NUNCA"
+    report "$f" "${!p}" "${!c}" "${!w}" "${!e:-}" "${!n:-}"
   done < <(rules_for "$rel")
 done
 

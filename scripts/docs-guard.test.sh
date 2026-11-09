@@ -139,6 +139,20 @@ expect_red   "plural de verdad"    'el esquema declara 7 índices de rendimiento
 # coincidencia a coincidencia, esto pasaría en verde y nadie lo notaría.
 expect_red   "excusable y conteo en la MISMA línea" 'el 02-nov-2026 dos veces, y el runner dice 412 tests'
 
+# ⚠️ UN CONTEO ENTRE 1900 Y 2099 EMPIEZA IGUAL QUE UN AÑO, y la excepción del
+# año se los tragaba. Lo cazó el vigilante revisando el arreglo: no era perder
+# un borde, era perder la forma CENTRAL de la regla —la explícita— que existía
+# desde el principio. Un arreglo que apaga lo que vino a proteger no es arreglo.
+expect_red   "conteo que PARECE un año (tests)"   'el runner dice 2000 tests en verde'
+expect_red   "conteo que PARECE un año (pruebas)" 'quedan 1999 pruebas por escribir'
+expect_red   "conteo que PARECE un año (suites)"  'corrieron 2026 suites de servidor'
+
+# Y la contraprueba: el año de una FECHA seguido de palabra corriente sigue
+# excusado. Si esto se pusiera rojo, el arreglo del falso positivo se habría
+# deshecho al tapar el agujero.
+expect_green "año de fecha + palabra corriente"   'medido en 2026 además por el obrero'
+
+
 expect_green "versión mayor de dependencia"  '| Frontend | React 18 + Vite + TailwindCSS |'
 expect_green "requisito de runtime"          '- Node.js 20+'
 expect_green "badge derivado del custodio"   '![Version](https://img.shields.io/github/package-json/v/ibaifernandez/aglaya-kanban-desk)'
