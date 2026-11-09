@@ -385,6 +385,52 @@ else
   printf '%s\n' "$salida_m" | sed 's/^/          /'
 fi
 
+# ⚠️ LA DECISIÓN CENTRAL: SE COMPARA CONTRA `origin/main`, NO CONTRA EL
+# MERGE-BASE. Hasta aquí todos los casos conducen el guardián por
+# `CONTRACT_GUARD_BASE_FILE`, así que **se saltan entera la selección de ref** —
+# cambiarla por el merge-base dejaba el sello en verde mientras convertía en
+# exit 0 el caso real. Lo cazó el vigilante, y es el mismo error que cometí yo
+# primero: desde fuera, el merge-base parece lo correcto.
+#
+# El escenario, montado SIN `git merge` —no hace falta, y así no se toca ningún
+# enganche—: la rama sale de un punto, `main` AVANZA con la PR de otro, y la
+# rama resuelve perezoso quedándose con lo suyo. La entrada de esa otra PR está
+# en `origin/main` y **no** en el merge-base: ahí se ve cuál de los dos sirve.
+REF_DIR="$(mktemp -d)"
+(
+  cd "$REF_DIR" || exit 1
+  git init -q -b main . && mkdir -p docs/contracts server/routes && : > server/routes/cards.js
+  escribir() {
+    { printf '# Contrato\n\n- **Versión:** %s\n- **Última modificación:** %s\n\n' "$1" "$2"
+      printf '<!-- contract-guard:puertas:inicio -->\n- `server/routes/cards.js`\n<!-- contract-guard:puertas:fin -->\n\n'
+      printf '### Historial de versiones\n\n'; shift 2
+      for e in "$@"; do printf '**%s. Lo que cambió.**\n\n' "$e"; done
+    } > docs/contracts/CONTRACT.md
+  }
+  escribir '1.0.0' '2026-01-01' '1.0.0 — 2026-01-01'
+  git add -A && git -c user.email=t@t -c user.name=t commit -qm partida
+  partida="$(git rev-parse HEAD)"
+  # main avanza con la PR de otro
+  escribir '1.1.0' '2026-02-01' '1.1.0 — 2026-02-01' '1.0.0 — 2026-01-01'
+  git add -A && git -c user.email=t@t -c user.name=t commit -qm "otra PR, ya en main"
+  git update-ref refs/remotes/origin/main HEAD
+  # la rama sale de antes y resuelve perezoso: la entrada de la otra PR desaparece
+  git checkout -q -b rama "$partida"
+  escribir '1.2.0' '2026-03-01' '1.2.0 — 2026-03-01' '1.0.0 — 2026-01-01'
+  git add -A && git -c user.email=t@t -c user.name=t commit -qm "resuelta perezosa"
+) >/dev/null 2>&1
+
+salida_r="$(CONTRACT_GUARD_ROOT="$REF_DIR" CONTRACT_GUARD_CHANGED=$'server/routes/cards.js\ndocs/contracts/CONTRACT.md' bash "$GUARD" 2>&1)"
+code_r=$?
+if [ "$code_r" -eq 1 ] && grep -qF "1.1.0" <<< "$salida_r"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "compara contra origin/main, no contra el merge-base"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s; con el merge-base esto sale VERDE y el caso real se escapa\n' "origin/main vs merge-base" "$code_r"
+  printf '%s\n' "$salida_r" | sed 's/^/          /'
+fi
+
+rm -rf "$REF_DIR"
+
 rm -rf "$MEDIO_DIR" "$SIN_LA_DE_ENMEDIO"
 rm -rf "$ANTES_DIR" "$PERDIDA" "$UNION" "$SOLO"
 
