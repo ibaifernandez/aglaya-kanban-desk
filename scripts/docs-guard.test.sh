@@ -102,6 +102,43 @@ expect_red "tabla con columna Estado"        '| # | Feature | Prioridad | Estado
 
 echo
 echo "Falsos positivos — esto NO debe morder"
+# ── «Acaba en s» no es «plural» (`5499ff41`) ────────────────────────────────
+#
+# Las NUEVE frases del hallazgo, tal cual. Antes del arreglo mordían OCHO: la
+# regla tomaba `dos`, `tres`, `más`, `pues`, `después`, `jamás`, `además` por
+# plurales, y el `2026` de una fecha por un conteo. Como esta casa fecha todo lo
+# que escribe, el disparador real era «una fecha seguida de una palabra
+# corriente».
+#
+# Viven aquí y no en la tarjeta a propósito: una condición que solo existe en una
+# tarjeta no se vuelve a correr nunca.
+echo
+echo "— «acaba en s» no es plural: las nueve frases del hallazgo —"
+expect_green "fecha + «dos»"       'el 02-nov-2026 dos tarjetas nacieron sin cuerpo'
+expect_green "fecha + «tres»"      'medido el 4-oct-2026 tres veces'
+expect_green "fecha + «más»"       'desde el 6-ago-2026 más de la mitad'
+expect_green "fecha + «pues»"      'el 02-nov-2026 pues no estaba'
+expect_green "fecha + «después»"   'aplicada el 7-oct-2026 después del despliegue'
+expect_green "cifra + «jamás»"     'la PR 134 jamás tocó el middleware'
+expect_green "año + «además»"      'medido en 2026 además por el obrero'
+expect_green "fecha + «a través»"  'entró el 2-nov-2026 a través del riel'
+
+# ⚠️ LA NOVENA, Y ES LA QUE SOSTIENE TODO LO DEMÁS. Si al quitar los falsos
+# positivos se perdiera esto, el arreglo habría apagado el guardián en vez de
+# afinarlo — y eso es peor que el problema que vino a resolver.
+expect_red   "y el conteo de verdad SIGUE mordiendo" 'el runner dice 412 tests en verde'
+
+# Lo demás que ya cazaba, que tampoco puede perderse.
+expect_red   "conteo con guion"    'la batería tests-412 pasó entera'
+expect_red   "conteo de suites"    'son 3 suites de servidor'
+expect_red   "conteo de pruebas"   'quedan 5 pruebas por escribir'
+expect_red   "plural de verdad"    'el esquema declara 7 índices de rendimiento'
+
+# Una línea MIXTA: trae algo excusable y algo que hay que cazar. Tiene que
+# morder. Si el filtro de excepciones descartara la línea entera en vez de ir
+# coincidencia a coincidencia, esto pasaría en verde y nadie lo notaría.
+expect_red   "excusable y conteo en la MISMA línea" 'el 02-nov-2026 dos veces, y el runner dice 412 tests'
+
 expect_green "versión mayor de dependencia"  '| Frontend | React 18 + Vite + TailwindCSS |'
 expect_green "requisito de runtime"          '- Node.js 20+'
 expect_green "badge derivado del custodio"   '![Version](https://img.shields.io/github/package-json/v/ibaifernandez/aglaya-kanban-desk)'

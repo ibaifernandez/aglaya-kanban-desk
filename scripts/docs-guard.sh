@@ -144,6 +144,38 @@ RULE_V1_WHY='versión literal tecleada'
 # Los números en palabra («tres tipos de workspace») NO muerden: describen diseño.
 # Las cifras miden, y lo medido lo custodia quien lo produce.
 RULE_V2_PATTERN='(tests-[0-9]+|[0-9]+[[:space:]]*(tests?|suites?|pruebas?)\b|[0-9]+[[:space:]]+[A-Za-zÁÉÍÓÚÑáéíóúñ]+s\b|[0-9]+[[:space:]]+en[[:space:]]+verde)'
+# ⚠️ «ACABA EN S» NO ES «PLURAL», y el patrón de arriba lo daba por hecho. En
+# español terminan en s `dos`, `tres`, `seis`, `más`, `pues`, `después`, `jamás`,
+# `además`, `atrás`, `detrás` — y ninguna es un conteo. Juntado con que la cifra
+# de delante podía ser **el año de una fecha**, el disparador real era «una fecha
+# seguida de una palabra corriente»: la forma de casi toda acta de esta casa.
+# Medido con las nueve frases de `docs-guard.test.sh`: mordía OCHO.
+#
+# EL DAÑO NO ERA EL ROJO: ERA LO QUE ENSEÑABA. La salida natural es reordenar la
+# frase hasta que el guardián calle —la tomé yo mismo el 02-nov-2026—, y a partir
+# de ahí su rojo deja de significar «hay un dato copiado» y pasa a significar «la
+# frase no le gustó». El día que grite por un conteo de verdad, nadie lo leerá.
+# Un guardián que se acalla cambiando el orden de las palabras no vigila: adiestra.
+#
+# DOS EXCEPCIONES, Y NINGUNA ES UN CATÁLOGO DE PALABRAS —que es justo lo que la
+# cabecera de esta regla rechazó desde el principio, y con razón: caducaría al
+# primer adverbio que nadie listó—. Son dos señales de forma:
+#
+#   · la cifra es un AÑO (`19xx`/`20xx`): entonces no está contando nada, está
+#     fechando. Cubre las fechas, que es de donde salía la mayoría;
+#   · la palabra acaba en VOCAL TILDADA + s (`más`, `jamás`, `además`, `atrás`,
+#     `después`): en español eso es un agudo invariable, no el plural de un
+#     sustantivo contable. Cubre el resto.
+#
+# ⚠️ LO QUE ESTO **NO** CUBRE, dicho para que nadie lo descubra creyendo que
+# falla: un monosílabo tras una cifra que no sea año —«la PR 3 tres veces»—
+# sigue mordiendo. No se arregla sin listar palabras, y listar palabras es el
+# vicio que esta regla persigue. Si aparece, se reordena esa frase y ya.
+#
+# Y UN COSTE ACEPTADO: «3 cafés» o «4 sofás» dejarían de morder. Son sustantivos
+# plurales legítimos con tilde aguda. En este repo no aparecen, y perder ese caso
+# vale mucho menos que recuperar las ocho frases de cada día.
+RULE_V2_EXCEPT='(^(19|20)[0-9]{2}[[:space:]]|[áéíóú]s$)'
 RULE_V2_CUSTODIAN='quien produce la cifra (el runner, la DB, el código, Railway)'
 RULE_V2_WHY='conteo o medida escrita a mano'
 
@@ -505,10 +537,34 @@ fi
 
 # report <fichero> <regex> <custodio> <por qué>
 report() {
-  local file="$1" pattern="$2" custodian="$3" why="$4"
+  local file="$1" pattern="$2" custodian="$3" why="$4" except="${5:-}"
   local hits
   hits="$(grep -nE "$pattern" "$file" 2>/dev/null || true)"
   [ -z "$hits" ] && return 0
+
+  # ── Excepciones, y por qué se filtran por COINCIDENCIA y no por línea ──────
+  #
+  # Una línea puede traer a la vez algo excusable y algo que hay que cazar:
+  # «el 02-nov-2026 dos veces, y el runner dice 412 tests». Descartarla entera
+  # porque una de sus coincidencias es excusable perdería la otra — y un
+  # guardián que deja de morder es peor que uno que muerde de más.
+  #
+  # Por eso la línea solo se descarta cuando TODAS sus coincidencias lo son.
+  if [ -n "$except" ]; then
+    local filtradas="" linea lineno texto m queda
+    while IFS= read -r linea; do
+      [ -n "$linea" ] || continue
+      lineno="${linea%%:*}"; texto="${linea#*:}"
+      queda=0
+      while IFS= read -r m; do
+        [ -n "$m" ] || continue
+        grep -qE "$except" <<<"$m" || queda=1
+      done < <(grep -oE "$pattern" <<<"$texto")
+      [ "$queda" = "1" ] && filtradas+="${lineno}:${texto}"$'\n'
+    done <<<"$hits"
+    hits="${filtradas%$'\n'}"
+    [ -z "$hits" ] && return 0
+  fi
 
   local rel="${file#"$REPO_ROOT"/}"
   while IFS= read -r line; do
@@ -528,7 +584,8 @@ for f in "${FILES[@]}"; do
   while IFS= read -r id; do
     [ -n "$id" ] || continue
     p="RULE_${id}_PATTERN"; c="RULE_${id}_CUSTODIAN"; w="RULE_${id}_WHY"
-    report "$f" "${!p}" "${!c}" "${!w}"
+    e="RULE_${id}_EXCEPT"
+    report "$f" "${!p}" "${!c}" "${!w}" "${!e:-}"
   done < <(rules_for "$rel")
 done
 
