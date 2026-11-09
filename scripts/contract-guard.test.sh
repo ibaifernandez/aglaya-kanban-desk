@@ -307,6 +307,88 @@ fi
 
 rm -rf "$COHERENTE" "$SOLO_FECHA" "$DESALINEADO" "$SIN_CABECERA"
 
+# ── Que no se pierda una entrada del historial (`a589f968`) ────────────────
+#
+# El hueco: lo de arriba compara la cabecera con la PRIMERA entrada, así que si
+# desaparece cualquier OTRA, la cabecera sigue cuadrando y el guardián salía 0.
+# El camino real son dos PR que añaden su entrada arriba: chocan ahí, y resolver
+# «quedándose con un lado» borra la del otro. Lo midió el vigilante en #136.
+
+contrato_con_historial() {   # $1 = versión cabecera, $2 = fecha, $3… = entradas
+  local dir; dir="$(mktemp -d)"; local ver="$1" fecha="$2"; shift 2
+  mkdir -p "$dir/docs/contracts" "$dir/server/routes"
+  : > "$dir/server/routes/cards.js"
+  {
+    printf '# Contrato\n\n- **Versión:** %s\n- **Última modificación:** %s\n\n' "$ver" "$fecha"
+    printf '<!-- contract-guard:puertas:inicio -->\n- `server/routes/cards.js`\n<!-- contract-guard:puertas:fin -->\n\n'
+    printf '### Historial de versiones\n\n'
+    local e; for e in "$@"; do printf '**%s. Lo que cambió.**\n\n' "$e"; done
+  } > "$dir/docs/contracts/CONTRACT.md"
+  printf '%s' "$dir"
+}
+
+# El «antes»: lo que main ya tenía, con las dos entradas.
+ANTES_DIR="$(contrato_con_historial '1.1.0' '2026-02-01' '1.1.0 — 2026-02-01' '1.0.0 — 2026-01-01')"
+ANTES="$ANTES_DIR/docs/contracts/CONTRACT.md"
+
+# EL CASO REAL: la rama resolvió el conflicto quedándose con su lado. Cabecera y
+# primera entrada CUADRAN —por eso salía verde— pero la entrada de la otra PR ya
+# no está.
+PERDIDA="$(contrato_con_historial '1.2.0' '2026-03-01' '1.2.0 — 2026-03-01' '1.0.0 — 2026-01-01')"
+salida_p="$(CONTRACT_GUARD_ROOT="$PERDIDA" CONTRACT_GUARD_BASE_FILE="$ANTES" CONTRACT_GUARD_CHANGED=$'server/routes/cards.js\ndocs/contracts/CONTRACT.md' bash "$GUARD" 2>&1)"
+code_p=$?
+if [ "$code_p" -eq 1 ] && grep -qF "perdió una entrada" <<< "$salida_p" && grep -qF "1.1.0" <<< "$salida_p"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "una entrada perdida por una fusión mal resuelta es roja, y la nombra"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s; es el hueco que esto viene a cerrar\n' "entrada perdida" "$code_p"
+  printf '%s\n' "$salida_p" | sed 's/^/          /'
+fi
+
+# LA CONTRAPRUEBA: la unión —las dos entradas, la nueva primero— pasa. Un
+# guardián que se pone rojo siempre no vigila: estorba.
+UNION="$(contrato_con_historial '1.2.0' '2026-03-01' '1.2.0 — 2026-03-01' '1.1.0 — 2026-02-01' '1.0.0 — 2026-01-01')"
+# El contrato va en la lista de cambiados porque es donde estuvo el conflicto:
+# si no, saltaría la comprobación VIEJA («puerta tocada sin contrato») y este
+# caso mediría otra cosa.
+salida_u="$(CONTRACT_GUARD_ROOT="$UNION" CONTRACT_GUARD_BASE_FILE="$ANTES" CONTRACT_GUARD_CHANGED=$'server/routes/cards.js\ndocs/contracts/CONTRACT.md' bash "$GUARD" 2>&1)"
+code_u=$?
+if [ "$code_u" -eq 0 ]; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "la resolución correcta (la unión) pasa"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s\n' "la unión tendría que pasar" "$code_u"
+  printf '%s\n' "$salida_u" | sed 's/^/          /'
+fi
+
+# Y sin con qué comparar NO se sale en verde callando: se dice qué no se miró.
+SOLO="$(contrato_con_historial '1.0.0' '2026-01-01' '1.0.0 — 2026-01-01')"
+salida_s="$(CONTRACT_GUARD_ROOT="$SOLO" CONTRACT_GUARD_CHANGED="server/routes/cards.js" bash "$GUARD" 2>&1)"
+if grep -qF "NO cubre" <<< "$salida_s"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "sin versión anterior, declara lo que no ha podido mirar"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — un guardián que se omite en silencio es el falso negativo que perseguimos\n' "sin base, calla"
+  printf '%s\n' "$salida_s" | sed 's/^/          /'
+fi
+
+# ⚠️ Y UNA QUE SE PIERDE DE EN MEDIO, que es lo que separa este arreglo de uno
+# a medias. Un mutante que mire solo la PRIMERA entrada del «antes» pasa todos
+# los casos de arriba —en ellos la perdida es justamente la primera— y falla
+# aquí. Sin este caso, media comprobación habría pasado por entera.
+MEDIO_DIR="$(contrato_con_historial '1.2.0' '2026-03-01' '1.2.0 — 2026-03-01' '1.1.0 — 2026-02-01' '1.0.0 — 2026-01-01')"
+MEDIO="$MEDIO_DIR/docs/contracts/CONTRACT.md"
+SIN_LA_DE_ENMEDIO="$(contrato_con_historial '1.2.0' '2026-03-01' '1.2.0 — 2026-03-01' '1.0.0 — 2026-01-01')"
+salida_m="$(CONTRACT_GUARD_ROOT="$SIN_LA_DE_ENMEDIO" CONTRACT_GUARD_BASE_FILE="$MEDIO" CONTRACT_GUARD_CHANGED=$'server/routes/cards.js\ndocs/contracts/CONTRACT.md' bash "$GUARD" 2>&1)"
+code_m=$?
+if [ "$code_m" -eq 1 ] && grep -qF "1.1.0" <<< "$salida_m"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "perder una entrada de EN MEDIO también es rojo"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s; mirar solo la primera del «antes» no basta\n' "entrada de en medio" "$code_m"
+  printf '%s\n' "$salida_m" | sed 's/^/          /'
+fi
+
+rm -rf "$MEDIO_DIR" "$SIN_LA_DE_ENMEDIO"
+rm -rf "$ANTES_DIR" "$PERDIDA" "$UNION" "$SOLO"
+
+
 echo
 echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
