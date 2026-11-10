@@ -100,6 +100,86 @@ if [ -n "$cabecera_version$historial_linea" ] && { [ -z "$cabecera_version" ] ||
   exit 1
 fi
 
+# ── QUE NO SE PIERDA NINGUNA ENTRADA DEL HISTORIAL (`a589f968`) ─────────────
+#
+# Lo de arriba compara la cabecera con la PRIMERA entrada. Eso deja un hueco con
+# forma de verde: si desaparece una entrada **que no sea la primera**, la
+# cabecera sigue cuadrando con la que quedó arriba y el guardián sale 0.
+#
+# EL CAMINO POR EL QUE PASA ES EL MÁS CORRIENTE QUE HAY, y ya ocurrió: dos PR
+# que añaden cada una su entrada al principio. Al fusionar la segunda hay
+# conflicto justo ahí, y resolverlo «quedándose con un lado» borra la entrada del
+# otro. Lo midió el vigilante revisando #136.
+#
+# Y lo que lo vuelve grave: quien resuelve ese conflicto lo hace **mirando que
+# este guardián se ponga verde**. El instrumento que debería avisar es el que da
+# permiso. Un contrato que el capitán sirve en vivo pierde así el registro de un
+# cambio que de verdad ocurrió.
+#
+# ⚠️ NO SE CUENTA NADA. Contar entradas y exigir que no bajen obligaría a guardar
+# el número en algún sitio, y un recuento guardado es estado copiado: caduca y
+# miente. Se deriva de lo que ya existe — **la versión anterior del fichero**, que
+# git sabe sin que nadie la apunte.
+version_anterior=""
+if [ -n "${CONTRACT_GUARD_BASE_FILE:-}" ]; then
+  # El sello lo usa para montar el escenario sin necesitar un repo git.
+  version_anterior="$(cat "$CONTRACT_GUARD_BASE_FILE" 2>/dev/null || true)"
+elif git -C "$RAIZ" rev-parse --git-dir >/dev/null 2>&1; then
+  # ⚠️ SE COMPARA CON `origin/main`, NO CON EL MERGE-BASE, y la diferencia es la
+  # que decide si esto sirve para algo. Lo vi al montar el caso real:
+  #
+  # En el incidente que originó esto, la entrada que se perdía venía de una PR
+  # **ya fusionada en main**. El merge-base de una rama sacada antes de aquella
+  # PR **no la contiene**, así que comparar contra él daría verde justo en el
+  # caso que hay que cazar. Contra `origin/main` sí aparece.
+  #
+  # Y no da falsos rojos en lo que importa: CI de una PR mide el árbol fusionado
+  # con la base, así que todo lo de `main` está presente. Si alguien lo corre en
+  # local sobre una rama vieja puede salir rojo — y es correcto que salga:
+  # significa que su rama se llevaría por delante algo que ya está en `main`.
+  for ref in origin/main main; do
+    if git -C "$RAIZ" rev-parse --verify --quiet "$ref" >/dev/null 2>&1; then
+      version_anterior="$(git -C "$RAIZ" show "$ref:$CONTRATO" 2>/dev/null || true)"
+      [ -n "$version_anterior" ] && break
+    fi
+  done
+fi
+
+entradas_de() { grep -oE '^\*\*[0-9]+\.[0-9]+\.[0-9]+ — [0-9]{4}-[0-9]{2}-[0-9]{2}' <<<"$1" | sed -E 's/^\*\*//'; }
+
+if [ -z "$version_anterior" ]; then
+  # NO se sale en verde callando: se dice qué parte no se ha podido mirar. Un
+  # guardián que se omite cuando no puede comprobar algo es el falso negativo
+  # silencioso que esta casa persigue — pero tampoco se pone rojo por no tener
+  # con qué comparar, que castigaría a quien lo corre suelto en local.
+  echo "contract-guard: sin versión anterior con la que comparar — esta ejecución"
+  echo "  NO cubre «se perdió una entrada del historial». En CI sí la cubre, que es"
+  echo "  donde se fusiona. Para forzarla aquí: CONTRACT_GUARD_BASE_FILE=<fichero>."
+else
+  perdidas=""
+  while IFS= read -r e; do
+    [ -n "$e" ] || continue
+    grep -qxF "$e" <<<"$(entradas_de "$(cat "$RAIZ/$CONTRATO")")" || perdidas+="  $e"$'\n'
+  done <<<"$(entradas_de "$version_anterior")"
+
+  if [ -n "$perdidas" ]; then
+    echo "::error file=$CONTRATO::contract-guard: el historial perdió una entrada que antes estaba."
+    echo ""
+    echo "Ya no aparece:"
+    printf '%s' "$perdidas"
+    echo ""
+    echo "Casi siempre es esto: dos ramas añadieron cada una su entrada arriba del"
+    echo "historial, chocaron ahí, y el conflicto se resolvió quedándose con un lado."
+    echo "La resolución correcta es la UNIÓN: las dos entradas, la más nueva primero."
+    echo ""
+    echo "No es una línea de changelog que falta: es un cambio de contrato que"
+    echo "ocurrió, que otras naves pueden estar consumiendo, y del que ya no queda"
+    echo "constancia en el único sitio que se consulta para saberlo. El capitán"
+    echo "sirve este fichero EN VIVO."
+    exit 1
+  fi
+fi
+
 if [ "$cabecera_version" != "$historial_version" ] || [ "$cabecera_fecha" != "$historial_fecha" ]; then
   echo "::error file=$CONTRATO::contract-guard: el contrato se contradice a sí mismo."
   echo ""

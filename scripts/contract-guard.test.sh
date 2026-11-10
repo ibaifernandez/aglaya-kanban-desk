@@ -307,6 +307,134 @@ fi
 
 rm -rf "$COHERENTE" "$SOLO_FECHA" "$DESALINEADO" "$SIN_CABECERA"
 
+# ── Que no se pierda una entrada del historial (`a589f968`) ────────────────
+#
+# El hueco: lo de arriba compara la cabecera con la PRIMERA entrada, así que si
+# desaparece cualquier OTRA, la cabecera sigue cuadrando y el guardián salía 0.
+# El camino real son dos PR que añaden su entrada arriba: chocan ahí, y resolver
+# «quedándose con un lado» borra la del otro. Lo midió el vigilante en #136.
+
+contrato_con_historial() {   # $1 = versión cabecera, $2 = fecha, $3… = entradas
+  local dir; dir="$(mktemp -d)"; local ver="$1" fecha="$2"; shift 2
+  mkdir -p "$dir/docs/contracts" "$dir/server/routes"
+  : > "$dir/server/routes/cards.js"
+  {
+    printf '# Contrato\n\n- **Versión:** %s\n- **Última modificación:** %s\n\n' "$ver" "$fecha"
+    printf '<!-- contract-guard:puertas:inicio -->\n- `server/routes/cards.js`\n<!-- contract-guard:puertas:fin -->\n\n'
+    printf '### Historial de versiones\n\n'
+    local e; for e in "$@"; do printf '**%s. Lo que cambió.**\n\n' "$e"; done
+  } > "$dir/docs/contracts/CONTRACT.md"
+  printf '%s' "$dir"
+}
+
+# El «antes»: lo que main ya tenía, con las dos entradas.
+ANTES_DIR="$(contrato_con_historial '1.1.0' '2026-02-01' '1.1.0 — 2026-02-01' '1.0.0 — 2026-01-01')"
+ANTES="$ANTES_DIR/docs/contracts/CONTRACT.md"
+
+# EL CASO REAL: la rama resolvió el conflicto quedándose con su lado. Cabecera y
+# primera entrada CUADRAN —por eso salía verde— pero la entrada de la otra PR ya
+# no está.
+PERDIDA="$(contrato_con_historial '1.2.0' '2026-03-01' '1.2.0 — 2026-03-01' '1.0.0 — 2026-01-01')"
+salida_p="$(CONTRACT_GUARD_ROOT="$PERDIDA" CONTRACT_GUARD_BASE_FILE="$ANTES" CONTRACT_GUARD_CHANGED=$'server/routes/cards.js\ndocs/contracts/CONTRACT.md' bash "$GUARD" 2>&1)"
+code_p=$?
+if [ "$code_p" -eq 1 ] && grep -qF "perdió una entrada" <<< "$salida_p" && grep -qF "1.1.0" <<< "$salida_p"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "una entrada perdida por una fusión mal resuelta es roja, y la nombra"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s; es el hueco que esto viene a cerrar\n' "entrada perdida" "$code_p"
+  printf '%s\n' "$salida_p" | sed 's/^/          /'
+fi
+
+# LA CONTRAPRUEBA: la unión —las dos entradas, la nueva primero— pasa. Un
+# guardián que se pone rojo siempre no vigila: estorba.
+UNION="$(contrato_con_historial '1.2.0' '2026-03-01' '1.2.0 — 2026-03-01' '1.1.0 — 2026-02-01' '1.0.0 — 2026-01-01')"
+# El contrato va en la lista de cambiados porque es donde estuvo el conflicto:
+# si no, saltaría la comprobación VIEJA («puerta tocada sin contrato») y este
+# caso mediría otra cosa.
+salida_u="$(CONTRACT_GUARD_ROOT="$UNION" CONTRACT_GUARD_BASE_FILE="$ANTES" CONTRACT_GUARD_CHANGED=$'server/routes/cards.js\ndocs/contracts/CONTRACT.md' bash "$GUARD" 2>&1)"
+code_u=$?
+if [ "$code_u" -eq 0 ]; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "la resolución correcta (la unión) pasa"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s\n' "la unión tendría que pasar" "$code_u"
+  printf '%s\n' "$salida_u" | sed 's/^/          /'
+fi
+
+# Y sin con qué comparar NO se sale en verde callando: se dice qué no se miró.
+SOLO="$(contrato_con_historial '1.0.0' '2026-01-01' '1.0.0 — 2026-01-01')"
+salida_s="$(CONTRACT_GUARD_ROOT="$SOLO" CONTRACT_GUARD_CHANGED="server/routes/cards.js" bash "$GUARD" 2>&1)"
+if grep -qF "NO cubre" <<< "$salida_s"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "sin versión anterior, declara lo que no ha podido mirar"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — un guardián que se omite en silencio es el falso negativo que perseguimos\n' "sin base, calla"
+  printf '%s\n' "$salida_s" | sed 's/^/          /'
+fi
+
+# ⚠️ Y UNA QUE SE PIERDE DE EN MEDIO, que es lo que separa este arreglo de uno
+# a medias. Un mutante que mire solo la PRIMERA entrada del «antes» pasa todos
+# los casos de arriba —en ellos la perdida es justamente la primera— y falla
+# aquí. Sin este caso, media comprobación habría pasado por entera.
+MEDIO_DIR="$(contrato_con_historial '1.2.0' '2026-03-01' '1.2.0 — 2026-03-01' '1.1.0 — 2026-02-01' '1.0.0 — 2026-01-01')"
+MEDIO="$MEDIO_DIR/docs/contracts/CONTRACT.md"
+SIN_LA_DE_ENMEDIO="$(contrato_con_historial '1.2.0' '2026-03-01' '1.2.0 — 2026-03-01' '1.0.0 — 2026-01-01')"
+salida_m="$(CONTRACT_GUARD_ROOT="$SIN_LA_DE_ENMEDIO" CONTRACT_GUARD_BASE_FILE="$MEDIO" CONTRACT_GUARD_CHANGED=$'server/routes/cards.js\ndocs/contracts/CONTRACT.md' bash "$GUARD" 2>&1)"
+code_m=$?
+if [ "$code_m" -eq 1 ] && grep -qF "1.1.0" <<< "$salida_m"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "perder una entrada de EN MEDIO también es rojo"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s; mirar solo la primera del «antes» no basta\n' "entrada de en medio" "$code_m"
+  printf '%s\n' "$salida_m" | sed 's/^/          /'
+fi
+
+# ⚠️ LA DECISIÓN CENTRAL: SE COMPARA CONTRA `origin/main`, NO CONTRA EL
+# MERGE-BASE. Hasta aquí todos los casos conducen el guardián por
+# `CONTRACT_GUARD_BASE_FILE`, así que **se saltan entera la selección de ref** —
+# cambiarla por el merge-base dejaba el sello en verde mientras convertía en
+# exit 0 el caso real. Lo cazó el vigilante, y es el mismo error que cometí yo
+# primero: desde fuera, el merge-base parece lo correcto.
+#
+# El escenario, montado SIN `git merge` —no hace falta, y así no se toca ningún
+# enganche—: la rama sale de un punto, `main` AVANZA con la PR de otro, y la
+# rama resuelve perezoso quedándose con lo suyo. La entrada de esa otra PR está
+# en `origin/main` y **no** en el merge-base: ahí se ve cuál de los dos sirve.
+REF_DIR="$(mktemp -d)"
+(
+  cd "$REF_DIR" || exit 1
+  git init -q -b main . && mkdir -p docs/contracts server/routes && : > server/routes/cards.js
+  escribir() {
+    { printf '# Contrato\n\n- **Versión:** %s\n- **Última modificación:** %s\n\n' "$1" "$2"
+      printf '<!-- contract-guard:puertas:inicio -->\n- `server/routes/cards.js`\n<!-- contract-guard:puertas:fin -->\n\n'
+      printf '### Historial de versiones\n\n'; shift 2
+      for e in "$@"; do printf '**%s. Lo que cambió.**\n\n' "$e"; done
+    } > docs/contracts/CONTRACT.md
+  }
+  escribir '1.0.0' '2026-01-01' '1.0.0 — 2026-01-01'
+  git add -A && git -c user.email=t@t -c user.name=t commit -qm partida
+  partida="$(git rev-parse HEAD)"
+  # main avanza con la PR de otro
+  escribir '1.1.0' '2026-02-01' '1.1.0 — 2026-02-01' '1.0.0 — 2026-01-01'
+  git add -A && git -c user.email=t@t -c user.name=t commit -qm "otra PR, ya en main"
+  git update-ref refs/remotes/origin/main HEAD
+  # la rama sale de antes y resuelve perezoso: la entrada de la otra PR desaparece
+  git checkout -q -b rama "$partida"
+  escribir '1.2.0' '2026-03-01' '1.2.0 — 2026-03-01' '1.0.0 — 2026-01-01'
+  git add -A && git -c user.email=t@t -c user.name=t commit -qm "resuelta perezosa"
+) >/dev/null 2>&1
+
+salida_r="$(CONTRACT_GUARD_ROOT="$REF_DIR" CONTRACT_GUARD_CHANGED=$'server/routes/cards.js\ndocs/contracts/CONTRACT.md' bash "$GUARD" 2>&1)"
+code_r=$?
+if [ "$code_r" -eq 1 ] && grep -qF "1.1.0" <<< "$salida_r"; then
+  PASS=$((PASS + 1)); printf '  ok    %s\n' "compara contra origin/main, no contra el merge-base"
+else
+  FAIL=$((FAIL + 1)); printf '  FALLO %s — exit %s; con el merge-base esto sale VERDE y el caso real se escapa\n' "origin/main vs merge-base" "$code_r"
+  printf '%s\n' "$salida_r" | sed 's/^/          /'
+fi
+
+rm -rf "$REF_DIR"
+
+rm -rf "$MEDIO_DIR" "$SIN_LA_DE_ENMEDIO"
+rm -rf "$ANTES_DIR" "$PERDIDA" "$UNION" "$SOLO"
+
+
 echo
 echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ] || exit 1
