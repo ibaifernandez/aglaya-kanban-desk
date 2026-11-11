@@ -5,8 +5,8 @@ and assign owners — WITHOUT touching the UI and WITHOUT ever seeing secrets.
 
 DESIGN (auth = option A, JWT service account):
   The rail logs in ONCE as a dedicated superadmin SERVICE ACCOUNT and drives the
-  EXISTING production API (/api/workspaces, /api/boards, /api/columns, /api/cards,
-  /api/admin/users). Zero product-code change; every WRITE inherits the server's
+  EXISTING production API (/api/workspaces, /api/boards, /api/columns,
+  /api/cards). Zero product-code change; every WRITE inherits the server's
   validation, role checks, RLS AND its notification side-effects. "God Mode" is
   ROLE-based (server/middleware/workspace.js:77 → role === 'superadmin').
 
@@ -154,22 +154,100 @@ def _column_info(column_id: str) -> dict[str, Any]:
     return info
 
 
-def _resolve_user(user: str) -> str:
-    """Map an email / name / uuid to a user id. Prefers exact email match."""
+def _workspace_people(workspace_id: str) -> list[dict[str, Any]]:
+    """The users who are MEMBERS of a workspace, as {id, name, email}.
+
+    `GET /workspaces/:id/members` sits behind `requireWorkspaceMember`, NOT
+    behind a role (`server/routes/workspaces.js`). That difference is the whole
+    point of this function: any member can ask it, and it carries the email, so
+    resolving a person by address no longer needs admin.
+    """
+    rows = _request("GET", f"/workspaces/{workspace_id}/members") or []
+    return [(m.get("user") or {}) for m in rows if (m.get("user") or {}).get("id")]
+
+
+def _card_workspace(card: dict[str, Any]) -> str:
+    """El espacio al que pertenece una tarjeta, derivado de su columna.
+
+    Cuesta UNA petición más sobre la tarjeta que el llamante ya tiene. Medido en
+    `assign_card`: pasa de 1 petición a 3 (`/cards/:id`, `/columns/:id`, `PUT`).
+    Se paga a sabiendas — es lo que permite resolver el responsable sin la ruta
+    de admin, y `create_card` no lo paga porque ya trae la columna en la mano.
+
+    `columnId` es el nombre que sirve la API (`server/routes/cards.js:95`), no
+    `column_id`; se acepta el otro por si alguien pasa una fila cruda.
+    """
+    col = card.get("columnId") or card.get("column_id")
+    if not col:
+        raise RuntimeError("card has no column — cannot derive its workspace")
+    ws = _column_info(col).get("workspaceId")
+    if not ws:
+        raise RuntimeError(f"column {col} has no workspace — cannot scope the assignee")
+    return ws
+
+
+def _resolve_user(user: str, workspace_id: str) -> str:
+    """Map an email / name / uuid to a user id. Prefers exact email match.
+
+    ⚠️ CON `workspace_id`, SE RESUELVE SOLO ENTRE SUS MIEMBROS — y eso es lo que
+    arregla la tarjeta `56c3a788`, no un retoque de permisos.
+
+    Antes se preguntaba SIEMPRE a `GET /admin/users`, que está entera detrás de
+    `requireRole('admin','superadmin')` (`server/routes/admin.js:23`). O sea: una
+    cuenta `colaborador` recibía
+
+        assignee no resuelve: GET /admin/users → 403: Sin permisos para esta
+        acción. No se ha creado nada.
+
+    Medido el 11-nov-2026 con la cuenta aislada en ejecución real, y reproducido
+    en el banco. Y la cuenta que lo recibía **no puede subir de rol**: hacerla
+    admin le daría GOD MODE (`server/middleware/workspace.js`) y borraría el
+    aislamiento que existe para protegerla. O sea que el camino que la propia
+    firma documenta —«acepta correo»— no servía para media casa.
+
+    El alcance por miembros no es solo el que funciona: es el CORRECTO. Solo se
+    puede asignar a quien verá la tarjeta. Resolver global permitía nombrar
+    responsable a un no-miembro, y esa tarjeta nace invisible para su dueño —
+    que es exactamente lo que `assignee` existe para impedir.
+
+    `workspace_id` ES OBLIGATORIO, y eso es lo que de verdad retira la ruta de
+    admin. Tuvo un default `None` que mantenía el camino viejo «para los sitios
+    que no tienen espacio que acotar» — y resultó que no hay ninguno: los cuatro
+    llamantes lo tienen o lo derivan. Un parámetro opcional que nadie omite no es
+    compatibilidad: es la puerta de atrás por la que esto vuelve, en verde, el día
+    que alguien añada una tool con prisa.
+    """
     u = (user or "").strip()
+    # ⚠️ UN UUID SE DEVUELVE TAL CUAL, TAMBIÉN CON `workspace_id`, y esto NO está
+    # cubierto por ninguna prueba de membresía: un id de alguien que no es
+    # miembro sigue pasando. Queda dicho en vez de insinuado. Acotarlo también es
+    # defendible, pero cambia el camino que `list_members` documenta —devuelve
+    # `user_id`— y no lo he medido.
     if _UUID_RE.match(u):
         return u
-    users = _request("GET", "/admin/users") or []
+    if not workspace_id:
+        # Sin espacio no se resuelve: NO se cae a la ruta de admin. Ese era el
+        # defecto. Un llamante nuevo que no sepa su espacio tiene que derivarlo
+        # —`_card_workspace` lo hace desde una tarjeta— y si no puede, lo que hay
+        # es un diseño a medias, no un caso que tapar aquí.
+        raise RuntimeError("assignee cannot be resolved without a workspace to scope it to")
+    people = _workspace_people(workspace_id)
     ul = u.lower()
-    for row in users:
+    for row in people:
         if (row.get("email") or "").lower() == ul:
             return row["id"]
-    named = [row for row in users if (row.get("name") or "").lower() == ul]
+    named = [row for row in people if (row.get("name") or "").lower() == ul]
     if len(named) == 1:
         return named[0]["id"]
+    # ⚠️ EL FALLO NO REPITE LO QUE LE PASARON, y no es estilo: el llamante puede
+    # haber pasado un correo, y un error es una respuesta de tool como otra
+    # cualquiera. Devolverlo lo metería de vuelta en el modelo y en los registros,
+    # que es lo que `ed8910e2` quitó de `list_members`. Quien llamó sabe lo que
+    # mandó; no necesita que se lo lean.
     if len(named) > 1:
-        raise RuntimeError(f"ambiguous user '{user}' (multiple names match) — pass the email or id")
-    raise RuntimeError(f"user '{user}' not found — pass an exact email, name, or id")
+        raise RuntimeError("ambiguous assignee (multiple names match) — pass the email or id")
+    raise RuntimeError(f"assignee is not a member of {workspace_id} — pass an exact "
+                       "email, name, or id of a member")
 
 
 # ---------------------------------------------------------------------------
@@ -422,8 +500,14 @@ def create_card(
     # donde estaba— un assignee que no resuelve dejaba la tarjeta ya escrita y sin
     # dueño: exactamente la tarjeta invisible que este campo existe para impedir,
     # creada por el propio guardián.
+    #
+    # Y se resuelve ACOTADO AL ESPACIO DE DESTINO, que sale de la misma lectura
+    # que ya se hizo arriba — no de `workspace_id`, que es solo la comprobación
+    # que el llamante declara. Manda el destino real: si alguien pasa un
+    # `workspace_id` que no es el de la columna, el aviso de desajuste ya cortó
+    # antes; si no lo pasa, el espacio sigue siendo el de la columna.
     try:
-        assignee_id = _resolve_user(assignee)
+        assignee_id = _resolve_user(assignee, info.get("workspaceId"))
     except RuntimeError as exc:
         return {"error": f"assignee no resuelve: {exc}. No se ha creado nada."}
 
@@ -459,7 +543,14 @@ def create_card(
     # devuelve es el id que se RESOLVIÓ y se mandó, no una promesa de una llamada
     # que ya no existe.
     out["assignee_id"] = assignee_id
-    out["assigned"] = assignee
+    # ⚠️ AQUÍ IBA `out["assigned"] = assignee`, Y DEVOLVÍA EL CORREO que le
+    # pasaran. Medido contra la salida real, no contra el código: con
+    # `assignee="…@…"` la respuesta lo traía dentro. `ed8910e2` lo quitó de
+    # `list_members` el 25-sep-2026 y dejó este eco vivo — y un eco es peor que
+    # una fuga nueva, porque el documento ya decía que estaba cerrado.
+    # El `assignee_id` es el único de los tres que no es un dato personal, y es
+    # el que sirve para lo siguiente que haga el llamante.
+    out["assigned"] = "card"
     return out
 
 
@@ -469,21 +560,49 @@ def create_card(
 @mcp.tool()
 def assign_card(card_id: str, user: str) -> dict[str, Any]:
     """Set the OWNER of a card (email/name/id). Goes through the API's update →
-    fires the in-app `card_assignment` notification for that user."""
-    uid = _resolve_user(user)
+    fires the in-app `card_assignment` notification for that user.
+
+    El responsable se resuelve entre los MIEMBROS del espacio de la tarjeta, igual
+    que en `create_card` (`56c3a788`). Aquí el espacio no viene dado: se deriva de
+    la tarjeta, y eso cuesta dos peticiones más.
+
+    ⚠️ Y CAMBIA QUÉ ERROR SALE PRIMERO. Antes un responsable que no resolvía
+    fallaba aunque la tarjeta no existiera; ahora la tarjeta se lee primero,
+    porque sin ella no hay espacio con el que acotar. Es el orden correcto por
+    otro motivo: resolver un responsable para una tarjeta que no existe es
+    trabajo sobre nada. Queda fijado en prueba.
+    """
+    card = _request("GET", f"/cards/{card_id}")
+    if not card:
+        return {"error": f"card {card_id} not found"}
+    uid = _resolve_user(user, _card_workspace(card))
     _request("PUT", f"/cards/{card_id}", {"assigneeId": uid})
-    return {"assigned": "card", "card_id": card_id, "assignee_id": uid, "notified": user}
+    # `notified` traía el `user` tal cual — o sea el correo, cuando se pasaba un
+    # correo. Mismo eco que en `create_card`, misma razón para quitarlo. El id
+    # dice a quién se notificó sin decir su dirección.
+    return {"assigned": "card", "card_id": card_id, "assignee_id": uid, "notified": uid}
 
 
 @mcp.tool()
 def assign_checklist_item(card_id: str, item: str, user: str) -> dict[str, Any]:
     """Assign a checklist ITEM to a user. `item` = the item's 0-based index (as a
     string, e.g. "0") or a substring of its text. `user` = email/name/id, or
-    "all" for every member. Fires the in-app `checklist_mention` notification."""
-    uid = "__all__" if user.strip().lower() in ("all", "todos", "__all__") else _resolve_user(user)
+    "all" for every member. Fires the in-app `checklist_mention` notification.
+
+    Como `assign_card`: el responsable se resuelve entre los miembros del espacio
+    de la tarjeta, así que **la tarjeta se lee ANTES de resolver** — aquí el
+    cambio es solo de orden, porque la lectura ya existía dos líneas más abajo.
+
+    `"all"` sigue sin pasar por la resolución, y por tanto sigue significando lo
+    mismo: el servidor lo expande a los miembros del espacio de esa tarjeta. Está
+    acotado por construcción, no por este cambio; hay una prueba que lo dice
+    para que nadie tenga que deducirlo.
+    """
     card = _request("GET", f"/cards/{card_id}")
     if not card:
         return {"error": f"card {card_id} not found"}
+    uid = ("__all__" if user.strip().lower() in ("all", "todos", "__all__")
+           else _resolve_user(user, _card_workspace(card)))
     checklist = card.get("checklist") or []
     if not checklist:
         return {"error": "card has no checklist items"}
@@ -507,8 +626,20 @@ def assign_checklist_item(card_id: str, item: str, user: str) -> dict[str, Any]:
         assignees.append(uid)
     checklist[idx]["assignees"] = assignees
     _request("PUT", f"/cards/{card_id}", {"checklist": checklist})
+    # ⚠️ AQUÍ IBA `"notified": user`, EL TERCER ECO — y era el que nadie había
+    # mirado. Lo cazó el vigilante devolviendo la PR: quitarlo dejaba el banco en
+    # 43/43, o sea que mis dos casos del eco muerden donde los puse y este sitio
+    # no tenía ninguno. Y `user` es un correo **por contrato**: lo dice el
+    # docstring de arriba.
+    #
+    # Se devuelve `uid`, igual que `assign_card`. En el camino `"all"` eso vale
+    # `"__all__"`, y lo devuelvo TAL CUAL a sabiendas: es el token del propio
+    # protocolo —el mismo que viaja en el `PUT`— así que quien llama puede
+    # compararlo sin adivinar. La alternativa era inventar una etiqueta más
+    # bonita («todos los miembros»), y eso es superficie nueva que alguien
+    # tendría que mantener en dos sitios para decir lo mismo.
     return {"assigned": "checklist_item", "card_id": card_id, "item_index": idx,
-            "item_text": checklist[idx].get("text"), "assignee_id": uid, "notified": user}
+            "item_text": checklist[idx].get("text"), "assignee_id": uid, "notified": uid}
 
 
 # ---------------------------------------------------------------------------
@@ -741,8 +872,14 @@ def _gate(kind: str, target: dict[str, Any]) -> dict[str, Any]:
 @mcp.tool()
 def remove_member(workspace_id: str, user: str, confirm: bool = False) -> dict[str, Any]:
     """Remove a user from a workspace (membership only — does NOT delete the
-    account). GATED — pass confirm=true. `user` = email/name/id."""
-    uid = _resolve_user(user)
+    account). GATED — pass confirm=true. `user` = email/name/id.
+
+    El espacio lo recibe ya, así que acotar la resolución no cuesta ninguna
+    petición extra — y aquí el alcance es además el único que tiene sentido: a
+    quien se va a quitar de un espacio es, por definición, miembro de ese
+    espacio. Resolver global permitía pedir la baja de alguien que no estaba.
+    """
+    uid = _resolve_user(user, workspace_id)
     if not confirm:
         return _gate("remove_member", {"workspace_id": workspace_id, "user": user, "user_id": uid})
     _request("DELETE", f"/workspaces/{workspace_id}/members/{uid}")

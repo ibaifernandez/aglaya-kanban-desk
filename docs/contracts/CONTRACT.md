@@ -1,8 +1,8 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 5.0.0
-- **Última modificación:** 2026-11-02
+- **Versión:** 6.0.0
+- **Última modificación:** 2026-11-11
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
 > Hasta hoy no existía: el registro de contratos del capitán describía la puerta
@@ -47,6 +47,20 @@ Lo que el catálogo no te dice, y este contrato sí:
   `create_card` exige `assignee` y `priority` explícitos, y sin ellos no escribe
   nada. `priority` tuvo default `medium`; ya no lo tiene. Ver
   [«Por qué responsable y prioridad no tienen default»](#por-qué-responsable-y-prioridad-no-tienen-default).
+- **Y el responsable se resuelve entre los MIEMBROS del espacio** *(v6.0.0)*, en
+  **las cuatro** tools que resuelven una persona: `create_card`, `assign_card`,
+  `assign_checklist_item` y `remove_member`. Solo se acepta por correo o nombre a
+  quien es miembro del espacio donde aterriza la tarjeta. Un correo de fuera
+  **falla y no escribe nada**: no es una restricción añadida, es el alcance que le
+  faltaba — un responsable que no es miembro no puede ver su propia tarjeta.
+
+  **Lo que esto arregla** es que antes se resolvía contra una ruta de solo-admin,
+  así que una cuenta `colaborador` **no podía clavar trabajo por correo en
+  absoluto**. Y la cuenta que lo sufría no puede subir de rol sin perder su
+  aislamiento. Ver el historial de v6.0.0.
+
+  ⚠️ **Un UUID se sigue aceptando sin comprobar membresía**, por las dos puertas.
+  Queda dicho porque es el hueco que queda, no porque esté bien.
 - **El brief llega por cualquiera de sus dos nombres, al crear Y al actualizar.**
   `description_md` es el documentado; `description` es alias del mismo campo,
   porque así se llama en la Puerta 2 y quien venga de allí pasará ese nombre. Si
@@ -405,7 +419,10 @@ del default de `workspaceName` — implícito, plausible y silencioso.
 
 **Lo que las puertas comprueban, y lo que NO.** Comprueban que los campos vengan
 y que resuelvan: `priority` contra la lista de válidas, `assignee` contra un
-usuario real. **No** comprueban la semántica —quién es obrero y quién es humano,
+usuario real — y desde v6.0.0, **en la Puerta 1, contra un MIEMBRO del espacio de
+destino**. La Puerta 2 sigue resolviendo global, porque va con `service_role` y
+su alcance es todo a propósito; esa asimetría es deliberada y está dicha para que
+nadie pruebe una y crea conocer la otra. **No** comprueban la semántica —quién es obrero y quién es humano,
 o si esta tarjeta merece `urgent`—: eso es criterio, y no vive en una puerta.
 Exigir el campo es lo que la puerta puede garantizar; acertar con él, no.
 
@@ -506,6 +523,91 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**6.0.0 — 2026-11-11. El responsable se resuelve entre los miembros del espacio,
+y las respuestas dejan de devolver el correo.** Sube **mayor por dos motivos
+distintos**, y conviene separarlos porque uno rompe por forma y el otro por
+alcance.
+
+**Qué pasaba.** `_resolve_user` preguntaba siempre a `GET /admin/users`, que está
+entera detrás de `requireRole('admin','superadmin')`. Una cuenta `colaborador`
+recibía, al intentar crear una tarjeta pasando un correo:
+
+```
+assignee no resuelve: GET /admin/users → 403: Sin permisos para esta acción.
+No se ha creado nada.
+```
+
+Medido el 11-nov-2026 con la cuenta aislada en ejecución real. No se escribía
+nada —eso ya estaba bien— pero **el camino que la propia firma documenta no
+servía para media casa**. Y la cuenta que lo sufría **no puede subir de rol**:
+hacerla `superadmin` le daría el salto de membresía de `GOD MODE` y borraría el
+aislamiento que existe para protegerla. «Darle permisos» no era la salida: era el
+daño.
+
+**Qué cambia, y por qué es el alcance correcto y no un parche.** Ahora se resuelve
+contra `GET /workspaces/:id/members`, que está detrás de membresía y no de rol, y
+que ya traía el correo. Como efecto, **un no-miembro deja de poder ser
+responsable**: antes un `superadmin` podía nombrar a cualquiera, y esa tarjeta
+nacía invisible para su propio dueño — que es exactamente lo que `assignee` existe
+para impedir. *(rompe)* una llamada que asignara a alguien de fuera del espacio
+empieza a fallar.
+
+**Y el eco del correo, que eran TRES y no dos.** v4.0.0 quitó la dirección de
+`list_members` el 25-sep-2026 y **dejó tres ecos vivos**: `create_card` devolvía
+`assigned: "<el correo que le pasaste>"`, y `assign_card` y
+`assign_checklist_item` devolvían `notified` igual. Medido contra la salida real,
+no leyendo el código. Un eco es peor que una fuga nueva: el documento ya decía que
+estaba cerrado.
+
+**El tercero lo encontró el vigilante devolviendo la PR**, y es el que más pesa de
+los tres: `assign_checklist_item` promete en su propia firma que `user` puede ser
+un correo, así que no era el eco accidental de un parámetro genérico sino el de un
+campo documentado como dirección. Los dos primeros se arreglaron con caso y
+mutante; ese sitio **no tenía ninguno**, y quitarlo dejaba el banco igual de verde.
+
+*(rompe)* `assigned` pasa a ser la constante `"card"` y `notified` devuelve el
+`user_id` en las dos tools que lo traen. Quien leyera cualquiera de los tres
+esperando la dirección deja de recibirla — **y eso es el punto**. El fallo tampoco
+repite lo que le pasaron.
+
+En el camino `"all"` de `assign_checklist_item`, `notified` devuelve `"__all__"`:
+el mismo token que viaja en la escritura, para que quien llama pueda compararlo
+sin adivinar y sin que haya una etiqueta paralela que mantener.
+
+**Qué hacer si dependías de ello:** el `assignee_id` está en la respuesta y es el
+único de los tres datos que no es personal.
+
+**Aplica a las CUATRO tools que resuelven una persona**, no solo a `create_card`:
+`assign_card`, `assign_checklist_item` y `remove_member` también. Arreglar una
+sola dejaba `/admin/users` vivo en el riel, y el hallazgo era precisamente que esa
+puerta solo abre a admins — media casa seguiría sin poder asignar por tres de los
+cuatro caminos. **Ya no queda ninguna llamada viva a `/admin/users` en el riel**, y
+el espacio es un parámetro **obligatorio** de la resolución: un llamante nuevo que
+lo omita falla en la llamada, no por dentro.
+
+*(rompe, y es observable)* **`assign_card` cambia qué error sale primero.** Antes un
+responsable que no resolvía fallaba aunque la tarjeta no existiera; ahora la
+tarjeta se lee primero, porque sin ella no hay espacio con el que acotar. El orden
+nuevo es además el correcto: resolver un responsable para una tarjeta que no
+existe es trabajo sobre nada.
+
+**Y cuesta dos peticiones más por asignación** (`/cards/:id` → `/columns/:id`).
+Está dicho porque es el precio del arreglo, no un detalle: `create_card` no lo
+paga, porque ya trae la columna en la mano. `remove_member` tampoco, porque ya
+recibe el espacio.
+
+`"all"` en `assign_checklist_item` **sigue significando lo mismo** —el servidor lo
+expande a los miembros de ese espacio— y no pasa por la resolución.
+
+**Lo que NO entra, dicho a propósito.** El `404` de la Puerta 2 sigue repitiendo el
+`assignee` recibido, que puede ser un correo. Y un **UUID** se acepta sin comprobar
+membresía, por las dos puertas. Las dos tienen tarjeta propia: no se arreglan de
+paso para no cambiar en una PR lo que su tarjeta no nombra.
+
+Lo vigila [`kanban-mcp/test_server.py`](../../kanban-mcp/test_server.py) — la
+condición y su contraprueba van juntas, porque la primera sola se puede cumplir
+con una fuga de alcance.
 
 **5.0.0 — 2026-11-02. Mandar el brief por los dos nombres a la vez, con textos
 distintos, pasa a ser un error.** Sube **mayor, y es deliberado aunque suene
