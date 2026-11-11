@@ -234,6 +234,14 @@ la base es inconsultable desde aquí: eso lo mide
 lleva dentro van fechadas, y valen como **referencia de magnitud** —para saber si lo
 que midas hoy se parece o no se parece—, nunca como la situación actual.
 
+> **Toda cifra vive en un bloque de cita como este, y empieza por «medido el…».**
+> No es estilo: es lo que hace visible el incumplimiento. La primera versión de
+> esta sección fechó religiosamente las cifras que puso en bloques de cita y dejó
+> **cuatro en prosa, en presente de indicativo** —«`work_mem` es de 2,1 MB»— sin
+> que nadie, yo incluido, lo notara al releer. Lo cazó el vigilante. Si añades una
+> cifra y no te cabe en un bloque de cita, no la fíes a tu criterio: lo que no
+> está citado es que no está medido.
+
 **Por qué existe.** Supabase ha avisado tres veces: 01-oct, 07-oct y 10-nov-2026.
 **Las tres veces el diagnóstico empezó por las tablas, y las tres veces las tablas
 dieron cero.** Dos jornadas perdidas y dos diagnósticos retirados tras medir
@@ -263,12 +271,20 @@ en memoria. Este es el paso donde se perdieron las dos jornadas.
 **3 · ¿Son ficheros temporales?** → `temp_files` y `temp_bytes` en
 `pg_stat_database`.
 
-**Sí los hay, y es donde sí hay disco.** La causa es que `work_mem` en esta
-instancia es de **2,1 MB**, así que cualquier consulta que ordene o agrupe algo
-mayor **se derrama a disco**. Y los mayores productores identificados **no son
-consultas de la aplicación**: son las de **introspección del catálogo** —las que
-lanzan el panel y el conector al mirar el esquema—, del orden de **9 MB** de
-temporales por llamada.
+**Sí los hay, y es donde sí hay disco.** La causa es el tamaño de `work_mem`:
+cualquier consulta que ordene o agrupe algo mayor **se derrama a disco**. Y los
+mayores productores identificados **no son consultas de la aplicación**: son las de
+**introspección del catálogo** —las que lanzan el panel y el conector al mirar el
+esquema—.
+
+> ⚠️ **`work_mem` se consulta, no se cita: `SHOW work_mem;`.** Es la premisa de la
+> que cuelga toda la conclusión de este paso, así que es la cifra que menos puede
+> leerse como un hecho permanente — si cambia, el razonamiento de abajo sigue
+> pareciendo impecable mientras apunta al sitio equivocado, que es la avería que
+> esta sección existe para no repetir.
+>
+> Referencia, medido el 10-nov-2026: `work_mem` en **2,1 MB**, y del orden de
+> **9 MB** de temporales por llamada de introspección.
 
 > ⚠️ **Y quien lo mida, que se cuente.** Una sesión de agente consultando el
 > catálogo para diagnosticar esto **genera ella misma los ficheros que está
@@ -278,25 +294,35 @@ temporales por llamada.
 
 **4 · ¿Es memoria?** → *Memory commitment*, en el panel.
 
-En una instancia `nano` sale **SEVERE de forma permanente**: la pila entera de
-Supabase compromete **~1,3 GB sobre 512 MB de RAM**. **Eso no es un fallo ni algo
-que se arregle con los datos.**
+En una instancia `nano` sale **SEVERE de forma permanente**, porque lo que
+compromete la pila entera de Supabase es del orden del doble de la RAM que hay.
+**Eso no es un fallo ni algo que se arregle con los datos.**
 
 ⚠️ **Podar filas no lo mueve, y quien lo proponga está confundiendo dos cosas de
-órdenes de magnitud distintos.** El objeto más grande de esta base son **56 MB**:
-ruido frente a 1,3 GB. Se propuso el 10-nov-2026 y se retiró tras medir.
+órdenes de magnitud distintos.** Se propuso el 10-nov-2026 y se retiró tras medir.
 
-**5 · Qué NO es: las conexiones.** Son **~10** y **todas son de Supabase**
-—PostgREST, *mgmt-api*, el exportador—. **6** llevan meses abiertas y es su
-funcionamiento normal, no una fuga.
+> Referencia, medido el 10-nov-2026: **~1,3 GB comprometidos sobre 512 MB de
+> RAM**, y el objeto más grande de la base en **56 MB** — ruido frente a 1,3 GB.
+> El tamaño del objeto mayor se consulta con `pg_total_relation_size`.
+
+**5 · Qué NO es: las conexiones.** → `pg_stat_activity`, agrupando por
+`usename` / `application_name`.
+
+**Todas son de Supabase** —PostgREST, *mgmt-api*, el exportador—, y las que llevan
+mucho tiempo abiertas es su funcionamiento normal, no una fuga.
+
+> Referencia, medido el 10-nov-2026: **~10** conexiones, **6** de ellas abiertas
+> desde hacía meses.
 
 #### Lo que hay que entender antes de los cinco pasos
 
 **El aviso no dice «tu base va mal». Dice «estás rozando el techo del plan
-gratis».** El 10-nov-2026, con la alarma recién llegada: la aplicación respondía,
-la CPU estaba al **6 %**, ninguna nave se había quejado, y el presupuesto se
-estaba rellenando. Leerlo como una avería es lo que convierte un aviso de cuota en
-una jornada de diagnóstico.
+gratis».** Leerlo como una avería es lo que convierte un aviso de cuota en una
+jornada de diagnóstico.
+
+> Referencia, medido el 10-nov-2026 con la alarma recién llegada: la aplicación
+> respondía, la CPU al **6 %**, ninguna nave se había quejado, y el presupuesto
+> **rellenándose**.
 
 #### Lo que esto NO es
 
