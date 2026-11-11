@@ -175,6 +175,25 @@ RULE_V2_PATTERN='(tests-[0-9]+|[0-9]+[[:space:]]*(tests?|suites?|pruebas?)\b|[0-
 # Y UN COSTE ACEPTADO: «3 cafés» o «4 sofás» dejarían de morder. Son sustantivos
 # plurales legítimos con tilde aguda. En este repo no aparecen, y perder ese caso
 # vale mucho menos que recuperar las ocho frases de cada día.
+#
+# ⚠️ Y EL TERCERO, QUE ES EL QUE MÁS FÁCIL SE TROPIEZA: un conteo cuyo número cae
+# entre 1900 y 2099 seguido de una palabra GENÉRICA queda excusado. «2048 tablas
+# con RLS» o «2026 ficheros mirados» **no muerden**. Medido el 11-nov-2026.
+#
+# No está roto: está DECIDIDO, y por eso se escribe aquí. Quien escriba un conteo
+# de cuatro cifras, vea que el guardián calla y se vaya a buscar el fallo, va a
+# buscar algo que no existe.
+#
+# **No tiene solución por forma**, y ahí está el motivo de no cerrarlo: entre
+# `2026 tablas` (conteo) y `2026 dos` (fecha) no hay ninguna señal estructural que
+# los separe — mismo número, misma posición, misma clase de palabra detrás.
+# Distinguirlos exigiría una lista de sustantivos, y los catálogos los rechaza la
+# cabecera de esta misma regla, arriba, con su motivo.
+#
+# LO QUE SÍ SIGUE CAZÁNDOSE, que es la parte que hace el borde asumible: la forma
+# EXPLÍCITA. `2000 tests en verde`, `1999 pruebas pasaron` y `2026 suites
+# corrieron` muerden, por `RULE_V2_NUNCA` de abajo. Y un conteo fuera del rango
+# —`412 tablas`— también. Las tres cosas medidas el mismo día.
 # ⚠️ LO QUE NO SE EXCUSA NUNCA, y esto cierra un agujero que abrió la excepción
 # de arriba. **Un conteo entre 1900 y 2099 empieza igual que un año**, así que
 # `2000 tests en verde`, `1999 pruebas pasaron` y `2026 suites corrieron`
