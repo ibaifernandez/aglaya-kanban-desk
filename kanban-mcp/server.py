@@ -154,22 +154,75 @@ def _column_info(column_id: str) -> dict[str, Any]:
     return info
 
 
-def _resolve_user(user: str) -> str:
-    """Map an email / name / uuid to a user id. Prefers exact email match."""
+def _workspace_people(workspace_id: str) -> list[dict[str, Any]]:
+    """The users who are MEMBERS of a workspace, as {id, name, email}.
+
+    `GET /workspaces/:id/members` sits behind `requireWorkspaceMember`, NOT
+    behind a role (`server/routes/workspaces.js`). That difference is the whole
+    point of this function: any member can ask it, and it carries the email, so
+    resolving a person by address no longer needs admin.
+    """
+    rows = _request("GET", f"/workspaces/{workspace_id}/members") or []
+    return [(m.get("user") or {}) for m in rows if (m.get("user") or {}).get("id")]
+
+
+def _resolve_user(user: str, workspace_id: str | None = None) -> str:
+    """Map an email / name / uuid to a user id. Prefers exact email match.
+
+    ⚠️ CON `workspace_id`, SE RESUELVE SOLO ENTRE SUS MIEMBROS — y eso es lo que
+    arregla la tarjeta `56c3a788`, no un retoque de permisos.
+
+    Antes se preguntaba SIEMPRE a `GET /admin/users`, que está entera detrás de
+    `requireRole('admin','superadmin')` (`server/routes/admin.js:23`). O sea: una
+    cuenta `colaborador` recibía
+
+        assignee no resuelve: GET /admin/users → 403: Sin permisos para esta
+        acción. No se ha creado nada.
+
+    Medido el 11-nov-2026 con la cuenta aislada en ejecución real, y reproducido
+    en el banco. Y la cuenta que lo recibía **no puede subir de rol**: hacerla
+    admin le daría GOD MODE (`server/middleware/workspace.js`) y borraría el
+    aislamiento que existe para protegerla. O sea que el camino que la propia
+    firma documenta —«acepta correo»— no servía para media casa.
+
+    El alcance por miembros no es solo el que funciona: es el CORRECTO. Solo se
+    puede asignar a quien verá la tarjeta. Resolver global permitía nombrar
+    responsable a un no-miembro, y esa tarjeta nace invisible para su dueño —
+    que es exactamente lo que `assignee` existe para impedir.
+
+    SIN `workspace_id` se mantiene el camino de antes, porque hay sitios que no
+    tienen espacio que acotar. No se ha quedado ahí por simetría: cada llamante
+    que puede derivarlo lo pasa.
+    """
     u = (user or "").strip()
+    # ⚠️ UN UUID SE DEVUELVE TAL CUAL, TAMBIÉN CON `workspace_id`, y esto NO está
+    # cubierto por ninguna prueba de membresía: un id de alguien que no es
+    # miembro sigue pasando. Queda dicho en vez de insinuado. Acotarlo también es
+    # defendible, pero cambia el camino que `list_members` documenta —devuelve
+    # `user_id`— y no lo he medido.
     if _UUID_RE.match(u):
         return u
-    users = _request("GET", "/admin/users") or []
+    if workspace_id:
+        people = _workspace_people(workspace_id)
+        donde = f"no es miembro de {workspace_id}"
+    else:
+        people = _request("GET", "/admin/users") or []
+        donde = "not found"
     ul = u.lower()
-    for row in users:
+    for row in people:
         if (row.get("email") or "").lower() == ul:
             return row["id"]
-    named = [row for row in users if (row.get("name") or "").lower() == ul]
+    named = [row for row in people if (row.get("name") or "").lower() == ul]
     if len(named) == 1:
         return named[0]["id"]
+    # ⚠️ EL FALLO NO REPITE LO QUE LE PASARON, y no es estilo: el llamante puede
+    # haber pasado un correo, y un error es una respuesta de tool como otra
+    # cualquiera. Devolverlo lo metería de vuelta en el modelo y en los registros,
+    # que es lo que `ed8910e2` quitó de `list_members`. Quien llamó sabe lo que
+    # mandó; no necesita que se lo lean.
     if len(named) > 1:
-        raise RuntimeError(f"ambiguous user '{user}' (multiple names match) — pass the email or id")
-    raise RuntimeError(f"user '{user}' not found — pass an exact email, name, or id")
+        raise RuntimeError("ambiguous assignee (multiple names match) — pass the email or id")
+    raise RuntimeError(f"assignee {donde} — pass an exact email, name, or id of a member")
 
 
 # ---------------------------------------------------------------------------
@@ -422,8 +475,14 @@ def create_card(
     # donde estaba— un assignee que no resuelve dejaba la tarjeta ya escrita y sin
     # dueño: exactamente la tarjeta invisible que este campo existe para impedir,
     # creada por el propio guardián.
+    #
+    # Y se resuelve ACOTADO AL ESPACIO DE DESTINO, que sale de la misma lectura
+    # que ya se hizo arriba — no de `workspace_id`, que es solo la comprobación
+    # que el llamante declara. Manda el destino real: si alguien pasa un
+    # `workspace_id` que no es el de la columna, el aviso de desajuste ya cortó
+    # antes; si no lo pasa, el espacio sigue siendo el de la columna.
     try:
-        assignee_id = _resolve_user(assignee)
+        assignee_id = _resolve_user(assignee, info.get("workspaceId"))
     except RuntimeError as exc:
         return {"error": f"assignee no resuelve: {exc}. No se ha creado nada."}
 
@@ -459,7 +518,14 @@ def create_card(
     # devuelve es el id que se RESOLVIÓ y se mandó, no una promesa de una llamada
     # que ya no existe.
     out["assignee_id"] = assignee_id
-    out["assigned"] = assignee
+    # ⚠️ AQUÍ IBA `out["assigned"] = assignee`, Y DEVOLVÍA EL CORREO que le
+    # pasaran. Medido contra la salida real, no contra el código: con
+    # `assignee="…@…"` la respuesta lo traía dentro. `ed8910e2` lo quitó de
+    # `list_members` el 25-sep-2026 y dejó este eco vivo — y un eco es peor que
+    # una fuga nueva, porque el documento ya decía que estaba cerrado.
+    # El `assignee_id` es el único de los tres que no es un dato personal, y es
+    # el que sirve para lo siguiente que haga el llamante.
+    out["assigned"] = "card"
     return out
 
 
@@ -472,7 +538,10 @@ def assign_card(card_id: str, user: str) -> dict[str, Any]:
     fires the in-app `card_assignment` notification for that user."""
     uid = _resolve_user(user)
     _request("PUT", f"/cards/{card_id}", {"assigneeId": uid})
-    return {"assigned": "card", "card_id": card_id, "assignee_id": uid, "notified": user}
+    # `notified` traía el `user` tal cual — o sea el correo, cuando se pasaba un
+    # correo. Mismo eco que en `create_card`, misma razón para quitarlo. El id
+    # dice a quién se notificó sin decir su dirección.
+    return {"assigned": "card", "card_id": card_id, "assignee_id": uid, "notified": uid}
 
 
 @mcp.tool()

@@ -100,6 +100,16 @@ class RielTestCase(unittest.TestCase):
         self.calls.append((method, path, json))
         if method == "GET" and path == "/admin/users":
             return [{"id": "user-rail", "email": "rail@aglaya.biz", "name": "Kanban Rail"}]
+        # ⚠️ LA FORMA ES LA DE LA RUTA REAL, no la que le vendría bien al banco:
+        # `workspace_members` anidando `user:users!user_id(id, name, email)`
+        # (`server/routes/workspaces.js:401-405`). Un doble que devolviera
+        # `{id, email}` plano dejaría pasar un `_resolve_user` que no sabe
+        # desanidar, y el banco diría verde sobre algo que en producción no
+        # resuelve a nadie. Desde `56c3a788` el riel resuelve por AQUÍ cuando
+        # conoce el espacio, así que este doble es ahora el camino principal.
+        if method == "GET" and path.startswith("/workspaces/") and path.endswith("/members"):
+            return [{"role": "owner", "invited_at": None, "invited_by": None,
+                     "user": {"id": "user-rail", "name": "Kanban Rail", "email": "rail@aglaya.biz"}}]
         if method == "GET" and path.startswith("/columns/") and path.endswith("/cards"):
             return []
         if method == "GET" and path.startswith("/boards/") and path.endswith("/cards"):
@@ -461,9 +471,13 @@ class MiembrosSinCorreo(RielTestCase):
     o en una clave nueva, sería el mismo dato con otro nombre.
     """
 
+    # El apunte va dentro de la rama: hacerlo arriba y delegar al padre duplica
+    # cada llamada en `self.calls`. Aquí no se cuenta nada, así que no mentía —
+    # pero la primera aserción sobre un recuento que alguien añadiera encima
+    # mediría el doble y pasaría por casualidad.
     def _fake_request(self, method, path, json=None, **_kw):
-        self.calls.append((method, path, json))
         if method == "GET" and path.endswith("/members"):
+            self.calls.append((method, path, json))
             return [
                 {"role": "owner",  "user": {"id": "u-1", "name": "Alguien", "email": "alguien@aglaya.biz"}},
                 {"role": "member", "user": {"id": "u-2", "name": "Otra",    "email": "otra@aglaya.biz"}},
@@ -482,6 +496,152 @@ class MiembrosSinCorreo(RielTestCase):
 
     def test_ninguna_direccion_sale_por_ninguna_parte(self):
         out = server.list_members(workspace_id="ws-1")
+        self.assertNotIn("@", repr(out))
+
+
+class UnaCuentaAisladaClavaPorCorreo(RielTestCase):
+    """Tarjeta `56c3a788`. El riel resuelve el responsable por los MIEMBROS del
+    espacio de destino, no por `/admin/users`.
+
+    QUÉ SE MIDE AQUÍ Y POR QUÉ NO BASTA CON QUE FUNCIONE. El fallo no era que la
+    resolución estuviera mal escrita: era que preguntaba por una puerta que solo
+    abre a `admin`/`superadmin` (`server/routes/admin.js:23`). Una cuenta
+    `colaborador` recibía 403 y no podía clavar trabajo por el camino que la
+    propia firma de la tool documenta.
+
+    Y la cuenta que lo recibía **no puede subir de rol**: hacerla `superadmin` le
+    daría GOD MODE y borraría su aislamiento. Así que «darle permisos» no era una
+    salida — era el daño.
+
+    EL DOBLE HACE QUE `/admin/users` REVIENTE A PROPÓSITO. Eso es lo que convierte
+    esto en una prueba y no en una demostración: si alguien devuelve la resolución
+    a la ruta de admin, estos casos se ponen rojos con el 403 de verdad, no con un
+    valor distinto.
+    """
+
+    BASE = dict(column_id="col-1", title="Tarea", board_id="board-1",
+                workspace_id="ws-1", priority="medium", description_md="cuerpo")
+
+    # ⚠️ IDS CON FORMA DE UUID, y no es decoración: `_resolve_user` devuelve tal
+    # cual lo que casa con `_UUID_RE`, así que un id de juguete como `u-mon`
+    # recorrería un camino que en producción no se recorre. `list_members`
+    # devuelve UUIDs de verdad.
+    MON  = "11111111-1111-4111-8111-111111111111"
+    IBAI = "22222222-2222-4222-8222-222222222222"
+
+    MIEMBROS = [
+        {"role": "owner",  "user": {"id": MON,  "name": "Mon",  "email": "mon@example.test"}},
+        {"role": "member", "user": {"id": IBAI, "name": "Ibai", "email": "ibai@example.test"}},
+    ]
+
+    # ⚠️ EL APUNTE VA DENTRO DE CADA RAMA, NO ARRIBA. Apuntar aquí y delegar
+    # luego al padre —que apunta también— duplica cada llamada, y entonces
+    # cualquier aserción sobre CUÁNTAS escrituras hubo mide el doble y pasa por
+    # casualidad. Me pasó al escribir esto: `assertEqual(len(posts), 1)` dio 2
+    # con un solo `POST` de verdad. El patrón venía de `MiembrosSinCorreo`, que
+    # no cuenta nada y por eso nunca lo acusó.
+    def _fake_request(self, method, path, json=None, **_kw):
+        if method == "GET" and path == "/admin/users":
+            self.calls.append((method, path, json))
+            raise RuntimeError("GET /admin/users → 403: Sin permisos para esta acción")
+        if method == "GET" and path.startswith("/workspaces/") and path.endswith("/members"):
+            self.calls.append((method, path, json))
+            return self.MIEMBROS
+        return super()._fake_request(method, path, json, **_kw)
+
+    # ── Condición 1 ──────────────────────────────────────────────────────────
+    def test_un_colaborador_clava_por_correo_de_un_miembro(self):
+        out = server.create_card(**self.BASE, assignee="mon@example.test")
+
+        self.assertNotIn("error", out)
+        self.assertEqual(out["assignee_id"], self.MON)
+        # Y la tarjeta nace asignada EN LA MISMA ESCRITURA. Si el responsable
+        # llegara en un `PUT` posterior volvería la ventana de `34ff4d48`.
+        posts = [c for c in self.writes if c[0] == "POST"]
+        self.assertEqual(len(posts), 1)
+        self.assertEqual(posts[0][2].get("assigneeId"), self.MON)
+
+    def test_y_no_pregunta_por_la_puerta_de_admin(self):
+        """La condición 1 podría pasar con una caída silenciosa tras el 403.
+
+        Esto fija el MECANISMO: conociendo el espacio, la ruta de admin no se
+        toca. Sin este caso, una implementación que intentara admin, se comiera
+        la excepción y cayera a miembros pasaría igual — y cobraría un 403 por
+        cada asignación de media casa, dependiendo de un fallo para elegir
+        camino.
+        """
+        server.create_card(**self.BASE, assignee="mon@example.test")
+        self.assertNotIn("/admin/users", [p for _, p, _ in self.calls])
+
+    # ── Condición 2 — va JUNTA con la 1 ──────────────────────────────────────
+    def test_contraprueba_un_no_miembro_falla_y_no_escribe_nada(self):
+        """Si la 1 pasa y esto no, lo construido no es una corrección: es una
+        fuga de alcance. Solo se puede asignar a quien verá la tarjeta — un
+        responsable que no es miembro nace sin poder verla, que es la tarjeta
+        invisible que `assignee` existe para impedir.
+        """
+        out = server.create_card(**self.BASE, assignee="extrano@example.test")
+
+        self.assertIn("error", out)
+        self.assertIn("No se ha creado nada", out["error"])
+        self.assertEqual(self.writes, [])
+
+    # ── Condición 3 — contra la salida real, no contra el código ─────────────
+    def test_ninguna_respuesta_devuelve_la_direccion(self):
+        """Medido antes de arreglarlo: `create_card` devolvía
+        `assigned: 'mon@example.test'` y `assign_card` devolvía `notified` con el
+        correo. `ed8910e2` lo quitó de `list_members` el 25-sep-2026 y dejó estos
+        dos ecos vivos — peor que una fuga nueva, porque el documento ya decía
+        que estaba cerrado.
+
+        Se comprueba sobre el `repr` entero a propósito: así no hay clave nueva
+        donde esconderlo.
+        """
+        creada = server.create_card(**self.BASE, assignee="mon@example.test")
+        self.assertNotIn("@", repr(creada))
+
+        # ⚠️ `assign_card` SE EJERCE CON UUID, no con correo, y la razón es un
+        # hueco que esta tarjeta NO cierra: esa tool no recibe espacio y hoy
+        # sigue resolviendo por `/admin/users`, así que un `colaborador` no puede
+        # asignar por correo en una tarjeta ya creada. Pasarle aquí un correo
+        # haría rojo este caso por el 403, no por el eco — y taparía lo que se
+        # mide. El eco sí queda fijado, que es lo que esta condición pide.
+        asignada = server.assign_card("card-1", self.MON)
+        self.assertNotIn("@", repr(asignada))
+
+    def test_y_tampoco_el_error_repite_lo_que_le_pasaron(self):
+        """El camino que más fácil se escapa: un fallo es una respuesta de tool
+        como otra cualquiera, y el que había echaba de vuelta el `user` recibido.
+        """
+        out = server.create_card(**self.BASE, assignee="extrano@example.test")
+        self.assertNotIn("@", repr(out))
+
+
+class AsignarTampocoDevuelveLaDireccion(RielTestCase):
+    """El eco de `assign_card`, por la vía que SÍ existe hoy.
+
+    POR QUÉ HACE FALTA UNA CLASE APARTE. En la de arriba `/admin/users` revienta
+    a propósito, así que allí `assign_card` solo se puede ejercer con UUID — y con
+    un UUID el eco `notified: user` devolvía el id, sin `@`, o sea que el caso
+    pasaba **igual de verde con el defecto puesto**. Lo medí: el mutante
+    sobrevivía.
+
+    Aquí la ruta de admin contesta, que es lo que le pasa al riel de verdad
+    (`kanban-rail@aglaya.biz` es `superadmin`). Con eso se puede pasar un correo,
+    y entonces el eco se ve.
+    """
+
+    def _fake_request(self, method, path, json=None, **_kw):
+        if method == "GET" and path == "/admin/users":
+            self.calls.append((method, path, json))
+            return [{"id": "33333333-3333-4333-8333-333333333333",
+                     "email": "mon@example.test", "name": "Mon"}]
+        return super()._fake_request(method, path, json, **_kw)
+
+    def test_pasar_un_correo_no_lo_devuelve(self):
+        out = server.assign_card("card-1", "mon@example.test")
+
+        self.assertEqual(out["assignee_id"], "33333333-3333-4333-8333-333333333333")
         self.assertNotIn("@", repr(out))
 
 
