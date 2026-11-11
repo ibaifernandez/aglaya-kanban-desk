@@ -228,6 +228,85 @@ la base es inconsultable desde aquí: eso lo mide
 
 <!-- base-consultable:conector-fin -->
 
+### Cuando Supabase avisa de que se acaba el *Disk IO Budget*: el orden de las preguntas
+
+**Esto no es un informe de estado: es el orden en que se pregunta.** Las cifras que
+lleva dentro van fechadas, y valen como **referencia de magnitud** —para saber si lo
+que midas hoy se parece o no se parece—, nunca como la situación actual.
+
+**Por qué existe.** Supabase ha avisado tres veces: 01-oct, 07-oct y 10-nov-2026.
+**Las tres veces el diagnóstico empezó por las tablas, y las tres veces las tablas
+dieron cero.** Dos jornadas perdidas y dos diagnósticos retirados tras medir
+—«es el tamaño del historial», luego «faltan índices»—. El conocimiento existía y
+vivía en transcripciones de sesión, así que la alarma siguiente lo pagaba entero.
+
+⚠️ **Empezar por las tablas es el camino equivocado, y se nombra a propósito.** Un
+documento que solo liste lo correcto no evita que alguien repita el error: el error
+hay que decirlo. Si vas directo a `pg_statio_user_tables`, estás en el paso 2 sin
+haber hecho el 1.
+
+**1 · ¿Está pasando AHORA, o es el informe de una ráfaga ya terminada?**
+
+Panel → *Observability* → *Database* → **Disk throughput**, contra la **línea base
+que el propio banner declara**. Por debajo de esa base el presupuesto **se
+rellena**: no hay urgencia, y lo que ha llegado es el parte de algo que ya acabó.
+
+> Referencia, medido el 10-nov-2026 en la ventana de 24 h: **51,5 KB/s** de
+> throughput contra una línea base de **5 MB/s** —el 1 %—, e **IOPS 2** frente a
+> un techo de 3.000.
+
+**2 · ¿Son lecturas de las tablas?** → `heap_blks_read` en `pg_statio_user_tables`.
+
+**Ha salido cero en todas las tablas, las tres veces.** Los datos del kanban caben
+en memoria. Este es el paso donde se perdieron las dos jornadas.
+
+**3 · ¿Son ficheros temporales?** → `temp_files` y `temp_bytes` en
+`pg_stat_database`.
+
+**Sí los hay, y es donde sí hay disco.** La causa es que `work_mem` en esta
+instancia es de **2,1 MB**, así que cualquier consulta que ordene o agrupe algo
+mayor **se derrama a disco**. Y los mayores productores identificados **no son
+consultas de la aplicación**: son las de **introspección del catálogo** —las que
+lanzan el panel y el conector al mirar el esquema—, del orden de **9 MB** de
+temporales por llamada.
+
+> ⚠️ **Y quien lo mida, que se cuente.** Una sesión de agente consultando el
+> catálogo para diagnosticar esto **genera ella misma los ficheros que está
+> midiendo**. Referencia del 11-nov-2026: en **89 segundos sin que nadie
+> trabajara**, dos consultas de diagnóstico dejaron **2 ficheros temporales y
+> ~3,9 MB**. En esa misma ventana `blks_read` **no se movió ni un bloque**.
+
+**4 · ¿Es memoria?** → *Memory commitment*, en el panel.
+
+En una instancia `nano` sale **SEVERE de forma permanente**: la pila entera de
+Supabase compromete **~1,3 GB sobre 512 MB de RAM**. **Eso no es un fallo ni algo
+que se arregle con los datos.**
+
+⚠️ **Podar filas no lo mueve, y quien lo proponga está confundiendo dos cosas de
+órdenes de magnitud distintos.** El objeto más grande de esta base son **56 MB**:
+ruido frente a 1,3 GB. Se propuso el 10-nov-2026 y se retiró tras medir.
+
+**5 · Qué NO es: las conexiones.** Son **~10** y **todas son de Supabase**
+—PostgREST, *mgmt-api*, el exportador—. **6** llevan meses abiertas y es su
+funcionamiento normal, no una fuga.
+
+#### Lo que hay que entender antes de los cinco pasos
+
+**El aviso no dice «tu base va mal». Dice «estás rozando el techo del plan
+gratis».** El 10-nov-2026, con la alarma recién llegada: la aplicación respondía,
+la CPU estaba al **6 %**, ninguna nave se había quejado, y el presupuesto se
+estaba rellenando. Leerlo como una avería es lo que convierte un aviso de cuota en
+una jornada de diagnóstico.
+
+#### Lo que esto NO es
+
+- **No hay guardián ni automatización detrás, a propósito.** Es una receta de
+  diagnóstico para una persona o un agente **con el panel delante**. Nada de aquí
+  se comprueba en CI, así que nada de aquí envejece en rojo — envejece en silencio,
+  como cualquier documento.
+- **Las cifras no son estado y ninguna se ha vuelto a medir al escribir esto.** Si
+  necesitas saber qué pasa hoy, los cinco instrumentos están nombrados: pregúntales.
+
 ---
 
 ## 📝 6. Referencias
