@@ -169,10 +169,19 @@ def _workspace_people(workspace_id: str) -> list[dict[str, Any]]:
 def _card_workspace(card: dict[str, Any]) -> str:
     """El espacio al que pertenece una tarjeta, derivado de su columna.
 
-    Cuesta UNA petición más sobre la tarjeta que el llamante ya tiene. Medido en
-    `assign_card`: pasa de 1 petición a 3 (`/cards/:id`, `/columns/:id`, `PUT`).
-    Se paga a sabiendas — es lo que permite resolver el responsable sin la ruta
-    de admin, y `create_card` no lo paga porque ya trae la columna en la mano.
+    ⚠️ **`assign_card` DUPLICA sus peticiones por esto, y no es un margen.** La
+    lista exacta la custodia
+    `test_server.py::test_assign_card_deriva_el_espacio_de_la_tarjeta`, que la
+    afirma entera — aquí no se repite, y el motivo es que **aquí estuvo mal**:
+    decía «pasa de 1 petición a 3» y se dejaba fuera la lectura de miembros, que
+    es justo la que este arreglo añade. Lo cazó el vigilante midiendo (`44bbb90b`),
+    y `docs-guard` cazó después el vicio de fondo — una cifra copiada a mano
+    cuando el custodio es quien la produce.
+
+    Lo que sí vive aquí es la DECISIÓN: se paga a sabiendas, porque es lo que
+    permite resolver el responsable sin la ruta de admin. `create_card` no lo paga
+    —ya trae la columna en la mano— y `remove_member` tampoco, porque recibe el
+    espacio.
 
     `columnId` es el nombre que sirve la API (`server/routes/cards.js:95`), no
     `column_id`; se acepta el otro por si alguien pasa una fila cruda.

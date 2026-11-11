@@ -1,7 +1,7 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 6.0.0
+- **Versión:** 6.0.1
 - **Última modificación:** 2026-11-11
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
@@ -524,6 +524,25 @@ y cuesta un renglón.
 
 ### Historial de versiones
 
+**6.0.1 — 2026-11-11. SIN cambio de forma: una cifra de coste que estaba mal, y un
+doble de pruebas que no sabía no encontrar nada.** Ningún consumidor de la Puerta 1
+ni de la 2 tiene que hacer nada. Va aquí porque este contrato pide el renglón
+igualmente, y tiene razón: es el aviso al capitán, y cuesta una línea.
+
+**La cifra.** El docstring de `_card_workspace` decía que `assign_card` «pasa de 1
+petición a 3». Son **2 → 4** —`GET /cards/:id`, `GET /columns/:id`,
+`GET /workspaces/:id/members`, `PUT /cards/:id`—: los dos absolutos fallaban por
+uno, y lo que faltaba en la lista era precisamente la lectura de miembros, que es
+la que v6.0.0 añade. El delta «+2» que este contrato ya decía **era correcto**, y
+es la cifra con la que alguien decide; aun así **el encuadre honesto es «el
+doble»**, porque «dos más» suena a margen en una tool que se llama una vez por
+asignación.
+
+**El doble.** El banco del riel encontraba un recurso para **cualquier** id, así
+que los caminos de «no existe» —el corte que impide asignar sobre una tarjeta que
+no está— **no se podían provocar**. No cambia nada de la puerta: cambia que ahora
+haya algo que la sujete. Tarjeta `44bbb90b`.
+
 **6.0.0 — 2026-11-11. El responsable se resuelve entre los miembros del espacio,
 y las respuestas dejan de devolver el correo.** Sube **mayor por dos motivos
 distintos**, y conviene separarlos porque uno rompe por forma y el otro por
@@ -592,10 +611,15 @@ tarjeta se lee primero, porque sin ella no hay espacio con el que acotar. El ord
 nuevo es además el correcto: resolver un responsable para una tarjeta que no
 existe es trabajo sobre nada.
 
-**Y cuesta dos peticiones más por asignación** (`/cards/:id` → `/columns/:id`).
-Está dicho porque es el precio del arreglo, no un detalle: `create_card` no lo
-paga, porque ya trae la columna en la mano. `remove_member` tampoco, porque ya
-recibe el espacio.
+**Y cuesta dos peticiones más por asignación, o sea el doble** —`/cards/:id`,
+`/columns/:id` y la lectura de miembros, además del `PUT`—. Está dicho porque es
+el precio del arreglo, no un detalle: `create_card` no lo paga, porque ya trae la
+columna en la mano. `remove_member` tampoco, porque ya recibe el espacio.
+
+> Esta línea decía «dos peticiones más (`/cards/:id` → `/columns/:id`)» y el
+> paréntesis **se dejaba fuera la lectura de miembros**, que es justo la que este
+> cambio añade. El delta era correcto y la enumeración no. Corregido en v6.0.1.
+> La lista exacta la custodia `test_server.py`, que la afirma entera.
 
 `"all"` en `assign_checklist_item` **sigue significando lo mismo** —el servidor lo
 expande a los miembros de ese espacio— y no pasa por la resolución.

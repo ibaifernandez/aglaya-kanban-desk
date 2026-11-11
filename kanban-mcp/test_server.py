@@ -74,7 +74,56 @@ import server  # noqa: E402
 
 
 class RielTestCase(unittest.TestCase):
-    """Base: sustituye `_request` y APUNTA cada llamada que sale."""
+    """Base: sustituye `_request` y APUNTA cada llamada que sale.
+
+    ⚠️ Y SABE NO ENCONTRAR. Tarjeta `44bbb90b`.
+
+    Este doble **siempre encontraba**: cualquier id de tarjeta o de columna
+    devolvía un recurso. Consecuencia, que no es deuda de pruebas sino un verde
+    que no muerde: **los caminos de «no existe» no se podían provocar**. Y en este
+    fichero esos son justo los que deciden si una tarjeta se queda sin dueño, se
+    asigna a quien no toca, o se pierde.
+
+    Lo intentó el vigilante al revisar la PR del 403 y no pudo. Un caso del obrero
+    sí lo ejercía, pero sustituyendo `_request` entero por su cuenta — o sea que la
+    cobertura dependía de que cada quien se montara su propia sustitución, y
+    cualquiera que escribiera un caso nuevo sobre este doble **creería haber
+    probado un camino que no se ejerció**.
+
+    Ahora `EXISTEN` declara qué hay, y **cualquier otro id devuelve `None`**, igual
+    que la API real contesta 404. Pedir un recurso ausente es pasar un id que no
+    esté en esa tabla: no hace falta ninguna costura nueva.
+    """
+
+    # Qué existe para el doble. Todo lo demás NO existe.
+    #
+    # Es una tabla y no un `if` por una razón: un caso que necesite otro recurso lo
+    # añade aquí —o lo sobrescribe en su clase— y se ve de un vistazo qué mundo
+    # está suponiendo. Con ids hilvanados en el cuerpo del doble, «qué existe» era
+    # una pregunta que había que contestar leyendo código.
+    EXISTEN = {
+        "cards":   {"card-1"},
+        "columns": {"col-1"},
+        "boards":  {"board-1"},
+    }
+
+    def _existe(self, path):
+        """¿Es este un GET de UN recurso suelto, y existe?
+
+        Devuelve `True`/`False`, o `None` cuando la pregunta no aplica — que es el
+        caso de las rutas de lista (`/columns/<id>/cards`) y de todo lo que no sea
+        una colección declarada arriba. Distinguir «no aplica» de «no existe»
+        importa: si no, la primera ruta de lista que alguien añada empezaría a
+        devolver `None` y parecería un fallo del servidor.
+        """
+        partes = path.strip("/").split("/")
+        if len(partes) != 2:
+            return None
+        coleccion, ident = partes
+        conocidos = self.EXISTEN.get(coleccion)
+        if conocidos is None:
+            return None
+        return ident in conocidos
 
     def setUp(self):
         self.calls: list[tuple[str, str, dict | None]] = []
@@ -98,6 +147,11 @@ class RielTestCase(unittest.TestCase):
     # Respuestas por defecto: un tablero, una columna, un espacio, un usuario.
     def _fake_request(self, method, path, json=None, **_kw):
         self.calls.append((method, path, json))
+        # Lo primero, y antes de cualquier respuesta: si piden UN recurso que no
+        # está declarado en `EXISTEN`, no está. La API real contesta 404 y
+        # `_request` devuelve `None`; esto es lo mismo sin red.
+        if method == "GET" and self._existe(path) is False:
+            return None
         if method == "GET" and path == "/admin/users":
             return [{"id": "user-rail", "email": "rail@aglaya.biz", "name": "Kanban Rail"}]
         # ⚠️ LA FORMA ES LA DE LA RUTA REAL, no la que le vendría bien al banco:
@@ -793,6 +847,97 @@ class AsignarTambienVaPorMIEMBROS(RielTestCase):
         """
         with self.assertRaises(TypeError):
             server._resolve_user("rail@aglaya.biz")
+
+
+class LoQueNoEXISTEDaNada(RielTestCase):
+    """Los caminos de «no existe», ejercidos con el DOBLE BASE. Tarjeta `44bbb90b`.
+
+    LO QUE HACE QUE ESTO CUENTE: ninguno de estos casos sustituye `_request`. Se
+    limitan a pasar un id que no está en `EXISTEN`, igual que haría cualquiera que
+    escriba un caso nuevo. Antes de `44bbb90b` esto era imposible — el doble
+    devolvía un recurso para cualquier id — y por eso estos tres cortes vivían sin
+    nada que los sujetara.
+
+    No cubren lo mismo y conviene no confundirlos: dos cortan devolviendo un dict
+    de error y el tercero **revienta**. Se fija lo que cada uno hace de verdad, no
+    lo que sería más bonito.
+    """
+
+    def test_el_checklist_corta_si_la_tarjeta_no_esta(self):
+        """El caso exacto que el vigilante no pudo provocar al revisar #141."""
+        out = server.assign_checklist_item("card-NO", "primero", "rail@aglaya.biz")
+
+        self.assertEqual(out["error"], "card card-NO not found")
+        self.assertEqual(self.writes, [])
+        # Y corta ANTES de resolver al responsable: una sola lectura y para. Si
+        # resolviera primero, estaría preguntando por los miembros de un espacio
+        # que no sabe cuál es.
+        self.assertEqual([(m, p) for m, p, _ in self.calls], [("GET", "/cards/card-NO")])
+
+    def test_assign_card_corta_si_la_tarjeta_no_esta(self):
+        out = server.assign_card("card-NO", "rail@aglaya.biz")
+
+        self.assertEqual(out["error"], "card card-NO not found")
+        self.assertEqual(self.writes, [])
+
+    def test_una_columna_que_no_esta_REVIENTA_y_no_escribe(self):
+        """⚠️ ESTE NO DEVUELVE UN ERROR: LANZA. Y se fija así a propósito.
+
+        `_column_info` levanta `RuntimeError` cuando la columna no está, y
+        `create_card` no lo captura. Escribir aquí un `assertIn("error", out)`
+        —que es lo que yo esperaba antes de medirlo— habría sido una afirmación
+        falsa con palomita.
+
+        Lo que importa de verdad está en la segunda aserción: **no se escribe
+        nada**. Una excepción es ruidosa y se arregla; una tarjeta a medias, no.
+        """
+        with self.assertRaises(RuntimeError) as cm:
+            server.create_card(column_id="col-NO", title="T", workspace_id="ws-1",
+                               priority="medium", assignee="rail@aglaya.biz",
+                               description_md="cuerpo")
+
+        self.assertIn("col-NO not found", str(cm.exception))
+        self.assertEqual(self.writes, [])
+
+    def test_una_coleccion_que_no_esta_declarada_SIGUE_contestando(self):
+        """La segunda rama de `_existe`, que nació sin nada que la sujetara.
+
+        Lo cazó el vigilante: mutar «colección no declarada → no existe» dejaba
+        los 56 casos en **verde**. Mi propio argumento lo condenaba — escribí que
+        sin la distinción «la primera ruta de lista que alguien añada parecería un
+        fallo del servidor», y eso vale igual para la primera **colección** que
+        alguien pida y no esté en `EXISTEN`. Hoy solo hay tres, y `server.py` ya
+        toca `workspaces`.
+
+        ⚠️ **ESTE CASO EJERCE EL DOBLE DIRECTAMENTE, y es deliberado.** Ninguna
+        tool pide hoy un recurso suelto de una colección no declarada —medido:
+        todas las de `workspaces` son rutas de lista—, así que no hay tool por la
+        que entrar. El doble ES la unidad que esta tarjeta sella; pasar por una
+        tool que no existe sería inventarse el llamante para no mirar al objeto.
+
+        Y aquí sellar **no cierra ninguna puerta**, al revés que en `e937f22f`:
+        allí un caso habría convertido un hueco aceptado en requisito. Esto no es
+        un hueco — la conducta correcta es «no declarada = no opino», y afirmarla
+        no impide ninguna mejora futura.
+        """
+        self.assertIsNone(self._existe("/workspaces/ws-1"))
+
+        # Y lo que importa: el doble NO lo trata como ausente.
+        self.assertIsNotNone(server._request("GET", "/workspaces/ws-1"))
+
+    def test_y_una_ruta_de_LISTA_sigue_contestando(self):
+        """La contraprueba del mecanismo, y la que lo salva de ser un estorbo.
+
+        `_existe` distingue «no aplica» de «no existe» justamente para esto: si
+        tratara `/columns/col-1/cards` como un recurso suelto, devolvería `None` y
+        la primera ruta de lista que alguien añadiera parecería un fallo del
+        servidor. Sin este caso, ese defecto esperaría al siguiente que escriba una
+        lista.
+        """
+        out = server.list_cards(column_id="col-1")
+
+        self.assertNotIn("error", out)
+        self.assertIn(("GET", "/columns/col-1/cards"), [(m, p) for m, p, _ in self.calls])
 
 
 if __name__ == "__main__":
