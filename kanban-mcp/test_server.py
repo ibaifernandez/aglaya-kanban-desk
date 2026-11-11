@@ -530,8 +530,8 @@ class UnaCuentaAisladaClavaPorCorreo(RielTestCase):
     IBAI = "22222222-2222-4222-8222-222222222222"
 
     MIEMBROS = [
-        {"role": "owner",  "user": {"id": MON,  "name": "Mon",  "email": "mon@example.test"}},
-        {"role": "member", "user": {"id": IBAI, "name": "Ibai", "email": "ibai@example.test"}},
+        {"role": "owner",  "user": {"id": MON,  "name": "Mon",  "email": "mon@example.com"}},
+        {"role": "member", "user": {"id": IBAI, "name": "Ibai", "email": "ibai@example.com"}},
     ]
 
     # ⚠️ EL APUNTE VA DENTRO DE CADA RAMA, NO ARRIBA. Apuntar aquí y delegar
@@ -551,7 +551,7 @@ class UnaCuentaAisladaClavaPorCorreo(RielTestCase):
 
     # ── Condición 1 ──────────────────────────────────────────────────────────
     def test_un_colaborador_clava_por_correo_de_un_miembro(self):
-        out = server.create_card(**self.BASE, assignee="mon@example.test")
+        out = server.create_card(**self.BASE, assignee="mon@example.com")
 
         self.assertNotIn("error", out)
         self.assertEqual(out["assignee_id"], self.MON)
@@ -570,7 +570,7 @@ class UnaCuentaAisladaClavaPorCorreo(RielTestCase):
         cada asignación de media casa, dependiendo de un fallo para elegir
         camino.
         """
-        server.create_card(**self.BASE, assignee="mon@example.test")
+        server.create_card(**self.BASE, assignee="mon@example.com")
         self.assertNotIn("/admin/users", [p for _, p, _ in self.calls])
 
     # ── Condición 2 — va JUNTA con la 1 ──────────────────────────────────────
@@ -580,7 +580,7 @@ class UnaCuentaAisladaClavaPorCorreo(RielTestCase):
         responsable que no es miembro nace sin poder verla, que es la tarjeta
         invisible que `assignee` existe para impedir.
         """
-        out = server.create_card(**self.BASE, assignee="extrano@example.test")
+        out = server.create_card(**self.BASE, assignee="extrano@example.com")
 
         self.assertIn("error", out)
         self.assertIn("No se ha creado nada", out["error"])
@@ -589,7 +589,7 @@ class UnaCuentaAisladaClavaPorCorreo(RielTestCase):
     # ── Condición 3 — contra la salida real, no contra el código ─────────────
     def test_ninguna_respuesta_devuelve_la_direccion(self):
         """Medido antes de arreglarlo: `create_card` devolvía
-        `assigned: 'mon@example.test'` y `assign_card` devolvía `notified` con el
+        `assigned: 'mon@example.com'` y `assign_card` devolvía `notified` con el
         correo. `ed8910e2` lo quitó de `list_members` el 25-sep-2026 y dejó estos
         dos ecos vivos — peor que una fuga nueva, porque el documento ya decía
         que estaba cerrado.
@@ -597,7 +597,7 @@ class UnaCuentaAisladaClavaPorCorreo(RielTestCase):
         Se comprueba sobre el `repr` entero a propósito: así no hay clave nueva
         donde esconderlo.
         """
-        creada = server.create_card(**self.BASE, assignee="mon@example.test")
+        creada = server.create_card(**self.BASE, assignee="mon@example.com")
         self.assertNotIn("@", repr(creada))
 
         # ⚠️ `assign_card` SE EJERCE CON UUID, no con correo, y la razón es un
@@ -613,7 +613,7 @@ class UnaCuentaAisladaClavaPorCorreo(RielTestCase):
         """El camino que más fácil se escapa: un fallo es una respuesta de tool
         como otra cualquiera, y el que había echaba de vuelta el `user` recibido.
         """
-        out = server.create_card(**self.BASE, assignee="extrano@example.test")
+        out = server.create_card(**self.BASE, assignee="extrano@example.com")
         self.assertNotIn("@", repr(out))
 
 
@@ -635,11 +635,11 @@ class AsignarTampocoDevuelveLaDireccion(RielTestCase):
         if method == "GET" and path == "/admin/users":
             self.calls.append((method, path, json))
             return [{"id": "33333333-3333-4333-8333-333333333333",
-                     "email": "mon@example.test", "name": "Mon"}]
+                     "email": "mon@example.com", "name": "Mon"}]
         return super()._fake_request(method, path, json, **_kw)
 
     def test_pasar_un_correo_no_lo_devuelve(self):
-        out = server.assign_card("card-1", "mon@example.test")
+        out = server.assign_card("card-1", "mon@example.com")
 
         self.assertEqual(out["assignee_id"], "33333333-3333-4333-8333-333333333333")
         self.assertNotIn("@", repr(out))
