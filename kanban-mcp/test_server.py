@@ -714,6 +714,39 @@ class AsignarTambienVaPorMIEMBROS(RielTestCase):
         self.assertEqual(len(puts), 1)
         self.assertIn("__all__", str(puts[0][2]))
 
+    def test_el_checklist_tampoco_devuelve_la_direccion(self):
+        """EL TERCER ECO. Lo cazó el vigilante devolviendo la PR, y tenía razón en
+        lo que más dolía: **no había ningún caso que lo sujetara**. Quitarlo dejaba
+        el banco en 43/43, o sea que mis dos casos del eco mordían donde los puse
+        y este sitio no tenía nada.
+
+        Y es el peor de los tres por un motivo que conviene dejar escrito:
+        `assign_checklist_item` promete en su propio docstring que `user` puede ser
+        un correo. No era un eco accidental de un parámetro genérico — era el eco
+        de un campo documentado como dirección.
+        """
+        out = server.assign_checklist_item("card-1", "primero", "rail@aglaya.biz")
+
+        self.assertNotIn("error", out)
+        self.assertEqual(out["assignee_id"], "user-rail")
+        self.assertNotIn("@", repr(out))
+
+    def test_y_en_el_camino_todos_devuelve_el_token_del_protocolo(self):
+        """Qué se devuelve con `"all"` lo decidí yo, y el vigilante tenía razón en
+        que `"__all__"` a secas no es evidente. Lo devuelvo igual, y por esto:
+
+        es el token que viaja en el `PUT` de verdad, así que quien llama puede
+        compararlo sin adivinar. Inventar una etiqueta más legible añade una
+        superficie que habría que mantener en dos sitios diciendo lo mismo, y la
+        primera vez que divergieran mentiría una de las dos.
+
+        Lo que NO vale, y es lo que se fija aquí, es que salga el texto recibido.
+        """
+        out = server.assign_checklist_item("card-1", "primero", "todos")
+
+        self.assertEqual(out["notified"], "__all__")
+        self.assertEqual(out["assignee_id"], "__all__")
+
     def test_remove_member_no_paga_ninguna_lectura_extra(self):
         """Aquí el espacio venía ya dado, así que acotar es gratis. Y el alcance
         es el único que tiene sentido: a quien se va a quitar de un espacio es,

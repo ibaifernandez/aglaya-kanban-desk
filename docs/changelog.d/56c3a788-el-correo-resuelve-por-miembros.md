@@ -8,11 +8,16 @@ Fixed
   Y el alcance de paso es el correcto: un responsable que no es miembro no podría
   ver su propia tarjeta. Tarjeta `56c3a788`, contrato **v6.0.0**.
 
-- **Dos respuestas del riel dejaban escapar el correo.** `create_card` devolvía
-  `assigned` con la dirección que le pasaran, y `assign_card` lo mismo en
-  `notified`. Se quitó de `list_members` el 25-sep-2026 y estos dos ecos
-  quedaron vivos. Medido contra la salida real. El fallo tampoco repite ya lo
-  que le pasaron.
+- **Tres respuestas del riel dejaban escapar el correo.** `create_card` devolvía
+  `assigned` con la dirección que le pasaran; `assign_card` y
+  `assign_checklist_item`, lo mismo en `notified`. Se quitó de `list_members` el
+  25-sep-2026 y estos tres ecos quedaron vivos. Medido contra la salida real.
+  El fallo tampoco repite ya lo que le pasaron.
+
+  **El tercero lo encontró el vigilante devolviendo la PR**, y es el que más
+  pesa: `assign_checklist_item` promete en su firma que `user` puede ser un
+  correo, así que no era un eco accidental sino el de un campo documentado como
+  dirección. Mis dos casos mordían donde los puse; ese sitio no tenía ninguno.
 
 Aplica a **las cuatro** tools que resuelven una persona —`create_card`,
 `assign_card`, `assign_checklist_item` y `remove_member`—, y **ya no queda

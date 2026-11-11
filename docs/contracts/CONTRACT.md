@@ -553,14 +553,27 @@ nacía invisible para su propio dueño — que es exactamente lo que `assignee` 
 para impedir. *(rompe)* una llamada que asignara a alguien de fuera del espacio
 empieza a fallar.
 
-**Y el eco del correo.** v4.0.0 quitó la dirección de `list_members` el
-25-sep-2026 y **dejó dos ecos vivos**: `create_card` devolvía
-`assigned: "<el correo que le pasaste>"` y `assign_card` devolvía `notified` igual.
-Medido contra la salida real, no leyendo el código. Un eco es peor que una fuga
-nueva: el documento ya decía que estaba cerrado. *(rompe)* `assigned` pasa a ser
-la constante `"card"` y `notified` devuelve el `user_id`. Quien leyera cualquiera
-de los dos esperando la dirección deja de recibirla — **y eso es el punto**.
-El fallo tampoco repite lo que le pasaron.
+**Y el eco del correo, que eran TRES y no dos.** v4.0.0 quitó la dirección de
+`list_members` el 25-sep-2026 y **dejó tres ecos vivos**: `create_card` devolvía
+`assigned: "<el correo que le pasaste>"`, y `assign_card` y
+`assign_checklist_item` devolvían `notified` igual. Medido contra la salida real,
+no leyendo el código. Un eco es peor que una fuga nueva: el documento ya decía que
+estaba cerrado.
+
+**El tercero lo encontró el vigilante devolviendo la PR**, y es el que más pesa de
+los tres: `assign_checklist_item` promete en su propia firma que `user` puede ser
+un correo, así que no era el eco accidental de un parámetro genérico sino el de un
+campo documentado como dirección. Los dos primeros se arreglaron con caso y
+mutante; ese sitio **no tenía ninguno**, y quitarlo dejaba el banco igual de verde.
+
+*(rompe)* `assigned` pasa a ser la constante `"card"` y `notified` devuelve el
+`user_id` en las dos tools que lo traen. Quien leyera cualquiera de los tres
+esperando la dirección deja de recibirla — **y eso es el punto**. El fallo tampoco
+repite lo que le pasaron.
+
+En el camino `"all"` de `assign_checklist_item`, `notified` devuelve `"__all__"`:
+el mismo token que viaja en la escritura, para que quien llama pueda compararlo
+sin adivinar y sin que haya una etiqueta paralela que mantener.
 
 **Qué hacer si dependías de ello:** el `assignee_id` está en la respuesta y es el
 único de los tres datos que no es personal.

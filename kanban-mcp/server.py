@@ -626,8 +626,20 @@ def assign_checklist_item(card_id: str, item: str, user: str) -> dict[str, Any]:
         assignees.append(uid)
     checklist[idx]["assignees"] = assignees
     _request("PUT", f"/cards/{card_id}", {"checklist": checklist})
+    # ⚠️ AQUÍ IBA `"notified": user`, EL TERCER ECO — y era el que nadie había
+    # mirado. Lo cazó el vigilante devolviendo la PR: quitarlo dejaba el banco en
+    # 43/43, o sea que mis dos casos del eco muerden donde los puse y este sitio
+    # no tenía ninguno. Y `user` es un correo **por contrato**: lo dice el
+    # docstring de arriba.
+    #
+    # Se devuelve `uid`, igual que `assign_card`. En el camino `"all"` eso vale
+    # `"__all__"`, y lo devuelvo TAL CUAL a sabiendas: es el token del propio
+    # protocolo —el mismo que viaja en el `PUT`— así que quien llama puede
+    # compararlo sin adivinar. La alternativa era inventar una etiqueta más
+    # bonita («todos los miembros»), y eso es superficie nueva que alguien
+    # tendría que mantener en dos sitios para decir lo mismo.
     return {"assigned": "checklist_item", "card_id": card_id, "item_index": idx,
-            "item_text": checklist[idx].get("text"), "assignee_id": uid, "notified": user}
+            "item_text": checklist[idx].get("text"), "assignee_id": uid, "notified": uid}
 
 
 # ---------------------------------------------------------------------------
