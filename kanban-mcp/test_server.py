@@ -125,8 +125,15 @@ class RielTestCase(unittest.TestCase):
             return {"id": "board-1", "workspaceId": "ws-1"}
         # El checklist de UNA tarjeta. Antes lo leía `_pg_get` contra PostgREST;
         # ahora es `GET /api/cards/:id`, autenticado como todo lo demás.
+        # ⚠️ TRAE `columnId`, porque la ruta real devuelve la tarjeta ENTERA
+        # (`toCard`, `server/routes/cards.js:95`) y no solo el checklist. Desde
+        # `56c3a788` eso no es adorno: `assign_card` deriva de ahí el espacio con
+        # el que acota el responsable. Un doble que se quedara en
+        # `{id, checklist}` dejaría pasar un servidor que en producción no puede
+        # asignar a nadie — y además lo haría pareciendo un fallo del doble.
         if method == "GET" and path.startswith("/cards/"):
-            return {"id": "card-1", "checklist": [{"text": "primero", "done": False}]}
+            return {"id": "card-1", "columnId": "col-1", "boardId": "board-1",
+                    "checklist": [{"text": "primero", "done": False}]}
         if method == "POST" and path == "/cards":
             return {"id": "card-1", "title": (json or {}).get("title"), "priority": (json or {}).get("priority")}
         return {}
@@ -600,12 +607,10 @@ class UnaCuentaAisladaClavaPorCorreo(RielTestCase):
         creada = server.create_card(**self.BASE, assignee="mon@example.com")
         self.assertNotIn("@", repr(creada))
 
-        # ⚠️ `assign_card` SE EJERCE CON UUID, no con correo, y la razón es un
-        # hueco que esta tarjeta NO cierra: esa tool no recibe espacio y hoy
-        # sigue resolviendo por `/admin/users`, así que un `colaborador` no puede
-        # asignar por correo en una tarjeta ya creada. Pasarle aquí un correo
-        # haría rojo este caso por el 403, no por el eco — y taparía lo que se
-        # mide. El eco sí queda fijado, que es lo que esta condición pide.
+        # `assign_card` se ejerce aquí con UUID porque en ESTA clase los miembros
+        # son otros —`/admin/users` revienta a propósito y la lista es la de la
+        # tarjeta de destino—. El correo en `assign_card` lo cubre
+        # `AsignarTambienVaPorMIEMBROS`, que es donde vive esa tool.
         asignada = server.assign_card("card-1", self.MON)
         self.assertNotIn("@", repr(asignada))
 
@@ -617,32 +622,141 @@ class UnaCuentaAisladaClavaPorCorreo(RielTestCase):
         self.assertNotIn("@", repr(out))
 
 
-class AsignarTampocoDevuelveLaDireccion(RielTestCase):
-    """El eco de `assign_card`, por la vía que SÍ existe hoy.
+class AsignarTambienVaPorMIEMBROS(RielTestCase):
+    """`assign_card`, `assign_checklist_item` y `remove_member` — las otras tres
+    llamadas de `_resolve_user`. Alcance concedido por el delineante el
+    11-nov-2026 dentro de `56c3a788`.
 
-    POR QUÉ HACE FALTA UNA CLASE APARTE. En la de arriba `/admin/users` revienta
-    a propósito, así que allí `assign_card` solo se puede ejercer con UUID — y con
-    un UUID el eco `notified: user` devolvía el id, sin `@`, o sea que el caso
-    pasaba **igual de verde con el defecto puesto**. Lo medí: el mutante
-    sobrevivía.
+    POR QUÉ ENTRAN EN LA MISMA TARJETA Y NO EN OTRA. Arreglar solo `create_card`
+    dejaba `/admin/users` vivo en el riel, y el hallazgo era precisamente que esa
+    puerta solo abre a admins: una cuenta `colaborador` seguiría sin poder asignar
+    por tres de los cuatro caminos. Y dos resoluciones distintas en el mismo
+    fichero es lo que alguien unifica dentro de seis meses eligiendo la mala.
 
-    Aquí la ruta de admin contesta, que es lo que le pasa al riel de verdad
-    (`kanban-rail@aglaya.biz` es `superadmin`). Con eso se puede pasar un correo,
-    y entonces el eco se ve.
+    ESTA CLASE YA NO NECESITA QUE `/admin/users` CONTESTE, y eso es el cambio:
+    antes hizo falta una clase aparte para poder pasarle un correro a `assign_card`
+    —porque donde la ruta de admin revienta solo se la podía ejercer con UUID, y
+    un id no lleva arroba, así que el mutante del eco **sobrevivía**—. Ahora
+    resuelve por miembros como las demás y el correo se puede pasar derecho.
     """
 
+    # La ruta de admin ya no se usa: si alguien la devuelve, revienta aquí.
     def _fake_request(self, method, path, json=None, **_kw):
         if method == "GET" and path == "/admin/users":
             self.calls.append((method, path, json))
-            return [{"id": "33333333-3333-4333-8333-333333333333",
-                     "email": "mon@example.com", "name": "Mon"}]
+            raise RuntimeError("GET /admin/users → 403: Sin permisos para esta acción")
         return super()._fake_request(method, path, json, **_kw)
 
-    def test_pasar_un_correo_no_lo_devuelve(self):
-        out = server.assign_card("card-1", "mon@example.com")
+    def test_assign_card_resuelve_el_correo_de_un_miembro(self):
+        out = server.assign_card("card-1", "rail@aglaya.biz")
 
-        self.assertEqual(out["assignee_id"], "33333333-3333-4333-8333-333333333333")
+        self.assertEqual(out["assignee_id"], "user-rail")
+        self.assertNotIn("/admin/users", [p for _, p, _ in self.calls])
+        # El eco, fijado por la vía normal y no por una clase de apoyo.
         self.assertNotIn("@", repr(out))
+
+    def test_assign_card_deriva_el_espacio_de_la_tarjeta(self):
+        """El mecanismo, y su coste, dichos por una prueba.
+
+        Son DOS peticiones más que antes: la tarjeta y su columna. `create_card`
+        no las paga porque ya trae la columna en la mano. Se fija el número para
+        que, si alguien mete una tercera lectura, se vea aquí y no en la factura.
+        """
+        server.assign_card("card-1", "rail@aglaya.biz")
+
+        gets = [p for m, p, _ in self.calls if m == "GET"]
+        self.assertEqual(gets, ["/cards/card-1", "/columns/col-1",
+                                "/workspaces/ws-1/members"])
+
+    def test_un_no_miembro_no_puede_quedarse_con_la_tarjeta(self):
+        with self.assertRaises(RuntimeError) as cm:
+            server.assign_card("card-1", "extrano@example.com")
+
+        self.assertIn("not a member", str(cm.exception))
+        self.assertEqual(self.writes, [])
+        # Tampoco el fallo repite la dirección recibida.
+        self.assertNotIn("@", str(cm.exception))
+
+    def test_y_cambia_QUE_ERROR_SALE_PRIMERO(self):
+        """Antes un responsable que no resolvía fallaba aunque la tarjeta no
+        existiera. Ahora la tarjeta se lee primero, porque sin ella no hay espacio
+        con el que acotar.
+
+        Se fija a propósito: es un cambio de comportamiento observable, y el orden
+        nuevo es además el correcto — resolver un responsable para una tarjeta que
+        no existe es trabajo sobre nada.
+        """
+        def sin_tarjeta(method, path, json=None, **_kw):
+            self.calls.append((method, path, json))
+            if method == "GET" and path.startswith("/cards/"):
+                return None
+            raise AssertionError("no se debe preguntar nada más si la tarjeta no está")
+
+        server._request = sin_tarjeta
+        out = server.assign_card("card-fantasma", "extrano@example.com")
+
+        self.assertIn("not found", out["error"])
+        self.assertEqual(self.writes, [])
+
+    def test_el_todos_del_checklist_sigue_significando_lo_mismo(self):
+        """`"all"` no pasa por la resolución, así que acotar no lo toca — pero eso
+        hay que medirlo, no deducirlo. Lo pidió el delineante y tiene razón: el
+        riesgo no era que dejara de funcionar, era que nadie supiera si «todos»
+        seguía queriendo decir todos.
+        """
+        out = server.assign_checklist_item("card-1", "primero", "all")
+
+        self.assertNotIn("error", out)
+        # Ni pregunta por miembros ni por admin: el servidor lo expande.
+        self.assertNotIn("/workspaces/ws-1/members", [p for _, p, _ in self.calls])
+        self.assertNotIn("/admin/users", [p for _, p, _ in self.calls])
+        puts = [c for c in self.writes if c[0] == "PUT"]
+        self.assertEqual(len(puts), 1)
+        self.assertIn("__all__", str(puts[0][2]))
+
+    def test_remove_member_no_paga_ninguna_lectura_extra(self):
+        """Aquí el espacio venía ya dado, así que acotar es gratis. Y el alcance
+        es el único que tiene sentido: a quien se va a quitar de un espacio es,
+        por definición, miembro de ese espacio.
+        """
+        out = server.remove_member(workspace_id="ws-1", user="rail@aglaya.biz", confirm=True)
+
+        self.assertEqual(out["user_id"], "user-rail")
+        gets = [p for m, p, _ in self.calls if m == "GET"]
+        self.assertEqual(gets, ["/workspaces/ws-1/members"])
+
+    def test_sin_espacio_NO_se_cae_a_la_ruta_de_admin(self):
+        """La quinta condición, la que añadió el delineante, por dentro.
+
+        `grep` dice que no queda ninguna llamada viva; esto dice qué pasa si
+        alguien llama a la resolución sin espacio: **falla**. Un default `None`
+        que nadie omite no es compatibilidad, es la puerta por la que esto vuelve
+        en verde el día que se añada una tool con prisa.
+        """
+        with self.assertRaises(RuntimeError) as cm:
+            server._resolve_user("rail@aglaya.biz", "")
+
+        self.assertIn("without a workspace", str(cm.exception))
+        self.assertEqual(self.calls, [])
+
+    def test_y_el_espacio_es_OBLIGATORIO_en_la_firma(self):
+        """Este caso existe porque un mutante sobrevivió, y merece contarse.
+
+        Devolverle el default —`workspace_id: str = ""`— dejaba los 49 casos en
+        **verde**: el cuerpo sigue reventando con el espacio vacío, así que el
+        comportamiento no cambiaba. Pero la garantía sí: con el parámetro
+        obligatorio, un llamante que lo omita falla **en la llamada**, sin red y
+        a la primera invocación. Con default, falla por dentro y solo si se
+        ejerce ese camino — y un parámetro opcional que nadie omite es la puerta
+        por la que esto vuelve el día que alguien añada una tool con prisa.
+
+        Se mide la firma porque la garantía ES la firma. Un caso de
+        comportamiento no puede distinguir las dos, y por eso el mutante pasaba.
+        """
+        import inspect
+
+        param = inspect.signature(server._resolve_user).parameters["workspace_id"]
+        self.assertIs(param.default, inspect.Parameter.empty)
 
 
 if __name__ == "__main__":

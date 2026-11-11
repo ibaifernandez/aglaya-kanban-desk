@@ -5,8 +5,8 @@ and assign owners — WITHOUT touching the UI and WITHOUT ever seeing secrets.
 
 DESIGN (auth = option A, JWT service account):
   The rail logs in ONCE as a dedicated superadmin SERVICE ACCOUNT and drives the
-  EXISTING production API (/api/workspaces, /api/boards, /api/columns, /api/cards,
-  /api/admin/users). Zero product-code change; every WRITE inherits the server's
+  EXISTING production API (/api/workspaces, /api/boards, /api/columns,
+  /api/cards). Zero product-code change; every WRITE inherits the server's
   validation, role checks, RLS AND its notification side-effects. "God Mode" is
   ROLE-based (server/middleware/workspace.js:77 → role === 'superadmin').
 
@@ -166,7 +166,27 @@ def _workspace_people(workspace_id: str) -> list[dict[str, Any]]:
     return [(m.get("user") or {}) for m in rows if (m.get("user") or {}).get("id")]
 
 
-def _resolve_user(user: str, workspace_id: str | None = None) -> str:
+def _card_workspace(card: dict[str, Any]) -> str:
+    """El espacio al que pertenece una tarjeta, derivado de su columna.
+
+    Cuesta UNA petición más sobre la tarjeta que el llamante ya tiene. Medido en
+    `assign_card`: pasa de 1 petición a 3 (`/cards/:id`, `/columns/:id`, `PUT`).
+    Se paga a sabiendas — es lo que permite resolver el responsable sin la ruta
+    de admin, y `create_card` no lo paga porque ya trae la columna en la mano.
+
+    `columnId` es el nombre que sirve la API (`server/routes/cards.js:95`), no
+    `column_id`; se acepta el otro por si alguien pasa una fila cruda.
+    """
+    col = card.get("columnId") or card.get("column_id")
+    if not col:
+        raise RuntimeError("card has no column — cannot derive its workspace")
+    ws = _column_info(col).get("workspaceId")
+    if not ws:
+        raise RuntimeError(f"column {col} has no workspace — cannot scope the assignee")
+    return ws
+
+
+def _resolve_user(user: str, workspace_id: str) -> str:
     """Map an email / name / uuid to a user id. Prefers exact email match.
 
     ⚠️ CON `workspace_id`, SE RESUELVE SOLO ENTRE SUS MIEMBROS — y eso es lo que
@@ -190,9 +210,12 @@ def _resolve_user(user: str, workspace_id: str | None = None) -> str:
     responsable a un no-miembro, y esa tarjeta nace invisible para su dueño —
     que es exactamente lo que `assignee` existe para impedir.
 
-    SIN `workspace_id` se mantiene el camino de antes, porque hay sitios que no
-    tienen espacio que acotar. No se ha quedado ahí por simetría: cada llamante
-    que puede derivarlo lo pasa.
+    `workspace_id` ES OBLIGATORIO, y eso es lo que de verdad retira la ruta de
+    admin. Tuvo un default `None` que mantenía el camino viejo «para los sitios
+    que no tienen espacio que acotar» — y resultó que no hay ninguno: los cuatro
+    llamantes lo tienen o lo derivan. Un parámetro opcional que nadie omite no es
+    compatibilidad: es la puerta de atrás por la que esto vuelve, en verde, el día
+    que alguien añada una tool con prisa.
     """
     u = (user or "").strip()
     # ⚠️ UN UUID SE DEVUELVE TAL CUAL, TAMBIÉN CON `workspace_id`, y esto NO está
@@ -202,12 +225,13 @@ def _resolve_user(user: str, workspace_id: str | None = None) -> str:
     # `user_id`— y no lo he medido.
     if _UUID_RE.match(u):
         return u
-    if workspace_id:
-        people = _workspace_people(workspace_id)
-        donde = f"no es miembro de {workspace_id}"
-    else:
-        people = _request("GET", "/admin/users") or []
-        donde = "not found"
+    if not workspace_id:
+        # Sin espacio no se resuelve: NO se cae a la ruta de admin. Ese era el
+        # defecto. Un llamante nuevo que no sepa su espacio tiene que derivarlo
+        # —`_card_workspace` lo hace desde una tarjeta— y si no puede, lo que hay
+        # es un diseño a medias, no un caso que tapar aquí.
+        raise RuntimeError("assignee cannot be resolved without a workspace to scope it to")
+    people = _workspace_people(workspace_id)
     ul = u.lower()
     for row in people:
         if (row.get("email") or "").lower() == ul:
@@ -222,7 +246,8 @@ def _resolve_user(user: str, workspace_id: str | None = None) -> str:
     # mandó; no necesita que se lo lean.
     if len(named) > 1:
         raise RuntimeError("ambiguous assignee (multiple names match) — pass the email or id")
-    raise RuntimeError(f"assignee {donde} — pass an exact email, name, or id of a member")
+    raise RuntimeError(f"assignee is not a member of {workspace_id} — pass an exact "
+                       "email, name, or id of a member")
 
 
 # ---------------------------------------------------------------------------
@@ -535,8 +560,22 @@ def create_card(
 @mcp.tool()
 def assign_card(card_id: str, user: str) -> dict[str, Any]:
     """Set the OWNER of a card (email/name/id). Goes through the API's update →
-    fires the in-app `card_assignment` notification for that user."""
-    uid = _resolve_user(user)
+    fires the in-app `card_assignment` notification for that user.
+
+    El responsable se resuelve entre los MIEMBROS del espacio de la tarjeta, igual
+    que en `create_card` (`56c3a788`). Aquí el espacio no viene dado: se deriva de
+    la tarjeta, y eso cuesta dos peticiones más.
+
+    ⚠️ Y CAMBIA QUÉ ERROR SALE PRIMERO. Antes un responsable que no resolvía
+    fallaba aunque la tarjeta no existiera; ahora la tarjeta se lee primero,
+    porque sin ella no hay espacio con el que acotar. Es el orden correcto por
+    otro motivo: resolver un responsable para una tarjeta que no existe es
+    trabajo sobre nada. Queda fijado en prueba.
+    """
+    card = _request("GET", f"/cards/{card_id}")
+    if not card:
+        return {"error": f"card {card_id} not found"}
+    uid = _resolve_user(user, _card_workspace(card))
     _request("PUT", f"/cards/{card_id}", {"assigneeId": uid})
     # `notified` traía el `user` tal cual — o sea el correo, cuando se pasaba un
     # correo. Mismo eco que en `create_card`, misma razón para quitarlo. El id
@@ -548,11 +587,22 @@ def assign_card(card_id: str, user: str) -> dict[str, Any]:
 def assign_checklist_item(card_id: str, item: str, user: str) -> dict[str, Any]:
     """Assign a checklist ITEM to a user. `item` = the item's 0-based index (as a
     string, e.g. "0") or a substring of its text. `user` = email/name/id, or
-    "all" for every member. Fires the in-app `checklist_mention` notification."""
-    uid = "__all__" if user.strip().lower() in ("all", "todos", "__all__") else _resolve_user(user)
+    "all" for every member. Fires the in-app `checklist_mention` notification.
+
+    Como `assign_card`: el responsable se resuelve entre los miembros del espacio
+    de la tarjeta, así que **la tarjeta se lee ANTES de resolver** — aquí el
+    cambio es solo de orden, porque la lectura ya existía dos líneas más abajo.
+
+    `"all"` sigue sin pasar por la resolución, y por tanto sigue significando lo
+    mismo: el servidor lo expande a los miembros del espacio de esa tarjeta. Está
+    acotado por construcción, no por este cambio; hay una prueba que lo dice
+    para que nadie tenga que deducirlo.
+    """
     card = _request("GET", f"/cards/{card_id}")
     if not card:
         return {"error": f"card {card_id} not found"}
+    uid = ("__all__" if user.strip().lower() in ("all", "todos", "__all__")
+           else _resolve_user(user, _card_workspace(card)))
     checklist = card.get("checklist") or []
     if not checklist:
         return {"error": "card has no checklist items"}
@@ -810,8 +860,14 @@ def _gate(kind: str, target: dict[str, Any]) -> dict[str, Any]:
 @mcp.tool()
 def remove_member(workspace_id: str, user: str, confirm: bool = False) -> dict[str, Any]:
     """Remove a user from a workspace (membership only — does NOT delete the
-    account). GATED — pass confirm=true. `user` = email/name/id."""
-    uid = _resolve_user(user)
+    account). GATED — pass confirm=true. `user` = email/name/id.
+
+    El espacio lo recibe ya, así que acotar la resolución no cuesta ninguna
+    petición extra — y aquí el alcance es además el único que tiene sentido: a
+    quien se va a quitar de un espacio es, por definición, miembro de ese
+    espacio. Resolver global permitía pedir la baja de alguien que no estaba.
+    """
+    uid = _resolve_user(user, workspace_id)
     if not confirm:
         return _gate("remove_member", {"workspace_id": workspace_id, "user": user, "user_id": uid})
     _request("DELETE", f"/workspaces/{workspace_id}/members/{uid}")

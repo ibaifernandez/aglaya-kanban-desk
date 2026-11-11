@@ -14,7 +14,17 @@ Fixed
   quedaron vivos. Medido contra la salida real. El fallo tampoco repite ya lo
   que le pasaron.
 
-**Lo que no entra, y por qué:** `assign_card` y `assign_checklist_item` no
-reciben espacio y siguen resolviendo por la ruta de admin; el `404` de la puerta
-interna sigue repitiendo el `assignee` recibido. Tienen tarjeta propia — no se
-arreglan de paso para no cambiar lo que su tarjeta no nombra.
+Aplica a **las cuatro** tools que resuelven una persona —`create_card`,
+`assign_card`, `assign_checklist_item` y `remove_member`—, y **ya no queda
+ninguna llamada viva a `/admin/users` en el riel**. Arreglar solo una dejaba
+viva la puerta del defecto.
+
+**Dos efectos observables, dichos porque rompen:** `assign_card` lee la tarjeta
+antes de resolver, así que una tarjeta inexistente falla **antes** que un
+responsable inválido; y cuesta dos peticiones más por asignación. `create_card` y
+`remove_member` no las pagan.
+
+**Lo que no entra, y por qué:** el `404` de la puerta interna sigue repitiendo el
+`assignee` recibido, que puede ser un correo, y un UUID se acepta sin comprobar
+membresía. Tienen tarjeta propia — no se arreglan de paso para no cambiar lo que
+su tarjeta no nombra.

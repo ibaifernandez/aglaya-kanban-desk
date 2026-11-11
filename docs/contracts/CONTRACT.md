@@ -47,11 +47,12 @@ Lo que el catálogo no te dice, y este contrato sí:
   `create_card` exige `assignee` y `priority` explícitos, y sin ellos no escribe
   nada. `priority` tuvo default `medium`; ya no lo tiene. Ver
   [«Por qué responsable y prioridad no tienen default»](#por-qué-responsable-y-prioridad-no-tienen-default).
-- **Y el responsable se resuelve entre los MIEMBROS del espacio de destino**
-  *(v6.0.0)*. `create_card` solo acepta por correo o nombre a quien es miembro del
-  espacio donde aterriza la tarjeta. Un correo de fuera **falla y no escribe
-  nada**: no es una restricción añadida, es el alcance que le faltaba — un
-  responsable que no es miembro no puede ver su propia tarjeta.
+- **Y el responsable se resuelve entre los MIEMBROS del espacio** *(v6.0.0)*, en
+  **las cuatro** tools que resuelven una persona: `create_card`, `assign_card`,
+  `assign_checklist_item` y `remove_member`. Solo se acepta por correo o nombre a
+  quien es miembro del espacio donde aterriza la tarjeta. Un correo de fuera
+  **falla y no escribe nada**: no es una restricción añadida, es el alcance que le
+  faltaba — un responsable que no es miembro no puede ver su propia tarjeta.
 
   **Lo que esto arregla** es que antes se resolvía contra una ruta de solo-admin,
   así que una cuenta `colaborador` **no podía clavar trabajo por correo en
@@ -564,12 +565,32 @@ El fallo tampoco repite lo que le pasaron.
 **Qué hacer si dependías de ello:** el `assignee_id` está en la respuesta y es el
 único de los tres datos que no es personal.
 
-**Lo que NO entra, dicho a propósito.** `assign_card` y `assign_checklist_item` no
-reciben espacio y **siguen resolviendo por la ruta de admin**: un `colaborador`
-tampoco puede asignar por correo una tarjeta ya creada. Y el `404` de la Puerta 2
-sigue repitiendo el `assignee` recibido, que puede ser un correo. Las dos cosas
-tienen tarjeta propia: no se han arreglado de paso para no cambiar en una PR lo
-que su tarjeta no nombra.
+**Aplica a las CUATRO tools que resuelven una persona**, no solo a `create_card`:
+`assign_card`, `assign_checklist_item` y `remove_member` también. Arreglar una
+sola dejaba `/admin/users` vivo en el riel, y el hallazgo era precisamente que esa
+puerta solo abre a admins — media casa seguiría sin poder asignar por tres de los
+cuatro caminos. **Ya no queda ninguna llamada viva a `/admin/users` en el riel**, y
+el espacio es un parámetro **obligatorio** de la resolución: un llamante nuevo que
+lo omita falla en la llamada, no por dentro.
+
+*(rompe, y es observable)* **`assign_card` cambia qué error sale primero.** Antes un
+responsable que no resolvía fallaba aunque la tarjeta no existiera; ahora la
+tarjeta se lee primero, porque sin ella no hay espacio con el que acotar. El orden
+nuevo es además el correcto: resolver un responsable para una tarjeta que no
+existe es trabajo sobre nada.
+
+**Y cuesta dos peticiones más por asignación** (`/cards/:id` → `/columns/:id`).
+Está dicho porque es el precio del arreglo, no un detalle: `create_card` no lo
+paga, porque ya trae la columna en la mano. `remove_member` tampoco, porque ya
+recibe el espacio.
+
+`"all"` en `assign_checklist_item` **sigue significando lo mismo** —el servidor lo
+expande a los miembros de ese espacio— y no pasa por la resolución.
+
+**Lo que NO entra, dicho a propósito.** El `404` de la Puerta 2 sigue repitiendo el
+`assignee` recibido, que puede ser un correo. Y un **UUID** se acepta sin comprobar
+membresía, por las dos puertas. Las dos tienen tarjeta propia: no se arreglan de
+paso para no cambiar en una PR lo que su tarjeta no nombra.
 
 Lo vigila [`kanban-mcp/test_server.py`](../../kanban-mcp/test_server.py) — la
 condición y su contraprueba van juntas, porque la primera sola se puede cumplir
