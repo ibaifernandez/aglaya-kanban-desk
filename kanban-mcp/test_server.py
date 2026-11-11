@@ -772,24 +772,27 @@ class AsignarTambienVaPorMIEMBROS(RielTestCase):
         self.assertIn("without a workspace", str(cm.exception))
         self.assertEqual(self.calls, [])
 
-    def test_y_el_espacio_es_OBLIGATORIO_en_la_firma(self):
-        """Este caso existe porque un mutante sobrevivió, y merece contarse.
+    def test_omitir_el_espacio_falla_EN_LA_LLAMADA(self):
+        """Este caso existe porque un mutante sobrevivió, y cambió de forma tras
+        una corrección del vigilante que era mejor que mi versión.
 
-        Devolverle el default —`workspace_id: str = ""`— dejaba los 49 casos en
-        **verde**: el cuerpo sigue reventando con el espacio vacío, así que el
-        comportamiento no cambiaba. Pero la garantía sí: con el parámetro
-        obligatorio, un llamante que lo omita falla **en la llamada**, sin red y
-        a la primera invocación. Con default, falla por dentro y solo si se
-        ejerce ese camino — y un parámetro opcional que nadie omite es la puerta
-        por la que esto vuelve el día que alguien añada una tool con prisa.
+        Devolverle el default —`workspace_id: str = ""`— dejaba los 49 casos de
+        entonces en **verde**: las dos versiones **fallan cerradas**, así que no
+        hay fuga que ningún caso de comportamiento pueda distinguir. Lo único
+        que cambia es DÓNDE aparece el rechazo.
 
-        Se mide la firma porque la garantía ES la firma. Un caso de
-        comportamiento no puede distinguir las dos, y por eso el mutante pasaba.
+        Mi primera versión aseveraba sobre `inspect.signature`. Funcionaba, pero
+        medía la firma en vez de lo que la firma produce. **Esto llama con un
+        solo argumento y exige `TypeError`**: muere igual si el default vuelve, y
+        no afirma nada sobre el texto de una declaración.
+
+        Lo que protege —que sin espacio no se resuelva nada— tiene su propio caso
+        justo encima. Esto solo fija que el rechazo llegue **antes de entrar**, que
+        es lo que impide que un quinto llamante escrito con prisa descubra el
+        problema en producción en vez de en su primera llamada.
         """
-        import inspect
-
-        param = inspect.signature(server._resolve_user).parameters["workspace_id"]
-        self.assertIs(param.default, inspect.Parameter.empty)
+        with self.assertRaises(TypeError):
+            server._resolve_user("rail@aglaya.biz")
 
 
 if __name__ == "__main__":
