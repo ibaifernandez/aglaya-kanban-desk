@@ -18,6 +18,12 @@ Fixed
   «dos más» suena a margen en una tool que se llama una vez por asignación.
   Contrato **v6.0.1**, sin cambio de forma.
 
+  La función que decide eso tiene **dos** ramas —rutas de lista, y colecciones no
+  declaradas— y **las dos están selladas**. La segunda nació sin nada que la
+  sujetara: mutarla dejaba el banco entero en verde, lo cazó el vigilante, y hacía
+  falta porque el día que alguien pida un recurso de una colección nueva nada
+  avisaría.
+
 **Lo que no pasó, y se dice porque se esperaba:** la tarjeta avisaba de que
 endurecer el doble pondría rojos casos que pasaban apoyándose en que todo existe.
 Medido: **ninguno de los 52 cayó**. Ninguno dependía de eso.

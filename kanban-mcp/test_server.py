@@ -899,6 +899,32 @@ class LoQueNoEXISTEDaNada(RielTestCase):
         self.assertIn("col-NO not found", str(cm.exception))
         self.assertEqual(self.writes, [])
 
+    def test_una_coleccion_que_no_esta_declarada_SIGUE_contestando(self):
+        """La segunda rama de `_existe`, que nació sin nada que la sujetara.
+
+        Lo cazó el vigilante: mutar «colección no declarada → no existe» dejaba
+        los 56 casos en **verde**. Mi propio argumento lo condenaba — escribí que
+        sin la distinción «la primera ruta de lista que alguien añada parecería un
+        fallo del servidor», y eso vale igual para la primera **colección** que
+        alguien pida y no esté en `EXISTEN`. Hoy solo hay tres, y `server.py` ya
+        toca `workspaces`.
+
+        ⚠️ **ESTE CASO EJERCE EL DOBLE DIRECTAMENTE, y es deliberado.** Ninguna
+        tool pide hoy un recurso suelto de una colección no declarada —medido:
+        todas las de `workspaces` son rutas de lista—, así que no hay tool por la
+        que entrar. El doble ES la unidad que esta tarjeta sella; pasar por una
+        tool que no existe sería inventarse el llamante para no mirar al objeto.
+
+        Y aquí sellar **no cierra ninguna puerta**, al revés que en `e937f22f`:
+        allí un caso habría convertido un hueco aceptado en requisito. Esto no es
+        un hueco — la conducta correcta es «no declarada = no opino», y afirmarla
+        no impide ninguna mejora futura.
+        """
+        self.assertIsNone(self._existe("/workspaces/ws-1"))
+
+        # Y lo que importa: el doble NO lo trata como ausente.
+        self.assertIsNotNone(server._request("GET", "/workspaces/ws-1"))
+
     def test_y_una_ruta_de_LISTA_sigue_contestando(self):
         """La contraprueba del mecanismo, y la que lo salva de ser un estorbo.
 
