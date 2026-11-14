@@ -307,13 +307,28 @@ describe('no se guarda ruido', () => {
   it('un campo que NO es la descripción nunca se encadena', async () => {
     // Los demás campos son cortos —una prioridad, una fecha—: encadenarlos daría
     // una cadena frágil a cambio de nada.
+    //
+    // ⚠️ ESTE CASO EXIGÍA QUE LA CLAVE ESTUVIERA **AUSENTE**, y eso fijaba en su
+    // sitio el defecto que tumbó producción el 14-nov-2026 (`dd7746cf`): en un
+    // `insert` de varias filas, PostgREST rellena con NULL lo que le falte a una,
+    // no con el DEFAULT, y `es_sufijo` es `NOT NULL`. O sea que la ausencia que
+    // esta prueba pedía era justo la que rechazaba el lote entero.
+    //
+    // La intención era y sigue siendo correcta: **un campo que no es la
+    // descripción no se encadena nunca**. Lo que estaba mal era medirla por la
+    // ausencia de la clave —un detalle de implementación— en vez de por su valor.
+    // Un caso puede afirmar algo cierto y aun así atar la única forma de decirlo
+    // que no funciona.
     __state.historyRows = [];
 
     await put({ title: 'Otro título', priority: 'high' });
 
-    for (const f of __state.insertedHistory.filter((x) => x.field !== 'description')) {
-      expect(f.es_sufijo).toBeUndefined();
-      expect(f.base_id).toBeUndefined();
+    const otras = __state.insertedHistory.filter((x) => x.field !== 'description');
+    expect(otras.length).toBeGreaterThan(0);
+
+    for (const f of otras) {
+      expect(f.es_sufijo).toBe(false);   // no encadenada, y NUNCA null
+      expect(f.base_id ?? null).toBeNull();
     }
   });
 
