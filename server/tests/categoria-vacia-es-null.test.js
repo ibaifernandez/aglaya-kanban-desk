@@ -23,12 +23,13 @@ const jwt     = require('jsonwebtoken');
 process.env.JWT_SECRET = 'test-secret';
 
 jest.mock('../utils/supabase', () => {
-  const state = { cardUpdates: [] };
+  const state = { cardUpdates: [], cardInserts: [] };
 
   const supabaseAdmin = {
     from: (table) => {
       let mode = 'select';
       let patch = null;
+      let inserted = null;
       const filters = {};
 
       const chain = {
@@ -38,10 +39,24 @@ jest.mock('../utils/supabase', () => {
         order: () => chain,
         limit: () => chain,
         or: () => chain,
-        insert: (row) => Promise.resolve({ data: Array.isArray(row) ? row : [row], error: null }),
+        insert: (row) => {
+          const filas = Array.isArray(row) ? row : [row];
+          if (table === 'cards') { mode = 'insert'; inserted = filas[0]; state.cardInserts.push(filas[0]); }
+          return chain;
+        },
         update: (p) => { mode = 'update'; patch = p; return chain; },
 
         single: () => {
+          if (table === 'cards' && mode === 'insert') {
+            return Promise.resolve({
+              data: { id: 'card-nueva', column_id: inserted.column_id,
+                      board_id: inserted.board_id, title: inserted.title,
+                      priority: inserted.priority, tags: [], checklist: [], order: 1,
+                      description: inserted.description, category: inserted.category,
+                      created_at: '2026-11-14T00:00:00Z', updated_at: '2026-11-14T00:00:00Z' },
+              error: null,
+            });
+          }
           if (table === 'cards' && mode === 'update') {
             state.cardUpdates.push(patch);
             return Promise.resolve({
@@ -93,7 +108,11 @@ const token = jwt.sign(
 const put = (body) =>
   request(app).put('/api/cards/card-1').set('Authorization', `Bearer ${token}`).send(body);
 
-beforeEach(() => { __state.cardUpdates = []; });
+const post = (body) =>
+  request(app).post('/api/cards').set('Authorization', `Bearer ${token}`)
+    .send({ columnId: 'col-1', boardId: 'board-1', title: 'Recién nacida', ...body });
+
+beforeEach(() => { __state.cardUpdates = []; __state.cardInserts = []; });
 
 describe('PUT /api/cards/:id — la categoría vacía', () => {
   test('se guarda como NULL, no como cadena vacía', async () => {
@@ -120,5 +139,46 @@ describe('PUT /api/cards/:id — la categoría vacía', () => {
 
     expect(res.status).toBe(200);
     expect(__state.cardUpdates[0]).not.toHaveProperty('category');
+  });
+});
+
+describe('POST /api/cards — y en CREAR, lo mismo', () => {
+  // ⚠️ ESTA MITAD LA DEVOLVIÓ EL VIGILANTE, Y CON MI PROPIO ARGUMENTO.
+  //
+  // Yo añadí la prueba del `PUT` diciendo que «leer no es medir», y dejé el
+  // camino de crear sin medir — donde vive exactamente la misma línea. Medido:
+  // mutar `category || null` a `?? null` en `createCard` dejaba los 3 casos de
+  // este fichero en VERDE.
+  //
+  // Y crear está en lo que la tarjeta pide: «una tarjeta nueva nace sin
+  // categoría salvo que se elija una». En el cliente eso quedó sellado; la
+  // mitad que llega a la fila, no.
+  //
+  // El síntoma sería idéntico e igual de invisible: una tarjeta recién creada
+  // con la categoría guardada como cadena vacía, que no es ninguna de las que
+  // existen. No da error, no se ve en pantalla, y solo aparece en la fila.
+  test('una categoría vacía se guarda como NULL', async () => {
+    const res = await post({ category: '' });
+
+    expect(res.status).toBe(201);
+    expect(__state.cardInserts).toHaveLength(1);
+    expect(__state.cardInserts[0].category).toBeNull();
+  });
+
+  test('CONTRAPRUEBA · una categoría de verdad se guarda tal cual', async () => {
+    const res = await post({ category: 'cat-2' });
+
+    expect(res.status).toBe(201);
+    expect(__state.cardInserts[0].category).toBe('cat-2');
+  });
+
+  test('y no mandarla también nace sin categoría', async () => {
+    // Aquí «no mandarlo» y «mandarlo vacío» SÍ significan lo mismo, al revés
+    // que al actualizar: una tarjeta que nace no tiene valor previo que
+    // conservar. Se fija para que la simetría con el `PUT` no se dé por hecha.
+    const res = await post({});
+
+    expect(res.status).toBe(201);
+    expect(__state.cardInserts[0].category).toBeNull();
   });
 });

@@ -22,6 +22,12 @@ Fixed
   insignia simplemente no se pinta. Ahora tiene prueba, con su contraprueba y la
   distinción entre «no mandarlo» y «mandarlo vacío».
 
+  **Y en los dos caminos, crear y actualizar.** El primer intento midió solo el de
+  actualizar, y la misma mutación en crear sobrevivía — donde vive la misma línea
+  y donde la tarjeta pide precisamente que una tarjeta nueva nazca sin categoría.
+  Lo devolvió el vigilante, con el mismo argumento que yo había usado para añadir
+  la primera mitad.
+
 **No se tocan datos.** Las tarjetas que ya recibieron categoría por este camino se
 quedan como están: no hay forma de saber cuáles se eligieron y cuáles no, y
 adivinarlo sería decidir por el Operador.
