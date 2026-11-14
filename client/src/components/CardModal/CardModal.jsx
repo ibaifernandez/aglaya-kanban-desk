@@ -323,7 +323,16 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
       setForm({
         title:          card.title          || '',
         description:    card.description    || '',
-        category:       card.category       || categories[0]?.id || '',
+        // ⚠️ SIN `|| categories[0]?.id`, y eso es el arreglo de `ec5b86e6`. Una
+        // tarjeta sin categoría se abría con la PRIMERA de la lista ya puesta, y
+        // al guardar —aunque solo se cambiara el título— salía clasificada por
+        // algo que nadie eligió. Quien filtre por categoría veía una
+        // clasificación que nadie hizo. Misma familia que la prioridad que se
+        // borraba sola, y esta casa ya retiró aquélla.
+        //
+        // En un espacio SIN categorías no se notaba, porque `categories[0]` no
+        // existe: por eso apareció al tocar uno que sí las tiene.
+        category:       card.category       || '',
         priority:       card.priority       || 'none',
         dueDate:        card.dueDate ? card.dueDate.slice(0, 10) : '',
         tags:           card.tags           || [],
@@ -334,7 +343,9 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
         assigneeId:     card.assigneeId     || null,
       });
     } else {
-      setForm({ ...EMPTY, category: categories[0]?.id || '', columnId });
+      // Una tarjeta nueva nace SIN categoría salvo que se elija. `EMPTY` ya la
+      // trae vacía; el override que había la rellenaba con la primera.
+      setForm({ ...EMPTY, columnId });
     }
   }, [card, columnId, boardId, columns, categories]);
 
@@ -738,6 +749,10 @@ export function CardModal({ card, columnId, boardId, boards = [], columns, works
                 onChange={(e) => set('category', e.target.value)}
                 className="w-full bg-[#252830] border border-[#2e3140] rounded-lg px-2.5 py-2 text-sm text-[#e8eaf0] outline-none focus:border-indigo-500"
               >
+                {/* Sin esta opción no hay forma de volver a «ninguna» desde la
+                    interfaz: el relleno automático era irreversible, y quitar
+                    una categoría puesta por error no se podía hacer. */}
+                <option value="">Sin categoría</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
               </select>
             </div>
