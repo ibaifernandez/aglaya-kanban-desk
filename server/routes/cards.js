@@ -471,6 +471,24 @@ const updateCard = async (req, res) => {
         field:       campo.field,
         old_value:   antes,
         changed_by:  req.user.id,
+        // ⚠️ EXPLÍCITAS AUNQUE TENGAN DEFAULT EN LA BASE, y esto es el arreglo de
+        // `dd7746cf`. En un `insert` de VARIAS filas, PostgREST une las claves de
+        // todas y rellena con **NULL** las que le falten a una — no con el
+        // DEFAULT. `es_sufijo` es `BOOLEAN NOT NULL`, así que un lote que mezcle
+        // la fila de `description` (que sí las trae, de `calcularFila`) con las de
+        // cualquier otro campo **se rechaza entero**:
+        //
+        //   null value in column "es_sufijo" … violates not-null constraint
+        //
+        // El Operador se lo comió seis veces el 14-nov-2026 editando desde la UI:
+        // toda edición que tocara la descripción Y otro campo fallaba. La
+        // compuerta hacía bien su trabajo —no sobrescribir sin guardar antes— así
+        // que no se perdía la tarjeta, se perdía la edición.
+        //
+        // La fila de `description` las sobrescribe más abajo con `Object.assign`.
+        // Aquí valen de suelo, no de decisión.
+        es_sufijo:   false,
+        base_id:     null,
       });
     }
   }

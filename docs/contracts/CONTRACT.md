@@ -1,8 +1,8 @@
 # Contrato — Inyección de comandas en el riel
 
 - **Dueño canónico:** `aglaya-kanban-desk` (este repo)
-- **Versión:** 6.0.1
-- **Última modificación:** 2026-11-11
+- **Versión:** 6.0.2
+- **Última modificación:** 2026-11-14
 
 > **Este fichero es la autoridad sobre cómo se le clava trabajo a esta nave.**
 > Hasta hoy no existía: el registro de contratos del capitán describía la puerta
@@ -523,6 +523,33 @@ historial de abajo: esa línea **es** el aviso al capitán que este contrato pid
 y cuesta un renglón.
 
 ### Historial de versiones
+
+**6.0.2 — 2026-11-14. SIN cambio de forma: se arregla que guardar una tarjeta
+fallara al tocar la descripción Y otro campo a la vez.** Ningún consumidor tiene
+que cambiar nada — al contrario, **vuelve a funcionar algo que estaba roto en
+producción**: toda edición que cambiara la descripción junto a cualquier otro campo
+con valor previo recibía un `500`, desde la UI y desde el riel.
+
+**Qué pasaba.** El `PUT` manda **un solo lote** de filas de historial, una por
+campo que cambia. La de `description` llevaba `es_sufijo`/`base_id`; las de los
+demás campos, no. En un `insert` de varias filas PostgREST **une las claves de
+todas y rellena con NULL las que falten, no con el DEFAULT**, y `es_sufijo` es
+`BOOLEAN NOT NULL`: el lote entero se rechazaba.
+
+```
+null value in column "es_sufijo" of relation "card_description_history"
+violates not-null constraint
+```
+
+Entró con v3.9.0 (`fc38e47f`, el historial de la descripción como trozo), que creó
+esa columna. **La compuerta del historial hizo bien su trabajo** —no sobrescribir
+sin poder guardar antes la versión anterior— así que no se perdió ninguna tarjeta:
+se perdieron las ediciones.
+
+**Lo que impide que vuelva no es rellenar esa columna**, sino que **las dos clases
+de fila lleven las mismas claves**: mientras eso se cumpla no hay hueco que
+PostgREST pueda rellenar con NULL, tampoco el día que alguien añada otra columna
+`NOT NULL` a esa tabla. Hay un caso que lo fija. Tarjeta `dd7746cf`.
 
 **6.0.1 — 2026-11-11. SIN cambio de forma: una cifra de coste que estaba mal, y un
 doble de pruebas que no sabía no encontrar nada.** Ningún consumidor de la Puerta 1
